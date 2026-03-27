@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PATRIMOINE — SAISIE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg:       #1a1c18;
+    --bg2:      #22241f;
+    --bg3:      #2a2d26;
+    --olive:    #6b7c3a;
+    --khaki:    #a8b87a;
+    --rust:     #c0623a;
+    --sand:     #d4c89a;
+    --dim:      #5a5e52;
+    --text:     #ddd8cc;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Barlow Condensed', sans-serif;
+    --rad:      4px;
+    --btn-h:    42px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    min-height: 100dvh;
+    padding-bottom: 80px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 2px solid var(--olive);
+    padding: 12px 16px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--khaki);
+    text-transform: uppercase;
+  }
+  header .total-badge {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--olive);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  /* ── BANK SECTION ── */
+  .bank-section {
+    margin: 14px 10px 0;
+  }
+  .bank-header {
+    background: var(--olive);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    border-radius: var(--rad) var(--rad) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bank-header .bank-total {
+    font-size: 13px;
+    color: var(--sand);
+    font-weight: 700;
+  }
+  .bank-body {
+    background: var(--bg2);
+    border: 1px solid var(--bg3);
+    border-top: none;
+    border-radius: 0 0 var(--rad) var(--rad);
+    overflow: hidden;
+  }
+
+  /* ── ROW ── */
+  .row {
+    border-bottom: 1px solid var(--bg3);
+    padding: 10px 12px 8px;
+  }
+  .row:last-child { border-bottom: none; }
+
+  .row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .row-label {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--sand);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex: 1;
+  }
+  .row-value {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--khaki);
+    font-weight: 700;
+    min-width: 90px;
+    text-align: right;
+  }
+  .row-value.negative { color: var(--rust); }
+
+  /* ── EDITABLE FIELDS ── */
+  .fields-line {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .field-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 90px;
+  }
+  .field-wrap label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  input[type="number"] {
+    background: var(--bg3);
+    border: 1px solid var(--dim);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 6px 8px;
+    width: 100%;
+    text-align: right;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    touch-action: manipulation;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { display: none; }
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--olive);
+    background: #2f3229;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .adj-btn {
+    flex: 1;
+    min-width: 36px;
+    height: var(--btn-h);
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--dim);
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.1s, color 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .adj-btn.neg { color: #e07a5f; border-color: #4a3030; }
+  .adj-btn.pos { color: var(--khaki); border-color: #3a4a2a; }
+  .adj-btn:active, .adj-btn.neg:active { background: var(--olive); color: #fff; }
+
+  /* ── DIVIDER ── */
+  .sub-divider {
+    height: 1px;
+    background: var(--bg3);
+    margin: 0;
+  }
+
+  /* ── COMPUTED ── */
+  .computed-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+  .computed-line span:last-child { color: var(--sand); font-size: 12px; }
+
+  /* ── BOTTOM BAR ── */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 2px solid var(--olive);
+    padding: 10px 16px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+  .bottom-bar button {
+    flex: 1;
+    height: 46px;
+    border: none;
+    border-radius: var(--rad);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .btn-export {
+    background: var(--olive);
+    color: #fff;
+  }
+  .btn-import {
+    background: var(--bg3);
+    color: var(--khaki);
+    border: 1px solid var(--dim) !important;
+  }
+  .btn-reset {
+    background: #3a1a10;
+    color: var(--rust);
+    border: 1px solid #5a2a18 !important;
+    flex: 0 0 80px;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    top: 70px; left: 50%; transform: translateX(-50%);
+    background: var(--olive);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+
+  /* ── PASSWORD OVERLAY ── */
+  #pwd-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    z-index: 999;
+  }
+  #pwd-overlay h2 {
+    font-family: var(--mono);
+    color: var(--khaki);
+    letter-spacing: 3px;
+    font-size: 14px;
+  }
+  #pwd-overlay input {
+    background: var(--bg3);
+    border: 1px solid var(--olive);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 18px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    text-align: center;
+    width: 220px;
+    letter-spacing: 4px;
+  }
+  #pwd-overlay input:focus { outline: none; border-color: var(--khaki); }
+  #pwd-overlay button {
+    background: var(--olive);
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    font-family: var(--mono);
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 2px;
+  }
+  #pwd-err { color: var(--rust); font-family: var(--mono); font-size: 12px; }
+
+  .section-spacer { height: 8px; }
+</style>
+</head>
+<body>
+
+<!-- Password overlay -->
+<div id="pwd-overlay">
+  <h2>◈ ACCÈS SÉCURISÉ</h2>
+  <input type="password" id="pwd-input" placeholder="••••••" maxlength="32">
+  <button onclick="checkPwd()">DÉVERROUILLER</button>
+  <div id="pwd-err"></div>
+</div>
+
+<div id="toast"></div>
+
+<header>
+  <h1>◈ PATRIMOINE SAISIE</h1>
+  <div class="total-badge" id="grand-total">— €</div>
+</header>
+
+<div id="main-content" style="display:none"></div>
+
+<!-- Hidden import input -->
+<input type="file" id="file-import" accept=".json" style="display:none">
+
+<div class="bottom-bar" id="bottom-bar" style="display:none">
+  <button class="btn-import" onclick="document.getElementById('file-import').click()">⇑ IMPORT</button>
+  <button class="btn-export" onclick="exportJSON()">⇓ EXPORT JSON</button>
+  <button class="btn-reset" onclick="resetAll()">↺ RESET</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// PASSWORD (SHA-256 based)
+// ══════════════════════════════════════════
+const PWD_HASH_KEY = 'patri_pwd_hash';
+let sessionKey = null; // used for XOR-based encryption
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPwd() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (!pwd) return;
+  const hash = await sha256(pwd);
+  const stored = localStorage.getItem(PWD_HASH_KEY);
+  if (!stored) {
+    // First use — set password
+    localStorage.setItem(PWD_HASH_KEY, hash);
+    sessionKey = pwd;
+    unlock();
+  } else if (stored === hash) {
+    sessionKey = pwd;
+    unlock();
+  } else {
+    document.getElementById('pwd-err').textContent = 'MOT DE PASSE INCORRECT';
+  }
+}
+
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPwd();
+});
+
+function unlock() {
+  document.getElementById('pwd-overlay').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  document.getElementById('bottom-bar').style.display = 'flex';
+  buildUI();
+  loadFromStorage();
+  updateAllTotals();
+}
+
+// ══════════════════════════════════════════
+// DATA SCHEMA
+// ══════════════════════════════════════════
+// Each account: { id, label, bank, type, fields: [{key,label,unit}], values: {key: number} }
+
+const SCHEMA = [
+  // ── BANQUE 1 ──
+  { id:'b1_cc',    bank:'BANQUE 1', label:'Compte Courant',   type:'simple',   fields:[] },
+  { id:'b1_liva',  bank:'BANQUE 1', label:'Livret A',         type:'simple',   fields:[] },
+  { id:'b1_livb',  bank:'BANQUE 1', label:'Livret B+',        type:'simple',   fields:[] },
+  { id:'b1_cto',   bank:'BANQUE 1', label:'CTO',              type:'invest',   fields:[] },
+  { id:'b1_ctoliq',bank:'BANQUE 1', label:'CTO Liquidités',   type:'simple',   fields:[] },
+  { id:'b1_pea',   bank:'BANQUE 1', label:'PEA',              type:'invest',   fields:[] },
+  { id:'b1_pealiq',bank:'BANQUE 1', label:'PEA Liquidités',   type:'simple',   fields:[] },
+  { id:'b1_av',    bank:'BANQUE 1', label:'Assurance Vie',    type:'invest',   fields:[] },
+
+  // ── BANQUE 2 ──
+  { id:'b2_cc',    bank:'BANQUE 2', label:'Compte Courant',   type:'simple',   fields:[] },
+  { id:'b2_livp',  bank:'BANQUE 2', label:'Livret+',          type:'simple',   fields:[] },
+  { id:'b2_ldds',  bank:'BANQUE 2', label:'LDDS',             type:'simple',   fields:[] },
+  { id:'b2_av',    bank:'BANQUE 2', label:'Assurance Vie',    type:'invest',   fields:[] },
+  { id:'b2_ctoliq',bank:'BANQUE 2', label:'CTO Liquidités',   type:'simple',   fields:[] },
+  { id:'b2_cto',   bank:'BANQUE 2', label:'CTO',              type:'invest',   fields:[] },
+  { id:'b2_pealiq',bank:'BANQUE 2', label:'PEA Liquidités',   type:'simple',   fields:[] },
+  { id:'b2_pea',   bank:'BANQUE 2', label:'PEA',              type:'invest',   fields:[] },
+
+  // ── BANQUE 3 ──
+  { id:'b3_cc',    bank:'BANQUE 3', label:'Compte Courant',   type:'simple',   fields:[] },
+  { id:'b3_eur',   bank:'BANQUE 3', label:'€ster (€)',        type:'simple',   fields:[] },
+  { id:'b3_usd',   bank:'BANQUE 3', label:'$ster (USD)',      type:'simple',   fields:[] },
+  { id:'b3_gold',  bank:'BANQUE 3', label:'Gold (Or)',        type:'invest',   fields:[] },
+  { id:'b3_actus', bank:'BANQUE 3', label:'Actions US',       type:'invest',   fields:[] },
+  { id:'b3_oblig', bank:'BANQUE 3', label:'Obligations',      type:'invest',   fields:[] },
+  { id:'b3_reit',  bank:'BANQUE 3', label:'REITs',            type:'simple',   fields:[] },
+  { id:'b3_crypto',bank:'BANQUE 3', label:'Crypto',           type:'invest',   fields:[] },
+
+  // ── BANQUE 4 ──
+  { id:'b4_pee',   bank:'BANQUE 4', label:'Compte Bloqué PEE',type:'simple',   fields:[] },
+
+  // ── DIVERS ──
+  { id:'dv_maison',bank:'DIVERS',   label:'Maison',           type:'simple',   fields:[] },
+  { id:'dv_liquide',bank:'DIVERS',  label:'Argent Liquide',   type:'simple',   fields:[] },
+
+  // ── SCPI ──
+  { id:'sc_1',     bank:'SCPI',     label:'SCPI 1',           type:'simple',   fields:[] },
+  { id:'sc_2',     bank:'SCPI',     label:'SCPI 2',           type:'simple',   fields:[] },
+  { id:'sc_3',     bank:'SCPI',     label:'SCPI 3',           type:'simple',   fields:[] },
+  { id:'sc_4',     bank:'SCPI',     label:'SCPI 4',           type:'simple',   fields:[] },
+];
+
+const BTNS = [-10, -5, -2, -1, -0.5, 0.5, 1, 2, 5, 10]; // percentages
+
+// state: { [id]: { valeur?, prixRevient?, quantite? } }
+let state = {};
+SCHEMA.forEach(s => {
+  if (s.type === 'invest') {
+    state[s.id] = { valeur: 0, prixRevient: 0, quantite: 0 };
+  } else {
+    state[s.id] = { valeur: 0 };
+  }
+});
+
+// ══════════════════════════════════════════
+// BUILD UI
+// ══════════════════════════════════════════
+function buildUI() {
+  const banks = [...new Set(SCHEMA.map(s => s.bank))];
+  const container = document.getElementById('main-content');
+  container.innerHTML = '';
+
+  banks.forEach(bank => {
+    const accounts = SCHEMA.filter(s => s.bank === bank);
+    const section = document.createElement('div');
+    section.className = 'bank-section';
+    section.innerHTML = `
+      <div class="bank-header">
+        <span>${bank}</span>
+        <span class="bank-total" id="bank-total-${bank.replace(/\s/g,'_')}">0 €</span>
+      </div>
+      <div class="bank-body">
+        ${accounts.map(acc => buildRow(acc)).join('')}
+      </div>
+    `;
+    container.appendChild(section);
+    container.appendChild(Object.assign(document.createElement('div'), {className: 'section-spacer'}));
+  });
+
+  // Attach events
+  SCHEMA.forEach(acc => {
+    if (acc.type === 'invest') {
+      ['valeur','prixRevient','quantite'].forEach(field => {
+        const inp = document.getElementById(`inp-${acc.id}-${field}`);
+        if (inp) inp.addEventListener('change', () => { syncState(acc.id, field, inp); updateAllTotals(); });
+      });
+    } else {
+      const inp = document.getElementById(`inp-${acc.id}-valeur`);
+      if (inp) inp.addEventListener('change', () => { syncState(acc.id, 'valeur', inp); updateAllTotals(); });
+    }
+  });
+
+  document.getElementById('file-import').addEventListener('change', importJSON);
+}
+
+function buildRow(acc) {
+  const isInvest = acc.type === 'invest';
+
+  const valField = `
+    <div class="field-wrap">
+      <label>VALEUR (€)</label>
+      <input type="number" id="inp-${acc.id}-valeur" value="0" step="0.01">
+    </div>`;
+
+  const investFields = isInvest ? `
+    <div class="field-wrap">
+      <label>PRIX DE REV. (€)</label>
+      <input type="number" id="inp-${acc.id}-prixRevient" value="0" step="0.01">
+    </div>
+    <div class="field-wrap" style="flex:0 0 80px;min-width:80px">
+      <label>QUANTITÉ</label>
+      <input type="number" id="inp-${acc.id}-quantite" value="0" step="0.0001">
+    </div>` : '';
+
+  const computedLine = isInvest ? `
+    <div class="computed-line">
+      <span>P.R. TOTAL</span>
+      <span id="pr-total-${acc.id}">0 €</span>
+    </div>
+    <div class="computed-line">
+      <span>+/- VALUE</span>
+      <span id="pv-${acc.id}" style="color:var(--khaki)">0 €</span>
+    </div>` : '';
+
+  // Buttons target valeur by default (main field)
+  const btns = BTNS.map(v => {
+    const cls = v < 0 ? 'neg' : 'pos';
+    const label = v > 0 ? `+${v}%` : `${v}%`;
+    return `<button class="adj-btn ${cls}" ontouchstart="adjPct('${acc.id}','valeur',${v})" onclick="adjPct('${acc.id}','valeur',${v})">${label}</button>`;
+  }).join('');
+
+  return `
+    <div class="row" id="row-${acc.id}">
+      <div class="row-top">
+        <div class="row-label">${acc.label}</div>
+        <div class="row-value" id="disp-${acc.id}">0 €</div>
+      </div>
+      <div class="fields-line">
+        ${valField}
+        ${investFields}
+      </div>
+      <div class="btn-row">${btns}</div>
+      ${computedLine}
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// STATE & ADJUST
+// ══════════════════════════════════════════
+function adj(id, field, delta) {
+  state[id][field] = round2((state[id][field] || 0) + delta);
+  const inp = document.getElementById(`inp-${id}-${field}`);
+  if (inp) inp.value = state[id][field];
+  updateAllTotals();
+  saveToStorage();
+}
+
+function adjPct(id, field, pct) {
+  const current = state[id][field] || 0;
+  const delta = round2(current * pct / 100);
+  state[id][field] = round2(current + delta);
+  const inp = document.getElementById(`inp-${id}-${field}`);
+  if (inp) inp.value = state[id][field];
+  updateAllTotals();
+  saveToStorage();
+}
+
+function syncState(id, field, inp) {
+  state[id][field] = parseFloat(inp.value) || 0;
+  saveToStorage();
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+function fmtEur(n) {
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  return sign + abs.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+}
+
+function updateAllTotals() {
+  let grand = 0;
+  const bankTotals = {};
+
+  SCHEMA.forEach(acc => {
+    const s = state[acc.id];
+    const val = s.valeur || 0;
+
+    // Display main value
+    const disp = document.getElementById(`disp-${acc.id}`);
+    if (disp) {
+      disp.textContent = fmtEur(val);
+      disp.className = 'row-value' + (val < 0 ? ' negative' : '');
+    }
+
+    // Update inputs (in case loaded from storage)
+    const inpV = document.getElementById(`inp-${acc.id}-valeur`);
+    if (inpV && parseFloat(inpV.value) !== val) inpV.value = val;
+
+    if (acc.type === 'invest') {
+      const pr = s.prixRevient || 0;
+      const qt = s.quantite || 0;
+      const prTotal = round2(pr * qt);
+      const pv = round2(val - prTotal);
+
+      const prEl = document.getElementById(`pr-total-${acc.id}`);
+      if (prEl) prEl.textContent = fmtEur(prTotal);
+
+      const pvEl = document.getElementById(`pv-${acc.id}`);
+      if (pvEl) {
+        pvEl.textContent = (pv >= 0 ? '+' : '') + fmtEur(pv);
+        pvEl.style.color = pv >= 0 ? 'var(--khaki)' : 'var(--rust)';
+      }
+
+      const inpPR = document.getElementById(`inp-${acc.id}-prixRevient`);
+      if (inpPR && parseFloat(inpPR.value) !== pr) inpPR.value = pr;
+      const inpQt = document.getElementById(`inp-${acc.id}-quantite`);
+      if (inpQt && parseFloat(inpQt.value) !== qt) inpQt.value = qt;
+    }
+
+    grand += val;
+    if (!bankTotals[acc.bank]) bankTotals[acc.bank] = 0;
+    bankTotals[acc.bank] += val;
+  });
+
+  // Update bank totals
+  Object.entries(bankTotals).forEach(([bank, total]) => {
+    const el = document.getElementById(`bank-total-${bank.replace(/\s/g,'_')}`);
+    if (el) el.textContent = fmtEur(total);
+  });
+
+  // Grand total
+  const gtEl = document.getElementById('grand-total');
+  if (gtEl) gtEl.textContent = fmtEur(grand);
+}
+
+// ══════════════════════════════════════════
+// STORAGE (localStorage)
+// ══════════════════════════════════════════
+const LS_KEY = 'patri_saisie_v1';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const loaded = JSON.parse(raw);
+    Object.keys(loaded).forEach(id => {
+      if (state[id]) Object.assign(state[id], loaded[id]);
+    });
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════
+// XOR ENCRYPTION (simple, symmetric)
+// ══════════════════════════════════════════
+function xorEncrypt(text, key) {
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return btoa(result);
+}
+
+function xorDecrypt(b64, key) {
+  const text = atob(b64);
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return result;
+}
+
+// ══════════════════════════════════════════
+// EXPORT / IMPORT JSON CRYPTÉ
+// ══════════════════════════════════════════
+function exportJSON() {
+  saveToStorage();
+  const payload = JSON.stringify({
+    version: 1,
+    date: new Date().toISOString(),
+    data: state
+  }, null, 2);
+
+  const encrypted = xorEncrypt(payload, sessionKey);
+  const blob = new Blob([JSON.stringify({enc: encrypted})], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const d = new Date();
+  a.download = `patrimoine_${d.toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('EXPORT JSON CRYPTÉ ✓');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wrapper = JSON.parse(ev.target.result);
+      let payload;
+      if (wrapper.enc) {
+        payload = xorDecrypt(wrapper.enc, sessionKey);
+      } else {
+        // fallback: unencrypted export
+        payload = ev.target.result;
+      }
+      const obj = JSON.parse(payload);
+      const loaded = obj.data || obj;
+      Object.keys(loaded).forEach(id => {
+        if (state[id]) Object.assign(state[id], loaded[id]);
+      });
+      updateAllTotals();
+      saveToStorage();
+      showToast('IMPORT RÉUSSI ✓');
+    } catch(err) {
+      showToast('ERREUR: MOT DE PASSE OU FICHIER INVALIDE');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('Remettre toutes les valeurs à zéro ?')) return;
+  SCHEMA.forEach(acc => {
+    if (acc.type === 'invest') {
+      state[acc.id] = { valeur: 0, prixRevient: 0, quantite: 0 };
+    } else {
+      state[acc.id] = { valeur: 0 };
+    }
+  });
+  updateAllTotals();
+  saveToStorage();
+  showToast('RESET EFFECTUÉ');
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
