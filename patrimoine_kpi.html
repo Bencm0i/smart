@@ -145,6 +145,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ── ATH CHART ── */
+.chart-wrap{padding:16px 14px 12px;position:relative;}
+.chart-canvas{width:100%;height:140px;display:block;}
+.chart-tooltip{position:absolute;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:10px;pointer-events:none;opacity:0;transition:opacity .12s;white-space:nowrap;z-index:10;}
+.chart-tooltip b{font-family:'Syne',sans-serif;font-size:12px;color:var(--accent);display:block;}
+.chart-xaxis{display:flex;justify-content:space-between;padding:4px 2px 0;font-size:9px;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -158,9 +165,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
       <button class="icon-btn" id="maskBtn">👁</button>
       <label class="load-pill" for="fileInput">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Manuel
+        Manuel (.json / .patrenenc)
       </label>
-      <input type="file" id="fileInput" accept=".json" style="display:none">
+      <input type="file" id="fileInput" accept=".json,.patrenenc" style="display:none">
     </div>
   </div>
 
@@ -193,10 +200,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
           <div class="ticker-price" id="tWpeaP">—</div>
           <div class="ticker-chg neu" id="tWpeaC">—</div>
         </div>
-        <div class="ticker-card gold">
-          <div class="ticker-sym">OR · EUR/oz</div>
-          <div class="ticker-price" id="tGoldP">—</div>
-          <div class="ticker-chg neu" id="tGoldC">—</div>
+        <div class="ticker-card" style="--tc:#4df0c8;">
+          <div class="ticker-sym">EUR / USD</div>
+          <div class="ticker-price" id="tEurP">—</div>
+          <div class="ticker-chg neu" id="tEurC">—</div>
         </div>
         <div class="ticker-card vix">
           <div class="ticker-sym">VIX</div>
@@ -208,7 +215,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
     <!-- CTA charger JSON -->
     <label class="empty-cta" for="fileInput">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Charger un JSON
+      Charger JSON ou .patrenenc
     </label>
   </div>
 
@@ -286,6 +293,18 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
       <div class="panel" id="invPanel"></div>
     </div>
 
+    <!-- ÉVOLUTION -->
+    <div class="section" id="chartSection" style="display:none">
+      <div class="sec-head">Évolution patrimoine</div>
+      <div class="panel" style="position:relative;">
+        <div class="chart-wrap">
+          <canvas id="athChart" class="chart-canvas"></canvas>
+          <div class="chart-tooltip" id="chartTip"><b id="chartTipVal">—</b><span id="chartTipDate"></span></div>
+        </div>
+        <div class="chart-xaxis" id="chartXAxis"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -306,6 +325,25 @@ $('maskBtn').addEventListener('click', () => {
   $('maskBtn').textContent = masked ? '🙈' : '👁';
   document.querySelectorAll('.amount').forEach(e => e.classList.toggle('masked', masked));
 });
+
+// ── Crypto helpers (AES-GCM 256) — compatibles patrimoine_dashboard ──────
+async function _deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const raw = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt, iterations:200000, hash:'SHA-256'},
+    raw, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+  );
+}
+async function _decrypt(b64, password) {
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const magic = [0x50,0x41,0x54,0x52,0x45,0x4E,0x43,0x01];
+  if (!magic.every((v,i) => bytes[i]===v)) throw new Error('not_encrypted');
+  const salt = bytes.slice(8,24), iv = bytes.slice(24,36), ct = bytes.slice(36);
+  const key  = await _deriveKey(password, salt);
+  const pt   = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
+  return new TextDecoder().decode(pt);
+}
 
 // ── PARSE JSON (brut ou tolérant) ────────────────────────
 function parseAndLoad(raw, filename, lastModified) {
@@ -340,14 +378,40 @@ function parseAndLoad(raw, filename, lastModified) {
   set('tsLbl', label);
 }
 
-// ── CHARGEMENT MANUEL ────────────────────────────────────
-$('fileInput').addEventListener('change', e => {
+// ── CHARGEMENT MANUEL (JSON + .patrenenc chiffré) ────────
+$('fileInput').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => parseAndLoad(ev.target.result, f.name, f.lastModified);
-  r.onerror = () => showError('Erreur de lecture du fichier.');
-  r.readAsText(f, 'utf-8');
   e.target.value = '';
+
+  const isEnc = f.name.toLowerCase().endsWith('.patrenenc');
+
+  if (isEnc) {
+    // Fichier chiffré : c'est du base64 texte, lire directement en text
+    const pw = prompt('🔐 Mot de passe pour déchiffrer ce fichier :');
+    if (!pw) { showError('Mot de passe requis pour déchiffrer.'); return; }
+    const r = new FileReader();
+    r.onerror = () => showError('Erreur de lecture du fichier.');
+    r.onload = async ev => {
+      const b64 = ev.target.result.replace(/\s+/g, '');  // retire tous les espaces/sauts de ligne
+      let raw;
+      try {
+        raw = await _decrypt(b64, pw);
+      } catch(err) {
+        if (err.message === 'not_encrypted') showError('Fichier non reconnu — vérifiez que c\'est bien un export chiffré du dashboard.');
+        else if (err.name === 'InvalidCharacterError') showError('Fichier corrompu — base64 invalide.');
+        else showError('Déchiffrement échoué — mot de passe incorrect ?');
+        return;
+      }
+      parseAndLoad(raw, f.name, f.lastModified);
+    };
+    r.readAsText(f, 'utf-8');
+  } else {
+    // Fichier JSON classique
+    const r = new FileReader();
+    r.onerror = () => showError('Erreur de lecture du fichier.');
+    r.onload = ev => parseAndLoad(ev.target.result, f.name, f.lastModified);
+    r.readAsText(f, 'utf-8');
+  }
 });
 
 function showError(msg) {
@@ -376,7 +440,7 @@ const TICKERS = [
   { id:'nas',  gfSym:'INDEXNASDAQ:.IXIC',   yf:'%5EIXIC',  priceId:'tNasP',  chgId:'tNasC',  fmt:'idx' },
   { id:'cac',  gfSym:'INDEXEURO:PX1',       yf:'%5EFCHI',  priceId:'tCacP',  chgId:'tCacC',  fmt:'idx' },
   { id:'wpea', gfSym:'EPA:WPEA',            yf:'WPEA.PA',  priceId:'tWpeaP', chgId:'tWpeaC', fmt:'eur' },
-  { id:'gold', gfSym:'CURRENCY:XAUEUR',     yf:'XAUEUR=X', priceId:'tGoldP', chgId:'tGoldC', fmt:'eur' },
+  { id:'eur',  gfSym:'CURRENCY:EURUSD',     yf:'EURUSD=X',  priceId:'tEurP',  chgId:'tEurC',  fmt:'fx', yfOnly:true  },
   { id:'vix',  gfSym:'INDEXCBOE:VIX',       yf:'%5EVIX',   priceId:'tVixP',  chgId:'tVixC',  fmt:'idx' },
 ];
 
@@ -393,6 +457,7 @@ function fmtTickerPrice(v, fmt) {
     : v.toFixed(2));
   if (fmt === 'eur') return new Intl.NumberFormat('fr-FR',
     {style:'currency', currency:'EUR', maximumFractionDigits:2}).format(v);
+  if (fmt === 'fx') return v.toFixed(4);
   // idx
   return v >= 1000
     ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:2}).format(v)
@@ -405,6 +470,7 @@ function fmtTickerChg(chgAbs, chgPct, fmt) {
   let absStr;
   if (fmt === 'eur')                   absStr = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(chgAbs);
   else if (fmt==='usd'||fmt==='crypto') absStr = '$' + chgAbs.toFixed(0);
+  else if (fmt==='fx')                  absStr = (chgAbs >= 0 ? '+' : '') + chgAbs.toFixed(4);
   else                  absStr = chgAbs.toFixed(2);
   return { text: `${s}${absStr}  ${s}${chgPct.toFixed(2)}%`, up };
 }
@@ -439,6 +505,7 @@ async function fetchAllFromGAS() {
   if (!j.ok) throw new Error('GAS réponse invalide');
 
   TICKERS.forEach(t => {
+    if (t.yfOnly) return; // certains tickers forcés Yahoo
     const d = j.data?.[t.id];
     if (!d || d.error || d.price === null) { applyError(t); return; }
     applyTicker(t, d.price, d.change, d.changePct);
@@ -472,21 +539,27 @@ async function fetchOneYahoo(t) {
 async function fetchAllTickers() {
   const ts = $('tickerTs'); if (ts) ts.textContent = '…';
 
+  const yfOnlyTickers  = TICKERS.filter(t => t.yfOnly);
+  const gasTickers     = TICKERS.filter(t => !t.yfOnly);
+
+  // Toujours Yahoo pour les tickers yfOnly (ex: EUR/USD)
+  const yfOnlyPromise = Promise.allSettled(yfOnlyTickers.map(fetchOneYahoo));
+
   if (GAS_URL) {
     try {
-      await fetchAllFromGAS();
+      await Promise.all([fetchAllFromGAS(), yfOnlyPromise]);
       const now = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-      if (ts) ts.textContent = `${now} · GF`;   // "GF" = Google Finance natif ✓
+      if (ts) ts.textContent = `${now} · GF`;
       return;
     } catch(err) {
       console.warn('GAS indispo, fallback Yahoo :', err.message);
     }
   }
 
-  // Fallback Yahoo
+  // Fallback Yahoo pour tout
   await Promise.allSettled(TICKERS.map(fetchOneYahoo));
   const now = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  if (ts) ts.textContent = `${now} · YF`;   // "YF" = Yahoo Finance fallback
+  if (ts) ts.textContent = `${now} · YF`;
 }
 
 $('tickerRefreshBtn')?.addEventListener('click', fetchAllTickers);
@@ -528,6 +601,7 @@ function render() {
   try { renderLiqBar(T); } catch(e){ console.error('renderLiqBar',e); }
   try { renderAlloc(T); }  catch(e){ console.error('renderAlloc',e); }
   try { renderInv(); }     catch(e){ console.error('renderInv',e); }
+  try { renderAthChart(); }catch(e){ console.error('renderAthChart',e); }
 }
 
 function renderHero(T) {
@@ -674,6 +748,181 @@ function renderInv() {
       </div>`;
     panel.appendChild(row);
   });
+}
+
+function renderAthChart() {
+  const raw = (D.ath||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const sec = $('chartSection');
+  if (raw.length < 2) { if(sec) sec.style.display='none'; return; }
+  if(sec) sec.style.display='';
+
+  const canvas = $('athChart');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth  || canvas.parentElement.offsetWidth || 360;
+  const H = 140;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const vals  = raw.map(e => e.val);
+  const dates = raw.map(e => e.date);
+  const minV  = Math.min(...vals);
+  const maxV  = Math.max(...vals);
+  const range = maxV - minV || 1;
+
+  const PAD = { top:12, right:10, bottom:8, left:10 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top  - PAD.bottom;
+
+  const xOf = i => PAD.left + (i / (vals.length - 1)) * cW;
+  const yOf = v => PAD.top  + (1 - (v - minV) / range) * cH;
+
+  // ── Gradient fill ──
+  const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+  grad.addColorStop(0,   'rgba(200,240,77,.18)');
+  grad.addColorStop(1,   'rgba(200,240,77,0)');
+
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(vals[0]));
+  for (let i = 1; i < vals.length; i++) {
+    const xm = (xOf(i-1) + xOf(i)) / 2;
+    ctx.bezierCurveTo(xm, yOf(vals[i-1]), xm, yOf(vals[i]), xOf(i), yOf(vals[i]));
+  }
+  ctx.lineTo(xOf(vals.length-1), PAD.top + cH);
+  ctx.lineTo(xOf(0), PAD.top + cH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // ── Ligne principale ──
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(vals[0]));
+  for (let i = 1; i < vals.length; i++) {
+    const xm = (xOf(i-1) + xOf(i)) / 2;
+    ctx.bezierCurveTo(xm, yOf(vals[i-1]), xm, yOf(vals[i]), xOf(i), yOf(vals[i]));
+  }
+  ctx.strokeStyle = '#c8f04d';
+  ctx.lineWidth   = 1.8;
+  ctx.lineJoin    = 'round';
+  ctx.stroke();
+
+  // ── Point ATH ──
+  const athIdx = vals.indexOf(maxV);
+  ctx.beginPath();
+  ctx.arc(xOf(athIdx), yOf(maxV), 4, 0, Math.PI*2);
+  ctx.fillStyle   = '#f0c84d';
+  ctx.strokeStyle = '#08080e';
+  ctx.lineWidth   = 1.5;
+  ctx.fill(); ctx.stroke();
+
+  // ── Point actuel (dernier) ──
+  const lastI = vals.length - 1;
+  ctx.beginPath();
+  ctx.arc(xOf(lastI), yOf(vals[lastI]), 4, 0, Math.PI*2);
+  ctx.fillStyle   = '#c8f04d';
+  ctx.strokeStyle = '#08080e';
+  ctx.lineWidth   = 1.5;
+  ctx.fill(); ctx.stroke();
+
+  // ── Labels axe X (3 dates : début, milieu, fin) ──
+  const xAxis = $('chartXAxis');
+  if (xAxis) {
+    const picks = [0, Math.floor((vals.length-1)/2), vals.length-1];
+    xAxis.innerHTML = picks.map(i => {
+      const d = new Date(dates[i]);
+      return `<span>${d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</span>`;
+    }).join('');
+  }
+
+  // ── Tooltip interactif ──
+  const tip = $('chartTip');
+  const tipVal  = $('chartTipVal');
+  const tipDate = $('chartTipDate');
+
+  function showTip(e) {
+    const rect = canvas.getBoundingClientRect();
+    const cx   = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const idx  = Math.max(0, Math.min(vals.length-1, Math.round((cx - PAD.left) / cW * (vals.length-1))));
+
+    // Ligne curseur
+    ctx.clearRect(0, 0, W, H);
+    // Redessine tout (simplifié : appel récursif sans events)
+    drawChart(ctx, vals, W, H, PAD, cW, cH, xOf, yOf, grad, maxV, athIdx);
+
+    ctx.beginPath();
+    ctx.moveTo(xOf(idx), PAD.top);
+    ctx.lineTo(xOf(idx), PAD.top + cH);
+    ctx.strokeStyle = 'rgba(200,240,77,.3)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3,3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Tooltip
+    if (tip) {
+      tipVal.textContent  = fmt(vals[idx]);
+      tipDate.textContent = new Date(dates[idx]).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+      const tx = Math.min(xOf(idx) + 10, W - 130);
+      tip.style.left    = tx + 'px';
+      tip.style.top     = (yOf(vals[idx]) - 38) + 'px';
+      tip.style.opacity = '1';
+    }
+  }
+
+  function hideTip() {
+    if (tip) tip.style.opacity = '0';
+  }
+
+  canvas.addEventListener('mousemove',  showTip);
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); showTip(e); }, {passive:false});
+  canvas.addEventListener('mouseleave', hideTip);
+  canvas.addEventListener('touchend',   hideTip);
+}
+
+function drawChart(ctx, vals, W, H, PAD, cW, cH, xOf, yOf, grad, maxV, athIdx) {
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(vals[0]));
+  for (let i = 1; i < vals.length; i++) {
+    const xm = (xOf(i-1) + xOf(i)) / 2;
+    ctx.bezierCurveTo(xm, yOf(vals[i-1]), xm, yOf(vals[i]), xOf(i), yOf(vals[i]));
+  }
+  ctx.lineTo(xOf(vals.length-1), PAD.top + cH);
+  ctx.lineTo(xOf(0), PAD.top + cH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(vals[0]));
+  for (let i = 1; i < vals.length; i++) {
+    const xm = (xOf(i-1) + xOf(i)) / 2;
+    ctx.bezierCurveTo(xm, yOf(vals[i-1]), xm, yOf(vals[i]), xOf(i), yOf(vals[i]));
+  }
+  ctx.strokeStyle = '#c8f04d';
+  ctx.lineWidth   = 1.8;
+  ctx.lineJoin    = 'round';
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(xOf(athIdx), yOf(maxV), 4, 0, Math.PI*2);
+  ctx.fillStyle   = '#f0c84d';
+  ctx.strokeStyle = '#08080e';
+  ctx.lineWidth   = 1.5;
+  ctx.fill(); ctx.stroke();
+
+  const lastI = vals.length - 1;
+  ctx.beginPath();
+  ctx.arc(xOf(lastI), yOf(vals[lastI]), 4, 0, Math.PI*2);
+  ctx.fillStyle   = '#c8f04d';
+  ctx.strokeStyle = '#08080e';
+  ctx.lineWidth   = 1.5;
+  ctx.fill(); ctx.stroke();
 }
 </script>
 </body>
