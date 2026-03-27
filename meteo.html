@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Météo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f4ef;
+    --bg2: #f0ece4;
+    --ink: #1a1814;
+    --ink2: #6b6558;
+    --ink3: #a09890;
+    --line: #d8d0c4;
+    --accent: #c4583c;
+    --blue: #3a6fa8;
+    --snow: #5a8ab4;
+    --purple: #7a5a9a;
+    --amber: #c88c28;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1916;
+      --ink: #e8e0d4;
+      --ink2: #9a9088;
+      --ink3: #6a6058;
+      --line: #2e2a24;
+      --accent: #d46848;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; }
+  #app { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* SEARCH */
+  .search-row { display: flex; gap: 8px; margin-bottom: 48px; position: relative; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-input {
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink); font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; padding: 8px 0; outline: none;
+    transition: border-color 0.2s; letter-spacing: 0.01em;
+  }
+  .search-input:focus { border-bottom-color: var(--ink); }
+  .search-input::placeholder { color: var(--ink3); font-style: italic; }
+  .geo-btn {
+    background: transparent; border: none; color: var(--ink3);
+    font-size: 1.1rem; cursor: pointer; padding: 6px;
+    transition: color 0.15s; flex-shrink: 0;
+  }
+  .geo-btn:hover { color: var(--ink); }
+  .ac {
+    position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+    background: var(--bg); border: 1px solid var(--line); z-index: 50;
+  }
+  .ac-item {
+    padding: 9px 12px; font-size: 0.78rem; cursor: pointer;
+    color: var(--ink2); border-bottom: 1px solid var(--line);
+    transition: background 0.1s;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover { background: var(--bg2); color: var(--ink); }
+  .ac-sub { color: var(--ink3); margin-left: 6px; }
+
+  /* HEADER */
+  .header-block { margin-bottom: 36px; animation: up 0.4s ease both; }
+  @keyframes up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .city-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3rem); font-weight: 600;
+    color: var(--ink); line-height: 1; letter-spacing: -0.02em;
+  }
+  .header-row { display: flex; align-items: baseline; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+  .temp-big { font-family: 'Playfair Display', serif; font-size: 1.9rem; }
+  .desc-italic { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.95rem; color: var(--ink2); }
+  .feels { font-size: 0.68rem; color: var(--ink3); letter-spacing: 0.06em; }
+  .header-stats { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+  .hs { font-size: 0.65rem; color: var(--ink2); letter-spacing: 0.05em; }
+  .hs strong { display: block; font-size: 0.82rem; color: var(--ink); font-weight: 400; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--line); margin: 28px 0; }
+
+  /* SECTION LABEL */
+  .slabel { font-size: 0.56rem; letter-spacing: 0.3em; color: var(--ink3); text-transform: uppercase; margin-bottom: 18px; text-align: center; }
+
+  /* TIMELINE */
+  .timeline { position: relative; }
+  .tl-spine { position: absolute; left: 30px; top: 0; bottom: 0; width: 1px; background: var(--line); }
+
+  .tl-row {
+    display: grid;
+    grid-template-columns: 30px 24px 1fr;
+    align-items: center;
+    gap: 0 14px;
+    padding: 9px 0;
+    animation: up 0.3s ease both;
+  }
+
+  .tl-time { font-size: 0.62rem; color: var(--ink3); text-align: right; letter-spacing: 0.02em; }
+  .tl-row.now .tl-time { color: var(--accent); }
+  .tl-time.midnight { color: var(--ink2); font-style: italic; }
+
+  .tl-node {
+    width: 24px; height: 24px;
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 0.72rem;
+    position: relative; z-index: 1; flex-shrink: 0;
+  }
+  .tl-row.now .tl-node { border-color: var(--accent); }
+
+  .tl-body { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .tl-temp { font-family: 'Playfair Display', serif; font-size: 0.95rem; min-width: 34px; flex-shrink: 0; }
+  .tl-bars { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; width: 100%; justify-content: center; }
+  .tl-bar-bg { height: 2px; background: var(--line); border-radius: 1px; overflow: hidden; width: 100%; }
+  .tl-bar-bg.thick { height: 6px; }
+  .tl-bar-fill { height: 100%; border-radius: 1px; }
+
+  /* RAIN WAVE BAR */
+  .tl-rain { width: 100%; height: 6px; display: block; flex-shrink: 0; overflow: visible; }
+
+  /* 7-DAY */
+  .day-row {
+    display: grid;
+    grid-template-columns: 90px 26px 1fr 52px;
+    align-items: center;
+    gap: 0 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--line);
+    animation: up 0.3s ease both;
+    position: relative;
+  }
+  .day-row:last-child { border-bottom: none; }
+  .day-row.today::before {
+    content: ''; position: absolute; left: -10px; top: 0; bottom: 0;
+    width: 2px; background: var(--accent);
+  }
+  .day-name { font-family: 'Playfair Display', serif; font-size: 0.92rem; font-style: italic; color: var(--ink); }
+  .day-row.today .day-name { font-style: normal; font-weight: 600; color: var(--accent); }
+  .day-ico { font-size: 0.85rem; text-align: center; }
+  .day-range { display: flex; align-items: center; gap: 6px; }
+  .day-mm { font-size: 0.68rem; color: var(--ink3); }
+  .range-bg { flex: 1; height: 3px; background: var(--line); border-radius: 2px; position: relative; }
+  .range-fill { position: absolute; height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--blue), var(--accent)); box-shadow: 0 0 5px 1px rgba(140,100,120,0.55); }
+  .day-max { font-family: 'Playfair Display', serif; font-size: 0.9rem; text-align: right; }
+  .day-pp { font-size: 0.6rem; color: var(--blue); text-align: right; }
+
+  /* EXTRAS */
+  .extras { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px 28px; }
+  @media (max-width: 440px) { .extras { grid-template-columns: repeat(2,1fr); } }
+  .ex-label { font-size: 0.56rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink3); margin-bottom: 3px; }
+  .ex-value { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--ink); }
+  .ex-sub { font-size: 0.62rem; color: var(--ink3); margin-top: 1px; }
+  .uv-track { height: 2px; background: linear-gradient(90deg,#4a8a5c,#c88c28,#c4583c,#7a5a9a); border-radius:1px; position:relative; margin-top:4px; }
+  .uv-cursor { position:absolute; top:-3px; width:8px; height:8px; background:var(--ink); border-radius:50%; transform:translateX(-50%); }
+
+  /* WIND */
+  .tl-wind { display:flex; align-items:center; gap:5px; flex-shrink:0; }
+  .wind-bft { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+  /* LEGEND ACCORDION */
+  .legend-toggle {
+    display:flex; align-items:center; gap:8px;
+    cursor:pointer; user-select:none;
+    font-size:0.56rem; letter-spacing:0.3em; color:var(--ink3);
+    text-transform:uppercase; margin-bottom:0; list-style:none;
+    padding:0;
+  }
+  .legend-toggle::marker { display:none; }
+  .legend-caret {
+    display:inline-block; font-size:0.6rem;
+    transition:transform 0.2s; color:var(--ink3);
+  }
+  details[open] .legend-caret { transform:rotate(90deg); }
+  .legend-body {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:10px; margin-top:12px; margin-bottom:18px;
+  }
+  @media(max-width:520px){ .legend-body { grid-template-columns:1fr 1fr; } }
+
+  /* WIND LEGEND */
+  .wind-legend {
+    display:flex; flex-wrap:wrap; gap:6px 16px;
+    padding:12px 14px;
+    border:1px solid var(--line); background:var(--bg2);
+  }
+  .wl-item { display:flex; align-items:center; gap:6px; font-size:0.62rem; color:var(--ink2); }
+  .wl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  /* SEGMENTED BAR */
+  .tl-bar-seg { width: 100%; height: 6px; display: flex; gap: 2px; filter: drop-shadow(0 0 2.5px var(--seg-col, transparent)); }
+  .seg { height: 6px; border-radius: 1px; flex: 1; }
+
+
+  /* WIND HEADER */
+  .wind-hero {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    background: var(--bg2);
+  }
+  .wind-hero-speed {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .wind-hero-dir {
+    font-size: 0.75rem;
+    color: var(--ink2);
+    letter-spacing: 0.08em;
+  }
+  .wind-hero-badge {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border: 1px solid currentColor;
+    opacity: 0.85;
+  }
+  .wind-hero-sep {
+    width: 1px;
+    height: 32px;
+    background: var(--line);
+    flex-shrink: 0;
+  }
+
+  /* ROW TINT */
+  .tl-row.wind-warn  { background: rgba(200,160,64,0.06); }
+  .tl-row.wind-hard  { background: rgba(200,112,32,0.08); }
+  .tl-row.wind-danger{ background: rgba(192,48,48,0.09); }
+
+  .tl-wind-badge {
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    padding: 1px 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    font-weight: 400;
+  }
+  .state { text-align:center; padding:60px 0; color:var(--ink3); font-family:'Playfair Display',serif; font-style:italic; font-size:0.9rem; }
+  .state-ico { font-size:2rem; display:block; margin-bottom:12px; }
+  .spin { width:22px; height:22px; border:1px solid var(--line); border-top-color:var(--ink3); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* TOAST */
+  #toast {
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(10px);
+    background:var(--ink); color:var(--bg); font-size:0.7rem; letter-spacing:0.1em;
+    padding:8px 20px; opacity:0; transition:all 0.25s; pointer-events:none; z-index:200;
+  }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="search-row">
+    <div class="search-wrap">
+      <input class="search-input" id="si" type="text" placeholder="Rechercher une ville…"
+        autocomplete="off" oninput="onIn()" onkeydown="onKey(event)">
+      <div class="ac" id="ac" style="display:none"></div>
+    </div>
+    <button class="geo-btn" onclick="geo()" title="Ma position">◎</button>
+    <button class="geo-btn" onclick="haTogglePanel()" title="Token Home Assistant" id="haBtnToggle" style="font-size:0.75rem;letter-spacing:0.05em;opacity:0.5">HA</button>
+  </div>
+
+  <!-- HA TOKEN PANEL -->
+  <div id="haPanel" style="display:none;margin-bottom:28px;padding:14px 16px;border:1px solid var(--line);background:var(--bg2);font-family:'DM Mono',monospace;">
+    <div style="font-size:0.56rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px">Home Assistant · Token</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="haTokenInput" type="password"
+        placeholder="eyJ…token long-lived…"
+        style="flex:1;min-width:0;background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--ink);font-family:'DM Mono',monospace;font-size:0.75rem;padding:6px 0;outline:none;letter-spacing:0.02em;transition:border-color 0.2s"
+        onfocus="this.style.borderBottomColor='var(--ink)'"
+        onblur="this.style.borderBottomColor='var(--line)'"
+        onkeydown="if(event.key==='Enter')haSaveToken()">
+      <button onclick="haToggleTokenVis()" title="Afficher/Masquer"
+        style="background:transparent;border:none;color:var(--ink3);cursor:pointer;font-size:0.85rem;padding:4px;flex-shrink:0">👁</button>
+      <button onclick="haSaveToken()"
+        style="background:transparent;border:1px solid var(--line);color:var(--ink2);font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;padding:5px 12px;cursor:pointer;transition:all 0.15s"
+        onmouseover="this.style.borderColor='var(--ink)';this.style.color='var(--ink)'"
+        onmouseout="this.style.borderColor='var(--line)';this.style.color='var(--ink2)'">Enregistrer</button>
+      <button onclick="haClearToken()"
+        style="background:transparent;border:none;color:var(--ink3);font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;padding:5px 0;cursor:pointer"
+        onmouseover="this.style.color='var(--accent)'"
+        onmouseout="this.style.color='var(--ink3)'">Effacer</button>
+    </div>
+    <div id="haStatus" style="font-size:0.6rem;color:var(--ink3);margin-top:8px;letter-spacing:0.05em;min-height:14px"></div>
+  </div>
+  <div id="content">
+    <div class="state"><span class="state-ico">☁</span>Entrez une ville pour commencer</div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+const GEO_URL='https://geocoding-api.open-meteo.com/v1/search';
+const WX_URL='https://api.open-meteo.com/v1/forecast';
+const WMO={0:['☀','Ciel dégagé'],1:['🌤','Peu nuageux'],2:['⛅','Partiellement nuageux'],3:['☁','Couvert'],45:['≋','Brouillard'],48:['≋','Brouillard givrant'],51:['·','Bruine légère'],53:['·','Bruine modérée'],55:['·','Bruine dense'],61:['~','Pluie légère'],63:['~~','Pluie modérée'],65:['~~~','Pluie forte'],71:['*','Neige légère'],73:['**','Neige modérée'],75:['***','Neige forte'],77:['*','Grésil'],80:['~','Averses légères'],81:['~~','Averses modérées'],82:['~~~','Averses fortes'],85:['*','Neige (averses)'],86:['**','Neige forte (averses)'],95:['⚡','Orage'],96:['⚡','Orage (grêle)'],99:['⚡','Orage violent']};
+// Barre météo : palette verte/dorée/violette — distincte des bleus Beaufort
+const WMO_HEX={
+  0:'#d4952a',1:'#d4952a',  // soleil → doré
+  2:'#8a9a6a',3:'#6a7a5a',  // nuages → vert kaki
+  45:'#9a9a8a',48:'#8a8a7a', // brouillard → gris vert
+  51:'#5a8a7a',53:'#4a7a6a',55:'#3a6a5a', // bruine → teal
+  61:'#4a6a9a',63:'#3a5a8a',65:'#2a4a7a', // pluie → indigo
+  71:'#7a8aaa',73:'#6a7a9a',75:'#5a6a8a',77:'#6a7a9a', // neige → ardoise
+  80:'#4a6a9a',81:'#3a5a8a',82:'#2a4a7a', // averses → indigo
+  85:'#7a8aaa',86:'#6a7a9a',
+  95:'#8a5a9a',96:'#7a4a8a',99:'#6a3a7a', // orage → violet
+};
+const WMO_GROUPS=[
+  {label:'Soleil / peu nuageux', color:'#d4952a'},
+  {label:'Nuageux / couvert',    color:'#7a8a60'},
+  {label:'Brouillard',           color:'#9a9a8a'},
+  {label:'Bruine',               color:'#4a8a7a'},
+  {label:'Pluie',                color:'#3a5a8a'},
+  {label:'Neige / grésil',       color:'#7a8aaa'},
+  {label:'Orage',                color:'#8a5a9a'},
+];
+function wmoHex(c){return WMO_HEX[c]||'#8a8a7a';}
+const DAYS=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+let timer;
+function wmo(c){return WMO[c]||['·','Inconnu'];}
+function dir(d){return['N','NE','E','SE','S','SO','O','NO'][Math.round(d/45)%8];}
+function fh(iso){return new Date(iso).getHours().toString().padStart(2,'0');}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const WIND_COL='#6aaa82'; // vent calme — vert sauge (fallback)
+// Seuils cycliste : code couleur vitesse
+function windLevel(kmh){
+  if(kmh<15) return{col:'#5aaa70',label:'Favorable'};
+  if(kmh<25) return{col:'#c8a040',label:'Attention'};
+  if(kmh<35) return{col:'#c87020',label:'Difficile'};
+  return{col:'#c03030',label:'Dangereux'};
+}
+
+function onIn(){
+  clearTimeout(timer);
+  const q=document.getElementById('si').value.trim();
+  if(q.length<2){hideAc();return;}
+  timer=setTimeout(()=>fetchC(q),280);
+}
+function onKey(e){
+  if(e.key==='Enter'){const q=document.getElementById('si').value.trim();if(q)fetchC(q,true);}
+  if(e.key==='Escape')hideAc();
+}
+async function fetchC(q,auto=false){
+  try{
+    const r=await fetch(`${GEO_URL}?name=${encodeURIComponent(q)}&count=5&language=fr&format=json`);
+    const d=await r.json();
+    if(!d.results?.length){hideAc();if(auto)toast('Ville introuvable');return;}
+    if(auto){sel(d.results[0]);return;}
+    showAc(d.results);
+  }catch{toast('Erreur réseau');}
+}
+function showAc(list){
+  const ac=document.getElementById('ac');
+  ac.innerHTML='';
+  list.forEach(r=>{
+    const el=document.createElement('div');
+    el.className='ac-item';
+    el.innerHTML=`${esc(r.name)}<span class="ac-sub">${r.admin1?esc(r.admin1)+', ':''}${esc(r.country||'')}</span>`;
+    el.onclick=()=>sel(r);
+    ac.appendChild(el);
+  });
+  ac.style.display='block';
+}
+function hideAc(){document.getElementById('ac').style.display='none';}
+function sel(r){
+  document.getElementById('si').value=r.name;
+  hideAc();
+  loadWX(r.latitude,r.longitude,r.name,r.country||'');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))hideAc();});
+
+function geo(){
+  if(!navigator.geolocation){toast('Géolocalisation indisponible');return;}
+  loading('Localisation…');
+  navigator.geolocation.getCurrentPosition(async p=>{
+    const{latitude:lat,longitude:lon}=p.coords;
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=fr`);
+      const d=await r.json();
+      const city=d.address?.city||d.address?.town||d.address?.village||d.address?.county||'Ma position';
+      document.getElementById('si').value=city;
+      loadWX(lat,lon,city,d.address?.country||'');
+    }catch{loadWX(p.coords.latitude,p.coords.longitude,'Ma position','');}
+  },()=>{toast('Position refusée');});
+}
+
+async function loadWX(lat,lon,city,country){
+  loading();
+  try{
+    const p=new URLSearchParams({latitude:lat,longitude:lon,
+      current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation,uv_index,surface_pressure,visibility',
+      hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m',
+      daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset,precipitation_sum',
+      timezone:'auto',forecast_days:7,wind_speed_unit:'kmh'});
+    const r=await fetch(`${WX_URL}?${p}`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    render(await r.json(),city,country);
+  }catch(e){err(e.message);}
+}
+
+function render(data,city,country){
+  const c=data.current,daily=data.daily,hourly=data.hourly;
+  const now=new Date();
+  const[icon,desc]=wmo(c.weather_code);
+  const uv=Math.round(c.uv_index||0);
+  const uvPct=Math.min(uv/12*100,100).toFixed(1);
+  const uvLabel=uv<=2?'Faible':uv<=5?'Modéré':uv<=7?'Élevé':uv<=10?'Très élevé':'Extrême';
+
+  const nowHStr=now.toISOString().slice(0,13);
+  let hi=hourly.time.findIndex(t=>t.startsWith(nowHStr));
+  if(hi<0)hi=0;
+
+  // Smart slice: 1h steps during day (6h-22h), 2h steps at night — covers ~36h
+  const hSlice=[];
+  let cursor=hi;
+  while(hSlice.length<30 && cursor<hourly.time.length){
+    hSlice.push(cursor);
+    const hh=new Date(hourly.time[cursor]).getHours();
+    cursor += (hh>=6 && hh<22) ? 1 : 2;
+  }
+
+  const temps=hSlice.map(i=>hourly.temperature_2m[i]);
+  const tMin=Math.min(...temps),tMax=Math.max(...temps),tRange=tMax-tMin||1;
+  const winds=hSlice.map(i=>hourly.wind_speed_10m?.[i]||0);
+  const wMax=Math.max(...winds)||1;
+
+  const allMax=daily.temperature_2m_max,allMin=daily.temperature_2m_min;
+  const gMin=Math.min(...allMin),gMax=Math.max(...allMax),gRange=gMax-gMin||1;
+
+  const updAt=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const cStr=country?` — ${esc(country)}`:'';
+
+  // Build timeline rows
+  let tlRows='';
+  hSlice.forEach((idx,i)=>{
+    const[hIco]=wmo(hourly.weather_code[idx]);
+    const temp=Math.round(hourly.temperature_2m[idx]);
+    const pp=hourly.precipitation_probability[idx]||0;
+    const precip=hourly.precipitation?.[idx]||0; // mm/h
+    const bw=Math.round((temp-tMin)/tRange*100);
+    const col=wmoHex(hourly.weather_code[idx]);
+    const wspd=Math.round(hourly.wind_speed_10m?.[idx]||0);
+    const wdeg=Math.round(hourly.wind_direction_10m?.[idx]||0);
+    const wBarW=Math.round(wspd/wMax*100);
+    const wlv=windLevel(wspd);
+    const windTint=wspd>=35?'wind-danger':wspd>=25?'wind-hard':wspd>=15?'wind-warn':'';
+    const isNow=i===0;
+    const rowDate=new Date(hourly.time[idx]);
+    const hh=rowDate.getHours();
+    const isMidnight=!isNow&&hh===0;
+    const timeLabel=isNow?fh(hourly.time[idx]):(isMidnight?DAYS[rowDate.getDay()]+' 00':fh(hourly.time[idx]));
+    // Température colorée selon chaud/froid (échelle relative min/max semaine)
+    const tempRatio = (temp - tMin) / tRange; // 0=froid, 1=chaud
+    const tempCol = tempRatio < 0.25 ? '#5a8ab4'   // bleu froid
+                  : tempRatio < 0.5  ? '#6aaa7a'   // vert tempéré
+                  : tempRatio < 0.75 ? '#c88c28'   // ambre chaud
+                  :                    '#c4583c';   // rouge fort
+
+    // 4 segments au lieu de 8
+    const filledSegs=Math.max(0,Math.min(4,Math.round(bw/25)));
+    let segs='';
+    for(let s=0;s<4;s++) segs+='<div class="seg" style="background:'+(s<filledSegs?col:'var(--line)')+'"></div>';
+    const windLabel=dir(wdeg)+' '+wspd;
+
+    // Rain wave bar (probabilité %)
+    const rainSvg = (()=>{
+      if(pp===0) return '';
+      const op=(0.3+pp/100*0.7).toFixed(2);
+      // Sinusoidal wave path across full width, then closed down to form a filled shape
+      // viewBox 0 0 100 6, wave amplitude ~2px, midline y=3
+      const W=100, amp=1.8, mid=3.5, cycles=5;
+      const steps=80;
+      let d=`M0,${mid}`;
+      for(let s=0;s<=steps;s++){
+        const x=(s/steps)*W;
+        const y=mid - amp*Math.sin((s/steps)*cycles*2*Math.PI);
+        d+=` L${x.toFixed(1)},${y.toFixed(2)}`;
+      }
+      // close shape downward to form filled wave
+      d+=` L${W},6 L0,6 Z`;
+      // clip to pp% width
+      return `<svg class="tl-rain" viewBox="0 0 100 6" preserveAspectRatio="none" style="height:6px">
+        <defs>
+          <clipPath id="wcp${i}"><rect x="0" y="0" width="${pp}" height="6"/></clipPath>
+          <linearGradient id="wg${i}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="var(--blue)" stop-opacity="${op}"/>
+          </linearGradient>
+        </defs>
+        <path d="${d}" fill="url(#wg${i})" clip-path="url(#wcp${i})"/>
+      </svg>`;
+    })();
+    const MARK_HOURS=[6,7,15,16,17];
+    if(!isNow && MARK_HOURS.includes(hh)){
+      tlRows+=`<div style="position:relative;height:0;margin:0 0 0 30px;overflow:visible">
+        <div style="position:absolute;left:14px;right:0;height:1px;background:#c4583c;opacity:0.7"></div>
+      </div>`;
+    }
+
+    tlRows+=`<div class="tl-row${isNow?' now':''}${windTint?' '+windTint:''}" style="animation-delay:${i*0.015}s"${isNow?' id="tl-now"':''}>
+      <div class="tl-time${isMidnight?' midnight':''}">${timeLabel}</div>
+      <div class="tl-node" style="color:${col}">${hIco}</div>
+      <div class="tl-body">
+        <span class="tl-temp" style="color:${tempCol}">${temp}°</span>
+        <div class="tl-bars">
+          <div class="tl-bar-seg" style="--seg-col:${col}">${segs}</div>
+          ${rainSvg}
+        </div>
+        <div class="tl-wind" title="${wspd} km/h ${dir(wdeg)}">
+          <span style="font-size:0.6rem;color:${wlv.col};min-width:38px;text-align:right;letter-spacing:0.02em;font-weight:${wspd>=15?'500':'400'}">${windLabel}</span>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // Build 7-day rows
+  let dayRows='';
+  daily.time.forEach((date,i)=>{
+    const isT=i===0;
+    const d=new Date(date);
+    const[dIco]=wmo(daily.weather_code[i]);
+    const dMax=Math.round(daily.temperature_2m_max[i]);
+    const dMin=Math.round(daily.temperature_2m_min[i]);
+    const bl=Math.round((dMin-gMin)/gRange*100);
+    const bw2=Math.round((dMax-dMin)/gRange*100);
+    const pp=daily.precipitation_probability_max[i]||0;
+    const name=isT?'Aujourd\'hui':DAYS[d.getDay()];
+    dayRows+=`<div class="day-row${isT?' today':''}" style="animation-delay:${i*0.04}s">
+      <div class="day-name">${name}</div>
+      <div class="day-ico">${dIco}</div>
+      <div class="day-range">
+        <span class="day-mm">${dMin}°</span>
+        <div class="range-bg"><div class="range-fill" style="left:${bl}%;width:${bw2}%"></div></div>
+        <span class="day-mm">${dMax}°</span>
+      </div>
+      <div style="text-align:right">
+        <div class="day-max">${dMax}°</div>
+        `+(pp>10?'<div style="font-size:0.6rem;color:var(--blue)">'+pp+'%</div>':'')+`
+      </div>
+    </div>`;
+  });
+
+  const curWind=Math.round(c.wind_speed_10m);
+  const curWlv=windLevel(curWind);
+
+  document.getElementById('content').innerHTML=`
+<div class="header-block">
+  <div class="city-name">${esc(city)}</div>
+  <div class="header-row">
+    <span class="temp-big">${Math.round(c.temperature_2m)}°C</span>
+    <span class="desc-italic">${esc(desc)}${cStr}</span>
+  </div>
+  <div class="header-row" style="margin-top:4px">
+    <span class="feels">Ressenti ${Math.round(c.apparent_temperature)}°C</span>
+  </div>
+  <div class="wind-hero">
+    <div>
+      <div class="wind-hero-speed">${curWind} <span style="font-size:1rem;color:var(--ink2)">km/h</span></div>
+      <div class="wind-hero-dir">${dir(c.wind_direction_10m)} · rafales incluses</div>
+    </div>
+    <div class="wind-hero-sep"></div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <span class="wind-hero-badge" style="color:${curWlv.col}">${curWlv.label} — vélo</span>
+      <span style="font-size:0.62rem;color:var(--ink3);letter-spacing:0.05em">seuils 15 · 25 · 35 km/h</span>
+    </div>
+  </div>
+  <div class="header-stats" style="margin-top:10px">
+    <div class="hs"><strong>${c.relative_humidity_2m}%</strong>Humidité</div>
+    <div class="hs"><strong>${c.precipitation} mm</strong>Précip.</div>
+    <div class="hs"><strong>${Math.round((c.visibility||10000)/1000)} km</strong>Visibilité</div>
+  </div>
+  <div style="font-size:0.58rem;color:var(--ink3);margin-top:10px;letter-spacing:0.1em">Mis à jour à ${updAt} · <span id="ha-inline">🏠 <span id="ha-temp">--</span>°C <span id="ha-hum">--</span>%</span></div>
+</div>
+
+<hr>
+
+<details style="margin-bottom:0">
+  <summary class="legend-toggle"><span class="legend-caret">▶</span>Légende</summary>
+  <div class="legend-body" style="grid-template-columns:1fr 1fr">
+    <div class="wind-legend">
+      <div style="font-size:0.56rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;width:100%">Météo — barre du haut</div>
+      ${WMO_GROUPS.map(g=>'<div class="wl-item"><div class="wl-dot" style="background:'+g.color+'"></div>'+g.label+'</div>').join('')}
+    </div>
+    <div class="wind-legend" style="gap:10px 0">
+      <div style="font-size:0.56rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px;width:100%">Ligne horaire — de gauche à droite</div>
+
+      <!-- TEMP COLORÉE -->
+      <div style="width:100%">
+        <div style="font-size:0.58rem;color:var(--ink2);font-weight:700;margin-bottom:3px">Température — couleur relative à la plage du jour</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.9rem;font-family:'Playfair Display',serif;color:#5a8ab4;min-width:28px;flex-shrink:0">8°</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">bleu — heure la plus froide du jour</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.9rem;font-family:'Playfair Display',serif;color:#6aaa7a;min-width:28px;flex-shrink:0">15°</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">vert — température intermédiaire</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.9rem;font-family:'Playfair Display',serif;color:#c88c28;min-width:28px;flex-shrink:0">24°</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">ambre — proche du maximum</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.9rem;font-family:'Playfair Display',serif;color:#c4583c;min-width:28px;flex-shrink:0">30°</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">rouge — heure la plus chaude</span>
+          </div>
+          <div style="font-size:0.56rem;color:var(--ink3);font-style:italic;margin-top:1px">Les seuils sont relatifs : même couleur = même position dans la journée, pas même valeur absolue</div>
+        </div>
+      </div>
+
+      <!-- 4 SEGMENTS -->
+      <div style="width:100%;margin-top:8px">
+        <div style="font-size:0.58rem;color:var(--ink2);font-weight:700;margin-bottom:3px">4 segments — position dans la plage min/max du jour</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="display:flex;gap:1px;width:28px;flex-shrink:0">
+              <div style="flex:1;height:6px;border-radius:1px;background:#5a8ab4"></div>
+              <div style="flex:1;height:6px;border-radius:1px;background:var(--line)"></div>
+              <div style="flex:1;height:6px;border-radius:1px;background:var(--line)"></div>
+              <div style="flex:1;height:6px;border-radius:1px;background:var(--line)"></div>
+            </div>
+            <span style="font-size:0.58rem;color:var(--ink3)">1/4 — proche du min journalier</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="display:flex;gap:1px;width:28px;flex-shrink:0">
+              <div style="flex:1;height:6px;border-radius:1px;background:#d4952a"></div>
+              <div style="flex:1;height:6px;border-radius:1px;background:#d4952a"></div>
+              <div style="flex:1;height:6px;border-radius:1px;background:#d4952a"></div>
+              <div style="flex:1;height:6px;border-radius:1px;background:#d4952a"></div>
+            </div>
+            <span style="font-size:0.58rem;color:var(--ink3)">4/4 — au maximum journalier</span>
+          </div>
+          <div style="font-size:0.56rem;color:var(--ink3);font-style:italic;margin-top:1px">Couleur du segment = condition météo (voir légende gauche)</div>
+        </div>
+      </div>
+
+      <!-- VAGUE PLUIE -->
+      <div style="width:100%;margin-top:8px">
+        <div style="font-size:0.58rem;color:var(--ink2);font-weight:700;margin-bottom:3px">Vague bleue — probabilité de précipitation</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="56" height="6" viewBox="0 0 100 6" style="flex-shrink:0"><defs><clipPath id="lg1"><rect x="0" y="0" width="20" height="6"/></clipPath><linearGradient id="lgw1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)" stop-opacity="0.4"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0.55"/></linearGradient></defs><path d="M0,3.5 L12.5,1.7 L25,3.5 L37.5,5.3 L50,3.5 L62.5,1.7 L75,3.5 L87.5,5.3 L100,3.5 L100,6 L0,6 Z" fill="url(#lgw1)" clip-path="url(#lg1)"/></svg>
+            <span style="font-size:0.58rem;color:var(--ink3)">20% — risque faible</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="56" height="6" viewBox="0 0 100 6" style="flex-shrink:0"><defs><clipPath id="lg2"><rect x="0" y="0" width="60" height="6"/></clipPath><linearGradient id="lgw2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)" stop-opacity="0.5"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0.75"/></linearGradient></defs><path d="M0,3.5 L12.5,1.7 L25,3.5 L37.5,5.3 L50,3.5 L62.5,1.7 L75,3.5 L87.5,5.3 L100,3.5 L100,6 L0,6 Z" fill="url(#lgw2)" clip-path="url(#lg2)"/></svg>
+            <span style="font-size:0.58rem;color:var(--ink3)">60% — risque modéré</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="56" height="6" viewBox="0 0 100 6" style="flex-shrink:0"><defs><clipPath id="lg3"><rect x="0" y="0" width="100" height="6"/></clipPath><linearGradient id="lgw3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)" stop-opacity="0.6"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="1"/></linearGradient></defs><path d="M0,3.5 L12.5,1.7 L25,3.5 L37.5,5.3 L50,3.5 L62.5,1.7 L75,3.5 L87.5,5.3 L100,3.5 L100,6 L0,6 Z" fill="url(#lgw3)" clip-path="url(#lg3)"/></svg>
+            <span style="font-size:0.58rem;color:var(--ink3)">100% — pluie certaine</span>
+          </div>
+          <div style="font-size:0.56rem;color:var(--ink3);font-style:italic;margin-top:1px">Longueur = % · absente = 0% de risque</div>
+        </div>
+      </div>
+
+      <!-- VENT -->
+      <div style="width:100%;margin-top:8px">
+        <div style="font-size:0.58rem;color:var(--ink2);font-weight:700;margin-bottom:3px">Vent — direction + vitesse colorée</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.6rem;color:#5aaa70;min-width:40px;flex-shrink:0;letter-spacing:0.02em">NO 5</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">Nord-Ouest, 5 km/h — Favorable</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.6rem;color:#c8a040;min-width:40px;flex-shrink:0;letter-spacing:0.02em">SO 18</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">Sud-Ouest, 18 km/h — Attention</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.6rem;color:#c87020;min-width:40px;flex-shrink:0;letter-spacing:0.02em">N 30</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">Nord, 30 km/h — Difficile</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:0.6rem;color:#c03030;min-width:40px;flex-shrink:0;letter-spacing:0.02em">NE 42</span>
+            <span style="font-size:0.58rem;color:var(--ink3)">Nord-Est, 42 km/h — Dangereux</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRE 7J -->
+      <div style="width:100%;margin-top:8px">
+        <div style="font-size:0.58rem;color:var(--ink2);font-weight:700;margin-bottom:3px">Prévision 7j — plage min→max comparée à la semaine</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:70px;height:3px;background:var(--line);border-radius:2px;flex-shrink:0;position:relative">
+              <div style="position:absolute;left:0%;width:18%;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--accent))"></div>
+            </div>
+            <span style="font-size:0.58rem;color:var(--ink3)">4→8° — jour le plus froid</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:70px;height:3px;background:var(--line);border-radius:2px;flex-shrink:0;position:relative">
+              <div style="position:absolute;left:28%;width:44%;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--accent))"></div>
+            </div>
+            <span style="font-size:0.58rem;color:var(--ink3)">12→20° — jour intermédiaire</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:70px;height:3px;background:var(--line);border-radius:2px;flex-shrink:0;position:relative">
+              <div style="position:absolute;left:62%;width:36%;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--accent))"></div>
+            </div>
+            <span style="font-size:0.58rem;color:var(--ink3)">19→26° — jour le plus chaud</span>
+          </div>
+          <div style="font-size:0.56rem;color:var(--ink3);font-style:italic;margin-top:1px">Position = froid/chaud · Largeur = amplitude thermique du jour</div>
+        </div>
+      </div>
+
+      <div style="font-size:0.56rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink3);margin-top:10px;margin-bottom:4px;width:100%">Seuils cycliste — couleur de la vitesse</div>
+      <div class="wl-item"><div class="wl-dot" style="background:#5aaa70"></div><span style="color:#5aaa70">&lt; 15 km/h</span> — Favorable</div>
+      <div class="wl-item"><div class="wl-dot" style="background:#c8a040"></div><span style="color:#c8a040">15–25 km/h</span> — Attention</div>
+      <div class="wl-item"><div class="wl-dot" style="background:#c87020"></div><span style="color:#c87020">25–35 km/h</span> — Difficile</div>
+      <div class="wl-item"><div class="wl-dot" style="background:#c03030"></div><span style="color:#c03030">&gt; 35 km/h</span> — Dangereux</div>
+    </div>
+  </div>
+</details>
+
+<div class="slabel" style="margin-top:18px">Heure par heure — 1h jour · 2h nuit</div>
+<div class="timeline" id="timeline">
+  <div class="tl-spine"></div>
+  ${tlRows}
+</div>
+
+<hr>
+
+<div class="slabel">Prévisions 7 jours</div>
+${dayRows}
+
+<hr>
+
+<div class="slabel">Détails</div>
+<div class="extras">
+  <div><div class="ex-label">Pression</div><div class="ex-value">${Math.round(c.surface_pressure)}</div><div class="ex-sub">hPa</div></div>
+  <div><div class="ex-label">Indice UV</div><div class="ex-value">${uv}</div><div class="ex-sub">${uvLabel}</div><div class="uv-track"><div class="uv-cursor" style="left:${uvPct}%"></div></div></div>
+  <div><div class="ex-label">Lever soleil</div><div class="ex-value">${daily.sunrise[0].slice(11,16)}</div><div class="ex-sub">heure locale</div></div>
+  <div><div class="ex-label">Coucher soleil</div><div class="ex-value">${daily.sunset[0].slice(11,16)}</div><div class="ex-sub">heure locale</div></div>
+  <div><div class="ex-label">Vent max</div><div class="ex-value">${Math.round(daily.wind_speed_10m_max[0])}</div><div class="ex-sub">km/h aujourd'hui</div></div>
+  <div><div class="ex-label">Précip. cumul</div><div class="ex-value">${daily.precipitation_sum[0]}</div><div class="ex-sub">mm aujourd'hui</div></div>
+</div>
+`;
+
+  requestAnimationFrame(()=>{
+    const el=document.getElementById('tl-now');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+    haInjectDOM(); // injecte les valeurs HA si déjà disponibles
+  });
+}
+
+function loading(msg=''){
+  document.getElementById('content').innerHTML=`<div class="state"><div class="spin"></div>${msg||'Chargement…'}</div>`;
+}
+function err(msg){
+  document.getElementById('content').innerHTML=`<div class="state"><span class="state-ico">✕</span>${esc(msg)}</div>`;
+}
+
+let tt;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show';
+  clearTimeout(tt);tt=setTimeout(()=>t.className='',2500);
+}
+
+window.addEventListener('load',()=>{
+  document.getElementById('si').value='Bourg-lès-Valence';
+  loadWX(44.9333,4.8833,'Bourg-lès-Valence','France');
+  initHA();
+});
+
+// ── HOME ASSISTANT ──
+const HA_LOCAL     = 'http://192.168.50.234:8123';
+const HA_TAILSCALE = 'http://100.105.110.66:8123';
+const HA_SENSORS   = ['sensor.jardin2_temperature','sensor.jardin2_humidite'];
+const HA_INTERVAL  = 60000;
+
+let haUrl = null;
+let haCache = {temp: null, hum: null};
+
+function haToken(){ return localStorage.getItem('ha_token') || ''; }
+function haHeaders(){ const t=haToken(); return t?{Authorization:'Bearer '+t}:{}; }
+
+// ── PANEL ──
+function haTogglePanel(){
+  const p=document.getElementById('haPanel');
+  const visible = p.style.display==='none';
+  p.style.display = visible ? '' : 'none';
+  if(visible){
+    const inp=document.getElementById('haTokenInput');
+    inp.value = haToken();
+    haUpdateStatus();
+    inp.focus();
+  }
+}
+
+function haToggleTokenVis(){
+  const inp=document.getElementById('haTokenInput');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+function haSaveToken(){
+  const val = document.getElementById('haTokenInput').value.trim();
+  if(!val){ haSetStatus('⚠ Token vide'); return; }
+  localStorage.setItem('ha_token', val);
+  haUrl = null; // force re-détection URL
+  haSetStatus('✓ Enregistré — connexion en cours…');
+  document.getElementById('haBtnToggle').style.opacity='1';
+  setTimeout(()=>{ haFetch(); }, 200);
+}
+
+function haClearToken(){
+  localStorage.removeItem('ha_token');
+  document.getElementById('haTokenInput').value='';
+  haUrl=null;
+  haCache={temp:null,hum:null};
+  document.getElementById('haBtnToggle').style.opacity='0.5';
+  haSetStatus('Token effacé');
+}
+
+function haSetStatus(msg, ok){
+  const el=document.getElementById('haStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color = ok===true?'#5aaa70':ok===false?'var(--accent)':'var(--ink3)';
+}
+
+function haUpdateStatus(){
+  if(!haToken()) haSetStatus('Aucun token enregistré');
+  else if(haUrl)  haSetStatus('✓ Connecté · '+haUrl, true);
+  else            haSetStatus('Token présent · non connecté');
+}
+
+async function haFetchSensor(baseUrl, sensor){
+  const r = await Promise.race([
+    fetch(`${baseUrl}/api/states/${sensor}`, {headers: haHeaders()}),
+    new Promise((_,rej) => setTimeout(()=>rej(new Error('timeout')), 3000))
+  ]);
+  return r;
+}
+
+async function haTryUrl(url){
+  try{
+    const r = await haFetchSensor(url, HA_SENSORS[0]);
+    if(r.status === 200 || r.status === 401) return {url, status: r.status};
+  }catch{}
+  return null;
+}
+
+async function haFetch(){
+  if(!haToken()) return; // pas de prompt — l'utilisateur passe par le panel
+
+  if(!haUrl){
+    const res = await Promise.any(
+      [haTryUrl(HA_LOCAL), haTryUrl(HA_TAILSCALE)].map(p => p.then(r => r || Promise.reject()))
+    ).catch(()=>null);
+    if(!res){ haSetStatus('⚠ HA inaccessible (réseau)', false); return; }
+    if(res.status === 401){
+      haSetStatus('⚠ Token refusé (401) — vérifiez le token', false);
+      document.getElementById('haBtnToggle').style.opacity='1';
+      return;
+    }
+    haUrl = res.url;
+    haSetStatus('✓ Connecté · '+haUrl, true);
+    document.getElementById('haBtnToggle').style.opacity='1';
+  }
+
+  try{
+    const [r0, r1] = await Promise.all(HA_SENSORS.map(s => haFetchSensor(haUrl, s)));
+    if(r0.status === 401){
+      localStorage.removeItem('ha_token');
+      haUrl=null;
+      haSetStatus('⚠ Token refusé — ré-entrez le token', false);
+      return;
+    }
+    const d0 = await r0.json();
+    const d1 = await r1.json();
+    const temp = parseFloat(d0.state);
+    const hum  = parseFloat(d1.state);
+    haCache.temp = isNaN(temp) ? '--' : temp.toFixed(1);
+    haCache.hum  = isNaN(hum)  ? '--' : String(Math.round(hum));
+    haInjectDOM();
+  }catch(e){
+    haUrl = null;
+  }
+}
+
+function haInjectDOM(){
+  const tEl = document.getElementById('ha-temp');
+  const hEl = document.getElementById('ha-hum');
+  if(tEl && haCache.temp !== null) tEl.textContent = haCache.temp;
+  if(hEl && haCache.hum  !== null) hEl.textContent = haCache.hum;
+}
+
+function initHA(){
+  if(haToken()) document.getElementById('haBtnToggle').style.opacity='1';
+  haFetch();
+  setInterval(haFetch, HA_INTERVAL);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Nuisances</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f5f2ed;--surface:#fff;--surface2:#eeebe4;--border:#e2ddd6;--border2:#ccc6bc;
+  --tx:#1a1612;--t2:#6b6158;--t3:#a09888;
+  --red:#c0392b;--red-l:#fdf0ee;--red-b:#f0c8c0;
+  --amber:#d4820a;--blue:#2563a8;--blue-l:#eef3fb;
+  --green:#2a7a50;
+  --nav-h:64px;--safe-b:env(safe-area-inset-bottom,0px);
+  --radius:14px;--radius-sm:10px;--radius-lg:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);}
+
+/* ── App shell ── */
+#app{display:flex;flex-direction:column;height:100%;position:relative;}
+
+/* ── Top bar ── */
+#topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  position:sticky;top:0;z-index:10;
+}
+#topbar h1{font-size:17px;font-weight:700;letter-spacing:-.01em;}
+#topbar h1 span{color:var(--red);}
+#topbar-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--t3);}
+
+/* ── Scroll area ── */
+#scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:12px 14px;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 80px);}
+
+/* ── Bottom nav ── */
+#botnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:20;
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:stretch;
+  height:calc(var(--nav-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:none;background:none;cursor:pointer;
+  font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);
+  transition:color .15s;padding:0 4px;
+}
+.nav-btn .nb-ico{font-size:22px;line-height:1;}
+.nav-btn.active{color:var(--red);}
+.nav-btn.active .nb-ico{transform:scale(1.1);}
+
+/* ── FAB ── */
+#fab{
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 12px);right:16px;z-index:25;
+  width:56px;height:56px;border-radius:28px;
+  background:var(--red);color:#fff;border:none;
+  font-size:28px;line-height:1;cursor:pointer;
+  box-shadow:0 4px 16px rgba(192,57,43,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+}
+#fab:active{transform:scale(.94);box-shadow:0 2px 8px rgba(192,57,43,.3);}
+
+/* ── Panels ── */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ── Stats row ── */
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;display:flex;align-items:center;gap:10px;
+}
+.stat-ico{font-size:24px;flex-shrink:0;}
+.stat-body{}
+.stat-v{font-size:22px;font-weight:700;color:var(--red);line-height:1;font-family:'DM Mono',monospace;}
+.stat-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-top:1px;}
+
+/* ── Incident cards (journal) ── */
+.inc-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:8px;overflow:hidden;
+  transition:box-shadow .15s;
+  position:relative;
+}
+.inc-card:active{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.inc-header{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.inc-date-block{text-align:center;min-width:38px;}
+.inc-day{font-size:20px;font-weight:700;line-height:1;color:var(--red);}
+.inc-mon{font-size:10px;font-weight:600;text-transform:uppercase;color:var(--t3);}
+.inc-main{flex:1;min-width:0;}
+.inc-type{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inc-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);margin-top:1px;}
+.inc-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.int-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
+.int-dot-1{background:#e8b820;}
+.int-dot-2{background:#e8841a;}
+.int-dot-3{background:#e04030;}
+.int-dot-4{background:#a01010;}
+.inc-expand{display:none;padding:0 14px 12px;border-top:1px solid var(--border);margin-top:0;}
+.inc-expand.open{display:block;}
+.inc-detail-row{display:flex;gap:6px;margin-top:8px;font-size:12px;}
+.idr-label{color:var(--t3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;min-width:72px;flex-shrink:0;}
+.idr-val{color:var(--t2);flex:1;}
+.inc-del-btn{margin-top:10px;background:var(--red-l);color:var(--red);border:1px solid var(--red-b);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;width:100%;}
+
+/* ── Modal (saisie) ── */
+#modal-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;}
+#modal-overlay.open{opacity:1;pointer-events:all;}
+#modal{
+  position:fixed;bottom:0;left:0;right:0;z-index:51;
+  background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  padding-bottom:calc(16px + var(--safe-b));
+}
+#modal.open{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 4px;}
+.modal-header{padding:8px 16px 14px;border-bottom:1px solid var(--border);}
+.modal-header h2{font-size:16px;font-weight:700;}
+.modal-header p{font-size:12px;color:var(--t2);margin-top:2px;}
+.modal-body{padding:14px 16px;}
+
+/* ── Form elements (mobile-sized) ── */
+.fgroup{margin-bottom:14px;}
+.fgroup label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);margin-bottom:5px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+input[type=date],input[type=time],input[type=text],select,textarea{
+  width:100%;padding:11px 13px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);
+  font-family:'DM Sans',sans-serif;font-size:15px;background:var(--surface);color:var(--tx);outline:none;
+  -webkit-appearance:none;appearance:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--red);}
+textarea{resize:none;height:80px;line-height:1.5;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a09888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+
+/* Intensity big buttons */
+.int-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.int-big{
+  padding:12px 8px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);
+  background:var(--surface2);text-align:center;cursor:pointer;transition:all .15s;
+}
+.int-big .ib-num{font-size:22px;font-weight:700;line-height:1;}
+.int-big .ib-lbl{font-size:11px;font-weight:600;margin-top:2px;color:var(--t2);}
+.int-big.sel-1{background:#fffbe6;border-color:#e8c020;} .int-big.sel-1 .ib-num{color:#8a6e00;}
+.int-big.sel-2{background:#fff5e6;border-color:#e8841a;} .int-big.sel-2 .ib-num{color:#8a4000;}
+.int-big.sel-3{background:#fff0ee;border-color:#e04030;} .int-big.sel-3 .ib-num{color:#801010;}
+.int-big.sel-4{background:#ffe8e8;border-color:#b01010;} .int-big.sel-4 .ib-num{color:#600000;}
+
+.btn-submit{
+  width:100%;padding:15px;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);
+  font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;
+  transition:opacity .15s;
+}
+.btn-submit:active{opacity:.85;}
+.btn-cancel{width:100%;padding:12px;background:none;color:var(--t2);border:none;font-size:14px;cursor:pointer;margin-top:6px;}
+
+/* ── Charts ── */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.chart-card h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);margin-bottom:10px;}
+
+/* ── Rapport ── */
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.rep-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;}
+.rep-field{display:flex;flex-direction:column;gap:2px;margin-bottom:10px;}
+.rep-field:last-child{margin-bottom:0;}
+.rep-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);}
+.rep-val{font-size:13px;color:var(--tx);}
+.legal-box{background:var(--blue-l);border:1px solid #c0d0e8;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;line-height:1.7;color:#1a3060;margin-bottom:10px;}
+.btn-row{display:flex;gap:8px;margin-bottom:12px;}
+.btn-sm{flex:1;padding:10px 8px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;text-align:center;border:1px solid var(--border2);background:var(--surface);color:var(--t2);}
+.btn-sm.primary{background:var(--red);color:#fff;border-color:var(--red);}
+
+/* Dossier fields */
+.dossier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:40px 20px;color:var(--t3);}
+.empty .ei{font-size:40px;margin-bottom:10px;}
+.empty p{font-size:13px;line-height:1.6;}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);left:50%;transform:translateX(-50%) translateY(-10px);
+  background:var(--green);color:#fff;padding:10px 20px;border-radius:30px;
+  font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:99;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Print ── */
+@media print{
+  #botnav,#fab,#topbar,#modal,#modal-overlay,#toast,.no-print{display:none!important;}
+  body,html{overflow:visible;height:auto;}
+  #app{height:auto;}
+  #scroll{overflow:visible;padding:0;height:auto;}
+  #panel-rapport{display:block!important;}
+  .panel{display:none;}
+  .panel#panel-rapport{display:block;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <h1>Nuisances <span>sonores</span></h1>
+    <div id="topbar-count"></div>
+  </div>
+
+  <!-- Scroll content -->
+  <div id="scroll">
+
+    <!-- JOURNAL -->
+    <div class="panel active" id="panel-journal">
+      <div class="stats-row" id="stats-row"></div>
+      <div id="inc-list"></div>
+    </div>
+
+    <!-- GRAPHIQUES -->
+    <div class="panel" id="panel-graphiques">
+      <div class="chart-card"><h3>Incidents — 30 derniers jours</h3><canvas id="c-timeline" height="110"></canvas></div>
+      <div class="chart-card"><h3>Heure de la journée</h3><canvas id="c-hours" height="130"></canvas></div>
+      <div class="chart-card"><h3>Intensité sonore</h3><canvas id="c-int" height="160"></canvas></div>
+      <div class="chart-card"><h3>Jour de la semaine</h3><canvas id="c-week" height="120"></canvas></div>
+    </div>
+
+    <!-- RAPPORT -->
+    <div class="panel" id="panel-rapport">
+      <div class="btn-row no-print">
+        <button class="btn-sm" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn-sm primary" onclick="window.print()">🖨 Imprimer</button>
+      </div>
+
+      <div class="rep-card" style="border:2px solid var(--tx)">
+        <div style="font-size:17px;font-weight:700;margin-bottom:4px;">Dossier nuisances sonores</div>
+        <div style="font-size:11px;color:var(--t2);">Art. R.1334-31 Code de la santé publique</div>
+        <div id="rep-infos" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="section-title">Synthèse</div>
+      <div class="stats-row" id="stats-row2"></div>
+
+      <div class="section-title">Chronologie</div>
+      <div class="chart-card"><canvas id="c-rep-timeline" height="100"></canvas></div>
+
+      <div class="section-title">Journal détaillé</div>
+      <div id="rep-list"></div>
+
+      <div class="section-title">Cadre légal</div>
+      <div class="legal-box">
+        <strong style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Références</strong>
+        Art. <strong>R.1334-31 CSP</strong> : tout bruit causant une gêne anormale est interdit. Loi du <strong>31/12/1992</strong> (loi bruit). Nuisances nocturnes (22h–7h) : art. <strong>R.623-2 Code pénal</strong>.<br><br>
+        Recours possibles : mairie, bailleur/syndic, police municipale, conciliateur de justice, tribunal de proximité, huissier de justice pour constat.
+      </div>
+
+      <div style="margin-top:20px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:16px;">Fait à _____________, le ___/___/______</div>
+        <div style="height:44px;border-bottom:1px solid var(--border2);margin-bottom:4px;"></div>
+        <div style="font-size:11px;color:var(--t3);">Signature du plaignant</div>
+      </div>
+
+      <div class="section-title no-print">Informations dossier</div>
+      <div class="dossier-card no-print">
+        <div class="fgroup"><label>Votre nom</label><input type="text" id="d-name" placeholder="Prénom NOM"/></div>
+        <div class="fgroup"><label>Votre adresse</label><input type="text" id="d-addr" placeholder="n° rue, ville"/></div>
+        <div class="fgroup"><label>Adresse / logement voisin</label><input type="text" id="d-vaddr" placeholder="appt, étage"/></div>
+        <div class="fgroup" style="margin-bottom:0"><label>Syndic / Bailleur</label><input type="text" id="d-syndic" placeholder="nom + contact"/></div>
+      </div>
+    </div>
+
+  </div><!-- /scroll -->
+
+  <!-- Bottom nav -->
+  <nav id="botnav">
+    <button class="nav-btn active" id="nav-journal" onclick="switchTab('journal')">
+      <span class="nb-ico">📋</span>Journal
+    </button>
+    <button class="nav-btn" id="nav-graphiques" onclick="switchTab('graphiques')">
+      <span class="nb-ico">📊</span>Graphiques
+    </button>
+    <button class="nav-btn" id="nav-rapport" onclick="switchTab('rapport')">
+      <span class="nb-ico">📄</span>Rapport
+    </button>
+  </nav>
+
+  <!-- FAB -->
+  <button id="fab" onclick="openModal()" title="Ajouter un incident">＋</button>
+
+  <!-- Modal saisie -->
+  <div id="modal-overlay" onclick="closeModal()"></div>
+  <div id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>Enregistrer un incident</h2>
+      <p id="modal-now"></p>
+    </div>
+    <div class="modal-body">
+      <div class="fgroup">
+        <label>Intensité sonore *</label>
+        <div class="int-grid">
+          <div class="int-big" onclick="setInt(1)"><div class="ib-num">1</div><div class="ib-lbl">Gênant</div></div>
+          <div class="int-big" onclick="setInt(2)"><div class="ib-num">2</div><div class="ib-lbl">Fort</div></div>
+          <div class="int-big" onclick="setInt(3)"><div class="ib-num">3</div><div class="ib-lbl">Très fort</div></div>
+          <div class="int-big" onclick="setInt(4)"><div class="ib-num">4</div><div class="ib-lbl">Insupportable</div></div>
+        </div>
+      </div>
+      <div class="fgroup">
+        <label>Date &amp; heure début *</label>
+        <div class="frow">
+          <input type="date" id="f-date"/>
+          <input type="time" id="f-hstart"/>
+        </div>
+      </div>
+      <div class="fgroup">
+        <label>Heure fin (optionnel)</label>
+        <input type="time" id="f-hend" style="width:50%"/>
+      </div>
+      <div class="fgroup">
+        <label>Type</label>
+        <select id="f-type">
+          <option>Musique forte</option>
+          <option>Basses / subwoofer</option>
+          <option>Musique + voix</option>
+          <option>Fête / rassemblement</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label>Observations</label>
+        <textarea id="f-note" placeholder="Genre musical, pièce affectée, impact sommeil…"></textarea>
+      </div>
+      <div class="fgroup">
+        <label>Démarches effectuées</label>
+        <textarea id="f-action" placeholder="Sonnette, appel gardien, police…" style="height:56px;"></textarea>
+      </div>
+      <div class="fgroup" style="margin-bottom:0">
+        <label>Témoin(s)</label>
+        <input type="text" id="f-witness" placeholder="ex : conjoint, ami…"/>
+      </div>
+      <button class="btn-submit" onclick="addIncident()">Enregistrer l'incident</button>
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let incidents = JSON.parse(localStorage.getItem('ns_incidents')||'[]');
+let dossier   = JSON.parse(localStorage.getItem('ns_dossier')||'{}');
+let selInt = 0;
+let charts = {};
+let currentTab = 'journal';
+
+const INT_LABELS  = ['','Gênant','Fort','Très fort','Insupportable'];
+const INT_COLORS  = ['','#e8b820','#e8841a','#e04030','#a01010'];
+const CHART_COLOR = '#a09888';
+const CHART_GRID  = 'rgba(0,0,0,.06)';
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  const now = new Date();
+  document.getElementById('f-date').value = now.toISOString().slice(0,10);
+  document.getElementById('f-hstart').value = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace('h',':');
+
+  // Dossier fields
+  ['name','addr','vaddr','syndic'].forEach(k=>{
+    const el = document.getElementById('d-'+k);
+    if(el){ if(dossier[k]) el.value=dossier[k]; el.addEventListener('input',()=>{dossier[k]=el.value;localStorage.setItem('ns_dossier',JSON.stringify(dossier));});}
+  });
+
+  renderJournal();
+  updateTopbar();
+});
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+function switchTab(name){
+  currentTab = name;
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='graphiques') renderCharts();
+  if(name==='rapport') renderReport();
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+function openModal(){
+  const now = new Date();
+  document.getElementById('f-date').value  = now.toISOString().slice(0,10);
+  document.getElementById('f-hstart').value= now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace('h',':');
+  document.getElementById('f-hend').value  = '';
+  document.getElementById('f-note').value  = '';
+  document.getElementById('f-action').value= '';
+  document.getElementById('f-witness').value='';
+  document.getElementById('modal-now').textContent = now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}) + ' — ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  setInt(0);
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ── Intensity ──────────────────────────────────────────────────────────────
+function setInt(v){
+  selInt = v;
+  document.querySelectorAll('.int-big').forEach((b,i)=>{
+    b.className = 'int-big' + (i+1===v ? ' sel-'+(i+1) : '');
+  });
+}
+
+// ── Add ────────────────────────────────────────────────────────────────────
+function addIncident(){
+  const date = document.getElementById('f-date').value;
+  const hs   = document.getElementById('f-hstart').value;
+  if(!date||!hs||!selInt){showToast('⚠ Date, heure et intensité requis');return;}
+  const inc = {
+    id:Date.now(), date, hstart:hs,
+    hend:   document.getElementById('f-hend').value,
+    type:   document.getElementById('f-type').value,
+    int:    selInt,
+    note:   document.getElementById('f-note').value,
+    action: document.getElementById('f-action').value,
+    witness:document.getElementById('f-witness').value,
+  };
+  incidents.unshift(inc);
+  localStorage.setItem('ns_incidents',JSON.stringify(incidents));
+  closeModal();
+  showToast('✓ Incident enregistré');
+  renderJournal();
+  updateTopbar();
+}
+
+function deleteIncident(id){
+  if(!confirm('Supprimer cet incident ?'))return;
+  incidents = incidents.filter(i=>i.id!==id);
+  localStorage.setItem('ns_incidents',JSON.stringify(incidents));
+  renderJournal();
+  updateTopbar();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function calcDur(hs,he){
+  if(!hs||!he)return'';
+  const[h1,m1]=hs.split(':').map(Number),[h2,m2]=he.split(':').map(Number);
+  let d=(h2*60+m2)-(h1*60+m1);if(d<0)d+=1440;
+  return(Math.floor(d/60)?Math.floor(d/60)+'h':'')+String(d%60).padStart(2,'0')+'min';
+}
+const fDay = iso => new Date(iso+'T12:00').getDate();
+const fMon = iso => new Date(iso+'T12:00').toLocaleDateString('fr-FR',{month:'short'}).replace('.','');
+const fFull= iso => new Date(iso+'T12:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+// ── Top bar ────────────────────────────────────────────────────────────────
+function updateTopbar(){
+  const n = incidents.length;
+  document.getElementById('topbar-count').textContent = n ? n+' incident'+(n>1?'s':'') : '';
+}
+
+// ── Render stats ───────────────────────────────────────────────────────────
+function renderStats(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const total = incidents.length;
+  const last30 = incidents.filter(i=>new Date(i.date)>new Date(Date.now()-30*864e5)).length;
+  const avgI = total?(incidents.reduce((s,i)=>s+i.int,0)/total).toFixed(1):'—';
+  const nights = incidents.filter(i=>{const h=parseInt(i.hstart);return h>=22||h<7;}).length;
+  el.innerHTML=`
+    <div class="stat-card"><div class="stat-ico">📊</div><div class="stat-body"><div class="stat-v">${total}</div><div class="stat-l">Total</div></div></div>
+    <div class="stat-card"><div class="stat-ico">📅</div><div class="stat-body"><div class="stat-v">${last30}</div><div class="stat-l">30 jours</div></div></div>
+    <div class="stat-card"><div class="stat-ico">🔊</div><div class="stat-body"><div class="stat-v">${avgI}</div><div class="stat-l">Intensité moy.</div></div></div>
+    <div class="stat-card"><div class="stat-ico">🌙</div><div class="stat-body"><div class="stat-v">${nights}</div><div class="stat-l">Nocturnes</div></div></div>`;
+}
+
+// ── Journal ────────────────────────────────────────────────────────────────
+function renderJournal(){
+  renderStats('stats-row');
+  const el = document.getElementById('inc-list');
+  if(!incidents.length){
+    el.innerHTML=`<div class="empty"><div class="ei">🔕</div><p>Aucun incident enregistré.<br>Appuyez sur <strong>＋</strong> pour ajouter le premier.</p></div>`;
+    return;
+  }
+  el.innerHTML = incidents.map(inc=>`
+    <div class="inc-card" id="card-${inc.id}">
+      <div class="inc-header" onclick="toggleCard(${inc.id})">
+        <div class="inc-date-block">
+          <div class="inc-day">${fDay(inc.date)}</div>
+          <div class="inc-mon">${fMon(inc.date)}</div>
+        </div>
+        <div class="inc-main">
+          <div class="inc-type">${inc.type}</div>
+          <div class="inc-time">${inc.hstart}${inc.hend?' → '+inc.hend:''}${calcDur(inc.hstart,inc.hend)?' · '+calcDur(inc.hstart,inc.hend):''}</div>
+        </div>
+        <div class="inc-right">
+          <div class="int-dot int-dot-${inc.int}">${inc.int}</div>
+          <div style="font-size:10px;color:var(--t3)">${INT_LABELS[inc.int]}</div>
+        </div>
+      </div>
+      <div class="inc-expand" id="exp-${inc.id}">
+        ${inc.note?`<div class="inc-detail-row"><div class="idr-label">📝 Obs.</div><div class="idr-val">${inc.note}</div></div>`:''}
+        ${inc.action?`<div class="inc-detail-row"><div class="idr-label">⚡ Démarches</div><div class="idr-val">${inc.action}</div></div>`:''}
+        ${inc.witness?`<div class="inc-detail-row"><div class="idr-label">👤 Témoin</div><div class="idr-val">${inc.witness}</div></div>`:''}
+        <button class="inc-del-btn" onclick="deleteIncident(${inc.id})">🗑 Supprimer cet incident</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleCard(id){
+  const el = document.getElementById('exp-'+id);
+  el.classList.toggle('open');
+}
+
+// ── Charts ─────────────────────────────────────────────────────────────────
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function renderCharts(){
+  // Timeline 30j
+  dc('c-timeline');
+  const days=[],counts=[],ints=[];
+  for(let i=29;i>=0;i--){
+    const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);
+    const di=incidents.filter(x=>x.date===d);
+    days.push(new Date(d+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}));
+    counts.push(di.length);
+    ints.push(di.length?Math.max(...di.map(x=>x.int)):0);
+  }
+  charts['c-timeline']=new Chart(document.getElementById('c-timeline'),{type:'bar',data:{labels:days,datasets:[
+    {data:counts,backgroundColor:'rgba(192,57,43,.55)',borderRadius:3,yAxisID:'y'},
+    {data:ints,type:'line',borderColor:'rgba(212,130,10,.8)',backgroundColor:'rgba(212,130,10,.1)',pointRadius:2,tension:.3,yAxisID:'y2'}
+  ]},options:{plugins:{legend:{display:false}},scales:{
+    y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},
+    y2:{beginAtZero:true,max:4,position:'right',ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{display:false}},
+    x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}
+  }}});
+
+  // Hours
+  dc('c-hours');
+  const hc=Array(24).fill(0);
+  incidents.forEach(i=>{if(i.hstart)hc[parseInt(i.hstart)]++;});
+  charts['c-hours']=new Chart(document.getElementById('c-hours'),{type:'bar',data:{labels:Array.from({length:24},(_,i)=>i+'h'),datasets:[{data:hc,backgroundColor:hc.map((_,i)=>(i>=22||i<7)?'rgba(192,57,43,.7)':'rgba(79,142,247,.55)'),borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:0,maxTicksLimit:8},grid:{display:false}}}}});
+
+  // Intensity doughnut
+  dc('c-int');
+  const ic=[0,0,0,0];incidents.forEach(i=>{if(i.int>=1&&i.int<=4)ic[i.int-1]++;});
+  charts['c-int']=new Chart(document.getElementById('c-int'),{type:'doughnut',data:{labels:INT_LABELS.slice(1),datasets:[{data:ic,backgroundColor:INT_COLORS.slice(1),borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{color:CHART_COLOR,font:{size:11},padding:10}}}}});
+
+  // Weekday
+  dc('c-week');
+  const wc=Array(7).fill(0);incidents.forEach(i=>{wc[new Date(i.date+'T12:00').getDay()]++;});
+  charts['c-week']=new Chart(document.getElementById('c-week'),{type:'bar',data:{labels:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],datasets:[{data:wc,backgroundColor:'rgba(212,130,10,.65)',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:11}},grid:{display:false}}}}});
+}
+
+// ── Rapport ────────────────────────────────────────────────────────────────
+function renderReport(){
+  renderStats('stats-row2');
+  const d=dossier;
+  const first=incidents.length?fFull(incidents[incidents.length-1].date):'—';
+  const last =incidents.length?fFull(incidents[0].date):'—';
+  document.getElementById('rep-infos').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
+      <div class="rep-field"><div class="rep-label">Plaignant</div><div class="rep-val">${d.name||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Adresse</div><div class="rep-val">${d.addr||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Voisin</div><div class="rep-val">${d.vaddr||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Syndic</div><div class="rep-val">${d.syndic||'—'}</div></div>
+      <div class="rep-field" style="grid-column:1/-1"><div class="rep-label">Période</div><div class="rep-val">${first} → ${last}</div></div>
+    </div>`;
+
+  // incident cards for report
+  const el=document.getElementById('rep-list');
+  if(!incidents.length){el.innerHTML='<div class="empty"><p>Aucun incident.</p></div>';return;}
+  el.innerHTML=[...incidents].reverse().map((inc,i)=>`
+    <div class="rep-card" style="margin-bottom:6px;font-size:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <strong>#${i+1} — ${fFull(inc.date)}</strong>
+        <span style="font-weight:700;color:${INT_COLORS[inc.int]}">${inc.int}/4</span>
+      </div>
+      <div style="color:var(--t2)">${inc.hstart}${inc.hend?' → '+inc.hend:''}${calcDur(inc.hstart,inc.hend)?' ('+calcDur(inc.hstart,inc.hend)+')':''} · ${inc.type} · <em>${INT_LABELS[inc.int]}</em></div>
+      ${inc.note?`<div style="margin-top:4px;color:var(--t2)">Obs : ${inc.note}</div>`:''}
+      ${inc.action?`<div style="margin-top:2px;color:var(--t2)">Démarches : ${inc.action}</div>`:''}
+      ${inc.witness?`<div style="margin-top:2px;color:var(--t2)">Témoin : ${inc.witness}</div>`:''}
+    </div>`).join('');
+
+  setTimeout(()=>{
+    dc('c-rep-timeline');
+    const days=[],counts=[];
+    for(let i=29;i>=0;i--){
+      const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);
+      days.push(new Date(d+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}));
+      counts.push(incidents.filter(x=>x.date===d).length);
+    }
+    charts['c-rep-timeline']=new Chart(document.getElementById('c-rep-timeline'),{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:'rgba(192,57,43,.55)',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}}}});
+  },80);
+}
+
+// ── CSV ────────────────────────────────────────────────────────────────────
+function exportCSV(){
+  const h='Date,Heure début,Heure fin,Durée,Type,Intensité,Description,Démarches,Témoin';
+  const rows=incidents.map(i=>[i.date,i.hstart,i.hend||'',calcDur(i.hstart,i.hend),`"${i.type}"`,`${i.int}-${INT_LABELS[i.int]}`,`"${(i.note||'').replace(/"/g,'""')}"`,`"${(i.action||'').replace(/"/g,'""')}"`,`"${(i.witness||'').replace(/"/g,'""')}"`].join(','));
+  const b=new Blob(['\uFEFF'+[h,...rows].join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`nuisances_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
