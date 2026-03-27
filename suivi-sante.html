@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DOSSIER MÉDICAL — SUIVI CLINIQUE</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Red Cross Medical Theme */
+  --bg:      #f8f4f4;
+  --surface: #ffffff;
+  --surface2:#f0ebeb;
+  --border:  #ddd0d0;
+  --text:    #1a0808;
+  --muted:   #8a7070;
+
+  /* Sinus → medical orange/alert */
+  --sinus:     #c0282a;
+  --sinus-bg:  #fff0f0;
+  --sinus-mid: #f4a0a0;
+
+  /* Breath → steel blue medical */
+  --breath:     #1a5f8a;
+  --breath-bg:  #eef4fa;
+  --breath-mid: #90b8d8;
+
+  /* Belly → deep medical purple */
+  --belly:     #7a2060;
+  --belly-bg:  #f8eef5;
+  --belly-mid: #d090c0;
+
+  /* Stool → clinical brown */
+  --stool:     #7a4a2a;
+  --stool-bg:  #f8f0ea;
+  --stool-mid: #c8a080;
+
+  --danger:  #c0282a;
+  --green:   #1a7a3a;
+
+  --shadow: 0 2px 12px rgba(192,40,42,0.08);
+  --r:  10px;
+  --rs: 6px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+body {
+  font-family: 'Barlow Condensed', 'Share Tech Mono', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  padding-bottom: 80px;
+  position: relative;
+}
+
+/* BACKGROUND CROSS WATERMARK */
+body::before {
+  content: '✚';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 55vw;
+  color: rgba(192,40,42,0.028);
+  pointer-events: none;
+  z-index: 0;
+  line-height: 1;
+}
+
+/* Scanlines subtle */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(192,40,42,0.012) 4px, rgba(192,40,42,0.012) 5px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page, .topbar, .bottom-nav { position: relative; z-index: 1; }
+
+/* ── TOP BAR ── */
+.topbar {
+  background: #c0282a;
+  border-bottom: 3px solid #8a0a0c;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  height: 56px;
+  box-shadow: 0 3px 16px rgba(192,40,42,0.35);
+}
+
+.topbar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+.topbar-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.14em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-title::before {
+  content: '✚';
+  font-size: 20px;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255,255,255,0.6);
+}
+
+.pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 2.2s infinite;
+}
+@keyframes pulse {
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.4;transform:scale(1.4);}
+}
+
+.save-indicator {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.4s;
+  letter-spacing: 0.08em;
+}
+.save-indicator.show { opacity: 1; }
+
+#topDate {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.08em;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #1a0808;
+  border-top: 3px solid #c0282a;
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  z-index: 200;
+  box-shadow: 0 -2px 16px rgba(192,40,42,0.25);
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 4px 13px;
+  cursor: pointer;
+  border: none;
+  border-right: 1px solid #2a1010;
+  background: transparent;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #6a4040;
+  transition: color 0.15s, background 0.15s;
+  touch-action: manipulation;
+  position: relative;
+}
+.nav-btn:last-child { border-right: none; }
+.nav-btn.active {
+  color: #fff;
+  background: rgba(192,40,42,0.18);
+}
+.nav-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: #c0282a;
+}
+.nav-btn .icon { font-size: 21px; line-height: 1; }
+
+/* ── PAGES ── */
+.page { display: none; padding: 12px; }
+.page.active { display: block; }
+
+/* ── SECTION LABEL ── */
+.sec-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--muted);
+  margin: 18px 0 9px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sec-label::before { content: '✚'; font-size: 10px; color: #c0282a; }
+.sec-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+.sec-label:first-child { margin-top: 4px; }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.card-pad { padding: 14px; }
+
+/* ── FORM INPUTS ── */
+.dt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-group label {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 6px;
+}
+
+input[type="date"], input[type="time"], select, textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--rs);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #c0282a;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(192,40,42,0.1);
+}
+textarea { resize: none; min-height: 76px; line-height: 1.5; }
+
+/* ── SYMPTOM BLOCKS ── */
+.symptom-block {
+  border-radius: var(--rs);
+  padding: 15px;
+  margin-bottom: 11px;
+  position: relative;
+  overflow: hidden;
+}
+
+.symptom-block::before {
+  content: '✚';
+  position: absolute;
+  top: 8px; right: 10px;
+  font-size: 60px;
+  opacity: 0.04;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.symptom-block.sinus   { background: var(--sinus-bg);  border: 1.5px solid var(--sinus-mid);  border-left: 4px solid var(--sinus); }
+.symptom-block.breath  { background: var(--breath-bg); border: 1.5px solid var(--breath-mid); border-left: 4px solid var(--breath); }
+.symptom-block.belly   { background: var(--belly-bg);  border: 1.5px solid var(--belly-mid);  border-left: 4px solid var(--belly); }
+.symptom-block.stool   { background: var(--stool-bg);  border: 1.5px solid var(--stool-mid);  border-left: 4px solid var(--stool); }
+
+.sym-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+
+.sym-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sym-title.sinus  { color: var(--sinus); }
+.sym-title.breath { color: var(--breath); }
+.sym-title.belly  { color: var(--belly); }
+.sym-title.stool  { color: var(--stool); }
+
+.sym-emoji { font-size: 18px; }
+
+.score-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  min-width: 42px;
+  text-align: right;
+}
+.sinus .score-display  { color: var(--sinus); }
+.breath .score-display { color: var(--breath); }
+.belly .score-display  { color: var(--belly); }
+
+/* ── SLIDER ── */
+.slider-wrap { margin-bottom: 13px; }
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  letter-spacing: 0.06em;
+}
+input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 2px; outline: none; cursor: pointer; }
+.sinus  input[type="range"] { background: var(--sinus-mid); }
+.breath input[type="range"] { background: var(--breath-mid); }
+.belly  input[type="range"] { background: var(--belly-mid); }
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px; height: 26px;
+  border-radius: 4px;
+  background: #fff;
+  border: 3px solid;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+.sinus  input[type="range"]::-webkit-slider-thumb { border-color: var(--sinus); }
+.breath input[type="range"]::-webkit-slider-thumb { border-color: var(--breath); }
+.belly  input[type="range"]::-webkit-slider-thumb { border-color: var(--belly); }
+
+/* ── CHECKBOXES ── */
+.checks-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 8px;
+}
+
+.checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.checks-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.chk-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255,255,255,0.65);
+  border-radius: 4px;
+  padding: 9px 8px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: 1.5px solid rgba(0,0,0,0.06);
+  transition: all 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.chk-item.checked-sinus { background: #fff0f0; border-color: var(--sinus); color: var(--sinus); }
+.chk-item.checked-breath { background: #eef4fa; border-color: var(--breath); color: var(--breath); }
+.chk-item.checked-belly { background: #f8eef5; border-color: var(--belly); color: var(--belly); }
+.chk-item.checked-stool { background: #f8f0ea; border-color: var(--stool); color: var(--stool); }
+
+.chk-dot {
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  transition: all 0.15s;
+}
+.chk-item.checked-sinus  .chk-dot { background: var(--sinus);  border-color: var(--sinus);  color: #fff; }
+.chk-item.checked-breath .chk-dot { background: var(--breath); border-color: var(--breath); color: #fff; }
+.chk-item.checked-belly  .chk-dot { background: var(--belly);  border-color: var(--belly);  color: #fff; }
+.chk-item.checked-stool  .chk-dot { background: var(--stool);  border-color: var(--stool);  color: #fff; }
+
+.precheck-flag {
+  font-size: 9px;
+  background: var(--sinus);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 700;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.06em;
+}
+
+/* ── STOOL SELECTOR ── */
+.stool-types { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+.stool-type {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 4px 8px;
+  background: rgba(255,255,255,0.65);
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.stool-type.selected { background: #fff; border-color: var(--stool); }
+.stool-type .st-emoji { font-size: 20px; }
+.stool-type .st-num { font-size: 9px; font-weight: 700; color: var(--stool); background: var(--stool-mid); border-radius: 2px; padding: 1px 5px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.06em; }
+.stool-type .st-label { font-size: 9px; font-weight: 600; color: var(--muted); text-align: center; line-height: 1.3; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; }
+.stool-type.selected .st-label { color: var(--stool); }
+
+.color-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-bottom: 12px; }
+.color-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 10px 4px 8px;
+  background: rgba(255,255,255,0.65);
+  border-radius: 6px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  touch-action: manipulation;
+  user-select: none; -webkit-user-select: none;
+}
+.color-item.selected { background: #fff; border-color: var(--stool); }
+.color-dot { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; }
+.color-item .cl-label { font-size: 9px; font-weight: 600; color: var(--muted); text-align: center; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; }
+.color-item.selected .cl-label { color: var(--stool); }
+
+/* STOOL absent */
+.stool-toggle {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.55);
+  border-radius: var(--rs);
+  margin-bottom: 12px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  touch-action: manipulation;
+  user-select: none; -webkit-user-select: none;
+}
+.stool-toggle.active { background: #fff; border-color: var(--stool); }
+.toggle-box {
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.stool-toggle.active .toggle-box { background: var(--stool); border-color: var(--stool); color: #fff; }
+
+/* ── ADD BUTTON ── */
+.add-btn {
+  width: 100%;
+  padding: 16px;
+  background: #c0282a;
+  color: #fff;
+  border: none;
+  border-radius: var(--rs);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.15s;
+  margin-top: 8px;
+  touch-action: manipulation;
+  box-shadow: 0 4px 14px rgba(192,40,42,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.add-btn::before {
+  content: '✚';
+  font-size: 16px;
+  opacity: 0.6;
+}
+.add-btn:active { transform: scale(0.98); background: #8a0a0c; }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--r);
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--border);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '✚';
+  position: absolute;
+  bottom: -8px; right: 4px;
+  font-size: 38px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.stat-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.stat-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.stat-value.sinus  { color: var(--sinus); }
+.stat-value.breath { color: var(--breath); }
+.stat-value.belly  { color: var(--belly); }
+.stat-sub { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ── CHART ── */
+.chart-wrap { position: relative; height: 190px; }
+
+/* ── HISTORY ── */
+.hist-item {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+.hist-item:last-child { border-bottom: none; }
+.hist-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.hist-scores { display: flex; gap: 6px; flex-wrap: wrap; }
+.hist-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+.hist-badge.sinus  { background: var(--sinus-bg);  color: var(--sinus); }
+.hist-badge.breath { background: var(--breath-bg); color: var(--breath); }
+.hist-badge.belly  { background: var(--belly-bg);  color: var(--belly); }
+.hist-badge.stool  { background: var(--stool-bg);  color: var(--stool); }
+.hist-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.tag-pill {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  background: var(--surface2);
+  color: var(--muted);
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-weight: 600;
+  border-left: 2px solid #c0282a;
+}
+.del-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); padding: 2px; line-height: 1; opacity: 0.35; touch-action: manipulation; }
+.del-btn:active { opacity: 1; color: var(--danger); }
+
+/* ── EXPORT ── */
+.export-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
+.export-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  padding: 18px 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-top: 3px solid #c0282a;
+  border-radius: var(--r);
+  cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif;
+  box-shadow: var(--shadow);
+  transition: all 0.15s;
+  text-align: center;
+  touch-action: manipulation;
+}
+.export-btn:active { transform: scale(0.97); background: var(--surface2); }
+.export-icon { font-size: 28px; }
+.export-label { font-size: 15px; letter-spacing: 0.12em; color: var(--text); }
+.export-sub { font-size: 10px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a0808;
+  border: 1px solid #c0282a;
+  border-top: 2px solid #c0282a;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 3px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  z-index: 999;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(192,40,42,0.3);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 36px 20px; color: var(--muted); }
+.empty .ei { font-size: 38px; margin-bottom: 10px; }
+.empty p { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; letter-spacing: 0.08em; }
+
+/* ── IMPORT ── */
+.import-zone {
+  border: 2px dashed #c0282a;
+  border-radius: var(--r);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #fff8f8;
+}
+.import-zone:active { background: #fff0f0; }
+#fileInput { display: none; }
+
+/* ── STOOL SECTION ── */
+.stool-detail { display: none; }
+.stool-detail.visible { display: block; }
+
+/* ── PLAGE HORAIRE BANNER ── */
+.plage-banner {
+  position: sticky;
+  top: 56px;
+  z-index: 150;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  transition: background 0.4s;
+}
+.plage-banner.active-plage {
+  background: #1a4a1a;
+  border-bottom-color: #2a7a2a;
+}
+.plage-banner.inactive-plage {
+  background: #2a1a08;
+  border-bottom-color: #5a3a10;
+}
+.plage-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+}
+.plage-label .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.active-plage .dot { background: #4aff4a; box-shadow: 0 0 6px #4aff4a88; animation: pulse 2s infinite; }
+.inactive-plage .dot { background: #ff8c00; }
+.active-plage .plage-label { color: #aaffaa; }
+.inactive-plage .plage-label { color: #ffcc88; }
+.plage-count {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.plage-count.ok { background: rgba(74,255,74,0.15); color: #4aff4a; }
+.plage-count.warn { background: rgba(255,60,60,0.2); color: #ff6060; border: 1px solid rgba(255,60,60,0.4); animation: blink-warn 1.2s infinite; }
+@keyframes blink-warn { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+/* ── PLAGE INLINE WARNING (form) ── */
+.plage-warn-form {
+  display: none;
+  margin-bottom: 10px;
+  padding: 10px 13px;
+  background: #2a1500;
+  border: 1px solid #ff8c00;
+  border-left: 3px solid #ff8c00;
+  border-radius: var(--rs);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: #ffcc88;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+}
+.plage-warn-form.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">DOSSIER MÉDICAL</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="save-indicator" id="saveIndicator">✚ SAUVEGARDÉ</div>
+    <div style="font-size:12px;color:var(--muted);font-weight:600;" id="topDate"></div>
+  </div>
+</div>
+
+<!-- PLAGE HORAIRE BANNER -->
+<div class="plage-banner inactive-plage" id="plageBanner">
+  <div class="plage-label"><div class="dot"></div><span id="plageText">—</span></div>
+  <div class="plage-count ok" id="plageCount"></div>
+</div>
+
+<!-- PAGE SAISIE -->
+<div class="page active" id="page-saisie">
+  <div class="sec-label">Nouvelle entrée</div>
+  <div class="card card-pad">
+    <div class="dt-row">
+      <div class="field-group">
+        <label>📅 Date</label>
+        <input type="date" id="entryDate">
+      </div>
+      <div class="field-group">
+        <label>🕐 Heure</label>
+        <input type="time" id="entryTime">
+      </div>
+    </div>
+  </div>
+
+  <!-- SINUS -->
+  <div class="symptom-block sinus">
+    <div class="sym-header">
+      <div class="sym-title sinus"><span class="sym-emoji">🫁</span>Sinus</div>
+      <div class="score-display" id="sinusVal">0</div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>Aucun</span><span>Modéré</span><span>Intense</span></div>
+      <input type="range" min="0" max="10" value="0" id="sinusRange" oninput="updateSlider('sinus',this.value)">
+    </div>
+    <div class="checks-title">Symptômes présents</div>
+    <div class="checks-grid" id="sinusChecks">
+      <div class="chk-item checked-sinus" data-key="douleur_gauche" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot">✓</div><span>Douleur gauche</span><span class="precheck-flag">★</span>
+      </div>
+      <div class="chk-item" data-key="douleur_droite" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Douleur droite</span>
+      </div>
+      <div class="chk-item" data-key="douleur_bilaterale" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Bilatérale</span>
+      </div>
+      <div class="chk-item checked-sinus" data-key="pression_faciale" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot">✓</div><span>Pression faciale</span><span class="precheck-flag">★</span>
+      </div>
+      <div class="chk-item" data-key="nez_bouche" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Nez bouché</span>
+      </div>
+      <div class="chk-item" data-key="maux_tete" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Maux de tête</span>
+      </div>
+      <div class="chk-item" data-key="yeux_lourds" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Yeux lourds</span>
+      </div>
+      <div class="chk-item" data-key="ecoulement" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Écoulement</span>
+      </div>
+      <div class="chk-item" data-key="fievre" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Fièvre</span>
+      </div>
+      <div class="chk-item" data-key="odeur_perturbee" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div><span>Odorat perturbé</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESSOUFFLEMENT -->
+  <div class="symptom-block breath">
+    <div class="sym-header">
+      <div class="sym-title breath"><span class="sym-emoji">💨</span>Essoufflement</div>
+      <div class="score-display" id="breathVal">0</div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>Aucun</span><span>Modéré</span><span>Intense</span></div>
+      <input type="range" min="0" max="10" value="0" id="breathRange" oninput="updateSlider('breath',this.value)">
+    </div>
+    <div class="checks-title">Symptômes présents</div>
+    <div class="checks-grid" id="breathChecks">
+      <div class="chk-item" data-key="repos" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div><span>Au repos</span>
+      </div>
+      <div class="chk-item" data-key="effort" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div><span>À l'effort</span>
+      </div>
+      <div class="chk-item" data-key="nuit" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div><span>La nuit</span>
+      </div>
+      <div class="chk-item" data-key="oppression" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div><span>Oppression</span>
+      </div>
+      <div class="chk-item" data-key="sifflement" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div><span>Sifflement</span>
+      </div>
+      <div class="chk-item" data-key="toux" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div><span>Toux</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOULEUR VENTRE -->
+  <div class="symptom-block belly">
+    <div class="sym-header">
+      <div class="sym-title belly"><span class="sym-emoji">🫀</span>Douleur ventre</div>
+      <div class="score-display" id="bellyVal">0</div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-labels"><span>Aucune</span><span>Modérée</span><span>Intense</span></div>
+      <input type="range" min="0" max="10" value="0" id="bellyRange" oninput="updateSlider('belly',this.value)">
+    </div>
+    <div class="checks-title">Localisation & type</div>
+    <div class="checks-grid" id="bellyChecks">
+      <div class="chk-item" data-key="haut_ventre" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Haut ventre</span>
+      </div>
+      <div class="chk-item" data-key="bas_ventre" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Bas ventre</span>
+      </div>
+      <div class="chk-item" data-key="cote_gauche" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Côté gauche</span>
+      </div>
+      <div class="chk-item" data-key="cote_droit" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Côté droit</span>
+      </div>
+      <div class="chk-item" data-key="crampes" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Crampes</span>
+      </div>
+      <div class="chk-item" data-key="ballonnements" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Ballonnements</span>
+      </div>
+      <div class="chk-item" data-key="nausees" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Nausées</span>
+      </div>
+      <div class="chk-item" data-key="brulures" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Brûlures</span>
+      </div>
+      <div class="chk-item" data-key="apres_repas" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Après repas</span>
+      </div>
+      <div class="chk-item" data-key="a_jeun" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>À jeun</span>
+      </div>
+      <div class="chk-item" data-key="flatulences" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div><span>Flatulences</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUIVI SELLES -->
+  <div class="symptom-block stool">
+    <div class="sym-header">
+      <div class="sym-title stool"><span class="sym-emoji">🚽</span>Selles</div>
+    </div>
+
+    <div class="stool-toggle" id="stoolAbsentToggle" onclick="toggleStoolAbsent()">
+      <div class="toggle-box" id="stoolAbsentBox"></div>
+      <span style="font-size:13px;font-weight:600;color:var(--stool);">Pas de selles aujourd'hui</span>
+    </div>
+
+    <div class="stool-detail" id="stoolDetail">
+      <div class="checks-title">Type (échelle de Bristol)</div>
+      <div class="stool-types" id="stoolTypeGrid">
+        <div class="stool-type" data-type="1" onclick="selectStoolType(this)">
+          <span class="st-emoji">🪨</span>
+          <span class="st-num">T1</span>
+          <span class="st-label">Dur grumeleux</span>
+        </div>
+        <div class="stool-type" data-type="2" onclick="selectStoolType(this)">
+          <span class="st-emoji">🥜</span>
+          <span class="st-num">T2</span>
+          <span class="st-label">Boudinée bosselée</span>
+        </div>
+        <div class="stool-type" data-type="3" onclick="selectStoolType(this)">
+          <span class="st-emoji">🌭</span>
+          <span class="st-num">T3</span>
+          <span class="st-label">Fissurée</span>
+        </div>
+        <div class="stool-type" data-type="4" onclick="selectStoolType(this)">
+          <span class="st-emoji">🍌</span>
+          <span class="st-num">T4</span>
+          <span class="st-label">Lisse normale</span>
+        </div>
+        <div class="stool-type" data-type="5" onclick="selectStoolType(this)">
+          <span class="st-emoji">🫘</span>
+          <span class="st-num">T5</span>
+          <span class="st-label">Morceaux mous</span>
+        </div>
+        <div class="stool-type" data-type="6" onclick="selectStoolType(this)">
+          <span class="st-emoji">🥣</span>
+          <span class="st-num">T6</span>
+          <span class="st-label">Pâteuse</span>
+        </div>
+        <div class="stool-type" data-type="7" onclick="selectStoolType(this)">
+          <span class="st-emoji">💧</span>
+          <span class="st-num">T7</span>
+          <span class="st-label">Liquide</span>
+        </div>
+        <div class="stool-type" data-type="0" onclick="selectStoolType(this)">
+          <span class="st-emoji">❓</span>
+          <span class="st-num">—</span>
+          <span class="st-label">Non précisé</span>
+        </div>
+      </div>
+
+      <div class="checks-title">Couleur</div>
+      <div class="color-grid" id="stoolColorGrid">
+        <div class="color-item" data-color="marron" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#7B4F2B;"></div>
+          <span class="cl-label">Marron</span>
+        </div>
+        <div class="color-item" data-color="marron_clair" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#C49A6C;"></div>
+          <span class="cl-label">Marron clair</span>
+        </div>
+        <div class="color-item" data-color="jaune" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#E8C84B;"></div>
+          <span class="cl-label">Jaune</span>
+        </div>
+        <div class="color-item" data-color="vert" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#4B7D3F;"></div>
+          <span class="cl-label">Vert</span>
+        </div>
+        <div class="color-item" data-color="noir" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#2A1E1A;"></div>
+          <span class="cl-label">Noir</span>
+        </div>
+        <div class="color-item" data-color="rouge" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#C0282A;"></div>
+          <span class="cl-label">Rouge</span>
+        </div>
+        <div class="color-item" data-color="gris" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:#9E9E9E;"></div>
+          <span class="cl-label">Gris/Blanc</span>
+        </div>
+        <div class="color-item" data-color="autre" onclick="selectStoolColor(this)">
+          <div class="color-dot" style="background:linear-gradient(135deg,#c49a6c 50%,#7b4f2b 50%);"></div>
+          <span class="cl-label">Autre</span>
+        </div>
+      </div>
+
+      <div class="checks-title">Particularités</div>
+      <div class="checks-grid" id="stoolChecks">
+        <div class="chk-item" data-key="sang" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div><span>Sang visible</span>
+        </div>
+        <div class="chk-item" data-key="mucus" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div><span>Mucus</span>
+        </div>
+        <div class="chk-item" data-key="urgence" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div><span>Urgence</span>
+        </div>
+        <div class="chk-item" data-key="douleur_evacuation" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div><span>Douleur évac.</span>
+        </div>
+        <div class="chk-item" data-key="incomplete" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div><span>Incomplète</span>
+        </div>
+        <div class="chk-item" data-key="frequente" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div><span>+3/jour</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-pad">
+    <div class="field-group">
+      <label>📝 Note libre</label>
+      <textarea id="entryNote" placeholder="Contexte, médicaments, déclenchants, alimentation…"></textarea>
+    </div>
+  </div>
+
+  <div class="plage-warn-form" id="plageWarnForm"></div>
+  <button class="add-btn" onclick="addEntry()">ENREGISTRER L'ENTRÉE</button>
+</div>
+
+<!-- PAGE GRAPHIQUES -->
+<div class="page" id="page-stats">
+  <div class="sec-label">Résumé</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">🫁 Sinus moy.</div>
+      <div class="stat-value sinus" id="avgSinus">—</div>
+      <div class="stat-sub">/ 10</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">💨 Essouf. moy.</div>
+      <div class="stat-value breath" id="avgBreath">—</div>
+      <div class="stat-sub">/ 10</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🫀 Ventre moy.</div>
+      <div class="stat-value belly" id="avgBelly">—</div>
+      <div class="stat-sub">/ 10</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📊 Entrées</div>
+      <div class="stat-value" id="totalEntries">0</div>
+      <div class="stat-sub">enregistrées</div>
+    </div>
+  </div>
+
+  <div class="sec-label">Évolution (30 jours)</div>
+  <div class="card card-pad">
+    <div style="display:flex;gap:14px;font-size:11px;font-weight:700;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="color:var(--sinus);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--sinus);border-radius:2px;display:inline-block;"></span>Sinus</span>
+      <span style="color:var(--breath);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--breath);border-radius:2px;display:inline-block;"></span>Essouf.</span>
+      <span style="color:var(--belly);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--belly);border-radius:2px;display:inline-block;"></span>Ventre</span>
+    </div>
+    <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+  </div>
+
+  <div class="sec-label">Selles — types fréquents</div>
+  <div class="card card-pad" id="stoolStats">
+    <div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>
+  </div>
+
+  <div class="sec-label">Symptômes fréquents</div>
+  <div class="card card-pad" id="freqSymptoms">
+    <div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>
+  </div>
+</div>
+
+<!-- PAGE HISTORIQUE -->
+<div class="page" id="page-history">
+  <div class="sec-label">Historique</div>
+  <div class="card" id="histList">
+    <div class="empty"><div class="ei">📋</div><p>Aucune entrée</p></div>
+  </div>
+
+  <div class="sec-label">Exporter</div>
+  <div class="export-grid">
+    <button class="export-btn" onclick="exportJSON()">
+      <span class="export-icon">💾</span>
+      <span class="export-label">JSON</span>
+      <span class="export-sub">Sauvegarde</span>
+    </button>
+    <button class="export-btn" onclick="exportCSV()">
+      <span class="export-icon">📊</span>
+      <span class="export-label">CSV</span>
+      <span class="export-sub">Tableur</span>
+    </button>
+    <button class="export-btn" onclick="exportText()">
+      <span class="export-icon">📄</span>
+      <span class="export-label">Rapport</span>
+      <span class="export-sub">Texte médecin</span>
+    </button>
+  </div>
+
+  <div class="sec-label">Importer JSON</div>
+  <div class="card card-pad">
+    <div class="import-zone" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:30px;margin-bottom:8px;">📂</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);">Charger un fichier JSON</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Restaurer une sauvegarde</div>
+    </div>
+    <input type="file" id="fileInput" accept=".json" onchange="importJSON(this)">
+    <div id="import-status" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);border-left:3px solid #c0282a;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.7;letter-spacing:0.04em;"></div>
+  </div>
+
+  <div class="sec-label" style="margin-top:16px;">Danger zone</div>
+  <div class="card card-pad">
+    <button class="add-btn" style="background:#fff;color:var(--danger);border:1.5px solid #fecaca;font-size:15px;" onclick="clearAll()">
+      🗑&nbsp;&nbsp;EFFACER TOUTES LES DONNÉES
+    </button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-saisie" onclick="showPage('saisie')">
+    <span class="icon">✚</span>SAISIE
+  </button>
+  <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">
+    <span class="icon">📈</span>COURBES
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="showPage('history')">
+    <span class="icon">📋</span>DOSSIER
+  </button>
+  <button class="nav-btn" id="nav-saisie2" onclick="showPage('saisie');window.scrollTo(0,0);">
+    <span class="icon">🔝</span>HAUT
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'sante_v3';
+let entries = [];
+let lineChart = null;
+let stoolAbsent = false;
+let selectedStoolType = null;
+let selectedStoolColor = null;
+
+// ── STOOL LABELS ──
+const STOOL_TYPES = {
+  0:'Non précisé',1:'T1 – Dur grumeleux',2:'T2 – Bosselée',
+  3:'T3 – Fissurée',4:'T4 – Lisse (normal)',5:'T5 – Morceaux mous',
+  6:'T6 – Pâteuse',7:'T7 – Liquide'
+};
+const STOOL_COLORS = {
+  marron:'Marron',marron_clair:'Marron clair',jaune:'Jaune',vert:'Vert',
+  noir:'Noir (⚠)',rouge:'Rouge (⚠)',gris:'Gris/Blanc',autre:'Autre'
+};
+
+const SYM = {
+  douleur_gauche:'Doul. G.',douleur_droite:'Doul. D.',douleur_bilaterale:'Bilatérale',
+  pression_faciale:'Pression',nez_bouche:'Nez bouché',
+  maux_tete:'Céphalées',yeux_lourds:'Yeux lourds',ecoulement:'Écoulement',
+  fievre:'Fièvre',odeur_perturbee:'Odorat',
+  repos:'Repos',effort:'Effort',nuit:'Nuit',oppression:'Oppression',
+  sifflement:'Sifflement',toux:'Toux',
+  haut_ventre:'Haut ventre',bas_ventre:'Bas ventre',cote_gauche:'Côté G.',
+  cote_droit:'Côté D.',crampes:'Crampes',ballonnements:'Ballonnements',
+  nausees:'Nausées',brulures:'Brûlures',apres_repas:'Après repas',a_jeun:'À jeun',flatulences:'Flatulences',
+  sang:'Sang',mucus:'Mucus',urgence:'Urgence',douleur_evacuation:'Doul. évac.',
+  incomplete:'Incomplète',frequente:'+3/jour'
+};
+
+// ── PLAGES HORAIRES ──
+const PLAGES = [
+  { id:'matin',  label:'🌅 MATIN',   start: 6*60,      end: 9*60  },
+  { id:'midi',   label:'☀️ MIDI',    start: 12*60,     end: 14*60 },
+  { id:'soir',   label:'🌙 SOIR',    start: 19*60,     end: 21*60 },
+];
+
+// ── INIT ──
+(function(){
+  load();
+  const n = new Date();
+  document.getElementById('entryDate').value = n.toISOString().split('T')[0];
+  document.getElementById('entryTime').value = n.toTimeString().slice(0,5);
+  document.getElementById('topDate').textContent = n.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+  updatePlageBanner();
+  setInterval(updatePlageBanner, 60000);
+  document.getElementById('entryTime').addEventListener('change', updateFormWarning);
+  document.getElementById('entryDate').addEventListener('change', updateFormWarning);
+})();
+
+function getMinutes(h, m){ return h*60 + m; }
+
+function getCurrentPlage(hhmm){
+  // hhmm = "HH:MM" string or current time if omitted
+  let totalMin;
+  if(hhmm){
+    const [h,m] = hhmm.split(':').map(Number);
+    totalMin = getMinutes(h,m);
+  } else {
+    const n = new Date();
+    totalMin = getMinutes(n.getHours(), n.getMinutes());
+  }
+  return PLAGES.find(p => totalMin >= p.start && totalMin < p.end) || null;
+}
+
+function getNextPlage(){
+  const n = new Date();
+  const totalMin = getMinutes(n.getHours(), n.getMinutes());
+  // chercher la prochaine plage du jour
+  const next = PLAGES.find(p => p.start > totalMin);
+  return next || PLAGES[0]; // sinon matin du lendemain
+}
+
+function countEntriesToday(plageId){
+  const today = new Date().toISOString().split('T')[0];
+  const plage = PLAGES.find(p => p.id === plageId);
+  if(!plage) return 0;
+  return entries.filter(e => {
+    if(e.date !== today) return false;
+    const [h,m] = e.time.split(':').map(Number);
+    const t = getMinutes(h,m);
+    return t >= plage.start && t < plage.end;
+  }).length;
+}
+
+function updatePlageBanner(){
+  const banner = document.getElementById('plageBanner');
+  const text   = document.getElementById('plageText');
+  const count  = document.getElementById('plageCount');
+  const now = new Date();
+  const plage = getCurrentPlage();
+
+  if(plage){
+    banner.className = 'plage-banner active-plage';
+    text.textContent = plage.label + ' — PLAGE DE SAISIE OUVERTE';
+    const n = countEntriesToday(plage.id);
+    if(n === 0){
+      count.textContent = 'AUCUNE SAISIE';
+      count.className = 'plage-count ok';
+    } else if(n === 1){
+      count.textContent = '1 SAISIE ✓';
+      count.className = 'plage-count ok';
+    } else {
+      count.textContent = n+' SAISIES ⚠';
+      count.className = 'plage-count warn';
+    }
+  } else {
+    banner.className = 'plage-banner inactive-plage';
+    const next = getNextPlage();
+    const nextStart = Math.floor(next.start/60)+':'+(next.start%60).toString().padStart(2,'0');
+    // calculer si c'est demain
+    const totalMin = getMinutes(now.getHours(), now.getMinutes());
+    const demain = next.start <= totalMin;
+    text.textContent = 'Hors plage — prochaine : '+next.label+' à '+nextStart+(demain?' (demain)':'');
+    count.textContent = '';
+    count.className = 'plage-count ok';
+  }
+  updateFormWarning();
+}
+
+function updateFormWarning(){
+  const warnEl = document.getElementById('plageWarnForm');
+  const timeVal = document.getElementById('entryTime').value;
+  const dateVal = document.getElementById('entryDate').value;
+  const today = new Date().toISOString().split('T')[0];
+
+  if(!timeVal){ warnEl.classList.remove('visible'); return; }
+
+  const plage = getCurrentPlage(timeVal);
+  if(plage){
+    // Compter les entrées existantes sur cette plage pour cette date
+    const [h,m] = timeVal.split(':').map(Number);
+    const t = getMinutes(h,m);
+    let dayEntries;
+    if(dateVal === today){
+      dayEntries = entries.filter(e => {
+        if(e.date !== dateVal) return false;
+        const [eh,em] = e.time.split(':').map(Number);
+        const et = getMinutes(eh,em);
+        return et >= plage.start && et < plage.end;
+      }).length;
+    } else {
+      dayEntries = entries.filter(e => {
+        if(e.date !== dateVal) return false;
+        const [eh,em] = e.time.split(':').map(Number);
+        const et = getMinutes(eh,em);
+        return et >= plage.start && et < plage.end;
+      }).length;
+    }
+    if(dayEntries >= 1){
+      warnEl.innerHTML = '⚠ DOUBLON PLAGE ' + plage.id.toUpperCase() + ' — ' + dayEntries + ' entrée(s) déjà enregistrée(s) sur cette plage ce jour.<br>Idéalement 1 saisie / plage. Confirmez si intentionnel.';
+      warnEl.classList.add('visible');
+    } else {
+      warnEl.classList.remove('visible');
+    }
+  } else {
+    warnEl.innerHTML = '⚠ HORS PLAGE DE SUIVI — L\'heure saisie ('+(timeVal)+') est en dehors des plages recommandées :<br>Matin 06h–09h · Midi 12h–14h · Soir 19h–21h';
+    warnEl.classList.add('visible');
+  }
+}
+
+// ── STORAGE ──
+function load(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    entries = raw ? JSON.parse(raw) : [];
+  } catch(e){ entries = []; }
+}
+
+function save(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    flashSave();
+  } catch(e){
+    toast('⚠️ Erreur sauvegarde locale');
+  }
+}
+
+function flashSave(){
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+// ── NAVIGATION ──
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  if(p==='stats'){renderStats();setTimeout(renderCharts,60);}
+  if(p==='history')renderHistory();
+}
+
+// ── SLIDERS ──
+function updateSlider(type, val){
+  const ids = {sinus:['sinusVal','sinusRange'],breath:['breathVal','breathRange'],belly:['bellyVal','bellyRange']};
+  const colors = {sinus:['var(--sinus)','var(--sinus-mid)'],breath:['var(--breath)','var(--breath-mid)'],belly:['var(--belly)','var(--belly-mid)']};
+  document.getElementById(ids[type][0]).textContent = val;
+  const r = document.getElementById(ids[type][1]);
+  const pct = (val/10*100)+'%';
+  const c = colors[type];
+  r.style.background = `linear-gradient(to right,${c[0]} 0%,${c[0]} ${pct},${c[1]} ${pct})`;
+}
+
+// ── CHECKBOXES ──
+function toggleChk(el, type){
+  const cls = 'checked-'+type;
+  const on = el.classList.toggle(cls);
+  el.querySelector('.chk-dot').textContent = on ? '✓' : '';
+}
+
+function getChecked(id){
+  return [...document.querySelectorAll('#'+id+' .chk-item')]
+    .filter(e=>['checked-sinus','checked-breath','checked-belly','checked-stool'].some(c=>e.classList.contains(c)))
+    .map(e=>e.dataset.key);
+}
+
+// ── STOOL SPECIFIC ──
+function toggleStoolAbsent(){
+  stoolAbsent = !stoolAbsent;
+  const toggle = document.getElementById('stoolAbsentToggle');
+  const box = document.getElementById('stoolAbsentBox');
+  const detail = document.getElementById('stoolDetail');
+  toggle.classList.toggle('active', stoolAbsent);
+  box.textContent = stoolAbsent ? '✓' : '';
+  detail.classList.toggle('visible', !stoolAbsent);
+}
+
+function selectStoolType(el){
+  document.querySelectorAll('#stoolTypeGrid .stool-type').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedStoolType = parseInt(el.dataset.type);
+}
+
+function selectStoolColor(el){
+  document.querySelectorAll('#stoolColorGrid .color-item').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedStoolColor = el.dataset.color;
+}
+
+// ── ADD ENTRY ──
+function addEntry(){
+  const date = document.getElementById('entryDate').value;
+  const time = document.getElementById('entryTime').value;
+  if(!date){toast('⚠️ Choisissez une date');return;}
+
+  const entry = {
+    id: Date.now(),
+    date, time,
+    sinus: +document.getElementById('sinusRange').value,
+    breath: +document.getElementById('breathRange').value,
+    belly: +document.getElementById('bellyRange').value,
+    sinusSymptoms: getChecked('sinusChecks'),
+    breathSymptoms: getChecked('breathChecks'),
+    bellySymptoms: getChecked('bellyChecks'),
+    stool: {
+      absent: stoolAbsent,
+      type: stoolAbsent ? null : selectedStoolType,
+      color: stoolAbsent ? null : selectedStoolColor,
+      details: stoolAbsent ? [] : getChecked('stoolChecks')
+    },
+    note: document.getElementById('entryNote').value.trim()
+  };
+
+  entries.unshift(entry);
+  save();
+  resetForm();
+  updatePlageBanner();
+  toast('✅ Entrée enregistrée');
+}
+
+// ── RESET FORM ──
+function resetForm(){
+  const n = new Date();
+  document.getElementById('entryDate').value = n.toISOString().split('T')[0];
+  document.getElementById('entryTime').value = n.toTimeString().slice(0,5);
+  ['sinusRange','breathRange','bellyRange'].forEach(id=>{
+    document.getElementById(id).value = 0;
+  });
+  updateSlider('sinus',0);updateSlider('breath',0);updateSlider('belly',0);
+  document.getElementById('entryNote').value = '';
+
+  document.querySelectorAll('#sinusChecks .chk-item').forEach(el=>{
+    const def = el.dataset.key==='douleur_gauche'||el.dataset.key==='pression_faciale';
+    el.querySelector('.chk-dot').textContent = def ? '✓' : '';
+    el.classList.toggle('checked-sinus', def);
+  });
+  ['breathChecks','bellyChecks','stoolChecks'].forEach(id=>{
+    document.querySelectorAll('#'+id+' .chk-item').forEach(el=>{
+      el.querySelector('.chk-dot').textContent = '';
+      el.className = 'chk-item';
+    });
+  });
+
+  // reset stool
+  stoolAbsent = false;
+  selectedStoolType = null;
+  selectedStoolColor = null;
+  document.getElementById('stoolAbsentToggle').classList.remove('active');
+  document.getElementById('stoolAbsentBox').textContent = '';
+  document.getElementById('stoolDetail').classList.remove('visible');
+  document.querySelectorAll('#stoolTypeGrid .stool-type').forEach(x=>x.classList.remove('selected'));
+  document.querySelectorAll('#stoolColorGrid .color-item').forEach(x=>x.classList.remove('selected'));
+}
+
+// ── STATS ──
+function renderStats(){
+  const n = entries.length;
+  document.getElementById('totalEntries').textContent = n;
+  if(!n){
+    ['avgSinus','avgBreath','avgBelly'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('freqSymptoms').innerHTML='<div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>';
+    document.getElementById('stoolStats').innerHTML='<div class="empty"><div class="ei">🚽</div><p>Pas encore de données</p></div>';
+    return;
+  }
+  document.getElementById('avgSinus').textContent = (entries.reduce((a,e)=>a+e.sinus,0)/n).toFixed(1);
+  document.getElementById('avgBreath').textContent = (entries.reduce((a,e)=>a+e.breath,0)/n).toFixed(1);
+  document.getElementById('avgBelly').textContent = (entries.reduce((a,e)=>a+(e.belly||0),0)/n).toFixed(1);
+
+  // symptom freq
+  const freq = {};
+  entries.forEach(e=>{
+    [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])]
+      .forEach(s=>{freq[s]=(freq[s]||0)+1;});
+  });
+  const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const fEl = document.getElementById('freqSymptoms');
+  if(!sorted.length){fEl.innerHTML='<div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>';return;}
+  fEl.innerHTML = sorted.map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <div style="font-size:12.5px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${SYM[k]||k}</div>
+      <div style="flex:2;background:var(--surface2);border-radius:6px;height:7px;overflow:hidden;">
+        <div style="width:${Math.round(v/n*100)}%;height:100%;background:var(--sinus);border-radius:6px;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700;width:26px;text-align:right;">${v}×</div>
+    </div>`).join('');
+
+  // stool stats
+  const stoolEntries = entries.filter(e=>e.stool&&!e.stool.absent&&e.stool.type!=null);
+  const stoolEl = document.getElementById('stoolStats');
+  if(!stoolEntries.length){stoolEl.innerHTML='<div class="empty"><div class="ei">🚽</div><p>Pas encore de données</p></div>';return;}
+  const typeCnt={};const colorCnt={};
+  stoolEntries.forEach(e=>{
+    typeCnt[e.stool.type]=(typeCnt[e.stool.type]||0)+1;
+    if(e.stool.color) colorCnt[e.stool.color]=(colorCnt[e.stool.color]||0)+1;
+  });
+  const absentCnt = entries.filter(e=>e.stool?.absent).length;
+  let html='';
+  if(absentCnt) html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">🚫 Pas de selles : <strong>${absentCnt} jour(s)</strong></div>`;
+  Object.entries(typeCnt).sort((a,b)=>b[1]-a[1]).forEach(([t,v])=>{
+    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+      <div style="font-size:12px;font-weight:600;flex:1;">${STOOL_TYPES[t]||'T'+t}</div>
+      <div style="flex:1.5;background:var(--surface2);border-radius:6px;height:7px;overflow:hidden;">
+        <div style="width:${Math.round(v/stoolEntries.length*100)}%;height:100%;background:var(--stool);border-radius:6px;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700;width:26px;text-align:right;">${v}×</div>
+    </div>`;
+  });
+  if(Object.keys(colorCnt).length){
+    html+='<div style="margin-top:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px;">Couleurs</div>';
+    Object.entries(colorCnt).sort((a,b)=>b[1]-a[1]).forEach(([c,v])=>{
+      html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">• ${STOOL_COLORS[c]||c} : <strong style="color:var(--text)">${v}×</strong></div>`;
+    });
+  }
+  stoolEl.innerHTML = html;
+}
+
+// ── CHARTS ──
+function renderCharts(){
+  const sorted = [...entries].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
+  const last30 = sorted.filter(e=>new Date(e.date)>=cutoff);
+
+  const ctx1 = document.getElementById('lineChart').getContext('2d');
+  if(lineChart) lineChart.destroy();
+  lineChart = new Chart(ctx1,{
+    type:'line',
+    data:{
+      labels: last30.map(e=>e.date.slice(5).replace('-','/')),
+      datasets:[
+        {label:'Sinus',data:last30.map(e=>e.sinus),borderColor:'#c0282a',backgroundColor:'rgba(192,40,42,0.07)',borderWidth:2,pointBackgroundColor:'#c0282a',pointRadius:3.5,tension:0.35,fill:true},
+        {label:'Essouf.',data:last30.map(e=>e.breath),borderColor:'#1a5f8a',backgroundColor:'rgba(26,95,138,0.06)',borderWidth:2,pointBackgroundColor:'#1a5f8a',pointRadius:3.5,tension:0.35,fill:true},
+        {label:'Ventre',data:last30.map(e=>e.belly||0),borderColor:'#7a2060',backgroundColor:'rgba(122,32,96,0.06)',borderWidth:2,pointBackgroundColor:'#7a2060',pointRadius:3.5,tension:0.35,fill:true}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,titleFont:{size:10},bodyFont:{size:10}}},
+      scales:{y:{min:0,max:10,ticks:{stepSize:2,font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},
+        x:{ticks:{maxTicksLimit:6,font:{size:9},maxRotation:35},grid:{display:false}}}}
+  });
+}
+
+// ── HISTORY ──
+function renderHistory(){
+  const el = document.getElementById('histList');
+  if(!entries.length){el.innerHTML='<div class="empty"><div class="ei">📋</div><p>Aucune entrée</p></div>';return;}
+  el.innerHTML = entries.map(e=>{
+    const stoolBadge = e.stool
+      ? (e.stool.absent
+          ? '<span class="hist-badge stool">🚫 Aucune</span>'
+          : (e.stool.type!=null
+              ? `<span class="hist-badge stool">🚽 T${e.stool.type}${e.stool.color?' · '+STOOL_COLORS[e.stool.color]:''}</span>`
+              : ''))
+      : '';
+    const allTags = [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])];
+    return `
+    <div class="hist-item">
+      <div class="hist-date">${e.date.slice(5).replace('-','/')}<br>${e.time}</div>
+      <div>
+        <div class="hist-scores">
+          <span class="hist-badge sinus">🫁 ${e.sinus}/10</span>
+          <span class="hist-badge breath">💨 ${e.breath}/10</span>
+          <span class="hist-badge belly">🫀 ${e.belly||0}/10</span>
+          ${stoolBadge}
+        </div>
+        <div class="hist-tags">
+          ${allTags.map(s=>`<span class="tag-pill">${SYM[s]||s}</span>`).join('')}
+          ${e.note?'<span class="tag-pill">📝</span>':''}
+        </div>
+        ${e.note?`<div style="font-size:11.5px;color:var(--muted);margin-top:4px;font-style:italic;">"${e.note.slice(0,80)}${e.note.length>80?'…':''}"</div>`:''}
+      </div>
+      <button class="del-btn" onclick="delEntry(${e.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function delEntry(id){
+  if(!confirm('Supprimer cette entrée ?'))return;
+  entries = entries.filter(e=>e.id!==id);
+  save();renderHistory();toast('🗑 Supprimé');
+}
+
+function clearAll(){
+  if(!confirm('Effacer TOUTES les données ?\nAction irréversible.'))return;
+  entries = [];save();renderHistory();renderStats();toast('🗑 Données effacées');
+}
+
+// ── EXPORTS ──
+function exportJSON(){
+  if(!entries.length){toast('⚠️ Aucune donnée');return;}
+  const now = new Date();
+  const pad2 = n => String(n).padStart(2,'0');
+  const exportedAt = now.toISOString();
+  const dateStr = now.getFullYear()+'-'+pad2(now.getMonth()+1)+'-'+pad2(now.getDate());
+  const timeStr = pad2(now.getHours())+pad2(now.getMinutes());
+  const data = JSON.stringify({version:'sante_v3',exportedAt,entries}, null, 2);
+  dl('suivi_sante_'+dateStr+'_'+timeStr+'.json','data:application/json;charset=utf-8,'+encodeURIComponent(data));
+  toast('💾 JSON exporté');
+}
+
+function exportCSV(){
+  if(!entries.length){toast('⚠️ Aucune donnée');return;}
+  const hdr = ['id','date','heure','sinus','essoufflement','ventre','sinus_symptomes','breath_symptomes','belly_symptomes','selle_absente','selle_type','selle_couleur','selle_details','note'];
+  const rows = entries.map(e=>[
+    e.id,e.date,e.time,e.sinus,e.breath,e.belly||0,
+    (e.sinusSymptoms||[]).join('|'),(e.breathSymptoms||[]).join('|'),(e.bellySymptoms||[]).join('|'),
+    e.stool?.absent?'oui':'non',
+    e.stool?.type!=null?e.stool.type:'',
+    e.stool?.color||'',
+    (e.stool?.details||[]).join('|'),
+    '"'+(e.note||'').replace(/"/g,'""')+'"'
+  ].join(','));
+  dl('suivi_sante.csv','data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent([hdr.join(','),...rows].join('\n')));
+  toast('📊 CSV exporté');
+}
+
+function exportText(){
+  if(!entries.length){toast('⚠️ Aucune donnée');return;}
+  const n = entries.length;
+  const avgS = (entries.reduce((a,e)=>a+e.sinus,0)/n).toFixed(1);
+  const avgB = (entries.reduce((a,e)=>a+e.breath,0)/n).toFixed(1);
+  const avgBe = (entries.reduce((a,e)=>a+(e.belly||0),0)/n).toFixed(1);
+  const stoolAbsentCount = entries.filter(e=>e.stool?.absent).length;
+  const stoolEntries = entries.filter(e=>e.stool&&!e.stool.absent&&e.stool.type!=null);
+  const typeCnt={};
+  stoolEntries.forEach(e=>{typeCnt[e.stool.type]=(typeCnt[e.stool.type]||0)+1;});
+  const topStool = Object.entries(typeCnt).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`  - ${STOOL_TYPES[t]} : ${v} fois`).join('\n');
+  const freq={};
+  entries.forEach(e=>[...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])].forEach(s=>{freq[s]=(freq[s]||0)+1;}));
+  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`  - ${SYM[k]||k} : ${v} fois`).join('\n');
+
+  let txt=`RAPPORT SUIVI SANTÉ\nExporté le : ${new Date().toLocaleDateString('fr-FR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}\n${'═'.repeat(45)}\n\nRÉSUMÉ STATISTIQUE\n  Entrées           : ${n}\n  Période           : ${entries[entries.length-1].date} → ${entries[0].date}\n  Score sinus moy.  : ${avgS}/10\n  Score essouf. moy.: ${avgB}/10\n  Score ventre moy. : ${avgBe}/10\n\nSELLES\n  Absentes : ${stoolAbsentCount} jour(s)\n  Types fréquents :\n${topStool||'  (aucun)'}\n\nTOP SYMPTÔMES\n${top||'  Aucun'}\n\n${'═'.repeat(45)}\nJOURNAL DÉTAILLÉ\n${'═'.repeat(45)}\n\n`;
+
+  [...entries].reverse().forEach(e=>{
+    txt+=`▸ ${e.date}  ${e.time}\n`;
+    txt+=`  Sinus      : ${e.sinus}/10`;
+    if(e.sinusSymptoms?.length) txt+=`  |  ${e.sinusSymptoms.map(s=>SYM[s]||s).join(', ')}`;
+    txt+=`\n  Essouf.    : ${e.breath}/10`;
+    if(e.breathSymptoms?.length) txt+=`  |  ${e.breathSymptoms.map(s=>SYM[s]||s).join(', ')}`;
+    txt+=`\n  Ventre     : ${e.belly||0}/10`;
+    if(e.bellySymptoms?.length) txt+=`  |  ${e.bellySymptoms.map(s=>SYM[s]||s).join(', ')}`;
+    txt+='\n';
+    if(e.stool){
+      if(e.stool.absent){txt+='  Selles    : Absentes\n';}
+      else{
+        txt+=`  Selles    : T${e.stool.type??'?'} – ${STOOL_TYPES[e.stool.type]||''}`;
+        if(e.stool.color) txt+=` | ${STOOL_COLORS[e.stool.color]||e.stool.color}`;
+        if(e.stool.details?.length) txt+=` | ${e.stool.details.map(s=>SYM[s]||s).join(', ')}`;
+        txt+='\n';
+      }
+    }
+    if(e.note) txt+=`  Note       : ${e.note}\n`;
+    txt+='\n';
+  });
+  txt+='═'.repeat(45)+'\nFin du rapport — Suivi Santé\n';
+  dl('suivi_sante_rapport.txt','data:text/plain;charset=utf-8,'+encodeURIComponent(txt));
+  toast('📄 Rapport exporté');
+}
+
+// ── IMPORT JSON ──
+function importJSON(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const statusEl = document.getElementById('import-status');
+    try {
+      const data = JSON.parse(ev.target.result);
+      // Lire exportedAt
+      const exportedAt = data.exportedAt || data.exportDate || null;
+      if(exportedAt && statusEl){
+        const d = new Date(exportedAt);
+        const fmt = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})
+                  + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        statusEl.innerHTML = '<span style="color:var(--green)">✚ JSON du '+fmt+'</span>';
+        statusEl.style.display = 'block';
+      }
+      let imported = [];
+      if(Array.isArray(data)) imported = data;
+      else if(data.entries && Array.isArray(data.entries)) imported = data.entries;
+      else{
+        if(statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">⚠ Format JSON invalide — clé "entries" manquante</span>';
+        toast('⚠️ Format JSON invalide');return;
+      }
+      if(!imported.length){
+        if(statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">⚠ Fichier vide — aucune entrée trouvée</span>';
+        toast('⚠️ Fichier vide');return;
+      }
+      if(!confirm(`Importer ${imported.length} entrée(s) ?\nLes données existantes seront fusionnées.`))return;
+      const existIds = new Set(entries.map(e=>e.id));
+      let added=0;
+      imported.forEach(e=>{if(!existIds.has(e.id)){entries.push(e);added++;}});
+      entries.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+      save();renderHistory();
+      if(statusEl) statusEl.innerHTML += '<br><span style="color:var(--green)">✅ '+added+' entrée(s) importée(s) — '+imported.length+' total dans le fichier</span>';
+      toast(`✅ ${added} entrée(s) importée(s)`);
+    } catch(err){
+      if(statusEl){
+        statusEl.innerHTML = '<span style="color:var(--danger)">⚠ JSON illisible — '+err.message+'</span>';
+        statusEl.style.display = 'block';
+      }
+      toast('⚠️ Fichier JSON invalide');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function dl(name, url){
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+// ── Show stool detail by default hidden ──
+document.getElementById('stoolDetail').classList.remove('visible');
+</script>
+</body>
+</html>

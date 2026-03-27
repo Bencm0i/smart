@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Montant en lettres</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f4;
+    --ink: #1a1710;
+    --ink2: #6b6450;
+    --ink3: #b0a890;
+    --line: #ddd8cc;
+    --accent: #1a4a8a;
+    --accent2: #2a5aaa;
+    --paper: #f5f2eb;
+    --stamp: #8a2020;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px 60px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: up 0.5s ease both;
+  }
+  @keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+  .header-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .header-sub {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--ink3);
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* INPUT ZONE */
+  .input-zone {
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 32px;
+    animation: up 0.5s 0.1s ease both;
+  }
+
+  .amount-wrap {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  .currency-sym {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    color: var(--ink2);
+    flex-shrink: 0;
+  }
+
+  .amount-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    text-align: right;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  .amount-input::-webkit-outer-spin-button,
+  .amount-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .amount-input::placeholder { color: var(--ink3); }
+
+  .amount-hint {
+    font-size: 0.6rem;
+    color: var(--ink3);
+    letter-spacing: 0.12em;
+    margin-top: 8px;
+    text-align: right;
+  }
+
+  /* CHEQUE VISUAL */
+  .cheque {
+    width: 100%;
+    max-width: 560px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 28px 28px 22px;
+    position: relative;
+    animation: up 0.5s 0.2s ease both;
+    overflow: hidden;
+  }
+
+  /* Watermark lines */
+  .cheque::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 18px,
+      rgba(26,74,138,0.03) 18px,
+      rgba(26,74,138,0.03) 19px
+    );
+    pointer-events: none;
+  }
+
+  .cheque-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--ink3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .cheque-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    min-height: 48px;
+    word-break: break-word;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    transition: all 0.2s;
+  }
+
+  .cheque-text.empty {
+    color: var(--ink3);
+    font-size: 1rem;
+  }
+
+  .cheque-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  .cheque-amount-box {
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .cheque-amount-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .cheque-amount-sym {
+    font-size: 0.85rem;
+    color: var(--ink2);
+  }
+
+  .cheque-mention {
+    font-size: 0.58rem;
+    color: var(--ink3);
+    letter-spacing: 0.1em;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* COPY BUTTON */
+  .copy-btn {
+    width: 100%;
+    max-width: 560px;
+    margin-top: 12px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink2);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    padding: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    animation: up 0.5s 0.3s ease both;
+    text-transform: uppercase;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(26,74,138,0.04); }
+  .copy-btn:active { transform: scale(0.98); }
+  .copy-btn.copied { border-color: #4a8a5a; color: #4a8a5a; }
+
+  /* EXEMPLES */
+  .examples {
+    width: 100%;
+    max-width: 560px;
+    margin-top: 28px;
+    animation: up 0.5s 0.35s ease both;
+  }
+  .ex-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.25em;
+    color: var(--ink3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .ex-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ex-chip {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    padding: 4px 14px;
+    border: 1px solid var(--line);
+    color: var(--ink2);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+  }
+  .ex-chip:hover { border-color: var(--accent2); color: var(--accent); background: rgba(26,74,138,0.04); }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--ink); color: var(--bg);
+    font-size: 0.7rem; letter-spacing: 0.12em;
+    padding: 8px 20px; opacity: 0;
+    transition: all 0.25s; pointer-events: none; z-index: 100;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">Montant en lettres</div>
+  <div class="header-sub">Chèques bancaires · Français</div>
+</div>
+
+<div class="input-zone">
+  <div class="amount-wrap">
+    <span class="currency-sym">€</span>
+    <input class="amount-input" id="amountInput" type="number" min="0" max="999999999.99"
+      step="0.01" placeholder="0,00" oninput="convert()">
+  </div>
+  <div class="amount-hint">Centimes acceptés — ex: 1234.56</div>
+</div>
+
+<div class="cheque">
+  <div class="cheque-label">Montant en toutes lettres</div>
+  <div class="cheque-text empty" id="chequeText">Entrez un montant ci-dessus</div>
+  <div class="cheque-footer">
+    <div class="cheque-amount-box">
+      <span class="cheque-amount-num" id="chequeNum">—</span>
+      <span class="cheque-amount-sym">€</span>
+    </div>
+    <div class="cheque-mention">
+      Payez contre ce chèque<br>la somme de :
+    </div>
+  </div>
+</div>
+
+<button class="copy-btn" id="copyBtn" onclick="copyText()">⎘ Copier le texte</button>
+
+<div class="examples">
+  <div class="ex-label">Exemples rapides</div>
+  <div class="ex-chips">
+    <button class="ex-chip" onclick="setAmount(50)">50 €</button>
+    <button class="ex-chip" onclick="setAmount(100)">100 €</button>
+    <button class="ex-chip" onclick="setAmount(250)">250 €</button>
+    <button class="ex-chip" onclick="setAmount(1000)">1 000 €</button>
+    <button class="ex-chip" onclick="setAmount(1234.56)">1 234,56 €</button>
+    <button class="ex-chip" onclick="setAmount(15000)">15 000 €</button>
+    <button class="ex-chip" onclick="setAmount(99999.99)">99 999,99 €</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONVERSION ──
+const UNITS=['','un','deux','trois','quatre','cinq','six','sept','huit','neuf',
+  'dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+const TENS=['','','vingt','trente','quarante','cinquante','soixante','soixante','quatre-vingt','quatre-vingt'];
+
+function dizaine(n){
+  if(n<20) return UNITS[n];
+  const t=Math.floor(n/10);
+  const u=n%10;
+  if(t===7){
+    // soixante-dix...
+    if(u===1) return 'soixante et onze';
+    return 'soixante-'+UNITS[10+u];
+  }
+  if(t===8){
+    // quatre-vingts
+    if(u===0) return 'quatre-vingts';
+    return 'quatre-vingt-'+UNITS[u];
+  }
+  if(t===9){
+    // quatre-vingt-dix...
+    return 'quatre-vingt-'+UNITS[10+u];
+  }
+  if(u===0) return TENS[t];
+  if(u===1) return TENS[t]+' et un';
+  return TENS[t]+'-'+UNITS[u];
+}
+
+function centaine(n){
+  if(n===0) return '';
+  const c=Math.floor(n/100);
+  const r=n%100;
+  let s='';
+  if(c===1) s='cent';
+  else if(c>1) s=UNITS[c]+' cent'+(r===0?'s':'');
+  if(r>0) s+=(s?' ':'')+dizaine(r);
+  return s;
+}
+
+function millier(n){
+  if(n===0) return '';
+  if(n===1) return 'mille';
+  return centaine(n)+' mille';
+}
+
+function million(n){
+  if(n===0) return '';
+  if(n===1) return 'un million';
+  return centaine(n)+(n>1?' millions':' million');
+}
+
+function milliard(n){
+  if(n===0) return '';
+  if(n===1) return 'un milliard';
+  return centaine(n)+(n>1?' milliards':' milliard');
+}
+
+function toWords(n){
+  if(n===0) return 'zéro';
+  if(n<0) return 'moins '+toWords(-n);
+
+  const mrd=Math.floor(n/1000000000);
+  const mil=Math.floor((n%1000000000)/1000000);
+  const mille=Math.floor((n%1000000)/1000);
+  const reste=n%1000;
+
+  const parts=[];
+  if(mrd>0) parts.push(milliard(mrd));
+  if(mil>0) parts.push(million(mil));
+  if(mille>0) parts.push(millier(mille));
+  if(reste>0) parts.push(centaine(reste));
+
+  return parts.join(' ');
+}
+
+function numberToFrench(amount){
+  // split euros and centimes
+  const rounded=Math.round(amount*100);
+  const euros=Math.floor(rounded/100);
+  const cents=rounded%100;
+
+  let result='';
+
+  if(euros===0 && cents===0) return 'zéro euro';
+
+  if(euros>0){
+    const w=toWords(euros);
+    result+=w+' euro'+(euros>1?'s':'');
+  }
+
+  if(cents>0){
+    if(euros>0) result+=' et ';
+    const w=toWords(cents);
+    result+=w+' centime'+(cents>1?'s':'');
+  }
+
+  // capitalize first letter
+  return result.charAt(0).toUpperCase()+result.slice(1);
+}
+
+// ── UI ──
+let currentText='';
+
+function convert(){
+  const val=parseFloat(document.getElementById('amountInput').value);
+  const textEl=document.getElementById('chequeText');
+  const numEl=document.getElementById('chequeNum');
+
+  if(isNaN(val)||val<0||document.getElementById('amountInput').value===''){
+    textEl.textContent='Entrez un montant ci-dessus';
+    textEl.classList.add('empty');
+    numEl.textContent='—';
+    currentText='';
+    return;
+  }
+
+  if(val>999999999.99){
+    textEl.textContent='Montant trop élevé (max 999 999 999,99 €)';
+    textEl.classList.add('empty');
+    currentText='';
+    return;
+  }
+
+  const words=numberToFrench(val);
+  textEl.textContent=words;
+  textEl.classList.remove('empty');
+  currentText=words;
+
+  // Format number display
+  numEl.textContent=val.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function setAmount(v){
+  document.getElementById('amountInput').value=v;
+  convert();
+}
+
+async function copyText(){
+  if(!currentText){ toast('Aucun texte à copier'); return; }
+  try{
+    await navigator.clipboard.writeText(currentText);
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='✓ Copié !';
+    btn.classList.add('copied');
+    toast('Copié dans le presse-papier');
+    setTimeout(()=>{
+      btn.textContent='⎘ Copier le texte';
+      btn.classList.remove('copied');
+    },2000);
+  }catch(e){ toast('Erreur copie'); }
+}
+
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='',2400);
+}
+
+// Focus input on load
+window.addEventListener('load',()=>document.getElementById('amountInput').focus());
+</script>
+</body>
+</html>
