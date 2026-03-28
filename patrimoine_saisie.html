@@ -3,355 +3,685 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PATRIMOINE — SAISIE</title>
+<title>PATRIMOINE — TERMINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap');
+:root {
+  --bg:       #000000;
+  --bg2:      #0a0a0a;
+  --bg3:      #111111;
+  --bg4:      #1a1a1a;
+  --border:   #222222;
+  --border2:  #2a2a2a;
 
-  :root {
-    --bg:       #1a1c18;
-    --bg2:      #22241f;
-    --bg3:      #2a2d26;
-    --olive:    #6b7c3a;
-    --khaki:    #a8b87a;
-    --rust:     #c0623a;
-    --sand:     #d4c89a;
-    --dim:      #5a5e52;
-    --text:     #ddd8cc;
-    --mono:     'Share Tech Mono', monospace;
-    --sans:     'Barlow Condensed', sans-serif;
-    --rad:      4px;
-    --btn-h:    42px;
-  }
+  /* Bloomberg blue */
+  --blue:     #0078ff;
+  --blue2:    #3399ff;
+  --blue-dim: #003366;
+  --blue-glow:rgba(0,120,255,0.18);
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  --green:    #00cc66;
+  --red:      #ff3333;
+  --orange:   #ff8800;
+  --yellow:   #ffcc00;
+  --white:    #e8e8e8;
+  --dim:      #444444;
+  --muted:    #666666;
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 15px;
-    min-height: 100dvh;
-    padding-bottom: 80px;
-  }
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans Condensed', sans-serif;
+  --rad: 2px;
+}
 
-  /* ── HEADER ── */
-  header {
-    background: var(--bg2);
-    border-bottom: 2px solid var(--olive);
-    padding: 12px 16px 10px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  header h1 {
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: var(--khaki);
-    text-transform: uppercase;
-  }
-  header .total-badge {
-    font-family: var(--mono);
-    font-size: 12px;
-    background: var(--olive);
-    color: #fff;
-    padding: 3px 10px;
-    border-radius: 2px;
-    letter-spacing: 1px;
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  /* ── BANK SECTION ── */
-  .bank-section {
-    margin: 14px 10px 0;
-  }
-  .bank-header {
-    background: var(--olive);
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    padding: 7px 12px;
-    border-radius: var(--rad) var(--rad) 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .bank-header .bank-total {
-    font-size: 13px;
-    color: var(--sand);
-    font-weight: 700;
-  }
-  .bank-body {
-    background: var(--bg2);
-    border: 1px solid var(--bg3);
-    border-top: none;
-    border-radius: 0 0 var(--rad) var(--rad);
-    overflow: hidden;
-  }
+html { background: #000; }
 
-  /* ── ROW ── */
-  .row {
-    border-bottom: 1px solid var(--bg3);
-    padding: 10px 12px 8px;
-  }
-  .row:last-child { border-bottom: none; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 100dvh;
+  padding-bottom: 72px;
+  position: relative;
+}
 
-  .row-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-  .row-label {
-    font-family: var(--sans);
-    font-weight: 600;
-    font-size: 13px;
-    color: var(--sand);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    flex: 1;
-  }
-  .row-value {
-    font-family: var(--mono);
-    font-size: 15px;
-    color: var(--khaki);
-    font-weight: 700;
-    min-width: 90px;
-    text-align: right;
-  }
-  .row-value.negative { color: var(--rust); }
+/* ── SCANLINES ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,120,255,0.015) 2px, rgba(0,120,255,0.015) 3px);
+  pointer-events: none;
+  z-index: 9999;
+}
 
-  /* ── EDITABLE FIELDS ── */
-  .fields-line {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-  }
-  .field-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    min-width: 90px;
-  }
-  .field-wrap label {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  input[type="number"] {
-    background: var(--bg3);
-    border: 1px solid var(--dim);
-    border-radius: 3px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    padding: 6px 8px;
-    width: 100%;
-    text-align: right;
-    -moz-appearance: textfield;
-    appearance: textfield;
-    touch-action: manipulation;
-  }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { display: none; }
-  input[type="number"]:focus {
-    outline: none;
-    border-color: var(--olive);
-    background: #2f3229;
-  }
+/* ── HEADER ── */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--blue);
+  padding: 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 0 20px rgba(0,120,255,0.15);
+}
 
-  /* ── BUTTONS ── */
-  .btn-row {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  .adj-btn {
-    flex: 1;
-    min-width: 36px;
-    height: var(--btn-h);
-    background: var(--bg3);
-    color: var(--text);
-    border: 1px solid var(--dim);
-    border-radius: 3px;
-    font-family: var(--mono);
-    font-size: 12px;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: background 0.1s, color 0.1s;
-    user-select: none;
-    -webkit-user-select: none;
-    padding: 0;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .adj-btn.neg { color: #e07a5f; border-color: #4a3030; }
-  .adj-btn.pos { color: var(--khaki); border-color: #3a4a2a; }
-  .adj-btn:active, .adj-btn.neg:active { background: var(--olive); color: #fff; }
+header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+}
 
-  /* ── DIVIDER ── */
-  .sub-divider {
-    height: 1px;
-    background: var(--bg3);
-    margin: 0;
-  }
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  /* ── COMPUTED ── */
-  .computed-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--dim);
-    margin-top: 4px;
-  }
-  .computed-line span:last-child { color: var(--sand); font-size: 12px; }
+.terminal-logo {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
 
-  /* ── BOTTOM BAR ── */
-  .bottom-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--bg2);
-    border-top: 2px solid var(--olive);
-    padding: 10px 16px;
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-  }
-  .bottom-bar button {
-    flex: 1;
-    height: 46px;
-    border: none;
-    border-radius: var(--rad);
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  .btn-export {
-    background: var(--olive);
-    color: #fff;
-  }
-  .btn-import {
-    background: var(--bg3);
-    color: var(--khaki);
-    border: 1px solid var(--dim) !important;
-  }
-  .btn-reset {
-    background: #3a1a10;
-    color: var(--rust);
-    border: 1px solid #5a2a18 !important;
-    flex: 0 0 80px;
-  }
+.header-ticker {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
 
-  /* ── TOAST ── */
-  #toast {
-    position: fixed;
-    top: 70px; left: 50%; transform: translateX(-50%);
-    background: var(--olive);
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 8px 20px;
-    border-radius: 20px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    z-index: 200;
-    white-space: nowrap;
-  }
-  #toast.show { opacity: 1; }
+.total-display {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue2);
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(51,153,255,0.5);
+}
 
-  /* ── PASSWORD OVERLAY ── */
-  #pwd-overlay {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 16px;
-    z-index: 999;
-  }
-  #pwd-overlay h2 {
-    font-family: var(--mono);
-    color: var(--khaki);
-    letter-spacing: 3px;
-    font-size: 14px;
-  }
-  #pwd-overlay input {
-    background: var(--bg3);
-    border: 1px solid var(--olive);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 18px;
-    padding: 12px 20px;
-    border-radius: 4px;
-    text-align: center;
-    width: 220px;
-    letter-spacing: 4px;
-  }
-  #pwd-overlay input:focus { outline: none; border-color: var(--khaki); }
-  #pwd-overlay button {
-    background: var(--olive);
-    color: #fff;
-    border: none;
-    padding: 12px 30px;
-    font-family: var(--mono);
-    font-size: 13px;
-    border-radius: 4px;
-    cursor: pointer;
-    letter-spacing: 2px;
-  }
-  #pwd-err { color: var(--rust); font-family: var(--mono); font-size: 12px; }
+/* ── STATUS BAR ── */
+.status-bar {
+  background: var(--blue);
+  padding: 3px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: #fff;
+}
 
-  .section-spacer { height: 8px; }
+.status-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  margin-right: 5px;
+  animation: blink 1.8s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── BANK SECTION ── */
+.bank-section {
+  margin: 10px 8px 0;
+  border: 1px solid var(--border2);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+
+.bank-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  position: relative;
+  cursor: default;
+  /* color injected inline */
+  background: var(--bh-bg, #001833);
+  border-bottom: 1px solid var(--bh-color, var(--blue));
+}
+
+.bank-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--bh-color, var(--blue));
+}
+
+.bank-name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--bh-color, var(--blue2));
+  padding-left: 8px;
+}
+
+.bank-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bank-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bh-color, var(--blue2));
+  letter-spacing: 0.5px;
+}
+
+/* Color picker trigger */
+.color-trigger {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  background: var(--bh-color, var(--blue));
+  position: relative;
+}
+.color-trigger:hover { transform: scale(1.15); border-color: rgba(255,255,255,0.5); }
+
+/* Color picker popup */
+.color-popup {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 8px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px;
+  z-index: 50;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 162px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+}
+.color-popup.open { display: flex; }
+.cp-swatch {
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, border-color 0.1s;
+  flex-shrink: 0;
+}
+.cp-swatch:hover { transform: scale(1.15); }
+.cp-swatch.active { border-color: #fff; }
+
+/* ── ROW ── */
+.bank-body { background: var(--bg2); }
+
+.row {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.row:last-child { border-bottom: none; }
+.row:active { background: var(--bg3); }
+
+.row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.row-label {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  flex: 1;
+  min-width: 0;
+}
+
+.row-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--blue2);
+  text-align: right;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(51,153,255,0.3);
+}
+.row-value.positive { color: var(--green); text-shadow: 0 0 8px rgba(0,204,102,0.3); }
+.row-value.negative { color: var(--red); text-shadow: 0 0 8px rgba(255,51,51,0.3); }
+.row-value.zero { color: var(--muted); text-shadow: none; }
+
+/* ── INPUT FIELDS ── */
+.fields-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.fields-grid.invest { grid-template-columns: 1fr 1fr; }
+.fields-grid.invest .f-main { grid-column: 1 / -1; }
+
+.field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field-wrap label {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+input[type="number"] {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--rad);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 10px 10px;
+  width: 100%;
+  text-align: right;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  touch-action: manipulation;
+  transition: border-color 0.15s, background 0.15s;
+  height: 44px;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { display: none; }
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: #001122;
+  box-shadow: 0 0 0 2px rgba(0,120,255,0.15);
+}
+
+/* ── PCT BUTTONS ── */
+.btn-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.adj-btn {
+  height: 34px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--rad);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.3px;
+}
+
+.adj-btn.neg {
+  color: #ff6666;
+  border-color: #330000;
+}
+.adj-btn.pos {
+  color: #33cc77;
+  border-color: #003322;
+}
+.adj-btn.neg:active { background: #330000; color: #ff3333; }
+.adj-btn.pos:active { background: #003322; color: #00cc66; }
+
+/* ── COMPUTED ── */
+.computed-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 2px 0;
+  letter-spacing: 0.5px;
+}
+.computed-line .cv {
+  font-weight: 600;
+  color: var(--white);
+}
+.computed-line .cv.pos { color: var(--green); }
+.computed-line .cv.neg { color: var(--red); }
+
+/* ── SECTION SPACER ── */
+.section-spacer { height: 6px; }
+
+/* ── BOTTOM BAR ── */
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--blue);
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0,120,255,0.12);
+}
+
+.bottom-bar button {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: var(--rad);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: opacity 0.15s;
+}
+.bottom-bar button:active { opacity: 0.75; }
+
+.btn-import {
+  background: var(--bg3);
+  color: var(--blue2);
+  border: 1px solid var(--blue-dim) !important;
+}
+.btn-export {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(0,120,255,0.35);
+}
+.btn-reset {
+  background: var(--bg3);
+  color: var(--red);
+  border: 1px solid #330000 !important;
+  flex: 0 0 70px;
+}
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  z-index: 200;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,120,255,0.5);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── PASSWORD OVERLAY ── */
+#pwd-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 20px;
+  z-index: 999;
+}
+
+.pwd-logo {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blue);
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.pwd-logo::before {
+  content: '▶ ';
+  color: var(--blue2);
+}
+
+#pwd-overlay h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+#pwd-overlay input {
+  background: var(--bg3);
+  border: 1px solid var(--blue-dim);
+  color: var(--blue2);
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  padding: 14px 20px;
+  border-radius: var(--rad);
+  text-align: center;
+  width: 260px;
+  letter-spacing: 8px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#pwd-overlay input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0,120,255,0.15);
+}
+
+#pwd-overlay button {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  border-radius: var(--rad);
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px rgba(0,120,255,0.4);
+}
+#pwd-overlay button:active { opacity: 0.85; }
+#pwd-err {
+  color: var(--red);
+  font-size: 11px;
+  letter-spacing: 1px;
+  min-height: 16px;
+}
+
+/* ── GRAND TOTAL ROW ── */
+.grand-total-row {
+  margin: 10px 8px 0;
+  background: var(--bg2);
+  border: 1px solid var(--blue);
+  border-radius: var(--rad);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 0 16px rgba(0,120,255,0.1);
+}
+.gt-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--blue2);
+  text-transform: uppercase;
+}
+.gt-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue2);
+  letter-spacing: 1px;
+  text-shadow: 0 0 12px rgba(51,153,255,0.5);
+}
 </style>
 </head>
 <body>
 
-<!-- Password overlay -->
 <div id="pwd-overlay">
-  <h2>◈ ACCÈS SÉCURISÉ</h2>
-  <input type="password" id="pwd-input" placeholder="••••••" maxlength="32">
-  <button onclick="checkPwd()">DÉVERROUILLER</button>
+  <div class="pwd-logo">PATRIMOINE TERMINAL</div>
+  <h2>Accès sécurisé</h2>
+  <input type="password" id="pwd-input" placeholder="••••••" maxlength="32" autocomplete="current-password">
+  <button onclick="checkPwd()">▶ DÉVERROUILLER</button>
   <div id="pwd-err"></div>
 </div>
 
 <div id="toast"></div>
 
 <header>
-  <h1>◈ PATRIMOINE SAISIE</h1>
-  <div class="total-badge" id="grand-total">— €</div>
+  <div class="header-left">
+    <div class="terminal-logo">▶ PATRIMOINE</div>
+  </div>
+  <div class="total-display" id="grand-total">— €</div>
 </header>
+
+<div class="status-bar">
+  <span><span class="status-dot"></span>TERMINAL ACTIF</span>
+  <span id="status-date"></span>
+</div>
 
 <div id="main-content" style="display:none"></div>
 
-<!-- Hidden import input -->
 <input type="file" id="file-import" accept=".json" style="display:none">
 
 <div class="bottom-bar" id="bottom-bar" style="display:none">
   <button class="btn-import" onclick="document.getElementById('file-import').click()">⇑ IMPORT</button>
-  <button class="btn-export" onclick="exportJSON()">⇓ EXPORT JSON</button>
-  <button class="btn-reset" onclick="resetAll()">↺ RESET</button>
+  <button class="btn-export" onclick="exportJSON()">⇓ EXPORT</button>
+  <button class="btn-reset" onclick="resetAll()">↺</button>
 </div>
 
 <script>
-// ══════════════════════════════════════════
-// PASSWORD (SHA-256 based)
-// ══════════════════════════════════════════
+// ── SCROLL-SAFE TOUCH ──
+// Empêche les boutons de se déclencher si l'utilisateur scrollait
+let _touchStartY = 0;
+let _touchMoved = false;
+
+document.addEventListener('touchstart', e => {
+  _touchStartY = e.touches[0].clientY;
+  _touchMoved = false;
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  if (Math.abs(e.touches[0].clientY - _touchStartY) > 6) {
+    _touchMoved = true;
+  }
+}, { passive: true });
+
+// Intercept all adj-btn clicks — cancel if finger moved
+document.addEventListener('click', e => {
+  if (_touchMoved && e.target.closest('.adj-btn')) {
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    _touchMoved = false;
+  }
+}, true);
+
+// ── BANK COLORS ──
+const BANK_COLOR_PALETTE = [
+  '#0078ff','#3399ff','#00cc66','#ff8800','#ff3366',
+  '#cc44ff','#00cccc','#ffcc00','#ff6633','#44aaff',
+  '#88ff44','#ff44aa','#aaaaff','#ffaaaa','#aaffaa',
+];
+
+// Default colors per bank (index into palette)
+let bankColors = {};
+
+function getBankColor(bank) {
+  return bankColors[bank] || BANK_COLOR_PALETTE[0];
+}
+
+function setBankColor(bank, color) {
+  bankColors[bank] = color;
+  saveBankColors();
+  applyBankColor(bank, color);
+}
+
+function applyBankColor(bank, color) {
+  const header = document.querySelector(`.bank-header[data-bank="${CSS.escape(bank)}"]`);
+  if (!header) return;
+  const hex = color;
+  // compute dim background: very dark version
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const bgHex = `rgb(${Math.round(r*0.08)},${Math.round(g*0.08)},${Math.round(b*0.08)})`;
+  header.style.setProperty('--bh-color', hex);
+  header.style.setProperty('--bh-bg', bgHex);
+  // update trigger button color
+  const trigger = header.querySelector('.color-trigger');
+  if (trigger) trigger.style.background = hex;
+  // update swatches active state
+  header.querySelectorAll('.cp-swatch').forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color === hex);
+  });
+  // update bank name & total color
+  const name = header.querySelector('.bank-name');
+  if (name) name.style.color = hex;
+  const total = header.querySelector('.bank-total');
+  if (total) total.style.color = hex;
+}
+
+function saveBankColors() {
+  try { localStorage.setItem('patri_bank_colors', JSON.stringify(bankColors)); } catch(e) {}
+}
+
+function loadBankColors() {
+  try {
+    const raw = localStorage.getItem('patri_bank_colors');
+    if (raw) bankColors = JSON.parse(raw);
+  } catch(e) {}
+}
+
+// ── COLOR POPUP LOGIC ──
+let activePopup = null;
+
+function toggleColorPopup(bank, trigger) {
+  const popup = trigger.nextElementSibling;
+  if (popup.classList.contains('open')) {
+    popup.classList.remove('open');
+    activePopup = null;
+    return;
+  }
+  if (activePopup) activePopup.classList.remove('open');
+  popup.classList.add('open');
+  activePopup = popup;
+}
+
+document.addEventListener('click', e => {
+  if (activePopup && !e.target.closest('.color-trigger') && !e.target.closest('.color-popup')) {
+    activePopup.classList.remove('open');
+    activePopup = null;
+  }
+});
+
+// ── PASSWORD ──
 const PWD_HASH_KEY = 'patri_pwd_hash';
-let sessionKey = null; // used for XOR-based encryption
+let sessionKey = null;
 
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -364,7 +694,6 @@ async function checkPwd() {
   const hash = await sha256(pwd);
   const stored = localStorage.getItem(PWD_HASH_KEY);
   if (!stored) {
-    // First use — set password
     localStorage.setItem(PWD_HASH_KEY, hash);
     sessionKey = pwd;
     unlock();
@@ -372,7 +701,7 @@ async function checkPwd() {
     sessionKey = pwd;
     unlock();
   } else {
-    document.getElementById('pwd-err').textContent = 'MOT DE PASSE INCORRECT';
+    document.getElementById('pwd-err').textContent = '// ACCÈS REFUSÉ — MOT DE PASSE INCORRECT';
   }
 }
 
@@ -384,109 +713,127 @@ function unlock() {
   document.getElementById('pwd-overlay').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
   document.getElementById('bottom-bar').style.display = 'flex';
+  const d = new Date();
+  document.getElementById('status-date').textContent =
+    d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase()
+    + ' ' + d.toTimeString().slice(0,5);
+  loadBankColors();
   buildUI();
   loadFromStorage();
   updateAllTotals();
 }
 
-// ══════════════════════════════════════════
-// DATA SCHEMA
-// ══════════════════════════════════════════
-// Each account: { id, label, bank, type, fields: [{key,label,unit}], values: {key: number} }
-
+// ── SCHEMA ──
 const SCHEMA = [
-  // ── BANQUE 1 ──
-  { id:'b1_cc',    bank:'BANQUE 1', label:'Compte Courant',   type:'simple',   fields:[] },
-  { id:'b1_liva',  bank:'BANQUE 1', label:'Livret A',         type:'simple',   fields:[] },
-  { id:'b1_livb',  bank:'BANQUE 1', label:'Livret B+',        type:'simple',   fields:[] },
-  { id:'b1_cto',   bank:'BANQUE 1', label:'CTO',              type:'invest',   fields:[] },
-  { id:'b1_ctoliq',bank:'BANQUE 1', label:'CTO Liquidités',   type:'simple',   fields:[] },
-  { id:'b1_pea',   bank:'BANQUE 1', label:'PEA',              type:'invest',   fields:[] },
-  { id:'b1_pealiq',bank:'BANQUE 1', label:'PEA Liquidités',   type:'simple',   fields:[] },
-  { id:'b1_av',    bank:'BANQUE 1', label:'Assurance Vie',    type:'invest',   fields:[] },
+  { id:'b1_cc',     bank:'BANQUE 1', label:'Compte Courant',   type:'simple'  },
+  { id:'b1_liva',   bank:'BANQUE 1', label:'Livret A',         type:'simple'  },
+  { id:'b1_livb',   bank:'BANQUE 1', label:'Livret B+',        type:'simple'  },
+  { id:'b1_cto',    bank:'BANQUE 1', label:'CTO',              type:'invest'  },
+  { id:'b1_ctoliq', bank:'BANQUE 1', label:'CTO Liquidités',   type:'simple'  },
+  { id:'b1_pea',    bank:'BANQUE 1', label:'PEA',              type:'invest'  },
+  { id:'b1_pealiq', bank:'BANQUE 1', label:'PEA Liquidités',   type:'simple'  },
+  { id:'b1_av',     bank:'BANQUE 1', label:'Assurance Vie',    type:'invest'  },
 
-  // ── BANQUE 2 ──
-  { id:'b2_cc',    bank:'BANQUE 2', label:'Compte Courant',   type:'simple',   fields:[] },
-  { id:'b2_livp',  bank:'BANQUE 2', label:'Livret+',          type:'simple',   fields:[] },
-  { id:'b2_ldds',  bank:'BANQUE 2', label:'LDDS',             type:'simple',   fields:[] },
-  { id:'b2_av',    bank:'BANQUE 2', label:'Assurance Vie',    type:'invest',   fields:[] },
-  { id:'b2_ctoliq',bank:'BANQUE 2', label:'CTO Liquidités',   type:'simple',   fields:[] },
-  { id:'b2_cto',   bank:'BANQUE 2', label:'CTO',              type:'invest',   fields:[] },
-  { id:'b2_pealiq',bank:'BANQUE 2', label:'PEA Liquidités',   type:'simple',   fields:[] },
-  { id:'b2_pea',   bank:'BANQUE 2', label:'PEA',              type:'invest',   fields:[] },
+  { id:'b2_cc',     bank:'BANQUE 2', label:'Compte Courant',   type:'simple'  },
+  { id:'b2_livp',   bank:'BANQUE 2', label:'Livret+',          type:'simple'  },
+  { id:'b2_ldds',   bank:'BANQUE 2', label:'LDDS',             type:'simple'  },
+  { id:'b2_av',     bank:'BANQUE 2', label:'Assurance Vie',    type:'invest'  },
+  { id:'b2_ctoliq', bank:'BANQUE 2', label:'CTO Liquidités',   type:'simple'  },
+  { id:'b2_cto',    bank:'BANQUE 2', label:'CTO',              type:'invest'  },
+  { id:'b2_pealiq', bank:'BANQUE 2', label:'PEA Liquidités',   type:'simple'  },
+  { id:'b2_pea',    bank:'BANQUE 2', label:'PEA',              type:'invest'  },
 
-  // ── BANQUE 3 ──
-  { id:'b3_cc',    bank:'BANQUE 3', label:'Compte Courant',   type:'simple',   fields:[] },
-  { id:'b3_eur',   bank:'BANQUE 3', label:'€ster (€)',        type:'simple',   fields:[] },
-  { id:'b3_usd',   bank:'BANQUE 3', label:'$ster (USD)',      type:'simple',   fields:[] },
-  { id:'b3_gold',  bank:'BANQUE 3', label:'Gold (Or)',        type:'invest',   fields:[] },
-  { id:'b3_actus', bank:'BANQUE 3', label:'Actions US',       type:'invest',   fields:[] },
-  { id:'b3_oblig', bank:'BANQUE 3', label:'Obligations',      type:'invest',   fields:[] },
-  { id:'b3_reit',  bank:'BANQUE 3', label:'REITs',            type:'simple',   fields:[] },
-  { id:'b3_crypto',bank:'BANQUE 3', label:'Crypto',           type:'invest',   fields:[] },
+  { id:'b3_cc',     bank:'BANQUE 3', label:'Compte Courant',   type:'simple'  },
+  { id:'b3_eur',    bank:'BANQUE 3', label:'€ster (€)',        type:'simple'  },
+  { id:'b3_usd',    bank:'BANQUE 3', label:'$ster (USD)',      type:'simple'  },
+  { id:'b3_gold',   bank:'BANQUE 3', label:'Gold (Or)',        type:'invest'  },
+  { id:'b3_actus',  bank:'BANQUE 3', label:'Actions US',       type:'invest'  },
+  { id:'b3_oblig',  bank:'BANQUE 3', label:'Obligations',      type:'invest'  },
+  { id:'b3_reit',   bank:'BANQUE 3', label:'REITs',            type:'simple'  },
+  { id:'b3_crypto', bank:'BANQUE 3', label:'Crypto',           type:'invest'  },
 
-  // ── BANQUE 4 ──
-  { id:'b4_pee',   bank:'BANQUE 4', label:'Compte Bloqué PEE',type:'simple',   fields:[] },
+  { id:'b4_pee',    bank:'BANQUE 4', label:'Compte Bloqué PEE',type:'simple' },
 
-  // ── DIVERS ──
-  { id:'dv_maison',bank:'DIVERS',   label:'Maison',           type:'simple',   fields:[] },
-  { id:'dv_liquide',bank:'DIVERS',  label:'Argent Liquide',   type:'simple',   fields:[] },
+  { id:'dv_maison', bank:'DIVERS',   label:'Maison',           type:'simple'  },
+  { id:'dv_liquide',bank:'DIVERS',   label:'Argent Liquide',   type:'simple'  },
 
-  // ── SCPI ──
-  { id:'sc_1',     bank:'SCPI',     label:'SCPI 1',           type:'simple',   fields:[] },
-  { id:'sc_2',     bank:'SCPI',     label:'SCPI 2',           type:'simple',   fields:[] },
-  { id:'sc_3',     bank:'SCPI',     label:'SCPI 3',           type:'simple',   fields:[] },
-  { id:'sc_4',     bank:'SCPI',     label:'SCPI 4',           type:'simple',   fields:[] },
+  { id:'sc_1',      bank:'SCPI',     label:'SCPI 1',           type:'simple'  },
+  { id:'sc_2',      bank:'SCPI',     label:'SCPI 2',           type:'simple'  },
+  { id:'sc_3',      bank:'SCPI',     label:'SCPI 3',           type:'simple'  },
+  { id:'sc_4',      bank:'SCPI',     label:'SCPI 4',           type:'simple'  },
 ];
 
-const BTNS = [-10, -5, -2, -1, -0.5, 0.5, 1, 2, 5, 10]; // percentages
+const BTNS = [-10, -5, -1, 1, 5, 10]; // % buttons — 6 = 2 rows of 3 on small screens
 
-// state: { [id]: { valeur?, prixRevient?, quantite? } }
+// Default bank colors
+const BANK_DEFAULT_COLORS = {
+  'BANQUE 1': '#0078ff',
+  'BANQUE 2': '#00cc66',
+  'BANQUE 3': '#ff8800',
+  'BANQUE 4': '#cc44ff',
+  'DIVERS':   '#ffcc00',
+  'SCPI':     '#00cccc',
+};
+
 let state = {};
 SCHEMA.forEach(s => {
-  if (s.type === 'invest') {
-    state[s.id] = { valeur: 0, prixRevient: 0, quantite: 0 };
-  } else {
-    state[s.id] = { valeur: 0 };
-  }
+  state[s.id] = s.type === 'invest'
+    ? { valeur: 0, prixRevient: 0, quantite: 0 }
+    : { valeur: 0 };
 });
 
-// ══════════════════════════════════════════
-// BUILD UI
-// ══════════════════════════════════════════
+// ── BUILD UI ──
 function buildUI() {
   const banks = [...new Set(SCHEMA.map(s => s.bank))];
   const container = document.getElementById('main-content');
   container.innerHTML = '';
 
+  // Grand total at top
+  const gtRow = document.createElement('div');
+  gtRow.className = 'grand-total-row';
+  gtRow.innerHTML = `<span class="gt-label">▶ TOTAL PATRIMOINE</span><span class="gt-value" id="grand-total-body">— €</span>`;
+  container.appendChild(gtRow);
+
   banks.forEach(bank => {
     const accounts = SCHEMA.filter(s => s.bank === bank);
+    const color = bankColors[bank] || BANK_DEFAULT_COLORS[bank] || BANK_COLOR_PALETTE[0];
+    const r = parseInt(color.slice(1,3),16);
+    const g = parseInt(color.slice(3,5),16);
+    const b = parseInt(color.slice(5,7),16);
+    const bgColor = `rgb(${Math.round(r*0.08)},${Math.round(g*0.08)},${Math.round(b*0.08)})`;
+
+    const swatches = BANK_COLOR_PALETTE.map(c =>
+      `<div class="cp-swatch${c===color?' active':''}" data-color="${c}" style="background:${c}"
+        onclick="setBankColor('${bank}','${c}');this.closest('.color-popup').classList.remove('open');activePopup=null;event.stopPropagation()"></div>`
+    ).join('');
+
     const section = document.createElement('div');
     section.className = 'bank-section';
     section.innerHTML = `
-      <div class="bank-header">
-        <span>${bank}</span>
-        <span class="bank-total" id="bank-total-${bank.replace(/\s/g,'_')}">0 €</span>
+      <div class="bank-header" data-bank="${bank}"
+           style="--bh-color:${color};--bh-bg:${bgColor}">
+        <div class="bank-name" style="color:${color}">${bank}</div>
+        <div class="bank-header-right">
+          <div class="bank-total" id="bank-total-${bank.replace(/\s/g,'_')}" style="color:${color}">0 €</div>
+          <div class="color-trigger" style="background:${color}"
+               onclick="toggleColorPopup('${bank}',this);event.stopPropagation()"></div>
+          <div class="color-popup">${swatches}</div>
+        </div>
       </div>
       <div class="bank-body">
         ${accounts.map(acc => buildRow(acc)).join('')}
-      </div>
-    `;
+      </div>`;
     container.appendChild(section);
-    container.appendChild(Object.assign(document.createElement('div'), {className: 'section-spacer'}));
+    container.appendChild(Object.assign(document.createElement('div'), {className:'section-spacer'}));
   });
 
   // Attach events
   SCHEMA.forEach(acc => {
-    if (acc.type === 'invest') {
-      ['valeur','prixRevient','quantite'].forEach(field => {
-        const inp = document.getElementById(`inp-${acc.id}-${field}`);
-        if (inp) inp.addEventListener('change', () => { syncState(acc.id, field, inp); updateAllTotals(); });
-      });
-    } else {
-      const inp = document.getElementById(`inp-${acc.id}-valeur`);
-      if (inp) inp.addEventListener('change', () => { syncState(acc.id, 'valeur', inp); updateAllTotals(); });
-    }
+    const fields = acc.type === 'invest' ? ['valeur','prixRevient','quantite'] : ['valeur'];
+    fields.forEach(field => {
+      const inp = document.getElementById(`inp-${acc.id}-${field}`);
+      if (inp) inp.addEventListener('input', () => { syncState(acc.id, field, inp); updateAllTotals(); });
+    });
   });
 
   document.getElementById('file-import').addEventListener('change', importJSON);
@@ -495,63 +842,57 @@ function buildUI() {
 function buildRow(acc) {
   const isInvest = acc.type === 'invest';
 
-  const valField = `
-    <div class="field-wrap">
-      <label>VALEUR (€)</label>
-      <input type="number" id="inp-${acc.id}-valeur" value="0" step="0.01">
-    </div>`;
+  const btns = BTNS.map(v => {
+    const cls = v < 0 ? 'neg' : 'pos';
+    const label = v > 0 ? `+${v}` : `${v}`;
+    return `<button class="adj-btn ${cls}"
+      onclick="adjPct('${acc.id}','valeur',${v})">${label}%</button>`;
+  }).join('');
 
-  const investFields = isInvest ? `
+  const investExtra = isInvest ? `
     <div class="field-wrap">
-      <label>PRIX DE REV. (€)</label>
-      <input type="number" id="inp-${acc.id}-prixRevient" value="0" step="0.01">
+      <label>Prix de revient (€)</label>
+      <input type="number" id="inp-${acc.id}-prixRevient" value="0" step="0.01" inputmode="decimal" placeholder="0">
     </div>
-    <div class="field-wrap" style="flex:0 0 80px;min-width:80px">
-      <label>QUANTITÉ</label>
-      <input type="number" id="inp-${acc.id}-quantite" value="0" step="0.0001">
+    <div class="field-wrap">
+      <label>Quantité</label>
+      <input type="number" id="inp-${acc.id}-quantite" value="0" step="0.0001" inputmode="decimal" placeholder="0">
     </div>` : '';
 
-  const computedLine = isInvest ? `
+  const computed = isInvest ? `
     <div class="computed-line">
       <span>P.R. TOTAL</span>
-      <span id="pr-total-${acc.id}">0 €</span>
+      <span class="cv" id="pr-total-${acc.id}">0 €</span>
     </div>
     <div class="computed-line">
       <span>+/- VALUE</span>
-      <span id="pv-${acc.id}" style="color:var(--khaki)">0 €</span>
+      <span class="cv" id="pv-${acc.id}">0 €</span>
     </div>` : '';
-
-  // Buttons target valeur by default (main field)
-  const btns = BTNS.map(v => {
-    const cls = v < 0 ? 'neg' : 'pos';
-    const label = v > 0 ? `+${v}%` : `${v}%`;
-    return `<button class="adj-btn ${cls}" ontouchstart="adjPct('${acc.id}','valeur',${v})" onclick="adjPct('${acc.id}','valeur',${v})">${label}</button>`;
-  }).join('');
 
   return `
     <div class="row" id="row-${acc.id}">
       <div class="row-top">
         <div class="row-label">${acc.label}</div>
-        <div class="row-value" id="disp-${acc.id}">0 €</div>
+        <div class="row-value zero" id="disp-${acc.id}">0 €</div>
       </div>
-      <div class="fields-line">
-        ${valField}
-        ${investFields}
+      <div class="fields-grid${isInvest?' invest':''}">
+        <div class="field-wrap${isInvest?' f-main':''}">
+          <label>Valeur (€)</label>
+          <input type="number" id="inp-${acc.id}-valeur" value="0" step="0.01" inputmode="decimal" placeholder="0">
+        </div>
+        ${investExtra}
       </div>
       <div class="btn-row">${btns}</div>
-      ${computedLine}
+      ${computed}
     </div>`;
 }
 
-// ══════════════════════════════════════════
-// STATE & ADJUST
-// ══════════════════════════════════════════
+// ── STATE & ADJUST ──
 function adj(id, field, delta) {
   state[id][field] = round2((state[id][field] || 0) + delta);
   const inp = document.getElementById(`inp-${id}-${field}`);
   if (inp) inp.value = state[id][field];
-  updateAllTotals();
-  saveToStorage();
+  updateAllTotals(); saveToStorage();
 }
 
 function adjPct(id, field, pct) {
@@ -560,8 +901,7 @@ function adjPct(id, field, pct) {
   state[id][field] = round2(current + delta);
   const inp = document.getElementById(`inp-${id}-${field}`);
   if (inp) inp.value = state[id][field];
-  updateAllTotals();
-  saveToStorage();
+  updateAllTotals(); saveToStorage();
 }
 
 function syncState(id, field, inp) {
@@ -570,6 +910,7 @@ function syncState(id, field, inp) {
 }
 
 function round2(n) { return Math.round(n * 100) / 100; }
+
 function fmtEur(n) {
   const abs = Math.abs(n);
   const sign = n < 0 ? '-' : '';
@@ -584,16 +925,14 @@ function updateAllTotals() {
     const s = state[acc.id];
     const val = s.valeur || 0;
 
-    // Display main value
     const disp = document.getElementById(`disp-${acc.id}`);
     if (disp) {
       disp.textContent = fmtEur(val);
-      disp.className = 'row-value' + (val < 0 ? ' negative' : '');
+      disp.className = 'row-value ' + (val > 0 ? 'positive' : val < 0 ? 'negative' : 'zero');
     }
 
-    // Update inputs (in case loaded from storage)
     const inpV = document.getElementById(`inp-${acc.id}-valeur`);
-    if (inpV && parseFloat(inpV.value) !== val) inpV.value = val;
+    if (inpV && parseFloat(inpV.value) !== val) inpV.value = val || '';
 
     if (acc.type === 'invest') {
       const pr = s.prixRevient || 0;
@@ -602,18 +941,18 @@ function updateAllTotals() {
       const pv = round2(val - prTotal);
 
       const prEl = document.getElementById(`pr-total-${acc.id}`);
-      if (prEl) prEl.textContent = fmtEur(prTotal);
+      if (prEl) { prEl.textContent = fmtEur(prTotal); prEl.className = 'cv'; }
 
       const pvEl = document.getElementById(`pv-${acc.id}`);
       if (pvEl) {
         pvEl.textContent = (pv >= 0 ? '+' : '') + fmtEur(pv);
-        pvEl.style.color = pv >= 0 ? 'var(--khaki)' : 'var(--rust)';
+        pvEl.className = 'cv ' + (pv > 0 ? 'pos' : pv < 0 ? 'neg' : '');
       }
 
       const inpPR = document.getElementById(`inp-${acc.id}-prixRevient`);
-      if (inpPR && parseFloat(inpPR.value) !== pr) inpPR.value = pr;
+      if (inpPR && parseFloat(inpPR.value) !== pr) inpPR.value = pr || '';
       const inpQt = document.getElementById(`inp-${acc.id}-quantite`);
-      if (inpQt && parseFloat(inpQt.value) !== qt) inpQt.value = qt;
+      if (inpQt && parseFloat(inpQt.value) !== qt) inpQt.value = qt || '';
     }
 
     grand += val;
@@ -621,26 +960,23 @@ function updateAllTotals() {
     bankTotals[acc.bank] += val;
   });
 
-  // Update bank totals
   Object.entries(bankTotals).forEach(([bank, total]) => {
     const el = document.getElementById(`bank-total-${bank.replace(/\s/g,'_')}`);
     if (el) el.textContent = fmtEur(total);
   });
 
-  // Grand total
-  const gtEl = document.getElementById('grand-total');
-  if (gtEl) gtEl.textContent = fmtEur(grand);
+  const fmt = fmtEur(grand);
+  const gtH = document.getElementById('grand-total');
+  const gtB = document.getElementById('grand-total-body');
+  if (gtH) gtH.textContent = fmt;
+  if (gtB) gtB.textContent = fmt;
 }
 
-// ══════════════════════════════════════════
-// STORAGE (localStorage)
-// ══════════════════════════════════════════
-const LS_KEY = 'patri_saisie_v1';
+// ── STORAGE ──
+const LS_KEY = 'patri_saisie_v2';
 
 function saveToStorage() {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
-  } catch(e) {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
 }
 
 function loadFromStorage() {
@@ -654,47 +990,32 @@ function loadFromStorage() {
   } catch(e) {}
 }
 
-// ══════════════════════════════════════════
-// XOR ENCRYPTION (simple, symmetric)
-// ══════════════════════════════════════════
+// ── XOR ENCRYPTION ──
 function xorEncrypt(text, key) {
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  return btoa(result);
+  let r = '';
+  for (let i = 0; i < text.length; i++) r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  return btoa(r);
 }
-
 function xorDecrypt(b64, key) {
   const text = atob(b64);
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  return result;
+  let r = '';
+  for (let i = 0; i < text.length; i++) r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  return r;
 }
 
-// ══════════════════════════════════════════
-// EXPORT / IMPORT JSON CRYPTÉ
-// ══════════════════════════════════════════
+// ── EXPORT / IMPORT ──
 function exportJSON() {
   saveToStorage();
-  const payload = JSON.stringify({
-    version: 1,
-    date: new Date().toISOString(),
-    data: state
-  }, null, 2);
-
+  const payload = JSON.stringify({ version:2, date:new Date().toISOString(), data:state, bankColors }, null, 2);
   const encrypted = xorEncrypt(payload, sessionKey);
-  const blob = new Blob([JSON.stringify({enc: encrypted})], {type: 'application/json'});
+  const blob = new Blob([JSON.stringify({enc:encrypted})], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  const d = new Date();
-  a.download = `patrimoine_${d.toISOString().slice(0,10)}.json`;
+  a.download = `patrimoine_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('EXPORT JSON CRYPTÉ ✓');
+  showToast('✓ EXPORT JSON CRYPTÉ');
 }
 
 function importJSON(e) {
@@ -705,23 +1026,19 @@ function importJSON(e) {
     try {
       const wrapper = JSON.parse(ev.target.result);
       let payload;
-      if (wrapper.enc) {
-        payload = xorDecrypt(wrapper.enc, sessionKey);
-      } else {
-        // fallback: unencrypted export
-        payload = ev.target.result;
-      }
+      if (wrapper.enc) { payload = xorDecrypt(wrapper.enc, sessionKey); }
+      else { payload = ev.target.result; }
       const obj = JSON.parse(payload);
       const loaded = obj.data || obj;
-      Object.keys(loaded).forEach(id => {
-        if (state[id]) Object.assign(state[id], loaded[id]);
-      });
-      updateAllTotals();
-      saveToStorage();
-      showToast('IMPORT RÉUSSI ✓');
-    } catch(err) {
-      showToast('ERREUR: MOT DE PASSE OU FICHIER INVALIDE');
-    }
+      Object.keys(loaded).forEach(id => { if (state[id]) Object.assign(state[id], loaded[id]); });
+      if (obj.bankColors) {
+        Object.assign(bankColors, obj.bankColors);
+        saveBankColors();
+        Object.entries(bankColors).forEach(([bank, color]) => applyBankColor(bank, color));
+      }
+      updateAllTotals(); saveToStorage();
+      showToast('✓ IMPORT RÉUSSI');
+    } catch(err) { showToast('✗ ERREUR — FICHIER OU MOT DE PASSE INVALIDE'); }
   };
   reader.readAsText(file);
   e.target.value = '';
@@ -730,27 +1047,19 @@ function importJSON(e) {
 function resetAll() {
   if (!confirm('Remettre toutes les valeurs à zéro ?')) return;
   SCHEMA.forEach(acc => {
-    if (acc.type === 'invest') {
-      state[acc.id] = { valeur: 0, prixRevient: 0, quantite: 0 };
-    } else {
-      state[acc.id] = { valeur: 0 };
-    }
+    state[acc.id] = acc.type === 'invest' ? { valeur:0, prixRevient:0, quantite:0 } : { valeur:0 };
   });
-  updateAllTotals();
-  saveToStorage();
-  showToast('RESET EFFECTUÉ');
+  updateAllTotals(); saveToStorage();
+  showToast('↺ RESET EFFECTUÉ');
 }
 
-// ══════════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════════
+// ── TOAST ──
 let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
 }
 </script>
 </body>
