@@ -518,6 +518,26 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* AI REPORT BTN */
+  .ai-report-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #6B4FBB, #9B59B6);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+  }
+  .ai-report-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
   /* CUSTOM MEAL FORM */
   .custom-form {
     background: var(--card);
@@ -835,6 +855,10 @@
 <!-- HISTORY -->
 <div class="section" id="section-history">
   <div class="section-title">📅 7 derniers jours</div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="ai-report-btn" style="flex:1" onclick="copyHistoryText()">📋 Copier pour IA</button>
+    <button class="ai-report-btn" style="flex:1;background:linear-gradient(135deg,#27AE60,#2ECC71)" onclick="exportHistoryJSON()">💾 Sauvegarder JSON</button>
+  </div>
   <div id="history-list"></div>
 </div>
 
@@ -857,6 +881,8 @@
       <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Poulet</strong> — grillé, rôti ou à la poêle<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
       <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Bœuf</strong> — steak, haché (pur bœuf)<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
       <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Dinde</strong> — escalope, rôti<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Jambon blanc</strong> — cuit, vérifier sans amidon de blé<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK (lire étiquette)</span></div></div>
+      <div class="info-row"><div class="info-dot dot-warn"></div><div><strong>Saucisson sec</strong> — pur porc, vérifier composition<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ⚠️ FODMAP selon épices et liants</span></div></div>
     </div>
   </div>
 
@@ -1072,6 +1098,21 @@ const MEALS = [
     ingredients: 'Farine de maïs, levure, sel, eau',
     gluten: false, fodmap: 'ok',
     category: '🍳 Petit-déjeuner'
+  },
+  {
+    id: 'jambon', emoji: '🥩',
+    name: 'Jambon blanc',
+    ingredients: 'Jambon blanc cuit (vérifier sans amidon de blé)',
+    gluten: false, fodmap: 'ok',
+    category: '🍗 Protéines'
+  },
+  {
+    id: 'saucisson', emoji: '🌭',
+    name: 'Saucisson sec',
+    ingredients: 'Saucisson sec pur porc (vérifier étiquette)',
+    gluten: false, fodmap: 'warn',
+    category: '🍗 Protéines',
+    note: 'Certains contiennent liants/épices FODMAP'
   },
 ];
 
@@ -1542,6 +1583,38 @@ function exportJSON() {
   a.href = url; a.download = 'mes_aliments.json'; a.click();
   URL.revokeObjectURL(url);
   showToast('📤 Export téléchargé !');
+}
+
+// ── HISTORIQUE : COPIER + JSON ────────────────────────────────────
+function copyHistoryText() {
+  if (!state.history || state.history.length === 0) { showToast('⚠️ Aucun historique'); return; }
+  const sympLabels = {bloating:'Ballonnements',pain:'Douleurs',fatigue:'Fatigue',nausea:'Nausées',transit:'Transit perturbé',skin:'Peau'};
+  const wellnessLabels = ['','😣 Très mauvais','😕 Mauvais','😐 Moyen','🙂 Bon','😊 Très bon'];
+  const lines = state.history.slice(0, 7).map(entry => {
+    const allIds = [...(entry.meals?.breakfast||[]), ...(entry.meals?.lunch||[]), ...(entry.meals?.snack||[]), ...(entry.meals?.dinner||[])];
+    const meals = allIds.map(id => {
+      const m = getAllMeals().find(m => m.id === id);
+      return m ? `${m.name} (${m.gluten?'GLUTEN':'SG'}, FODMAP:${m.fodmap})` : null;
+    }).filter(Boolean);
+    const symp = entry.symptoms?.length ? entry.symptoms.map(s => sympLabels[s]||s).join(', ') : 'aucun';
+    const wellness = wellnessLabels[entry.wellness||0] || 'non renseigné';
+    return `📅 ${entry.date}\nRepas : ${meals.join(' | ') || 'non renseignés'}\nSymptômes : ${symp}\nBien-être : ${wellness}`;
+  });
+  const text = `=== Journal Gluten & FODMAP ===\n\n` + lines.join('\n\n');
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Copié ! Colle dans ton IA'));
+}
+
+function exportHistoryJSON() {
+  if (!state.history || state.history.length === 0) { showToast('⚠️ Aucun historique'); return; }
+  const data = JSON.stringify({ history: state.history, customMeals }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gluten_fodmap_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 JSON téléchargé !');
 }
 
 </script>
