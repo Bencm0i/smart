@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Suivi Gluten & FODMAP</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F3EE;
+    --card: #FFFFFF;
+    --primary: #3D7A5E;
+    --primary-light: #E8F5EE;
+    --accent: #E8704A;
+    --accent-light: #FDF0EB;
+    --warn: #D4913A;
+    --warn-light: #FDF5E8;
+    --danger: #C0392B;
+    --danger-light: #FDECEA;
+    --text: #2C2C2C;
+    --text-muted: #888;
+    --border: #E5DDD4;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    padding-bottom: 90px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--primary);
+    padding: 20px 20px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-radius: 0 0 24px 24px;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header h1 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: white;
+    line-height: 1.2;
+  }
+  .header h1 span { font-weight: 400; opacity: 0.8; font-size: 13px; display: block; }
+  .date-badge {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.75);
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: white;
+    color: var(--primary);
+  }
+
+  /* SECTION */
+  .section { display: none; padding: 16px 16px 0; }
+  .section.active { display: block; }
+
+  /* TODAY SUMMARY */
+  .summary-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .summary-pill {
+    flex: 1;
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 12px 10px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .summary-pill .num {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    line-height: 1;
+  }
+  .summary-pill .lbl {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+  }
+  .pill-ok .num { color: var(--primary); }
+  .pill-warn .num { color: var(--warn); }
+  .pill-bad .num { color: var(--danger); }
+
+  /* MEAL SECTION */
+  .section-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* MEAL LOG CARD */
+  .meal-slot {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .meal-slot-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .meal-icon { font-size: 22px; }
+  .meal-slot-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    flex: 1;
+  }
+  .meal-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .add-meal-btn {
+    background: none;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 10px 14px;
+    width: calc(100% - 28px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .add-meal-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  .logged-meal {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--bg);
+  }
+  .logged-meal:last-child { border-bottom: none; }
+  .meal-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .meal-tag {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-ok { background: var(--primary-light); color: var(--primary); }
+  .tag-warn { background: var(--warn-light); color: var(--warn); }
+  .tag-bad { background: var(--danger-light); color: var(--danger); }
+
+  /* PRESET MEAL PICKER */
+  .picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .picker-overlay.open { display: flex; }
+  .picker-sheet {
+    background: var(--bg);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-height: 82vh;
+    overflow-y: auto;
+    padding: 16px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .picker-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .picker-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 17px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .preset-category {
+    margin-bottom: 14px;
+  }
+  .preset-category-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .preset-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .preset-item {
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .preset-item:active { transform: scale(0.98); }
+  .preset-item.selected { border-color: var(--primary); background: var(--primary-light); }
+  .preset-emoji { font-size: 22px; width: 28px; text-align: center; }
+  .preset-info { flex: 1; }
+  .preset-name {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .preset-ingredients {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .preset-badges { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; max-width: 90px; }
+  .badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .badge-sg { background: var(--primary-light); color: var(--primary); }
+  .badge-fodmap { background: #EEF2FF; color: #5B6EE8; }
+  .badge-gluten { background: var(--danger-light); color: var(--danger); }
+  .badge-fodmap-warn { background: var(--warn-light); color: var(--warn); }
+
+  .confirm-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    margin-top: 16px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .confirm-btn:active { opacity: 0.85; }
+  .cancel-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px;
+    width: 100%;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* HISTORY */
+  .history-day {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .history-day-header {
+    padding: 12px 14px;
+    background: var(--primary-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .history-day-label {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--primary);
+  }
+  .history-score {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .score-good { background: var(--primary); color: white; }
+  .score-medium { background: var(--warn); color: white; }
+  .score-bad { background: var(--danger); color: white; }
+
+  /* SETTINGS / INFO */
+  .info-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .info-card-header {
+    padding: 14px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .info-card-header .chevron { margin-left: auto; transition: transform 0.2s; font-size: 12px; }
+  .info-card.open .chevron { transform: rotate(180deg); }
+  .info-card-body { padding: 0 16px 14px; display: none; }
+  .info-card.open .info-card-body { display: block; }
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--bg);
+    font-size: 13px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .dot-ok { background: var(--primary); }
+  .dot-warn { background: var(--warn); }
+  .dot-bad { background: var(--danger); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 16px;
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 6px 0;
+    transition: color 0.2s;
+    color: var(--text-muted);
+  }
+  .nav-item.active { color: var(--primary); }
+  .nav-icon { font-size: 22px; }
+  .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* SYMPTOM LOG */
+  .symptom-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .symptom-btn {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Lato', sans-serif;
+  }
+  .symptom-btn .s-icon { font-size: 24px; margin-bottom: 4px; }
+  .symptom-btn .s-label { font-size: 12px; font-weight: 700; display: block; }
+  .symptom-btn .s-sub { font-size: 10px; color: var(--text-muted); }
+  .symptom-btn.selected-none { border-color: var(--primary); background: var(--primary-light); }
+  .symptom-btn.selected-mild { border-color: var(--warn); background: var(--warn-light); }
+  .symptom-btn.selected-bad { border-color: var(--danger); background: var(--danger-light); }
+
+  .wellness-bar {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .wellness-label {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .stars { display: flex; gap: 8px; justify-content: center; }
+  .star {
+    font-size: 28px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    filter: grayscale(1) opacity(0.3);
+  }
+  .star.active { filter: none; transform: scale(1.1); }
+
+  .save-symptom-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 4px;
+  }
+  .save-symptom-btn:active { opacity: 0.85; }
+
+  .toast {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--text);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    z-index: 300;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* CUSTOM MEAL FORM */
+  .custom-form {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 2px dashed var(--primary);
+  }
+  .custom-form-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .form-input {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--primary); }
+  .emoji-input { width: 54px; flex: none; text-align: center; font-size: 18px; }
+  .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .toggle-btn {
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--bg);
+    color: var(--text-muted);
+    transition: all 0.15s;
+    font-family: 'Nunito', sans-serif;
+  }
+  .toggle-btn.active-ok { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  .toggle-btn.active-warn { border-color: var(--warn); background: var(--warn-light); color: var(--warn); }
+  .toggle-btn.active-bad { border-color: var(--danger); background: var(--danger-light); color: var(--danger); }
+  .form-add-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .form-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+  }
+
+  /* AI / JSON PANEL */
+  .ai-panel {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .ai-panel-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ai-textarea {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    background: var(--bg);
+    color: var(--text);
+    resize: none;
+    outline: none;
+    min-height: 80px;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+  }
+  .ai-textarea:focus { border-color: var(--primary); }
+  .ai-btn {
+    background: linear-gradient(135deg, #6B4FBB, #9B59B6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+  }
+  .ai-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .ai-result {
+    display: none;
+    margin-top: 8px;
+  }
+  .ai-result.show { display: block; }
+  .ai-result-item {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1.5px solid var(--border);
+  }
+  .ai-result-item .ri-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.15s;
+  }
+  .ai-result-item.selected .ri-check { background: var(--primary); border-color: var(--primary); color: white; }
+  .ri-info { flex: 1; }
+  .ri-name { font-weight: 700; font-size: 13px; }
+  .ri-sub { font-size: 11px; color: var(--text-muted); }
+  .ai-import-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .json-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .json-tab {
+    flex: 1;
+    padding: 7px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .json-tab.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>Suivi Gluten<br><span>& FODMAP</span></h1>
+    <div class="date-badge" id="todayDate"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('today', this)">📋 Aujourd'hui</button>
+    <button class="tab" onclick="switchTab('symptoms', this)">🩺 Symptômes</button>
+    <button class="tab" onclick="switchTab('history', this)">📅 Historique</button>
+    <button class="tab" onclick="switchTab('guide', this)">📚 Guide</button>
+  </div>
+</div>
+
+<!-- TODAY -->
+<div class="section active" id="section-today">
+  <div class="summary-bar">
+    <div class="summary-pill pill-ok">
+      <div class="num" id="count-ok">0</div>
+      <div class="lbl">✅ OK</div>
+    </div>
+    <div class="summary-pill pill-warn">
+      <div class="num" id="count-warn">0</div>
+      <div class="lbl">⚠️ Fodmap</div>
+    </div>
+    <div class="summary-pill pill-bad">
+      <div class="num" id="count-bad">0</div>
+      <div class="lbl">❌ Gluten</div>
+    </div>
+  </div>
+
+  <div class="section-title">🌅 Petit-déjeuner</div>
+  <div class="meal-slot" id="slot-breakfast">
+    <div class="meal-slot-header">
+      <div class="meal-icon">🍳</div>
+      <div class="meal-slot-title">Petit-déjeuner</div>
+      <div class="meal-time">7h – 9h</div>
+    </div>
+    <div id="logged-breakfast"></div>
+    <button class="add-meal-btn" onclick="openPicker('breakfast')">＋ Ajouter un repas</button>
+  </div>
+
+  <div class="section-title">☀️ Déjeuner</div>
+  <div class="meal-slot" id="slot-lunch">
+    <div class="meal-slot-header">
+      <div class="meal-icon">🍽️</div>
+      <div class="meal-slot-title">Déjeuner</div>
+      <div class="meal-time">12h – 14h</div>
+    </div>
+    <div id="logged-lunch"></div>
+    <button class="add-meal-btn" onclick="openPicker('lunch')">＋ Ajouter un repas</button>
+  </div>
+
+  <div class="section-title">🍎 Goûter</div>
+  <div class="meal-slot" id="slot-snack">
+    <div class="meal-slot-header">
+      <div class="meal-icon">🥨</div>
+      <div class="meal-slot-title">Goûter</div>
+      <div class="meal-time">16h – 17h</div>
+    </div>
+    <div id="logged-snack"></div>
+    <button class="add-meal-btn" onclick="openPicker('snack')">＋ Ajouter un repas</button>
+  </div>
+
+  <div class="section-title">🌙 Dîner</div>
+  <div class="meal-slot" id="slot-dinner">
+    <div class="meal-slot-header">
+      <div class="meal-icon">🌙</div>
+      <div class="meal-slot-title">Dîner</div>
+      <div class="meal-time">19h – 21h</div>
+    </div>
+    <div id="logged-dinner"></div>
+    <button class="add-meal-btn" onclick="openPicker('dinner')">＋ Ajouter un repas</button>
+  </div>
+</div>
+
+<!-- SYMPTOMS -->
+<div class="section" id="section-symptoms">
+  <div class="wellness-bar">
+    <div class="wellness-label">Comment vous sentez-vous aujourd'hui ?</div>
+    <div class="stars" id="wellnessStars">
+      <span class="star" onclick="setWellness(1)">😣</span>
+      <span class="star" onclick="setWellness(2)">😕</span>
+      <span class="star" onclick="setWellness(3)">😐</span>
+      <span class="star" onclick="setWellness(4)">🙂</span>
+      <span class="star" onclick="setWellness(5)">😊</span>
+    </div>
+  </div>
+
+  <div class="section-title">Symptômes digestifs</div>
+  <div class="symptom-btn-grid">
+    <div class="symptom-btn" id="s-bloating" onclick="toggleSymptom('bloating', this)">
+      <div class="s-icon">🫧</div>
+      <span class="s-label">Ballonnements</span>
+      <span class="s-sub">Appuyer pour activer</span>
+    </div>
+    <div class="symptom-btn" id="s-pain" onclick="toggleSymptom('pain', this)">
+      <div class="s-icon">😣</div>
+      <span class="s-label">Douleurs</span>
+      <span class="s-sub">Crampes abdominales</span>
+    </div>
+    <div class="symptom-btn" id="s-fatigue" onclick="toggleSymptom('fatigue', this)">
+      <div class="s-icon">😴</div>
+      <span class="s-label">Fatigue</span>
+      <span class="s-sub">Épuisement général</span>
+    </div>
+    <div class="symptom-btn" id="s-nausea" onclick="toggleSymptom('nausea', this)">
+      <div class="s-icon">🤢</div>
+      <span class="s-label">Nausées</span>
+      <span class="s-sub">Malaise digestif</span>
+    </div>
+    <div class="symptom-btn" id="s-transit" onclick="toggleSymptom('transit', this)">
+      <div class="s-icon">⚡</div>
+      <span class="s-label">Transit perturbé</span>
+      <span class="s-sub">Diarrhée / constip.</span>
+    </div>
+    <div class="symptom-btn" id="s-skin" onclick="toggleSymptom('skin', this)">
+      <div class="s-icon">🔴</div>
+      <span class="s-label">Peau</span>
+      <span class="s-sub">Rougeurs / éruption</span>
+    </div>
+  </div>
+  <button class="save-symptom-btn" onclick="saveSymptoms()">💾 Enregistrer les symptômes</button>
+</div>
+
+<!-- HISTORY -->
+<div class="section" id="section-history">
+  <div class="section-title">📅 7 derniers jours</div>
+  <div id="history-list"></div>
+</div>
+
+<!-- GUIDE -->
+<div class="section" id="section-guide">
+  <div class="section-title">📚 Mes repas enregistrés</div>
+
+  <div class="info-card open">
+    <div class="info-card-header" onclick="toggleCard(this)">🥞 Petit-déjeuner <span class="chevron">▼</span></div>
+    <div class="info-card-body">
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Yaourt nature</strong> — vache ou brebis, nature sans additifs<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK (portion normale ≤ 170g)</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Pain de maïs</strong> — farine de maïs, levure, sel<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Gaufres maison SG</strong> — farine SG, œuf, lait amande, beurre cacahuète ou pâte noisette<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ⚠️ Vérifier quantité pâte noisette (FODMAP si >1cs)</span></div></div>
+    </div>
+  </div>
+
+  <div class="info-card open">
+    <div class="info-card-header" onclick="toggleCard(this)">🍗 Protéines <span class="chevron">▼</span></div>
+    <div class="info-card-body">
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Poulet</strong> — grillé, rôti ou à la poêle<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Bœuf</strong> — steak, haché (pur bœuf)<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Dinde</strong> — escalope, rôti<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+    </div>
+  </div>
+
+  <div class="info-card open">
+    <div class="info-card-header" onclick="toggleCard(this)">🍕 Plats <span class="chevron">▼</span></div>
+    <div class="info-card-body">
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Pizza maison SG</strong> — kit pâte SG + sauce tomate, jambon, olive, mozzarella<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ⚠️ Olives : ok en petite quantité</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Frites au four</strong> — pomme de terre, huile, sel<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Pâtes sans gluten</strong> — riz, maïs ou quinoa<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-bad"></div><div><strong>Pâtes au blé</strong><br><span style="font-size:11px;color:var(--danger)">❌ CONTIENT GLUTEN — à éviter</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Riz blanc</strong> — nature<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK</span></div></div>
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Purée lait amande</strong> — pomme de terre, lait amande, sel<br><span style="font-size:11px;color:var(--text-muted)">✅ Sans gluten · ✅ FODMAP OK (lait amande ok)</span></div></div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-header" onclick="toggleCard(this)">ℹ️ Légende FODMAP <span class="chevron">▼</span></div>
+    <div class="info-card-body">
+      <div class="info-row"><div class="info-dot dot-ok"></div><div><strong>Vert ✅</strong> — Sans gluten et FODMAP faible</div></div>
+      <div class="info-row"><div class="info-dot dot-warn"></div><div><strong>Orange ⚠️</strong> — Sans gluten mais FODMAP à surveiller selon la quantité</div></div>
+      <div class="info-row"><div class="info-dot dot-bad"></div><div><strong>Rouge ❌</strong> — Contient du gluten — à éviter</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MEAL PICKER OVERLAY -->
+<div class="picker-overlay" id="picker-overlay" onclick="closePickerOutside(event)">
+  <div class="picker-sheet">
+    <div class="picker-handle"></div>
+    <div class="picker-title">Choisir un repas</div>
+
+    <!-- Tabs -->
+    <div class="json-tabs">
+      <div class="json-tab active" id="ptab-list" onclick="switchPickerTab('list')">📋 Liste</div>
+      <div class="json-tab" id="ptab-custom" onclick="switchPickerTab('custom')">✏️ Nouveau</div>
+      <div class="json-tab" id="ptab-ai" onclick="switchPickerTab('ai')">🤖 IA / JSON</div>
+    </div>
+
+    <!-- Tab: liste preset -->
+    <div id="picker-tab-list">
+      <div id="preset-list"></div>
+      <button class="confirm-btn" onclick="confirmMeal()">✅ Ajouter ce repas</button>
+      <button class="cancel-btn" onclick="closePicker()">Annuler</button>
+    </div>
+
+    <!-- Tab: ajout à la volée -->
+    <div id="picker-tab-custom" style="display:none">
+      <div class="custom-form">
+        <div class="custom-form-title">✏️ Ajouter un aliment</div>
+        <div class="form-row">
+          <input class="form-input emoji-input" id="cf-emoji" type="text" maxlength="2" placeholder="🍎" value="🍽️">
+          <input class="form-input" id="cf-name" type="text" placeholder="Nom de l'aliment">
+        </div>
+        <div class="form-row">
+          <input class="form-input" id="cf-ingredients" type="text" placeholder="Ingrédients / description (optionnel)">
+        </div>
+        <div style="margin-bottom:8px">
+          <div class="form-label">Gluten</div>
+          <div class="toggle-group">
+            <div class="toggle-btn active-ok" id="cf-gluten-no" onclick="setToggle('gluten','no')">✅ Sans gluten</div>
+            <div class="toggle-btn" id="cf-gluten-yes" onclick="setToggle('gluten','yes')">❌ Contient gluten</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div class="form-label">FODMAP</div>
+          <div class="toggle-group">
+            <div class="toggle-btn active-ok" id="cf-fodmap-ok" onclick="setToggle('fodmap','ok')">✅ OK</div>
+            <div class="toggle-btn" id="cf-fodmap-warn" onclick="setToggle('fodmap','warn')">⚠️ Modéré</div>
+          </div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div class="form-label">Catégorie</div>
+          <select class="form-input" id="cf-category">
+            <option value="🍳 Petit-déjeuner">🍳 Petit-déjeuner</option>
+            <option value="🍗 Protéines">🍗 Protéines</option>
+            <option value="🍽️ Plats" selected>🍽️ Plats</option>
+            <option value="🥗 Légumes">🥗 Légumes</option>
+            <option value="🍰 Desserts">🍰 Desserts</option>
+            <option value="🥤 Boissons">🥤 Boissons</option>
+            <option value="🧁 Snacks">🧁 Snacks</option>
+          </select>
+        </div>
+        <button class="form-add-btn" style="width:100%" onclick="addCustomMeal()">➕ Créer et ajouter au repas</button>
+      </div>
+      <button class="cancel-btn" onclick="closePicker()">Annuler</button>
+    </div>
+
+    <!-- Tab: IA + JSON -->
+    <div id="picker-tab-ai" style="display:none">
+      <!-- Sous-onglets IA vs JSON -->
+      <div class="json-tabs" style="margin-bottom:12px">
+        <div class="json-tab active" id="aitab-ai" onclick="switchAiTab('ai')">🤖 Demander à l'IA</div>
+        <div class="json-tab" id="aitab-json" onclick="switchAiTab('json')">📄 Importer JSON</div>
+      </div>
+
+      <!-- IA -->
+      <div id="ai-sub-ai">
+        <div class="ai-panel">
+          <div class="ai-panel-title">🤖 Analyse IA</div>
+          <textarea class="ai-textarea" id="ai-prompt" placeholder="Ex : « quels aliments sans gluten et FODMAP ok pour le petit-déjeuner ? » ou « analyse ce repas : saumon, brocoli, quinoa »"></textarea>
+          <button class="ai-btn" id="ai-btn" onclick="callAI()">
+            <span id="ai-btn-label">✨ Analyser avec Claude</span>
+          </button>
+          <div class="ai-result" id="ai-result">
+            <div class="form-label" style="margin-bottom:8px">Résultats — cocher pour importer</div>
+            <div id="ai-result-list"></div>
+            <button class="ai-import-btn" onclick="importSelectedAI()">📥 Importer les sélectionnés</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON -->
+      <div id="ai-sub-json" style="display:none">
+        <div class="ai-panel">
+          <div class="ai-panel-title">📄 Import / Export JSON</div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Format : tableau d'objets avec <code>name, emoji, gluten (bool), fodmap ("ok"/"warn"), category, ingredients</code></p>
+          <textarea class="ai-textarea" id="json-input" style="min-height:120px;font-family:monospace;font-size:11px" placeholder='[{"name":"Saumon","emoji":"🐟","gluten":false,"fodmap":"ok","category":"🍗 Protéines","ingredients":"Filet de saumon"}]'></textarea>
+          <button class="ai-btn" style="background:linear-gradient(135deg,#2980B9,#3498DB)" onclick="importJSON()">📥 Importer</button>
+          <button class="ai-btn" style="background:linear-gradient(135deg,#27AE60,#2ECC71);margin-top:4px" onclick="exportJSON()">📤 Exporter tous mes aliments</button>
+        </div>
+      </div>
+
+      <button class="cancel-btn" onclick="closePicker()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MEALS = [
+  {
+    id: 'gauffre', emoji: '🥞',
+    name: 'Gaufres maison SG',
+    ingredients: 'Farine SG, œuf, lait amande, beurre cacahuète ou pâte noisette',
+    gluten: false, fodmap: 'warn',
+    category: '🍳 Petit-déjeuner',
+    note: 'Vérifier quantité pâte noisette'
+  },
+  {
+    id: 'yaourt', emoji: '🥛',
+    name: 'Yaourt nature',
+    ingredients: 'Yaourt nature (vache ou brebis)',
+    gluten: false, fodmap: 'ok',
+    category: '🍳 Petit-déjeuner'
+  },
+  {
+    id: 'poulet', emoji: '🍗',
+    name: 'Poulet',
+    ingredients: 'Poulet (grillé, rôti, poêlé)',
+    gluten: false, fodmap: 'ok',
+    category: '🍗 Protéines'
+  },
+  {
+    id: 'boeuf', emoji: '🥩',
+    name: 'Bœuf',
+    ingredients: 'Steak ou haché pur bœuf',
+    gluten: false, fodmap: 'ok',
+    category: '🍗 Protéines'
+  },
+  {
+    id: 'dinde', emoji: '🦃',
+    name: 'Dinde',
+    ingredients: 'Escalope ou rôti de dinde',
+    gluten: false, fodmap: 'ok',
+    category: '🍗 Protéines'
+  },
+  {
+    id: 'pizza', emoji: '🍕',
+    name: 'Pizza maison SG',
+    ingredients: 'Kit pizza SG (pâte + sauce tomate), jambon, olive, mozzarella',
+    gluten: false, fodmap: 'warn',
+    category: '🍽️ Plats'
+  },
+  {
+    id: 'frites', emoji: '🍟',
+    name: 'Frites au four',
+    ingredients: 'Pomme de terre, huile, sel',
+    gluten: false, fodmap: 'ok',
+    category: '🍽️ Plats'
+  },
+  {
+    id: 'pates-sg', emoji: '🍝',
+    name: 'Pâtes sans gluten',
+    ingredients: 'Pâtes riz/maïs/quinoa',
+    gluten: false, fodmap: 'ok',
+    category: '🍽️ Plats'
+  },
+  {
+    id: 'pates-ble', emoji: '⚠️',
+    name: 'Pâtes au blé',
+    ingredients: 'Pâtes classiques (blé)',
+    gluten: true, fodmap: 'ok',
+    category: '🍽️ Plats'
+  },
+  {
+    id: 'riz', emoji: '🍚',
+    name: 'Riz blanc',
+    ingredients: 'Riz blanc nature',
+    gluten: false, fodmap: 'ok',
+    category: '🍽️ Plats'
+  },
+  {
+    id: 'puree', emoji: '🥔',
+    name: 'Purée lait amande',
+    ingredients: 'Pomme de terre, lait amande, sel',
+    gluten: false, fodmap: 'ok',
+    category: '🍽️ Plats'
+  },
+  {
+    id: 'pain-mais', emoji: '🌽',
+    name: 'Pain de maïs',
+    ingredients: 'Farine de maïs, levure, sel, eau',
+    gluten: false, fodmap: 'ok',
+    category: '🍳 Petit-déjeuner'
+  },
+];
+
+let state = {
+  today: { breakfast: [], lunch: [], snack: [], dinner: [] },
+  symptoms: [],
+  wellness: 0,
+  history: []
+};
+
+let currentSlot = null;
+let selectedMealId = null;
+let activeSymptoms = new Set();
+let wellness = 0;
+
+// Load from localStorage
+try {
+  const saved = localStorage.getItem('gf_state');
+  if (saved) state = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('gf_state', JSON.stringify(state)); } catch(e) {}
+}
+
+// Init date
+const now = new Date();
+const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+document.getElementById('todayDate').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('section-' + tab).classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+
+function getTag(meal) {
+  if (meal.gluten) return {cls: 'tag-bad', label: '❌ Gluten'};
+  if (meal.fodmap === 'warn') return {cls: 'tag-warn', label: '⚠️ Fodmap'};
+  return {cls: 'tag-ok', label: '✅ OK'};
+}
+
+function renderSlot(slot) {
+  const container = document.getElementById('logged-' + slot);
+  container.innerHTML = '';
+  (state.today[slot] || []).forEach((mealId, idx) => {
+    const meal = getAllMeals().find(m => m.id === mealId);
+    if (!meal) return;
+    const tag = getTag(meal);
+    const div = document.createElement('div');
+    div.className = 'logged-meal';
+    div.innerHTML = `<span style="font-size:20px">${meal.emoji}</span>
+      <span class="meal-name">${meal.name}</span>
+      <span class="meal-tag ${tag.cls}">${tag.label}</span>
+      <span onclick="removeMeal('${slot}',${idx})" style="cursor:pointer;font-size:18px;color:var(--text-muted);padding-left:6px">✕</span>`;
+    container.appendChild(div);
+  });
+  updateCounts();
+}
+
+function removeMeal(slot, idx) {
+  state.today[slot].splice(idx, 1);
+  save();
+  renderSlot(slot);
+}
+
+function updateCounts() {
+  const all = [...state.today.breakfast, ...state.today.lunch, ...state.today.snack, ...state.today.dinner];
+  let ok=0, warn=0, bad=0;
+  all.forEach(id => {
+    const m = getAllMeals().find(m => m.id === id);
+    if (!m) return;
+    if (m.gluten) bad++;
+    else if (m.fodmap === 'warn') warn++;
+    else ok++;
+  });
+  document.getElementById('count-ok').textContent = ok;
+  document.getElementById('count-warn').textContent = warn;
+  document.getElementById('count-bad').textContent = bad;
+}
+
+function _oldOpenPicker_disabled(slot) {
+  list.innerHTML = '';
+
+  const cats = {};
+  MEALS.forEach(m => {
+    if (!cats[m.category]) cats[m.category] = [];
+    cats[m.category].push(m);
+  });
+
+  Object.keys(cats).forEach(cat => {
+    const sec = document.createElement('div');
+    sec.className = 'preset-category';
+    sec.innerHTML = `<div class="preset-category-title">${cat}</div><div class="preset-grid" id="cat-${cat}"></div>`;
+    list.appendChild(sec);
+    const grid = sec.querySelector('.preset-grid');
+    cats[cat].forEach(m => {
+      const badges = [];
+      if (!m.gluten) badges.push('<span class="badge badge-sg">Sans Gluten</span>');
+      else badges.push('<span class="badge badge-gluten">Gluten ❌</span>');
+      if (m.fodmap === 'ok') badges.push('<span class="badge badge-fodmap">FODMAP ✅</span>');
+      else badges.push('<span class="badge badge-fodmap-warn">FODMAP ⚠️</span>');
+
+      const item = document.createElement('div');
+      item.className = 'preset-item';
+      item.id = 'pi-' + m.id;
+      item.innerHTML = `<span class="preset-emoji">${m.emoji}</span>
+        <div class="preset-info">
+          <div class="preset-name">${m.name}</div>
+          <div class="preset-ingredients">${m.ingredients}</div>
+        </div>
+        <div class="preset-badges">${badges.join('')}</div>`;
+      item.onclick = () => selectMeal(m.id);
+      grid.appendChild(item);
+    });
+  });
+
+  document.getElementById('picker-overlay').classList.add('open');
+}
+
+function selectMeal(id) {
+  document.querySelectorAll('.preset-item').forEach(el => el.classList.remove('selected'));
+  selectedMealId = id;
+  document.getElementById('pi-' + id)?.classList.add('selected');
+}
+
+function confirmMeal() {
+  if (!selectedMealId || !currentSlot) return;
+  state.today[currentSlot].push(selectedMealId);
+  save();
+  renderSlot(currentSlot);
+  closePicker();
+  showToast('Repas ajouté ! 🎉');
+}
+
+function closePicker() {
+  document.getElementById('picker-overlay').classList.remove('open');
+  currentSlot = null;
+  selectedMealId = null;
+}
+
+function closePickerOutside(e) {
+  if (e.target === document.getElementById('picker-overlay')) closePicker();
+}
+
+function toggleSymptom(id, el) {
+  if (activeSymptoms.has(id)) {
+    activeSymptoms.delete(id);
+    el.className = 'symptom-btn';
+  } else {
+    activeSymptoms.add(id);
+    el.className = 'symptom-btn selected-bad';
+  }
+}
+
+function setWellness(val) {
+  wellness = val;
+  document.querySelectorAll('.star').forEach((s, i) => {
+    s.classList.toggle('active', i < val);
+  });
+}
+
+function saveSymptoms() {
+  const entry = {
+    date: new Date().toLocaleDateString('fr-FR'),
+    symptoms: [...activeSymptoms],
+    wellness,
+    meals: { ...state.today }
+  };
+  if (!state.history) state.history = [];
+  state.history.unshift(entry);
+  if (state.history.length > 30) state.history = state.history.slice(0, 30);
+  save();
+  showToast('Symptômes enregistrés ✅');
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  if (!state.history || state.history.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px">Aucun historique enregistré</div>';
+    return;
+  }
+  state.history.slice(0, 7).forEach(entry => {
+    const allMeals = [...(entry.meals?.breakfast||[]), ...(entry.meals?.lunch||[]), ...(entry.meals?.snack||[]), ...(entry.meals?.dinner||[])];
+    const hasGluten = allMeals.some(id => getAllMeals().find(m => m.id===id)?.gluten);
+    const hasFodmap = allMeals.some(id => getAllMeals().find(m => m.id===id)?.fodmap === 'warn');
+    const scoreClass = hasGluten ? 'score-bad' : (hasFodmap ? 'score-medium' : 'score-good');
+    const scoreLabel = hasGluten ? '❌ Gluten détecté' : (hasFodmap ? '⚠️ FODMAP modéré' : '✅ Bonne journée');
+
+    const sympLabels = {bloating:'Ballonnements',pain:'Douleurs',fatigue:'Fatigue',nausea:'Nausées',transit:'Transit',skin:'Peau'};
+    const sympStr = entry.symptoms?.length ? entry.symptoms.map(s => sympLabels[s]||s).join(', ') : 'Aucun symptôme';
+    const wellnessEmojis = ['','😣','😕','😐','🙂','😊'];
+    const we = wellnessEmojis[entry.wellness||0]||'—';
+
+    const card = document.createElement('div');
+    card.className = 'history-day';
+    card.innerHTML = `
+      <div class="history-day-header">
+        <div class="history-day-label">📅 ${entry.date}</div>
+        <div class="history-score ${scoreClass}">${scoreLabel}</div>
+      </div>
+      <div style="padding:10px 14px">
+        <div style="font-size:13px;margin-bottom:6px"><strong>Humeur :</strong> ${we} ${entry.wellness?'/5':''}</div>
+        <div style="font-size:13px;margin-bottom:6px"><strong>Symptômes :</strong> ${sympStr}</div>
+        <div style="font-size:13px"><strong>Repas :</strong> ${allMeals.length > 0 ? allMeals.map(id => {
+          const m = getAllMeals().find(m=>m.id===id);
+          return m ? m.emoji+' '+m.name : id;
+        }).join(', ') : 'Aucun repas enregistré'}</div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function toggleCard(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── CUSTOM MEALS (persistés) ──────────────────────────────────────
+let customMeals = [];
+try { customMeals = JSON.parse(localStorage.getItem('gf_custom') || '[]'); } catch(e) {}
+function saveCustomMeals() { localStorage.setItem('gf_custom', JSON.stringify(customMeals)); }
+function getAllMeals() { return [...MEALS, ...customMeals]; }
+
+// Initial render
+['breakfast','lunch','snack','dinner'].forEach(renderSlot);
+
+
+
+// Override openPicker to use getAllMeals
+const _origOpenPicker = openPicker;
+function openPicker(slot) {
+  currentSlot = slot;
+  selectedMealId = null;
+  switchPickerTab('list');
+  renderPickerList();
+  document.getElementById('picker-overlay').classList.add('open');
+}
+
+function renderPickerList() {
+  const list = document.getElementById('preset-list');
+  list.innerHTML = '';
+  const cats = {};
+  getAllMeals().forEach(m => {
+    if (!cats[m.category]) cats[m.category] = [];
+    cats[m.category].push(m);
+  });
+  Object.keys(cats).forEach(cat => {
+    const sec = document.createElement('div');
+    sec.className = 'preset-category';
+    sec.innerHTML = `<div class="preset-category-title">${cat}</div><div class="preset-grid" id="cat-${CSS.escape(cat)}"></div>`;
+    list.appendChild(sec);
+    const grid = sec.querySelector('.preset-grid');
+    cats[cat].forEach(m => {
+      const badges = [];
+      if (!m.gluten) badges.push('<span class="badge badge-sg">Sans Gluten</span>');
+      else badges.push('<span class="badge badge-gluten">Gluten ❌</span>');
+      if (m.fodmap === 'ok') badges.push('<span class="badge badge-fodmap">FODMAP ✅</span>');
+      else badges.push('<span class="badge badge-fodmap-warn">FODMAP ⚠️</span>');
+      const item = document.createElement('div');
+      item.className = 'preset-item';
+      item.id = 'pi-' + m.id;
+      item.innerHTML = `<span class="preset-emoji">${m.emoji}</span>
+        <div class="preset-info">
+          <div class="preset-name">${m.name}</div>
+          <div class="preset-ingredients">${m.ingredients||''}</div>
+        </div>
+        <div class="preset-badges">${badges.join('')}</div>`;
+      item.onclick = () => selectMeal(m.id);
+      grid.appendChild(item);
+    });
+  });
+}
+
+// Override confirmMeal to use getAllMeals
+function confirmMeal() {
+  if (!selectedMealId || !currentSlot) return;
+  state.today[currentSlot].push(selectedMealId);
+  save();
+  renderSlot(currentSlot);
+  closePicker();
+  showToast('Repas ajouté ! 🎉');
+}
+
+// ── PICKER TABS ───────────────────────────────────────────────────
+function switchPickerTab(tab) {
+  ['list','custom','ai'].forEach(t => {
+    document.getElementById('picker-tab-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('ptab-'+t).classList.toggle('active', t===tab);
+  });
+}
+
+// ── AI TAB SUB-TABS ───────────────────────────────────────────────
+function switchAiTab(tab) {
+  document.getElementById('ai-sub-ai').style.display = tab==='ai'?'block':'none';
+  document.getElementById('ai-sub-json').style.display = tab==='json'?'block':'none';
+  document.getElementById('aitab-ai').classList.toggle('active', tab==='ai');
+  document.getElementById('aitab-json').classList.toggle('active', tab==='json');
+}
+
+// ── CUSTOM FORM TOGGLES ───────────────────────────────────────────
+let cfGluten = 'no', cfFodmap = 'ok';
+function setToggle(field, val) {
+  if (field === 'gluten') {
+    cfGluten = val;
+    document.getElementById('cf-gluten-no').className = 'toggle-btn' + (val==='no'?' active-ok':'');
+    document.getElementById('cf-gluten-yes').className = 'toggle-btn' + (val==='yes'?' active-bad':'');
+  } else {
+    cfFodmap = val;
+    document.getElementById('cf-fodmap-ok').className = 'toggle-btn' + (val==='ok'?' active-ok':'');
+    document.getElementById('cf-fodmap-warn').className = 'toggle-btn' + (val==='warn'?' active-warn':'');
+  }
+}
+
+function addCustomMeal() {
+  const name = document.getElementById('cf-name').value.trim();
+  if (!name) { showToast('⚠️ Nom requis'); return; }
+  const meal = {
+    id: 'custom_' + Date.now(),
+    emoji: document.getElementById('cf-emoji').value.trim() || '🍽️',
+    name,
+    ingredients: document.getElementById('cf-ingredients').value.trim(),
+    gluten: cfGluten === 'yes',
+    fodmap: cfFodmap,
+    category: document.getElementById('cf-category').value
+  };
+  customMeals.push(meal);
+  saveCustomMeals();
+  // Ajouter directement au repas courant
+  if (currentSlot) {
+    state.today[currentSlot].push(meal.id);
+    save();
+    renderSlot(currentSlot);
+  }
+  closePicker();
+  showToast(`✅ "${meal.name}" ajouté !`);
+}
+
+// ── IA ────────────────────────────────────────────────────────────
+let aiResults = [];
+async function callAI() {
+  const prompt = document.getElementById('ai-prompt').value.trim();
+  if (!prompt) { showToast('⚠️ Saisis une question'); return; }
+  const btn = document.getElementById('ai-btn');
+  const lbl = document.getElementById('ai-btn-label');
+  btn.disabled = true;
+  lbl.innerHTML = '<span class="spinner"></span> Analyse en cours…';
+  document.getElementById('ai-result').classList.remove('show');
+
+  try {
+    const sysPrompt = `Tu es un expert en nutrition spécialisé dans les régimes sans gluten et FODMAP. 
+L'utilisateur te demande d'analyser ou suggérer des aliments.
+Réponds UNIQUEMENT en JSON valide (sans backticks, sans texte autour), tableau d'objets avec exactement ces champs :
+[{"name":"string","emoji":"emoji","gluten":false,"fodmap":"ok","category":"string","ingredients":"string","note":"string optionnel"}]
+- gluten: boolean (true si contient gluten)
+- fodmap: "ok" ou "warn"
+- category: une de ces valeurs: "🍳 Petit-déjeuner", "🍗 Protéines", "🍽️ Plats", "🥗 Légumes", "🍰 Desserts", "🥤 Boissons", "🧁 Snacks"
+- note: explication courte (max 60 chars)
+Retourne entre 3 et 8 aliments pertinents.`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: sysPrompt,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(b => b.text||'').join('').trim();
+    const clean = text.replace(/```json|```/g,'').trim();
+    aiResults = JSON.parse(clean);
+    renderAIResults(aiResults);
+  } catch(e) {
+    showToast('❌ Erreur IA : ' + e.message);
+  } finally {
+    btn.disabled = false;
+    lbl.textContent = '✨ Analyser avec Claude';
+  }
+}
+
+function renderAIResults(items) {
+  const list = document.getElementById('ai-result-list');
+  list.innerHTML = '';
+  items.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'ai-result-item selected';
+    div.id = 'air-' + i;
+    div.onclick = () => div.classList.toggle('selected');
+    const tag = m.gluten ? '❌ Gluten' : (m.fodmap==='warn' ? '⚠️ FODMAP' : '✅ OK');
+    div.innerHTML = `<div class="ri-check">✓</div>
+      <span style="font-size:20px">${m.emoji||'🍽️'}</span>
+      <div class="ri-info">
+        <div class="ri-name">${m.name} <span style="font-size:10px;color:var(--text-muted)">${tag}</span></div>
+        <div class="ri-sub">${m.note||m.ingredients||''}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+  document.getElementById('ai-result').classList.add('show');
+}
+
+function importSelectedAI() {
+  let count = 0;
+  document.querySelectorAll('.ai-result-item.selected').forEach((el, i) => {
+    const idx = parseInt(el.id.replace('air-',''));
+    const m = aiResults[idx];
+    if (!m) return;
+    const meal = { ...m, id: 'custom_' + Date.now() + '_' + i };
+    customMeals.push(meal);
+    count++;
+  });
+  saveCustomMeals();
+  showToast(`✅ ${count} aliment(s) importé(s)`);
+  document.getElementById('ai-result').classList.remove('show');
+  document.getElementById('ai-prompt').value = '';
+  switchPickerTab('list');
+  renderPickerList();
+}
+
+// ── JSON ──────────────────────────────────────────────────────────
+function importJSON() {
+  try {
+    const raw = document.getElementById('json-input').value.trim();
+    const items = JSON.parse(raw);
+    if (!Array.isArray(items)) throw new Error('Doit être un tableau');
+    let count = 0;
+    items.forEach((m, i) => {
+      if (!m.name) return;
+      customMeals.push({
+        id: 'custom_' + Date.now() + '_' + i,
+        emoji: m.emoji || '🍽️',
+        name: m.name,
+        ingredients: m.ingredients || '',
+        gluten: !!m.gluten,
+        fodmap: m.fodmap === 'warn' ? 'warn' : 'ok',
+        category: m.category || '🍽️ Plats'
+      });
+      count++;
+    });
+    saveCustomMeals();
+    showToast(`✅ ${count} aliment(s) importé(s)`);
+    document.getElementById('json-input').value = '';
+    switchPickerTab('list');
+    renderPickerList();
+  } catch(e) {
+    showToast('❌ JSON invalide : ' + e.message);
+  }
+}
+
+function exportJSON() {
+  const all = [...MEALS, ...customMeals];
+  const data = JSON.stringify(all, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'mes_aliments.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 Export téléchargé !');
+}
+
+</script>
+</body>
+</html>
