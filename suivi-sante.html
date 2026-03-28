@@ -482,7 +482,7 @@ input[type="range"]::-webkit-slider-thumb {
   letter-spacing: 0.2em;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  transition: all 0.15s;
+  transition: all 0.3s;
   margin-top: 8px;
   touch-action: manipulation;
   box-shadow: 0 4px 14px rgba(192,40,42,0.35);
@@ -495,6 +495,31 @@ input[type="range"]::-webkit-slider-thumb {
   opacity: 0.6;
 }
 .add-btn:active { transform: scale(0.98); background: #8a0a0c; }
+
+/* Hors plage : résistance orange */
+.add-btn.hors-plage {
+  background: #3a1a00;
+  color: #ff8c00;
+  border: 2px solid #ff8c00;
+  box-shadow: 0 0 0 0 rgba(255,140,0,0.5);
+  animation: resist-pulse 2s infinite;
+}
+.add-btn.hors-plage::before { content: '⚠'; opacity: 1; }
+@keyframes resist-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(255,140,0,0.55); }
+  50%  { box-shadow: 0 0 0 8px rgba(255,140,0,0); }
+  100% { box-shadow: 0 0 0 0   rgba(255,140,0,0); }
+}
+@keyframes shake {
+  0%,100%{ transform: translateX(0); }
+  15%    { transform: translateX(-6px); }
+  30%    { transform: translateX(6px); }
+  45%    { transform: translateX(-4px); }
+  60%    { transform: translateX(4px); }
+  75%    { transform: translateX(-2px); }
+  90%    { transform: translateX(2px); }
+}
+.add-btn.shaking { animation: shake 0.55s ease; }
 
 /* ── STATS ── */
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
@@ -1238,11 +1263,12 @@ function updatePlageBanner(){
 
 function updateFormWarning(){
   const warnEl = document.getElementById('plageWarnForm');
+  const btn    = document.querySelector('.add-btn');
   const timeVal = document.getElementById('entryTime').value;
   const dateVal = document.getElementById('entryDate').value;
   const today = new Date().toISOString().split('T')[0];
 
-  if(!timeVal){ warnEl.classList.remove('visible'); return; }
+  if(!timeVal){ warnEl.classList.remove('visible'); btn.classList.remove('hors-plage'); return; }
 
   const plage = getCurrentPlage(timeVal);
   if(plage){
@@ -1268,12 +1294,15 @@ function updateFormWarning(){
     if(dayEntries >= 1){
       warnEl.innerHTML = '⚠ DOUBLON PLAGE ' + plage.id.toUpperCase() + ' — ' + dayEntries + ' entrée(s) déjà enregistrée(s) sur cette plage ce jour.<br>Idéalement 1 saisie / plage. Confirmez si intentionnel.';
       warnEl.classList.add('visible');
+      btn.classList.add('hors-plage');
     } else {
       warnEl.classList.remove('visible');
+      btn.classList.remove('hors-plage');
     }
   } else {
     warnEl.innerHTML = '⚠ HORS PLAGE DE SUIVI — L\'heure saisie ('+(timeVal)+') est en dehors des plages recommandées :<br>Matin 06h–09h · Midi 12h–14h · Soir 19h–21h';
     warnEl.classList.add('visible');
+    btn.classList.add('hors-plage');
   }
 }
 
@@ -1359,6 +1388,17 @@ function selectStoolColor(el){
 
 // ── ADD ENTRY ──
 function addEntry(){
+  const btn = document.querySelector('.add-btn');
+
+  // Si hors plage : secouer le bouton avant de laisser passer
+  if(btn.classList.contains('hors-plage')){
+    btn.classList.remove('shaking');
+    void btn.offsetWidth; // reflow pour relancer l'animation
+    btn.classList.add('shaking');
+    btn.addEventListener('animationend', () => btn.classList.remove('shaking'), {once:true});
+    // On laisse quand même enregistrer après la résistance visuelle
+  }
+
   const date = document.getElementById('entryDate').value;
   const time = document.getElementById('entryTime').value;
   if(!date){toast('⚠️ Choisissez une date');return;}
