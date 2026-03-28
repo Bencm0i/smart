@@ -28,6 +28,10 @@
   --c5b: #1C2A08;
   --c6: #E8C547;
   --c6b: #2E2708;
+  --c8: #0078FF;
+  --c8b: #001833;
+  --c9: #00CC88;
+  --c9b: #002218;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -142,6 +146,11 @@ body::after {
 .app-card:nth-child(4) { animation-delay: 0.29s; }
 .app-card:nth-child(5) { animation-delay: 0.36s; }
 .app-card:nth-child(6) { animation-delay: 0.43s; }
+.app-card:nth-child(7) { animation-delay: 0.50s; }
+.app-card:nth-child(8) { animation-delay: 0.57s; }
+.app-card:nth-child(9) { animation-delay: 0.64s; }
+.app-card:nth-child(10){ animation-delay: 0.71s; }
+.app-card:nth-child(11){ animation-delay: 0.78s; }
 
 .app-card:active { transform: scale(0.97); }
 
@@ -200,6 +209,16 @@ body::after {
 .card-c6 .card-bar { background: linear-gradient(90deg, var(--c6), transparent); }
 .card-c6 .card-icon { background: var(--c6b); box-shadow: 0 0 0 1px rgba(232,197,71,0.22); }
 .card-c6 .tag { background: rgba(232,197,71,0.15); color: #F0D76A; }
+
+.card-c8 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c8), transparent 65%); }
+.card-c8 .card-bar { background: linear-gradient(90deg, var(--c8), transparent); }
+.card-c8 .card-icon { background: var(--c8b); box-shadow: 0 0 0 1px rgba(0,120,255,0.22); }
+.card-c8 .tag { background: rgba(0,120,255,0.15); color: #5AAEFF; }
+
+.card-c9 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c9), transparent 65%); }
+.card-c9 .card-bar { background: linear-gradient(90deg, var(--c9), transparent); }
+.card-c9 .card-icon { background: var(--c9b); box-shadow: 0 0 0 1px rgba(0,204,136,0.22); }
+.card-c9 .tag { background: rgba(0,204,136,0.15); color: #33EEB0; }
 
 .card-icon::after {
   content: '';
@@ -459,6 +478,42 @@ body::after {
       </div>
     </a>
 
+    <a class="app-card card-c8" href="patrimoine_saisie.html" onclick="rippleEffect(event)">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">💳</div>
+        <div class="card-text">
+          <div class="card-name">Patrimoine Saisie</div>
+          <div class="card-desc">Terminal Bloomberg — saisie des comptes</div>
+          <div class="card-tags">
+            <span class="tag">Saisie</span>
+            <span class="tag">Comptes</span>
+            <span class="tag">Terminal</span>
+          </div>
+        </div>
+        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c9" href="patrimoine_kpi_saisie.html" onclick="rippleEffect(event)">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">🏦</div>
+        <div class="card-text">
+          <div class="card-name">Patrimoine KPI Saisie</div>
+          <div class="card-desc">Dashboard KPI + saisie combinés</div>
+          <div class="card-tags">
+            <span class="tag">KPI</span>
+            <span class="tag">Saisie</span>
+            <span class="tag">Tout-en-un</span>
+          </div>
+        </div>
+        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
+      </div>
+    </a>
+
     <a class="app-card card-c3" href="suivi-sante.html" onclick="rippleEffect(event)">
       <div class="card-bg"></div>
       <div class="card-bar"></div>
@@ -592,7 +647,7 @@ body::after {
   </div>
     <div class="footer-text">
       <span class="footer-dot"></span>
-      9 OUTILS ACTIFS
+      11 OUTILS ACTIFS
       <span class="footer-dot"></span>
     </div>
   </div>
