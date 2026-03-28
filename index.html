@@ -32,6 +32,8 @@
   --c8b: #001833;
   --c9: #00CC88;
   --c9b: #002218;
+  --cA: #5B9E3A;
+  --cAb: #122209;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -151,6 +153,7 @@ body::after {
 .app-card:nth-child(9) { animation-delay: 0.64s; }
 .app-card:nth-child(10){ animation-delay: 0.71s; }
 .app-card:nth-child(11){ animation-delay: 0.78s; }
+.app-card:nth-child(12){ animation-delay: 0.85s; }
 
 .app-card:active { transform: scale(0.97); }
 
@@ -219,6 +222,11 @@ body::after {
 .card-c9 .card-bar { background: linear-gradient(90deg, var(--c9), transparent); }
 .card-c9 .card-icon { background: var(--c9b); box-shadow: 0 0 0 1px rgba(0,204,136,0.22); }
 .card-c9 .tag { background: rgba(0,204,136,0.15); color: #33EEB0; }
+
+.card-cA .card-bg { background: radial-gradient(circle at 80% 50%, var(--cA), transparent 65%); }
+.card-cA .card-bar { background: linear-gradient(90deg, var(--cA), transparent); }
+.card-cA .card-icon { background: var(--cAb); box-shadow: 0 0 0 1px rgba(91,158,58,0.22); }
+.card-cA .tag { background: rgba(91,158,58,0.15); color: #8ECC60; }
 
 .card-icon::after {
   content: '';
@@ -644,10 +652,28 @@ body::after {
       </div>
     </a>
 
+    <a class="app-card card-cA" href="gluten_fodmap_tracker.html" onclick="rippleEffect(event)">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">🌿</div>
+        <div class="card-text">
+          <div class="card-name">Suivi Gluten & FODMAP</div>
+          <div class="card-desc">Journal alimentaire, symptômes, IA</div>
+          <div class="card-tags">
+            <span class="tag">Gluten</span>
+            <span class="tag">FODMAP</span>
+            <span class="tag">Nutrition</span>
+          </div>
+        </div>
+        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
+      </div>
+    </a>
+
   </div>
     <div class="footer-text">
       <span class="footer-dot"></span>
-      11 OUTILS ACTIFS
+      12 OUTILS ACTIFS
       <span class="footer-dot"></span>
     </div>
   </div>
