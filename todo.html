@@ -238,6 +238,8 @@ body::after {
   display: none;
 }
 .page.active { display: block; }
+#page-sugg { overflow: hidden; padding-bottom: 0; }
+#page-sugg.active { display: flex; flex-direction: column; }
 
 /* ── BOTTOM NAV ── */
 #bottom-nav {
@@ -819,7 +821,13 @@ select.field-input option { background: var(--bg2); }
 .empty-state .es-sub { font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; letter-spacing: 0.06em; }
 
 /* ── PAGE SUGGESTIONS ── */
-.sugg-page { padding: 12px; }
+.sugg-page {
+  padding: 10px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 8px;
+}
 
 .sugg-section-title {
   font-family: 'Bebas Neue', sans-serif;
@@ -843,27 +851,28 @@ select.field-input option { background: var(--bg2); }
 .sugg-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: 6px;
-  margin-bottom: 16px;
+  flex: 1;
+  min-height: 0;
 }
 
 .sugg-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 1px;
-  padding: 10px 6px 8px;
+  padding: 8px 6px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   cursor: pointer;
   transition: all 0.12s;
   text-align: center;
   position: relative;
   overflow: hidden;
-  /* Hauteur fixe = 4 lignes max */
-  max-height: calc(1.6rem + 4 * 1.3em * 0.65rem + 10px + 8px + 3px * 3);
-  height: 98px;
+  min-height: 0;
 }
 .sugg-card::before {
   content: '';
@@ -1108,8 +1117,8 @@ select.field-input option { background: var(--bg2); }
     </div>
 
     <!-- SUGGESTIONS -->
-    <div class="page" id="page-sugg">
-      <div class="sugg-page">
+    <div class="page" id="page-sugg" style="display:none;flex-direction:column;overflow:hidden">
+      <div class="sugg-page" style="flex:1;min-height:0">
         <p class="sugg-section-title">◈ TÂCHES FRÉQUENTES</p>
         <div class="sugg-grid" id="sugg-grid"></div>
         <button class="btn-shuffle" onclick="renderSuggestions()">⟳ ACTUALISER LES IDÉES</button>
@@ -1291,9 +1300,11 @@ let selectedCat = 'maison';
 let modalOpen = false;
 
 function goPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
+  const pg = document.getElementById('page-' + id);
+  pg.classList.add('active');
+  pg.style.display = (id === 'sugg') ? 'flex' : 'block';
   btn.classList.add('active');
 }
 
@@ -1493,7 +1504,7 @@ function initSwipe(row) {
 
 function renderSuggestions() {
   const grid = document.getElementById('sugg-grid');
-  const shown = [...SUGGS].sort(()=>Math.random()-0.5).slice(0,18);
+  const shown = [...SUGGS].sort(()=>Math.random()-0.5).slice(0,12);
   const existing = items.map(i=>i.name.toLowerCase());
   grid.innerHTML = shown.map(s=>`
     <div class="sugg-card${existing.includes(s.name.toLowerCase())?' added':''}"
