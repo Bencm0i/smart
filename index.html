@@ -16,24 +16,16 @@
   --text: #F0EDE8;
   --muted: #6B6A72;
 
-  --c1: #D4622A;
-  --c1b: #3A1A0A;
-  --c2: #2A7DB5;
-  --c2b: #0A1E2E;
-  --c3: #4C9B6E;
-  --c3b: #0C2218;
-  --c4: #A0589A;
-  --c4b: #2A0E28;
-  --c5: #7C9B35;
-  --c5b: #1C2A08;
-  --c6: #E8C547;
-  --c6b: #2E2708;
-  --c8: #0078FF;
-  --c8b: #001833;
-  --c9: #00CC88;
-  --c9b: #002218;
-  --cA: #5B9E3A;
-  --cAb: #122209;
+  --c1: #D4622A; --c1b: #3A1A0A;
+  --c2: #2A7DB5; --c2b: #0A1E2E;
+  --c3: #4C9B6E; --c3b: #0C2218;
+  --c4: #A0589A; --c4b: #2A0E28;
+  --c5: #7C9B35; --c5b: #1C2A08;
+  --c6: #E8C547; --c6b: #2E2708;
+  --c7: #4A8FC4; --c7b: #0A1E30;
+  --c8: #0078FF; --c8b: #001833;
+  --c9: #00CC88; --c9b: #002218;
+  --cA: #5B9E3A; --cAb: #122209;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -44,8 +36,6 @@ body {
   color: var(--text);
   min-height: 100vh;
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
   overflow-x: hidden;
 }
 
@@ -61,196 +51,202 @@ body::before {
   z-index: 0;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.6;
-}
-
 .content {
   position: relative;
   z-index: 1;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0 18px 36px;
+  padding: 0 14px 28px;
 }
 
-/* ── HEADER ── */
+/* ── HEADER compact ── */
 .header {
-  padding: 52px 0 28px;
-  animation: fadeDown 0.6s ease both;
+  padding: 36px 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  animation: fadeDown 0.5s ease both;
 }
+
+.header-left {}
 
 .header-tag {
   font-family: 'Syne Mono', monospace;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--muted);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.header-tag::before {
-  content: '';
-  width: 20px;
-  height: 1px;
-  background: var(--muted);
+  margin-bottom: 4px;
 }
 
 .header h1 {
-  font-size: 34px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: -1px;
+  letter-spacing: -0.8px;
   line-height: 1.1;
   color: var(--text);
 }
-
 .header h1 span {
   display: block;
   color: var(--muted);
   font-weight: 400;
-  font-size: 13px;
+  font-size: 10px;
   letter-spacing: 0;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
-/* ── CARDS ── */
-.apps {
+.header-right {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  flex: 1;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
+.clock {
+  font-family: 'Syne Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.date-str {
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-align: right;
+}
+
+.edit-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 2px;
+}
+.edit-btn.active {
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.22);
+}
+
+/* ── GRID ── */
+.apps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Météo prend toute la largeur */
+.app-card.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ── CARD ── */
 .app-card {
   position: relative;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   text-decoration: none;
   display: block;
   border: 1px solid var(--border);
   transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s ease;
-  animation: fadeUp 0.55s ease both;
+  animation: fadeUp 0.45s ease both;
 }
 
-.app-card:nth-child(1) { animation-delay: 0.08s; }
-.app-card:nth-child(2) { animation-delay: 0.15s; }
-.app-card:nth-child(3) { animation-delay: 0.22s; }
-.app-card:nth-child(4) { animation-delay: 0.29s; }
-.app-card:nth-child(5) { animation-delay: 0.36s; }
-.app-card:nth-child(6) { animation-delay: 0.43s; }
-.app-card:nth-child(7) { animation-delay: 0.50s; }
-.app-card:nth-child(8) { animation-delay: 0.57s; }
-.app-card:nth-child(9) { animation-delay: 0.64s; }
-.app-card:nth-child(10){ animation-delay: 0.71s; }
-.app-card:nth-child(11){ animation-delay: 0.78s; }
-.app-card:nth-child(12){ animation-delay: 0.85s; }
+.app-card:nth-child(1)  { animation-delay: 0.05s; }
+.app-card:nth-child(2)  { animation-delay: 0.10s; }
+.app-card:nth-child(3)  { animation-delay: 0.14s; }
+.app-card:nth-child(4)  { animation-delay: 0.18s; }
+.app-card:nth-child(5)  { animation-delay: 0.22s; }
+.app-card:nth-child(6)  { animation-delay: 0.26s; }
+.app-card:nth-child(7)  { animation-delay: 0.30s; }
+.app-card:nth-child(8)  { animation-delay: 0.34s; }
+.app-card:nth-child(9)  { animation-delay: 0.38s; }
+.app-card:nth-child(10) { animation-delay: 0.42s; }
+.app-card:nth-child(11) { animation-delay: 0.46s; }
+.app-card:nth-child(12) { animation-delay: 0.50s; }
 
-.app-card:active { transform: scale(0.97); }
+.app-card:active { transform: scale(0.96); }
 
 .card-bg {
   position: absolute;
   inset: 0;
-  opacity: 0.12;
+  opacity: 0.10;
   transition: opacity 0.2s;
 }
-.app-card:active .card-bg { opacity: 0.2; }
-
-.card-c1 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c1), transparent 65%); }
-.card-c2 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c2), transparent 65%); }
-.card-c3 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c3), transparent 65%); }
-.card-c4 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c4), transparent 65%); }
-.card-c5 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c5), transparent 65%); }
+.app-card:active .card-bg { opacity: 0.18; }
 
 .card-bar {
-  height: 3px;
+  height: 2px;
   width: 100%;
 }
-.card-c1 .card-bar { background: linear-gradient(90deg, var(--c1), transparent); }
-.card-c2 .card-bar { background: linear-gradient(90deg, var(--c2), transparent); }
-.card-c3 .card-bar { background: linear-gradient(90deg, var(--c3), transparent); }
-.card-c4 .card-bar { background: linear-gradient(90deg, var(--c4), transparent); }
-.card-c5 .card-bar { background: linear-gradient(90deg, var(--c5), transparent); }
 
 .card-inner {
   position: relative;
-  padding: 20px 20px 18px;
+  padding: 12px 12px 11px;
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 7px;
   background: var(--surface);
 }
 
+/* Météo card inner = row */
+.app-card.full-width .card-inner {
+  flex-direction: row;
+  align-items: center;
+  padding: 11px 14px;
+}
+
 .card-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 15px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 20px;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
 }
-.card-c1 .card-icon { background: var(--c1b); box-shadow: 0 0 0 1px rgba(212,98,42,0.22); }
-.card-c2 .card-icon { background: var(--c2b); box-shadow: 0 0 0 1px rgba(42,125,181,0.22); }
-.card-c3 .card-icon { background: var(--c3b); box-shadow: 0 0 0 1px rgba(76,155,110,0.22); }
-.card-c4 .card-icon { background: var(--c4b); box-shadow: 0 0 0 1px rgba(160,88,154,0.22); }
-.card-c5 .card-icon { background: var(--c5b); box-shadow: 0 0 0 1px rgba(124,155,53,0.22); }
-
-.card-c6 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c6), transparent 65%); }
-.card-c6 .card-bar { background: linear-gradient(90deg, var(--c6), transparent); }
-.card-c6 .card-icon { background: var(--c6b); box-shadow: 0 0 0 1px rgba(232,197,71,0.22); }
-.card-c6 .tag { background: rgba(232,197,71,0.15); color: #F0D76A; }
-
-.card-c8 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c8), transparent 65%); }
-.card-c8 .card-bar { background: linear-gradient(90deg, var(--c8), transparent); }
-.card-c8 .card-icon { background: var(--c8b); box-shadow: 0 0 0 1px rgba(0,120,255,0.22); }
-.card-c8 .tag { background: rgba(0,120,255,0.15); color: #5AAEFF; }
-
-.card-c9 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c9), transparent 65%); }
-.card-c9 .card-bar { background: linear-gradient(90deg, var(--c9), transparent); }
-.card-c9 .card-icon { background: var(--c9b); box-shadow: 0 0 0 1px rgba(0,204,136,0.22); }
-.card-c9 .tag { background: rgba(0,204,136,0.15); color: #33EEB0; }
-
-.card-cA .card-bg { background: radial-gradient(circle at 80% 50%, var(--cA), transparent 65%); }
-.card-cA .card-bar { background: linear-gradient(90deg, var(--cA), transparent); }
-.card-cA .card-icon { background: var(--cAb); box-shadow: 0 0 0 1px rgba(91,158,58,0.22); }
-.card-cA .tag { background: rgba(91,158,58,0.15); color: #8ECC60; }
-
 .card-icon::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 15px;
+  border-radius: 11px;
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
 }
 
-.card-text { flex: 1; min-width: 0; }
+.card-body {
+  flex: 1;
+  min-width: 0;
+}
 
 .card-name {
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
-  letter-spacing: -0.3px;
-  margin-bottom: 3px;
+  letter-spacing: -0.2px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-desc {
-  font-size: 11.5px;
+  font-size: 9.5px;
   color: var(--muted);
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -258,50 +254,116 @@ body::after {
 
 .card-tags {
   display: flex;
-  gap: 5px;
-  margin-top: 7px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 .tag {
-  font-size: 10px;
+  font-size: 8.5px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 20px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* ── WEATHER inline ── */
+.wx-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.wx-temp {
+  font-family: 'Syne Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: #7AB8E8;
+  line-height: 1;
+}
+.wx-desc {
+  font-size: 10px;
+  color: var(--muted);
+  font-style: italic;
+}
+.wx-details {
+  font-family: 'Syne Mono', monospace;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
   letter-spacing: 0.3px;
 }
-.card-c1 .tag { background: rgba(212,98,42,0.15); color: #E8855A; }
-.card-c2 .tag { background: rgba(42,125,181,0.15); color: #5AAEE8; }
-.card-c3 .tag { background: rgba(76,155,110,0.15); color: #6EC99A; }
-.card-c4 .tag { background: rgba(160,88,154,0.15); color: #D07CCA; }
-.card-c5 .tag { background: rgba(124,155,53,0.15); color: #A8CC50; }
 
-.card-arrow {
-  font-size: 20px;
-  color: var(--muted);
-  flex-shrink: 0;
-  transition: transform 0.2s, color 0.2s;
-}
-.app-card:active .card-arrow { transform: translateX(4px); color: var(--text); }
+/* ── COLOR THEMES ── */
+/* c1 */
+.card-c1 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c1), transparent 65%); }
+.card-c1 .card-bar { background: linear-gradient(90deg, var(--c1), transparent); }
+.card-c1 .card-icon { background: var(--c1b); box-shadow: 0 0 0 1px rgba(212,98,42,0.22); }
+.card-c1 .tag { background: rgba(212,98,42,0.15); color: #E8855A; }
+/* c2 */
+.card-c2 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c2), transparent 65%); }
+.card-c2 .card-bar { background: linear-gradient(90deg, var(--c2), transparent); }
+.card-c2 .card-icon { background: var(--c2b); box-shadow: 0 0 0 1px rgba(42,125,181,0.22); }
+.card-c2 .tag { background: rgba(42,125,181,0.15); color: #5AAEE8; }
+/* c3 */
+.card-c3 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c3), transparent 65%); }
+.card-c3 .card-bar { background: linear-gradient(90deg, var(--c3), transparent); }
+.card-c3 .card-icon { background: var(--c3b); box-shadow: 0 0 0 1px rgba(76,155,110,0.22); }
+.card-c3 .tag { background: rgba(76,155,110,0.15); color: #6EC99A; }
+/* c4 */
+.card-c4 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c4), transparent 65%); }
+.card-c4 .card-bar { background: linear-gradient(90deg, var(--c4), transparent); }
+.card-c4 .card-icon { background: var(--c4b); box-shadow: 0 0 0 1px rgba(160,88,154,0.22); }
+.card-c4 .tag { background: rgba(160,88,154,0.15); color: #D07CCA; }
+/* c5 */
+.card-c5 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c5), transparent 65%); }
+.card-c5 .card-bar { background: linear-gradient(90deg, var(--c5), transparent); }
+.card-c5 .card-icon { background: var(--c5b); box-shadow: 0 0 0 1px rgba(124,155,53,0.22); }
+.card-c5 .tag { background: rgba(124,155,53,0.15); color: #A8CC50; }
+/* c6 */
+.card-c6 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c6), transparent 65%); }
+.card-c6 .card-bar { background: linear-gradient(90deg, var(--c6), transparent); }
+.card-c6 .card-icon { background: var(--c6b); box-shadow: 0 0 0 1px rgba(232,197,71,0.22); }
+.card-c6 .tag { background: rgba(232,197,71,0.15); color: #F0D76A; }
+/* c7 météo */
+.card-c7 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c7), transparent 65%); }
+.card-c7 .card-bar { background: linear-gradient(90deg, var(--c7), transparent); }
+.card-c7 .card-icon { background: var(--c7b); box-shadow: 0 0 0 1px rgba(74,143,196,0.22); }
+.card-c7 .tag { background: rgba(74,143,196,0.15); color: #7AB8E8; }
+/* c8 */
+.card-c8 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c8), transparent 65%); }
+.card-c8 .card-bar { background: linear-gradient(90deg, var(--c8), transparent); }
+.card-c8 .card-icon { background: var(--c8b); box-shadow: 0 0 0 1px rgba(0,120,255,0.22); }
+.card-c8 .tag { background: rgba(0,120,255,0.15); color: #5AAEFF; }
+/* c9 */
+.card-c9 .card-bg { background: radial-gradient(circle at 80% 50%, var(--c9), transparent 65%); }
+.card-c9 .card-bar { background: linear-gradient(90deg, var(--c9), transparent); }
+.card-c9 .card-icon { background: var(--c9b); box-shadow: 0 0 0 1px rgba(0,204,136,0.22); }
+.card-c9 .tag { background: rgba(0,204,136,0.15); color: #33EEB0; }
+/* cA */
+.card-cA .card-bg { background: radial-gradient(circle at 80% 50%, var(--cA), transparent 65%); }
+.card-cA .card-bar { background: linear-gradient(90deg, var(--cA), transparent); }
+.card-cA .card-icon { background: var(--cAb); box-shadow: 0 0 0 1px rgba(91,158,58,0.22); }
+.card-cA .tag { background: rgba(91,158,58,0.15); color: #8ECC60; }
 
 /* ── FOOTER ── */
 .footer {
-  margin-top: 26px;
+  margin-top: 18px;
   text-align: center;
-  animation: fadeUp 0.6s 0.4s ease both;
+  animation: fadeUp 0.5s 0.5s ease both;
+  padding-bottom: 4px;
 }
 .footer-text {
   font-family: 'Syne Mono', monospace;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--muted);
   letter-spacing: 1.5px;
 }
 .footer-dot {
   display: inline-block;
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--muted);
-  margin: 0 6px;
+  margin: 0 5px;
   vertical-align: middle;
   animation: pulse 2.5s infinite;
 }
@@ -309,16 +371,16 @@ body::after {
   0%,100% { opacity:1; transform:scale(1); }
   50% { opacity:0.3; transform:scale(1.5); }
 }
-
 @keyframes fadeDown {
-  from { opacity:0; transform:translateY(-16px); }
+  from { opacity:0; transform:translateY(-12px); }
   to   { opacity:1; transform:translateY(0); }
 }
 @keyframes fadeUp {
-  from { opacity:0; transform:translateY(22px); }
+  from { opacity:0; transform:translateY(16px); }
   to   { opacity:1; transform:translateY(0); }
 }
 
+/* Ripple */
 .ripple {
   position: absolute;
   border-radius: 50%;
@@ -331,85 +393,19 @@ body::after {
   to { transform: scale(3.5); opacity: 0; }
 }
 
-.clock { font-family: 'Syne Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
-
-/* ── MÉTÉO CARD ── */
-.card-c7 { --cm: #4A8FC4; }
-.card-c7 .card-bg { background: radial-gradient(circle at 80% 50%, #4A8FC4, transparent 65%); }
-.card-c7 .card-bar { background: linear-gradient(90deg, #4A8FC4, transparent); }
-.card-c7 .card-icon { background: #0A1E30; box-shadow: 0 0 0 1px rgba(74,143,196,0.22); }
-.card-c7 .tag { background: rgba(74,143,196,0.15); color: #7AB8E8; }
-
-.wx-live {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-top: 4px;
-}
-.wx-temp {
-  font-family: 'Syne Mono', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  color: #7AB8E8;
-  line-height: 1;
-}
-.wx-desc {
-  font-size: 11px;
-  color: var(--muted);
-  font-style: italic;
-}
-.wx-details {
-  font-family: 'Syne Mono', monospace;
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 3px;
-  letter-spacing: 0.5px;
-}
-.wx-loading { font-size: 10px; color: var(--muted); font-style: italic; margin-top: 4px; }
-
 /* ── MODE ÉDITION ── */
-.edit-btn {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  color: var(--muted);
-  font-family: 'Syne Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  padding: 5px 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 14px;
-  display: block;
-}
-.edit-btn:active, .edit-btn.active {
-  background: rgba(255,255,255,0.06);
-  color: var(--text);
-  border-color: rgba(255,255,255,0.25);
-}
-
-.apps.editing .app-card {
-  pointer-events: none;
-}
-
-.move-btns {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  flex-shrink: 0;
-  margin-left: 4px;
-}
+.apps.editing .app-card { pointer-events: none; }
+.move-btns { display: none; position: absolute; top: 6px; right: 6px; flex-direction: row; gap: 3px; z-index: 10; }
 .apps.editing .move-btns { display: flex; }
-.apps.editing .card-arrow { display: none; }
 
 .move-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.55);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -417,260 +413,247 @@ body::after {
   transition: all 0.15s;
   pointer-events: all;
   -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(4px);
 }
-.move-btn:active { background: rgba(255,255,255,0.14); color: var(--text); transform: scale(0.92); }
+.move-btn:active { background: rgba(255,255,255,0.14); color: var(--text); transform: scale(0.9); }
 .move-btn:disabled { opacity: 0.2; pointer-events: none; }
 
-.apps.editing .app-card {
-  border-color: rgba(255,255,255,0.14);
-}
-
-@keyframes cardSwap {
-  0% { transform: translateY(0); opacity: 1; }
-  40% { transform: translateY(-6px); opacity: 0.7; }
-  100% { transform: translateY(0); opacity: 1; }
-}
+.apps.editing .app-card { border-color: rgba(255,255,255,0.14); }
 </style>
 </head>
 <body>
 <div class="content">
 
   <div class="header">
-    <div class="header-tag">
-      <span id="clock" class="clock"></span>
-      <span>·</span>
-      <span id="dateStr"></span>
+    <div class="header-left">
+      <div class="header-tag" id="dateStr"></div>
+      <h1>
+        Mes Outils
+        <span>Tableau de bord personnel</span>
+      </h1>
     </div>
-    <h1>
-      Mes Outils
-      <span>Tableau de bord personnel</span>
-    </h1>
-    <button class="edit-btn" id="editBtn" onclick="toggleEdit()">⇅ RÉORGANISER</button>
+    <div class="header-right">
+      <div class="clock" id="clock"></div>
+      <div class="date-str" id="dateStr2"></div>
+      <button class="edit-btn" id="editBtn" onclick="toggleEdit()">⇅ TRIER</button>
+    </div>
   </div>
 
   <div class="apps" id="apps">
 
-    <a class="app-card card-c1" href="nuisances_sonores2.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">🔊</div>
-        <div class="card-text">
-          <div class="card-name">Nuisances Sonores</div>
-          <div class="card-desc">Suivi et signalement des nuisances</div>
-          <div class="card-tags">
-            <span class="tag">Journal</span>
-            <span class="tag">Décibels</span>
-            <span class="tag">Rapport</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c2" href="patrimoine_kpi.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">📈</div>
-        <div class="card-text">
-          <div class="card-name">Patrimoine KPI</div>
-          <div class="card-desc">Indicateurs et suivi financier</div>
-          <div class="card-tags">
-            <span class="tag">Finances</span>
-            <span class="tag">Graphiques</span>
-            <span class="tag">KPI</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c8" href="patrimoine_saisie.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">💳</div>
-        <div class="card-text">
-          <div class="card-name">Patrimoine Saisie</div>
-          <div class="card-desc">Terminal Bloomberg — saisie des comptes</div>
-          <div class="card-tags">
-            <span class="tag">Saisie</span>
-            <span class="tag">Comptes</span>
-            <span class="tag">Terminal</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c9" href="patrimoine_kpi_saisie.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">🏦</div>
-        <div class="card-text">
-          <div class="card-name">Patrimoine KPI Saisie</div>
-          <div class="card-desc">Dashboard KPI + saisie combinés</div>
-          <div class="card-tags">
-            <span class="tag">KPI</span>
-            <span class="tag">Saisie</span>
-            <span class="tag">Tout-en-un</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c3" href="suivi-sante.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">🩺</div>
-        <div class="card-text">
-          <div class="card-name">Suivi Santé</div>
-          <div class="card-desc">Sinus, essoufflement, ventre, selles</div>
-          <div class="card-tags">
-            <span class="tag">Symptômes</span>
-            <span class="tag">Courbes</span>
-            <span class="tag">Export</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c4" href="calendrier_viewer_mobile.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">📅</div>
-        <div class="card-text">
-          <div class="card-name">Calendrier</div>
-          <div class="card-desc">Visualiseur d'agenda mobile</div>
-          <div class="card-tags">
-            <span class="tag">Agenda</span>
-            <span class="tag">Événements</span>
-            <span class="tag">Mobile</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c5" href="liste_courses_militaire.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">🪖</div>
-        <div class="card-text">
-          <div class="card-name">Opération Courses</div>
-          <div class="card-desc">Liste de courses tactique</div>
-          <div class="card-tags">
-            <span class="tag">Courses</span>
-            <span class="tag">Budget</span>
-            <span class="tag">Mission</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c6" href="todo.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">✅</div>
-        <div class="card-text">
-          <div class="card-name">Ma Todo</div>
-          <div class="card-desc">Tâches maison, impression 3D, admin</div>
-          <div class="card-tags">
-            <span class="tag">Maison</span>
-            <span class="tag">Impression 3D</span>
-            <span class="tag">Admin</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c2" href="bourse.html" onclick="rippleEffect(event)">
-      <div class="card-bg"></div>
-      <div class="card-bar"></div>
-      <div class="card-inner">
-        <div class="card-icon">📊</div>
-        <div class="card-text">
-          <div class="card-name">Terminal Bourse</div>
-          <div class="card-desc">BTC, Or, Nasdaq, S&P 500, CAC 40, VIX</div>
-          <div class="card-tags">
-            <span class="tag">Crypto</span>
-            <span class="tag">Indices</span>
-            <span class="tag">Forex</span>
-          </div>
-        </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
-      </div>
-    </a>
-
-    <a class="app-card card-c7" href="meteo.html" onclick="rippleEffect(event)">
+    <!-- MÉTÉO — pleine largeur -->
+    <a class="app-card card-c7 full-width" href="meteo.html" onclick="rippleEffect(event)" data-card-id="card-wx">
       <div class="card-bg"></div>
       <div class="card-bar"></div>
       <div class="card-inner">
         <div class="card-icon" id="wx-icon">🌤</div>
-        <div class="card-text">
-          <div class="card-name">Météo</div>
-          <div class="wx-live">
+        <div class="card-body">
+          <div class="card-name">Météo — Valence</div>
+          <div class="wx-row">
             <span class="wx-temp" id="wx-temp">--°</span>
             <span class="wx-desc" id="wx-desc">chargement…</span>
           </div>
           <div class="wx-details" id="wx-details"></div>
-          <div class="card-tags">
-            <span class="tag">Timeline</span>
-            <span class="tag">7 jours</span>
-            <span class="tag">Vent</span>
-          </div>
         </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
+        <div class="card-tags">
+          <span class="tag">7 jours</span>
+          <span class="tag">Vent</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </div>
     </a>
 
-    <a class="app-card card-c3" href="cheque.html" onclick="rippleEffect(event)">
+    <!-- GRILLE 2 colonnes -->
+    <a class="app-card card-c1" href="nuisances_sonores2.html" onclick="rippleEffect(event)" data-card-id="card-0">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">🔊</div>
+        <div class="card-body">
+          <div class="card-name">Nuisances Sonores</div>
+          <div class="card-desc">Suivi et signalement</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Journal</span>
+          <span class="tag">Rapport</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c2" href="patrimoine_kpi.html" onclick="rippleEffect(event)" data-card-id="card-1">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">📈</div>
+        <div class="card-body">
+          <div class="card-name">Patrimoine KPI</div>
+          <div class="card-desc">Indicateurs financiers</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Finances</span>
+          <span class="tag">KPI</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c8" href="patrimoine_saisie.html" onclick="rippleEffect(event)" data-card-id="card-2">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">💳</div>
+        <div class="card-body">
+          <div class="card-name">Patrimoine Saisie</div>
+          <div class="card-desc">Terminal Bloomberg</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Saisie</span>
+          <span class="tag">Comptes</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c9" href="patrimoine_kpi_saisie.html" onclick="rippleEffect(event)" data-card-id="card-3">
       <div class="card-bg"></div>
       <div class="card-bar"></div>
       <div class="card-inner">
         <div class="card-icon">🏦</div>
-        <div class="card-text">
-          <div class="card-name">Montant en lettres</div>
-          <div class="card-desc">Conversion chiffres → lettres pour chèques</div>
-          <div class="card-tags">
-            <span class="tag">Chèques</span>
-            <span class="tag">Bancaire</span>
-            <span class="tag">Copie</span>
-          </div>
+        <div class="card-body">
+          <div class="card-name">KPI Saisie</div>
+          <div class="card-desc">Dashboard tout-en-un</div>
         </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
+        <div class="card-tags">
+          <span class="tag">KPI</span>
+          <span class="tag">Saisie</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </div>
     </a>
 
-    <a class="app-card card-cA" href="gluten_fodmap_tracker.html" onclick="rippleEffect(event)">
+    <a class="app-card card-c3" href="suivi-sante.html" onclick="rippleEffect(event)" data-card-id="card-4">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">🩺</div>
+        <div class="card-body">
+          <div class="card-name">Suivi Santé</div>
+          <div class="card-desc">Sinus, ventre, export</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Symptômes</span>
+          <span class="tag">Courbes</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c4" href="calendrier_viewer_mobile.html" onclick="rippleEffect(event)" data-card-id="card-5">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">📅</div>
+        <div class="card-body">
+          <div class="card-name">Calendrier</div>
+          <div class="card-desc">Agenda mobile</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Agenda</span>
+          <span class="tag">Mobile</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c5" href="liste_courses_militaire.html" onclick="rippleEffect(event)" data-card-id="card-6">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">🪖</div>
+        <div class="card-body">
+          <div class="card-name">Opération Courses</div>
+          <div class="card-desc">Liste tactique & budget</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Courses</span>
+          <span class="tag">Mission</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c6" href="todo.html" onclick="rippleEffect(event)" data-card-id="card-7">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">✅</div>
+        <div class="card-body">
+          <div class="card-name">Ma Todo</div>
+          <div class="card-desc">Maison · 3D · Admin</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Maison</span>
+          <span class="tag">Admin</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c2" href="bourse.html" onclick="rippleEffect(event)" data-card-id="card-8">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">📊</div>
+        <div class="card-body">
+          <div class="card-name">Terminal Bourse</div>
+          <div class="card-desc">BTC · Or · Indices</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Crypto</span>
+          <span class="tag">Forex</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-c3" href="cheque.html" onclick="rippleEffect(event)" data-card-id="card-9">
+      <div class="card-bg"></div>
+      <div class="card-bar"></div>
+      <div class="card-inner">
+        <div class="card-icon">🏦</div>
+        <div class="card-body">
+          <div class="card-name">Montant en lettres</div>
+          <div class="card-desc">Chèques bancaires</div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">Chèques</span>
+          <span class="tag">Copie</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </div>
+    </a>
+
+    <a class="app-card card-cA" href="gluten_fodmap_tracker.html" onclick="rippleEffect(event)" data-card-id="card-10">
       <div class="card-bg"></div>
       <div class="card-bar"></div>
       <div class="card-inner">
         <div class="card-icon">🌿</div>
-        <div class="card-text">
-          <div class="card-name">Suivi Gluten & FODMAP</div>
-          <div class="card-desc">Journal alimentaire, symptômes, IA</div>
-          <div class="card-tags">
-            <span class="tag">Gluten</span>
-            <span class="tag">FODMAP</span>
-            <span class="tag">Nutrition</span>
-          </div>
+        <div class="card-body">
+          <div class="card-name">Gluten & FODMAP</div>
+          <div class="card-desc">Journal alimentaire IA</div>
         </div>
-        <div class="card-arrow">›</div><div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">▲</button><button class="move-btn" onclick="moveCard(this,1)">▼</button></div>
+        <div class="card-tags">
+          <span class="tag">Gluten</span>
+          <span class="tag">Nutrition</span>
+        </div>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </div>
     </a>
 
   </div>
+
+  <div class="footer">
     <div class="footer-text">
       <span class="footer-dot"></span>
       12 OUTILS ACTIFS
@@ -681,7 +664,7 @@ body::after {
 </div>
 
 <script>
-// ── MÉTÉO LIVE ──
+// ── MÉTÉO ──
 const WMO_ICONS={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'🌧',95:'⛈',96:'⛈',99:'⛈'};
 const WMO_DESC={0:'Ciel dégagé',1:'Peu nuageux',2:'Partiellement nuageux',3:'Couvert',45:'Brouillard',48:'Brouillard givrant',51:'Bruine légère',53:'Bruine',55:'Bruine dense',61:'Pluie légère',63:'Pluie',65:'Pluie forte',71:'Neige légère',73:'Neige',75:'Neige forte',80:'Averses',81:'Averses',82:'Averses fortes',95:'Orage',96:'Orage',99:'Orage violent'};
 function dirWx(d){return['N','NE','E','SE','S','SO','O','NO'][Math.round(d/45)%8];}
@@ -711,8 +694,9 @@ function updateClock(){
   const now=new Date();
   document.getElementById('clock').textContent=
     now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('dateStr').textContent=
-    now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const ds=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('dateStr').textContent=ds;
+  document.getElementById('dateStr2').textContent=ds;
 }
 updateClock();
 setInterval(updateClock,1000);
@@ -735,10 +719,8 @@ function rippleEffect(e){
 // ── ORDRE PERSISTANT ──
 function saveOrder(){
   const cards=[...document.querySelectorAll('#apps .app-card')];
-  const order=cards.map(c=>c.dataset.cardId);
-  localStorage.setItem('launcher_order',JSON.stringify(order));
+  localStorage.setItem('launcher_order',JSON.stringify(cards.map(c=>c.dataset.cardId)));
 }
-
 function loadOrder(){
   try{
     const saved=JSON.parse(localStorage.getItem('launcher_order'));
@@ -753,16 +735,15 @@ function loadOrder(){
 
 // ── RÉORGANISATION ──
 let editing=false;
-
 function toggleEdit(){
   editing=!editing;
   const apps=document.getElementById('apps');
   const btn=document.getElementById('editBtn');
   apps.classList.toggle('editing',editing);
   btn.classList.toggle('active',editing);
-  btn.textContent=editing?'✓ TERMINÉ':'⇅ RÉORGANISER';
-  if(!editing){ saveOrder(); updateMoveButtons(); }
-  else updateMoveButtons();
+  btn.textContent=editing?'✓ OK':'⇅ TRIER';
+  if(!editing) saveOrder();
+  updateMoveButtons();
 }
 
 function moveCard(btn,dir){
@@ -772,23 +753,19 @@ function moveCard(btn,dir){
   const idx=cards.indexOf(card);
   const target=cards[idx+dir];
   if(!target) return;
-  // animate
-  card.style.transition='transform 0.18s ease, opacity 0.18s ease';
-  card.style.transform=dir<0?'translateY(-6px)':'translateY(6px)';
-  card.style.opacity='0.6';
+  card.style.transition='opacity 0.15s';
+  card.style.opacity='0.5';
   setTimeout(()=>{
     if(dir<0) apps.insertBefore(card,target);
     else apps.insertBefore(target,card);
-    card.style.transform='';
     card.style.opacity='';
     setTimeout(()=>{ card.style.transition=''; },200);
     updateMoveButtons();
-  },150);
+  },120);
 }
 
 function updateMoveButtons(){
-  const apps=document.getElementById('apps');
-  const cards=[...apps.querySelectorAll('.app-card')];
+  const cards=[...document.querySelectorAll('#apps .app-card')];
   cards.forEach((card,i)=>{
     const btns=card.querySelectorAll('.move-btn');
     btns[0].disabled=(i===0);
@@ -796,10 +773,7 @@ function updateMoveButtons(){
   });
 }
 
-// Assign data-card-id to each card on load
 window.addEventListener('DOMContentLoaded',()=>{
-  const cards=document.querySelectorAll('.app-card');
-  cards.forEach((c,i)=>{ if(!c.dataset.cardId) c.dataset.cardId='card-'+i; });
   loadOrder();
   updateMoveButtons();
 });
