@@ -9,6 +9,7 @@
 <title>Nuisances</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --bg:#f5f2ed;--surface:#fff;--surface2:#eeebe4;--border:#e2ddd6;--border2:#ccc6bc;
@@ -129,6 +130,28 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .modal-header p{font-size:12px;color:var(--t2);margin-top:2px;}
 .modal-body{padding:14px 16px;}
 
+/* ── Import modal ── */
+#import-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;}
+#import-overlay.open{opacity:1;pointer-events:all;}
+#import-modal{
+  position:fixed;bottom:0;left:0;right:0;z-index:51;
+  background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  padding:16px 16px calc(20px + var(--safe-b));
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+}
+#import-modal.open{transform:translateY(0);}
+.import-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.import-sub{font-size:12px;color:var(--t2);margin-bottom:14px;}
+.import-zone{
+  border:2px dashed var(--border2);border-radius:var(--radius);padding:24px;text-align:center;
+  cursor:pointer;transition:border-color .15s;background:var(--surface2);margin-bottom:10px;
+}
+.import-zone:hover{border-color:var(--red);}
+.import-zone p{font-size:13px;color:var(--t2);}
+.import-zone .iz-ico{font-size:32px;margin-bottom:8px;}
+#import-file{display:none;}
+.import-warning{background:#fffbe6;border:1px solid #e8c020;border-radius:8px;padding:10px 12px;font-size:12px;color:#7a5e00;margin-bottom:10px;}
+
 /* ── Form elements (mobile-sized) ── */
 .fgroup{margin-bottom:14px;}
 .fgroup label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);margin-bottom:5px;}
@@ -175,9 +198,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .rep-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);}
 .rep-val{font-size:13px;color:var(--tx);}
 .legal-box{background:var(--blue-l);border:1px solid #c0d0e8;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;line-height:1.7;color:#1a3060;margin-bottom:10px;}
-.btn-row{display:flex;gap:8px;margin-bottom:12px;}
-.btn-sm{flex:1;padding:10px 8px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;text-align:center;border:1px solid var(--border2);background:var(--surface);color:var(--t2);}
+.btn-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.btn-sm{flex:1;min-width:calc(50% - 4px);padding:10px 8px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;text-align:center;border:1px solid var(--border2);background:var(--surface);color:var(--t2);}
 .btn-sm.primary{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-sm.amber{background:#d4820a;color:#fff;border-color:#d4820a;}
+.btn-sm.green{background:var(--green);color:#fff;border-color:var(--green);}
 
 /* Dossier fields */
 .dossier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
@@ -194,6 +219,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;z-index:99;white-space:nowrap;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* PDF spinner */
+#pdf-spinner{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;
+}
+#pdf-spinner.show{display:flex;}
+.spin-box{background:#fff;border-radius:16px;padding:28px 36px;text-align:center;}
+.spin-ico{font-size:36px;animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin-txt{font-size:14px;font-weight:600;color:var(--t2);margin-top:8px;}
 
 /* ── Print ── */
 @media print{
@@ -237,7 +273,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="panel" id="panel-rapport">
       <div class="btn-row no-print">
         <button class="btn-sm" onclick="exportCSV()">⬇ CSV</button>
-        <button class="btn-sm primary" onclick="window.print()">🖨 Imprimer</button>
+        <button class="btn-sm green" onclick="exportJSON()">💾 JSON</button>
+        <button class="btn-sm amber" onclick="openImport()">📂 Importer</button>
+        <button class="btn-sm primary" onclick="exportPDF()">📄 PDF</button>
       </div>
 
       <div class="rep-card" style="border:2px solid var(--tx)">
@@ -351,8 +389,31 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
   </div>
 
+  <!-- Modal import JSON -->
+  <div id="import-overlay" onclick="closeImport()"></div>
+  <div id="import-modal">
+    <div class="modal-handle"></div>
+    <div class="import-title">📂 Importer une sauvegarde JSON</div>
+    <div class="import-sub">Restaure les incidents depuis un fichier exporté précédemment.</div>
+    <div class="import-warning">⚠ L'import <strong>remplace</strong> les données actuelles. Pensez à exporter d'abord si besoin.</div>
+    <div class="import-zone" onclick="document.getElementById('import-file').click()">
+      <div class="iz-ico">📁</div>
+      <p>Toucher pour choisir un fichier .json</p>
+    </div>
+    <input type="file" id="import-file" accept=".json,application/json" onchange="handleImport(event)">
+    <button class="btn-cancel" onclick="closeImport()">Annuler</button>
+  </div>
+
 </div><!-- /app -->
 <div id="toast"></div>
+
+<!-- PDF Spinner -->
+<div id="pdf-spinner">
+  <div class="spin-box">
+    <div class="spin-ico">⚙️</div>
+    <div class="spin-txt">Génération du PDF…</div>
+  </div>
+</div>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
@@ -373,7 +434,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('f-date').value = now.toISOString().slice(0,10);
   document.getElementById('f-hstart').value = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace('h',':');
 
-  // Dossier fields
   ['name','addr','vaddr','syndic'].forEach(k=>{
     const el = document.getElementById('d-'+k);
     if(el){ if(dossier[k]) el.value=dossier[k]; el.addEventListener('input',()=>{dossier[k]=el.value;localStorage.setItem('ns_dossier',JSON.stringify(dossier));});}
@@ -394,7 +454,7 @@ function switchTab(name){
   if(name==='rapport') renderReport();
 }
 
-// ── Modal ──────────────────────────────────────────────────────────────────
+// ── Modal saisie ───────────────────────────────────────────────────────────
 function openModal(){
   const now = new Date();
   document.getElementById('f-date').value  = now.toISOString().slice(0,10);
@@ -413,6 +473,56 @@ function closeModal(){
   document.getElementById('modal').classList.remove('open');
   document.getElementById('modal-overlay').classList.remove('open');
   document.body.style.overflow='';
+}
+
+// ── Modal import ───────────────────────────────────────────────────────────
+function openImport(){
+  document.getElementById('import-modal').classList.add('open');
+  document.getElementById('import-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeImport(){
+  document.getElementById('import-modal').classList.remove('open');
+  document.getElementById('import-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function handleImport(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Support both formats: array of incidents, or full backup object
+      if(Array.isArray(data)){
+        incidents = data;
+      } else if(data.incidents && Array.isArray(data.incidents)){
+        incidents = data.incidents;
+        if(data.dossier){
+          dossier = data.dossier;
+          localStorage.setItem('ns_dossier', JSON.stringify(dossier));
+          // Refresh dossier fields
+          ['name','addr','vaddr','syndic'].forEach(k=>{
+            const el = document.getElementById('d-'+k);
+            if(el && dossier[k]) el.value = dossier[k];
+          });
+        }
+      } else {
+        showToast('❌ Format JSON invalide');
+        return;
+      }
+      localStorage.setItem('ns_incidents', JSON.stringify(incidents));
+      closeImport();
+      renderJournal();
+      updateTopbar();
+      showToast('✓ '+incidents.length+' incident(s) importé(s)');
+    } catch(err){
+      showToast('❌ Fichier JSON invalide');
+    }
+    evt.target.value=''; // reset input
+  };
+  reader.readAsText(file);
 }
 
 // ── Intensity ──────────────────────────────────────────────────────────────
@@ -464,7 +574,6 @@ const fDay = iso => new Date(iso+'T12:00').getDate();
 const fMon = iso => new Date(iso+'T12:00').toLocaleDateString('fr-FR',{month:'short'}).replace('.','');
 const fFull= iso => new Date(iso+'T12:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 
-// ── Top bar ────────────────────────────────────────────────────────────────
 function updateTopbar(){
   const n = incidents.length;
   document.getElementById('topbar-count').textContent = n ? n+' incident'+(n>1?'s':'') : '';
@@ -527,7 +636,6 @@ function toggleCard(id){
 function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 
 function renderCharts(){
-  // Timeline 30j
   dc('c-timeline');
   const days=[],counts=[],ints=[];
   for(let i=29;i>=0;i--){
@@ -546,18 +654,15 @@ function renderCharts(){
     x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}
   }}});
 
-  // Hours
   dc('c-hours');
   const hc=Array(24).fill(0);
   incidents.forEach(i=>{if(i.hstart)hc[parseInt(i.hstart)]++;});
   charts['c-hours']=new Chart(document.getElementById('c-hours'),{type:'bar',data:{labels:Array.from({length:24},(_,i)=>i+'h'),datasets:[{data:hc,backgroundColor:hc.map((_,i)=>(i>=22||i<7)?'rgba(192,57,43,.7)':'rgba(79,142,247,.55)'),borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:0,maxTicksLimit:8},grid:{display:false}}}}});
 
-  // Intensity doughnut
   dc('c-int');
   const ic=[0,0,0,0];incidents.forEach(i=>{if(i.int>=1&&i.int<=4)ic[i.int-1]++;});
   charts['c-int']=new Chart(document.getElementById('c-int'),{type:'doughnut',data:{labels:INT_LABELS.slice(1),datasets:[{data:ic,backgroundColor:INT_COLORS.slice(1),borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{color:CHART_COLOR,font:{size:11},padding:10}}}}});
 
-  // Weekday
   dc('c-week');
   const wc=Array(7).fill(0);incidents.forEach(i=>{wc[new Date(i.date+'T12:00').getDay()]++;});
   charts['c-week']=new Chart(document.getElementById('c-week'),{type:'bar',data:{labels:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],datasets:[{data:wc,backgroundColor:'rgba(212,130,10,.65)',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:11}},grid:{display:false}}}}});
@@ -578,7 +683,6 @@ function renderReport(){
       <div class="rep-field" style="grid-column:1/-1"><div class="rep-label">Période</div><div class="rep-val">${first} → ${last}</div></div>
     </div>`;
 
-  // incident cards for report
   const el=document.getElementById('rep-list');
   if(!incidents.length){el.innerHTML='<div class="empty"><p>Aucun incident.</p></div>';return;}
   el.innerHTML=[...incidents].reverse().map((inc,i)=>`
@@ -605,12 +709,295 @@ function renderReport(){
   },80);
 }
 
-// ── CSV ────────────────────────────────────────────────────────────────────
+// ── Export CSV ─────────────────────────────────────────────────────────────
 function exportCSV(){
   const h='Date,Heure début,Heure fin,Durée,Type,Intensité,Description,Démarches,Témoin';
   const rows=incidents.map(i=>[i.date,i.hstart,i.hend||'',calcDur(i.hstart,i.hend),`"${i.type}"`,`${i.int}-${INT_LABELS[i.int]}`,`"${(i.note||'').replace(/"/g,'""')}"`,`"${(i.action||'').replace(/"/g,'""')}"`,`"${(i.witness||'').replace(/"/g,'""')}"`].join(','));
   const b=new Blob(['\uFEFF'+[h,...rows].join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`nuisances_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// ── Export JSON ────────────────────────────────────────────────────────────
+function exportJSON(){
+  const backup = {
+    version: 1,
+    exported: new Date().toISOString(),
+    dossier: dossier,
+    incidents: incidents
+  };
+  const b = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `nuisances_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('💾 Sauvegarde JSON exportée');
+}
+
+// ── Export PDF ─────────────────────────────────────────────────────────────
+async function exportPDF(){
+  if(!incidents.length){showToast('⚠ Aucun incident à exporter');return;}
+  document.getElementById('pdf-spinner').classList.add('show');
+  await new Promise(r=>setTimeout(r,80)); // let spinner render
+
+  try {
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+    const PW = 210, PH = 297;
+    const ML = 15, MR = 15, MT = 18;
+    const CW = PW - ML - MR;
+    let y = MT;
+
+    // ── Palette
+    const C_RED   = [192, 57, 43];
+    const C_DARK  = [26, 22, 18];
+    const C_GREY  = [107, 97, 88];
+    const C_LIGHT = [245, 242, 237];
+    const C_BDR   = [226, 221, 214];
+    const INT_C   = [[232,184,32],[232,132,26],[224,64,48],[160,16,16]];
+
+    const pf = (x,y,w,h) => { doc.rect(x,y,w,h,'F'); };
+    const setFont = (sz,wt='normal',col=C_DARK) => {
+      doc.setFontSize(sz);
+      doc.setFont('helvetica', wt);
+      doc.setTextColor(...col);
+    };
+    const hr = (yy, col=C_BDR, thick=0.2) => {
+      doc.setDrawColor(...col);
+      doc.setLineWidth(thick);
+      doc.line(ML, yy, PW-MR, yy);
+    };
+    const checkPage = (needed=10) => {
+      if(y + needed > PH - 16){
+        doc.addPage();
+        y = 16;
+        // mini header on continuation pages
+        doc.setFillColor(...C_RED);
+        pf(ML, y-4, CW, 0.5);
+        setFont(8,'normal',C_GREY);
+        doc.text('Dossier nuisances sonores — suite', ML, y);
+        y += 8;
+      }
+    };
+
+    // ══════════════════════════════════════════════
+    // HEADER BAND
+    // ══════════════════════════════════════════════
+    doc.setFillColor(...C_LIGHT);
+    pf(0, 0, PW, 32);
+    doc.setFillColor(...C_RED);
+    pf(0, 0, 4, 32);
+
+    setFont(18,'bold', C_DARK);
+    doc.text('Dossier nuisances sonores', ML+6, 13);
+    setFont(9,'normal', C_GREY);
+    doc.text('Art. R.1334-31 Code de la sante publique  |  Loi du 31/12/1992', ML+6, 20);
+
+    const today = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    setFont(8,'normal',C_GREY);
+    doc.text('Genere le '+today, PW-MR, 13, {align:'right'});
+
+    y = 38;
+
+    // ══════════════════════════════════════════════
+    // DOSSIER INFO BOX
+    // ══════════════════════════════════════════════
+    const d = dossier;
+    if(d.name||d.addr||d.vaddr||d.syndic){
+      doc.setFillColor(...C_LIGHT);
+      doc.setDrawColor(...C_BDR);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(ML, y, CW, 26, 2, 2, 'FD');
+
+      const col1x = ML+4, col2x = ML+CW/2+2;
+      const fields = [
+        ['Plaignant', d.name||'—', col1x, y+7],
+        ['Adresse',   d.addr||'—', col1x, y+14],
+        ['Voisin',    d.vaddr||'—',col2x, y+7],
+        ['Syndic',    d.syndic||'—',col2x, y+14],
+      ];
+      fields.forEach(([label,val,fx,fy])=>{
+        setFont(7,'bold',C_GREY);
+        doc.text(label.toUpperCase(), fx, fy-2);
+        setFont(9,'normal',C_DARK);
+        doc.text(val.substring(0,38), fx, fy+2);
+      });
+
+      // période
+      const first = incidents.length ? fFull(incidents[incidents.length-1].date) : '—';
+      const last  = incidents.length ? fFull(incidents[0].date) : '—';
+      setFont(7,'bold',C_GREY);
+      doc.text('PERIODE', col1x, y+21);
+      setFont(9,'normal',C_DARK);
+      doc.text(first + '  →  ' + last, col1x+14, y+21);
+      y += 32;
+    }
+
+    // ══════════════════════════════════════════════
+    // SYNTHESE KPIs
+    // ══════════════════════════════════════════════
+    const total   = incidents.length;
+    const last30  = incidents.filter(i=>new Date(i.date)>new Date(Date.now()-30*864e5)).length;
+    const avgI    = (incidents.reduce((s,i)=>s+i.int,0)/total).toFixed(1);
+    const nights  = incidents.filter(i=>{const h=parseInt(i.hstart);return h>=22||h<7;}).length;
+    const kpis    = [
+      ['Total incidents', total],
+      ['30 derniers jours', last30],
+      ['Intensite moyenne', avgI+'/4'],
+      ['Nocturnes (22h-7h)', nights],
+    ];
+    const kw = CW/4 - 2;
+    kpis.forEach((k,i)=>{
+      const kx = ML + i*(kw+2.7);
+      doc.setFillColor(...C_LIGHT);
+      doc.setDrawColor(...C_BDR);
+      doc.setLineWidth(0.25);
+      doc.roundedRect(kx, y, kw, 16, 2, 2, 'FD');
+      setFont(14,'bold', C_RED);
+      doc.text(String(k[1]), kx+kw/2, y+9, {align:'center'});
+      setFont(7,'normal', C_GREY);
+      doc.text(k[0], kx+kw/2, y+14, {align:'center'});
+    });
+    y += 22;
+
+    // ══════════════════════════════════════════════
+    // SECTION TITLE helper
+    // ══════════════════════════════════════════════
+    const sectionTitle = (title) => {
+      checkPage(12);
+      doc.setFillColor(...C_RED);
+      pf(ML, y, 2.5, 5);
+      setFont(9,'bold',C_DARK);
+      doc.text(title, ML+5, y+4);
+      hr(y+6.5, C_BDR, 0.2);
+      y += 10;
+    };
+
+    // ══════════════════════════════════════════════
+    // JOURNAL DETAILLE
+    // ══════════════════════════════════════════════
+    sectionTitle('Journal détaillé des incidents');
+
+    const sorted = [...incidents].reverse();
+    sorted.forEach((inc, idx) => {
+      // Estimate height needed
+      const lines = 1 + (inc.note?1:0) + (inc.action?1:0) + (inc.witness?1:0);
+      const needed = 8 + lines*5 + 4;
+      checkPage(needed);
+
+      // Row background alternate
+      doc.setFillColor(idx%2===0 ? 252:248, idx%2===0 ? 250:247, idx%2===0 ? 247:244);
+      doc.setDrawColor(...C_BDR);
+      doc.setLineWidth(0.2);
+
+      const rowH = needed - 2;
+      doc.roundedRect(ML, y, CW, rowH, 1.5, 1.5, 'FD');
+
+      // Intensity badge
+      const ic = INT_C[inc.int-1]||C_GREY;
+      doc.setFillColor(...ic);
+      doc.roundedRect(ML+2, y+3, 7, 7, 1, 1, 'F');
+      setFont(9,'bold',[255,255,255]);
+      doc.text(String(inc.int), ML+5.5, y+8.5, {align:'center'});
+
+      // Number + date
+      setFont(8,'bold',C_DARK);
+      doc.text(`#${idx+1}`, ML+11, y+6);
+      setFont(8,'normal',C_GREY);
+      doc.text(fFull(inc.date), ML+20, y+6);
+
+      // Time
+      const timeStr = inc.hstart+(inc.hend?' → '+inc.hend:'')+(calcDur(inc.hstart,inc.hend)?' ('+calcDur(inc.hstart,inc.hend)+')':'');
+      setFont(7,'normal',C_GREY);
+      doc.text(timeStr, PW-MR-2, y+6, {align:'right'});
+
+      // Type + intensity label
+      setFont(9,'bold',C_DARK);
+      doc.text(inc.type, ML+11, y+11);
+      setFont(8,'normal',[...ic]);
+      doc.text(INT_LABELS[inc.int], ML+11+doc.getTextWidth(inc.type)+2, y+11);
+
+      let dy = y + 15;
+      const detailLine = (label, val) => {
+        if(!val) return;
+        setFont(7,'bold',C_GREY);
+        doc.text(label+':', ML+11, dy);
+        setFont(7,'normal',C_DARK);
+        const lines = doc.splitTextToSize(val, CW-28);
+        doc.text(lines, ML+30, dy);
+        dy += lines.length * 4 + 1;
+      };
+      detailLine('Obs', inc.note);
+      detailLine('Demarches', inc.action);
+      detailLine('Temoin', inc.witness);
+
+      y += rowH + 2;
+    });
+
+    y += 4;
+
+    // ══════════════════════════════════════════════
+    // CADRE LEGAL
+    // ══════════════════════════════════════════════
+    checkPage(38);
+    sectionTitle('Cadre légal');
+
+    doc.setFillColor(238, 243, 251);
+    doc.setDrawColor(192, 208, 232);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(ML, y, CW, 30, 2, 2, 'FD');
+    doc.setFillColor(37, 99, 168);
+    pf(ML, y, 2.5, 30);
+
+    const legalLines = [
+      'Art. R.1334-31 CSP : tout bruit causant une gene anormale est interdit.',
+      'Loi du 31/12/1992 (loi bruit). Nuisances nocturnes (22h-7h) : art. R.623-2 Code penal.',
+      '',
+      'Recours possibles : mairie, bailleur/syndic, police municipale,',
+      'conciliateur de justice, tribunal de proximite, huissier de justice pour constat.',
+    ];
+    setFont(8,'normal',[26,48,96]);
+    legalLines.forEach((line,i)=>{
+      doc.text(line, ML+5, y+6+i*4.5);
+    });
+    y += 36;
+
+    // ══════════════════════════════════════════════
+    // SIGNATURE BLOCK
+    // ══════════════════════════════════════════════
+    checkPage(28);
+    doc.setDrawColor(...C_BDR);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(ML, y, CW, 24, 2, 2, 'D');
+    setFont(8,'normal',C_GREY);
+    doc.text('Fait a _________________________, le ______/______/____________', ML+4, y+6);
+    doc.line(ML+4, y+18, ML+70, y+18);
+    doc.text('Signature du plaignant', ML+4, y+22);
+    y += 30;
+
+    // ══════════════════════════════════════════════
+    // FOOTER on all pages
+    // ══════════════════════════════════════════════
+    const totalPages = doc.getNumberOfPages();
+    for(let p=1;p<=totalPages;p++){
+      doc.setPage(p);
+      doc.setFillColor(...C_LIGHT);
+      pf(0, PH-10, PW, 10);
+      doc.setFillColor(...C_RED);
+      pf(0, PH-10, PW, 0.4);
+      setFont(7,'normal',C_GREY);
+      doc.text('Dossier nuisances sonores — confidentiel', ML, PH-4);
+      doc.text(`Page ${p}/${totalPages}`, PW-MR, PH-4, {align:'right'});
+    }
+
+    const fname = `nuisances_rapport_${new Date().toISOString().slice(0,10)}.pdf`;
+    doc.save(fname);
+    showToast('📄 PDF généré');
+  } catch(err){
+    console.error(err);
+    showToast('❌ Erreur génération PDF');
+  } finally {
+    document.getElementById('pdf-spinner').classList.remove('show');
+  }
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
