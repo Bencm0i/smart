@@ -539,6 +539,59 @@ input[type="number"]:focus {
   letter-spacing: 1px;
   text-shadow: 0 0 12px rgba(51,153,255,0.5);
 }
+
+/* ── TABS ── */
+.tabs-bar {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 8px;
+  gap: 2px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  flex-shrink: 0;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--white); }
+.tab-btn.active {
+  color: var(--tab-color, var(--blue2));
+  border-bottom-color: var(--tab-color, var(--blue2));
+}
+
+.tab-total {
+  display: block;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--tab-color, var(--muted));
+  opacity: 0.8;
+  margin-top: 1px;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 </style>
 </head>
 <body>
@@ -644,6 +697,9 @@ function applyBankColor(bank, color) {
   if (name) name.style.color = hex;
   const total = header.querySelector('.bank-total');
   if (total) total.style.color = hex;
+  // update tab button color
+  const tabBtn = document.querySelector(`.tab-btn[data-bank="${bank}"]`);
+  if (tabBtn) tabBtn.style.setProperty('--tab-color', hex);
 }
 
 function saveBankColors() {
@@ -794,9 +850,31 @@ function buildUI() {
   gtRow.innerHTML = `<span class="gt-label">▶ TOTAL PATRIMOINE</span><span class="gt-value" id="grand-total-body">— €</span>`;
   container.appendChild(gtRow);
 
-  banks.forEach(bank => {
+  // Tabs bar
+  const tabsBar = document.createElement('div');
+  tabsBar.className = 'tabs-bar';
+  container.appendChild(tabsBar);
+
+  // Panels container
+  const panelsContainer = document.createElement('div');
+  panelsContainer.id = 'panels-container';
+  container.appendChild(panelsContainer);
+
+  banks.forEach((bank, idx) => {
     const accounts = SCHEMA.filter(s => s.bank === bank);
     const color = bankColors[bank] || BANK_DEFAULT_COLORS[bank] || BANK_COLOR_PALETTE[0];
+    const safeId = bank.replace(/\s/g,'_');
+
+    // Tab button
+    const tabBtn = document.createElement('button');
+    tabBtn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
+    tabBtn.dataset.bank = bank;
+    tabBtn.style.setProperty('--tab-color', color);
+    tabBtn.innerHTML = `${bank}<span class="tab-total" id="tab-total-${safeId}">— €</span>`;
+    tabBtn.onclick = () => switchTab(bank);
+    tabsBar.appendChild(tabBtn);
+
+    // Panel
     const r = parseInt(color.slice(1,3),16);
     const g = parseInt(color.slice(3,5),16);
     const b = parseInt(color.slice(5,7),16);
@@ -807,24 +885,26 @@ function buildUI() {
         onclick="setBankColor('${bank}','${c}');this.closest('.color-popup').classList.remove('open');activePopup=null;event.stopPropagation()"></div>`
     ).join('');
 
-    const section = document.createElement('div');
-    section.className = 'bank-section';
-    section.innerHTML = `
-      <div class="bank-header" data-bank="${bank}"
-           style="--bh-color:${color};--bh-bg:${bgColor}">
-        <div class="bank-name" style="color:${color}">${bank}</div>
-        <div class="bank-header-right">
-          <div class="bank-total" id="bank-total-${bank.replace(/\s/g,'_')}" style="color:${color}">0 €</div>
-          <div class="color-trigger" style="background:${color}"
-               onclick="toggleColorPopup('${bank}',this);event.stopPropagation()"></div>
-          <div class="color-popup">${swatches}</div>
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (idx === 0 ? ' active' : '');
+    panel.id = `panel-${safeId}`;
+    panel.innerHTML = `
+      <div class="bank-section" style="margin-top:10px">
+        <div class="bank-header" data-bank="${bank}"
+             style="--bh-color:${color};--bh-bg:${bgColor}">
+          <div class="bank-name" style="color:${color}">${bank}</div>
+          <div class="bank-header-right">
+            <div class="bank-total" id="bank-total-${safeId}" style="color:${color}">0 €</div>
+            <div class="color-trigger" style="background:${color}"
+                 onclick="toggleColorPopup('${bank}',this);event.stopPropagation()"></div>
+            <div class="color-popup">${swatches}</div>
+          </div>
         </div>
-      </div>
-      <div class="bank-body">
-        ${accounts.map(acc => buildRow(acc)).join('')}
+        <div class="bank-body">
+          ${accounts.map(acc => buildRow(acc)).join('')}
+        </div>
       </div>`;
-    container.appendChild(section);
-    container.appendChild(Object.assign(document.createElement('div'), {className:'section-spacer'}));
+    panelsContainer.appendChild(panel);
   });
 
   // Attach events
@@ -838,6 +918,19 @@ function buildUI() {
 
   document.getElementById('file-import').addEventListener('change', importJSON);
 }
+
+function switchTab(bank) {
+  const banks = [...new Set(SCHEMA.map(s => s.bank))];
+  banks.forEach(b => {
+    const safeId = b.replace(/\s/g,'_');
+    const btn = document.querySelector(`.tab-btn[data-bank="${b}"]`);
+    const panel = document.getElementById(`panel-${safeId}`);
+    const active = b === bank;
+    if (btn) btn.classList.toggle('active', active);
+    if (panel) panel.classList.toggle('active', active);
+  });
+}
+
 
 function buildRow(acc) {
   const isInvest = acc.type === 'invest';
@@ -961,8 +1054,11 @@ function updateAllTotals() {
   });
 
   Object.entries(bankTotals).forEach(([bank, total]) => {
-    const el = document.getElementById(`bank-total-${bank.replace(/\s/g,'_')}`);
+    const safeId = bank.replace(/\s/g,'_');
+    const el = document.getElementById(`bank-total-${safeId}`);
     if (el) el.textContent = fmtEur(total);
+    const tabEl = document.getElementById(`tab-total-${safeId}`);
+    if (tabEl) tabEl.textContent = fmtEur(total);
   });
 
   const fmt = fmtEur(grand);
