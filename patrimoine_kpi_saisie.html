@@ -497,6 +497,45 @@ input[type="file"]{display:none;}
 /* ── REVENU KPI ── */
 .rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;background:var(--border);border-radius:6px;overflow:hidden;}
 
+/* ── CHARTS ── */
+.chart-wrap{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:20px 20px 16px;position:relative;overflow:hidden;}
+.chart-wrap::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,0.03) 0%,transparent 50%);pointer-events:none;}
+.chart-canvas-wrap{position:relative;width:100%;}
+canvas.chart-main{display:block;width:100%!important;}
+
+/* line chart axis */
+.lc-axis{display:flex;justify-content:space-between;margin-top:6px;padding:0 4px;}
+.lc-axis span{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;}
+
+/* perf bar chart */
+.perf-chart-wrap{display:flex;flex-direction:column;gap:6px;padding:4px 0;}
+.perf-row{display:grid;grid-template-columns:110px 1fr 70px;align-items:center;gap:10px;}
+.perf-label{font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.perf-bar-track{height:6px;background:var(--s3);border-radius:3px;overflow:hidden;position:relative;}
+.perf-bar-fill{height:100%;border-radius:3px;transition:width .9s cubic-bezier(.4,0,.2,1);}
+.perf-val{font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;white-space:nowrap;}
+.perf-val.pos{color:var(--green2);}
+.perf-val.neg{color:var(--red2);}
+.perf-val.neu{color:var(--muted2);}
+
+/* dep pie */
+.dep-chart-wrap{display:grid;grid-template-columns:160px 1fr;gap:20px;align-items:center;}
+@media(max-width:480px){.dep-chart-wrap{grid-template-columns:1fr;}}
+.dep-legend{display:flex;flex-direction:column;gap:5px;}
+.dep-leg-row{display:flex;align-items:center;gap:8px;}
+.dep-leg-dot{width:8px;height:8px;border-radius:1px;flex-shrink:0;}
+.dep-leg-name{font-size:11px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dep-leg-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);}
+.dep-leg-pct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);font-weight:500;min-width:36px;text-align:right;}
+
+/* chart tabs */
+.chart-tabs{display:flex;gap:0;margin-bottom:14px;}
+.chart-tab{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted2);transition:all .15s;}
+.chart-tab:first-child{border-radius:3px 0 0 3px;}
+.chart-tab:last-child{border-radius:0 3px 3px 0;}
+.chart-tab+.chart-tab{border-left:none;}
+.chart-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+
 /* ── TOAST ── */
 #toast{
   position:fixed;
@@ -601,6 +640,29 @@ input[type="file"]{display:none;}
       </div>
     </div>
 
+    <!-- GRAPHIQUE ÉVOLUTION PATRIMOINE -->
+    <div class="fade d3" id="chart-evo-section">
+      <div class="sec-title">◈ ÉVOLUTION PATRIMOINE</div>
+      <div class="chart-wrap">
+        <div class="chart-canvas-wrap">
+          <canvas class="chart-main" id="chart-evo" height="180"></canvas>
+        </div>
+        <div class="lc-axis" id="chart-evo-axis"></div>
+      </div>
+    </div>
+
+    <!-- GRAPHIQUE PERF PORTEFEUILLE -->
+    <div class="fade d3" id="chart-perf-section">
+      <div class="sec-title">◈ PERFORMANCE PORTEFEUILLE</div>
+      <div class="chart-wrap">
+        <div class="chart-tabs">
+          <button class="chart-tab active" onclick="setChartTab('pv', this)">+/- Value %</button>
+          <button class="chart-tab" onclick="setChartTab('val', this)">Valeur €</button>
+        </div>
+        <div class="perf-chart-wrap" id="perf-chart-rows"></div>
+      </div>
+    </div>
+
     <!-- RÉPARTITION PAR BANQUE -->
     <div class="fade d3">
       <div class="sec-title">◈ RÉPARTITION PAR ÉTABLISSEMENT</div>
@@ -674,6 +736,17 @@ input[type="file"]{display:none;}
           <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--muted);text-align:right;text-transform:uppercase;" id="dep-delta-head">—</div>
         </div>
         <div id="dep-rows"></div>
+      </div>
+    </div>
+
+    <!-- GRAPHIQUE DÉPENSES -->
+    <div class="fade d6" id="chart-dep-section">
+      <div class="sec-title">◈ RÉPARTITION DES DÉPENSES</div>
+      <div class="chart-wrap">
+        <div class="dep-chart-wrap">
+          <svg id="dep-donut" width="140" height="140" viewBox="0 0 140 140"></svg>
+          <div class="dep-legend" id="dep-legend"></div>
+        </div>
       </div>
     </div>
 
@@ -906,6 +979,10 @@ function render() {
   const C = compute(CUR);
   const P = PREV ? compute(PREV) : null;
 
+  // Store for chart access
+  window._COMPUTED_C = C;
+  window._COMPUTED_P = P;
+
   // Header date
   const expDate = CUR._exportDate ? new Date(CUR._exportDate) : null;
   if(expDate) document.getElementById('dh-date').textContent = expDate.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
@@ -920,6 +997,12 @@ function render() {
   renderHero(C, P);
   renderTiles(C, P);
   renderAlloc(C.alloc, C.total);
+  // Charts
+  setTimeout(() => {
+    renderChartEvo();
+    renderChartPerf(C, P);
+    renderChartDep();
+  }, 50);
   renderBanks(C, P);
   if(P) renderEvo(C, P);
   renderInv(C, P);
@@ -1367,6 +1450,216 @@ function renderDCA() {
   });
   html+=`<tr><td colspan="2" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);padding:10px 14px;">TOTAL VERSÉ</td><td class="td-mono" style="font-weight:600;color:var(--blue2);">${fmt(totalDCA)}</td><td></td></tr>`;
   document.getElementById('dca-tbody').innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════════════════════════════
+
+// ── 1. Line chart — Évolution ATH + snapshot actuel ──
+function renderChartEvo() {
+  const ath = (CUR.ath || []).filter(r => r.val > 0 && r.date);
+  const section = document.getElementById('chart-evo-section');
+
+  // On construit les points : ATH historique + snapshot actuel si pas dans ATH
+  let pts = [...ath].sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (CUR._exportDate) {
+    const expD = CUR._exportDate.split('T')[0];
+    const curComputed = window._COMPUTED_C;
+    if (curComputed && !pts.find(p => p.date === expD)) {
+      pts.push({ date: expD, val: curComputed.total, isCurrent: true });
+    }
+  }
+  // Ajouter aussi PREV si dispo
+  if (PREV && PREV._exportDate) {
+    const prevD = PREV._exportDate.split('T')[0];
+    const prevComputed = window._COMPUTED_P;
+    if (prevComputed && !pts.find(p => p.date === prevD)) {
+      pts.splice(pts.length - 1, 0, { date: prevD, val: prevComputed.total });
+      pts.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+  }
+
+  if (pts.length < 2) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const canvas = document.getElementById('chart-evo');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.offsetWidth || 600;
+  const H = 180;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const PAD = { top: 16, right: 16, bottom: 24, left: 60 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
+
+  const vals = pts.map(p => p.val);
+  const minV = Math.min(...vals) * 0.97;
+  const maxV = Math.max(...vals) * 1.02;
+  const xOf = i => PAD.left + (i / (pts.length - 1)) * cW;
+  const yOf = v => PAD.top + (1 - (v - minV) / (maxV - minV)) * cH;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.top + (i / 4) * cH;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cW, y); ctx.stroke();
+    const val = maxV - (i / 4) * (maxV - minV);
+    ctx.fillStyle = '#4a5568';
+    ctx.font = '9px JetBrains Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val.toFixed(0), PAD.left - 6, y + 3);
+  }
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+  grad.addColorStop(0, 'rgba(59,130,246,0.25)');
+  grad.addColorStop(1, 'rgba(59,130,246,0.01)');
+  ctx.beginPath();
+  ctx.moveTo(xOf(0), yOf(pts[0].val));
+  pts.forEach((p, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(p.val)); });
+  ctx.lineTo(xOf(pts.length - 1), PAD.top + cH);
+  ctx.lineTo(xOf(0), PAD.top + cH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  pts.forEach((p, i) => { i === 0 ? ctx.moveTo(xOf(i), yOf(p.val)) : ctx.lineTo(xOf(i), yOf(p.val)); });
+  ctx.stroke();
+
+  // Points
+  pts.forEach((p, i) => {
+    const x = xOf(i), y = yOf(p.val);
+    ctx.beginPath();
+    ctx.arc(x, y, p.isCurrent ? 5 : 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = p.isCurrent ? '#60a5fa' : '#3b82f6';
+    ctx.strokeStyle = '#0c0e10';
+    ctx.lineWidth = 1.5;
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  // Axis labels
+  const axis = document.getElementById('chart-evo-axis');
+  // Show at most 6 labels
+  const step = Math.ceil(pts.length / 6);
+  const labels = pts.filter((_, i) => i % step === 0 || i === pts.length - 1);
+  axis.innerHTML = labels.map(p => `<span>${p.date ? p.date.slice(0, 7) : ''}</span>`).join('');
+}
+
+// ── 2. Bar chart — Performance portefeuille ──
+let _perf_mode = 'pv';
+function setChartTab(mode, btn) {
+  _perf_mode = mode;
+  document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderChartPerf(window._COMPUTED_C, window._COMPUTED_P);
+}
+
+function renderChartPerf(C, P) {
+  const section = document.getElementById('chart-perf-section');
+  if (!C) return;
+  const allRows = [
+    ...C.peaC.map(r => ({...r, _cat: 'PEA'})),
+    ...C.ctoC.map(r => ({...r, _cat: 'CTO'})),
+    ...C.revC.map(r => ({...r, _cat: 'REV'})),
+  ].filter(r => r._val > 0);
+
+  if (!allRows.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const catColors = { PEA: '#3b82f6', CTO: '#8b5cf6', REV: '#f59e0b' };
+  const container = document.getElementById('perf-chart-rows');
+
+  if (_perf_mode === 'pv') {
+    // Sort by PV%
+    const rows = allRows.filter(r => r._pvPct !== null).sort((a, b) => b._pvPct - a._pvPct);
+    const maxAbs = Math.max(...rows.map(r => Math.abs(r._pvPct)), 1);
+    container.innerHTML = rows.map(r => {
+      const pct = r._pvPct;
+      const w = Math.abs(pct) / maxAbs * 100;
+      const cls = pct > 0 ? 'pos' : pct < 0 ? 'neg' : 'neu';
+      const color = pct > 0 ? '#22c55e' : pct < 0 ? '#ef4444' : '#4a5568';
+      return `<div class="perf-row">
+        <div class="perf-label" title="${r.nom || r.ticker}">${r.nom || r.ticker || '—'} <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:${catColors[r._cat]}">${r._cat}</span></div>
+        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${w}%;background:${color};"></div></div>
+        <div class="perf-val ${cls}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%</div>
+      </div>`;
+    }).join('');
+  } else {
+    // Sort by value
+    const rows = allRows.sort((a, b) => b._val - a._val);
+    const maxVal = rows[0]?._val || 1;
+    container.innerHTML = rows.map(r => {
+      const w = r._val / maxVal * 100;
+      const color = catColors[r._cat] || '#3b82f6';
+      return `<div class="perf-row">
+        <div class="perf-label" title="${r.nom || r.ticker}">${r.nom || r.ticker || '—'} <span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:${color}">${r._cat}</span></div>
+        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${w}%;background:${color};"></div></div>
+        <div class="perf-val neu">${fmtK(r._val)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── 3. Donut — Répartition dépenses ──
+const DEP_COLORS = ['#ef4444','#f59e0b','#8b5cf6','#3b82f6','#22c55e','#06b6d4','#f97316','#ec4899','#a3e635','#94a3b8'];
+function renderChartDep() {
+  const section = document.getElementById('chart-dep-section');
+  const cats = CUR.depenses?.categories || [];
+  if (!cats.length) { section.style.display = 'none'; return; }
+
+  const entries = cats.map(cat => ({
+    name: (cat.icon ? cat.icon + ' ' : '') + cat.nom,
+    val: cat.items.reduce((s, it) => s + (it.mensuel || it.annuel / 12 || 0), 0),
+  })).filter(e => e.val > 0).sort((a, b) => b.val - a.val);
+
+  if (!entries.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const total = entries.reduce((s, e) => s + e.val, 0);
+  const svg = document.getElementById('dep-donut');
+  const leg = document.getElementById('dep-legend');
+  svg.innerHTML = ''; leg.innerHTML = '';
+  const cx = 70, cy = 70, r = 52, sw = 16, circ = 2 * Math.PI * r;
+  let offset = -circ / 4;
+  entries.forEach(({ name, val }, i) => {
+    const p = val / total, dash = p * circ, color = DEP_COLORS[i % DEP_COLORS.length];
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+    c.setAttribute('fill', 'none'); c.setAttribute('stroke', color); c.setAttribute('stroke-width', sw);
+    c.setAttribute('stroke-dasharray', `${dash} ${circ - dash}`);
+    c.setAttribute('stroke-dashoffset', -offset);
+    svg.appendChild(c);
+    const d = document.createElement('div'); d.className = 'dep-leg-row';
+    d.innerHTML = `<div class="dep-leg-dot" style="background:${color}"></div>
+      <div class="dep-leg-name">${name}</div>
+      <div class="dep-leg-val">${fmt(val, 0)}</div>
+      <div class="dep-leg-pct">${(p * 100).toFixed(0)}%</div>`;
+    leg.appendChild(d);
+    offset += dash;
+  });
+  // Centre
+  const t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t1.setAttribute('x', cx); t1.setAttribute('y', cy - 4); t1.setAttribute('text-anchor', 'middle');
+  t1.setAttribute('fill', '#dde3ef'); t1.setAttribute('font-size', '11'); t1.setAttribute('font-weight', '600');
+  t1.textContent = fmtK(total).replace(' €', '');
+  const t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t2.setAttribute('x', cx); t2.setAttribute('y', cy + 12); t2.setAttribute('text-anchor', 'middle');
+  t2.setAttribute('fill', '#4a5568'); t2.setAttribute('font-size', '8'); t2.setAttribute('letter-spacing', '1');
+  t2.textContent = '/MOIS';
+  svg.appendChild(t1); svg.appendChild(t2);
 }
 
 // ══════════════════════════════════════════════════════════════════
