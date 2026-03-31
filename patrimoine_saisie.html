@@ -3,1160 +3,1757 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PATRIMOINE — TERMINAL</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<title>SAISIE · Patrimoine</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
 <style>
 :root {
-  --bg:       #000000;
-  --bg2:      #0a0a0a;
-  --bg3:      #111111;
-  --bg4:      #1a1a1a;
-  --border:   #222222;
-  --border2:  #2a2a2a;
-
-  /* Bloomberg blue */
-  --blue:     #0078ff;
-  --blue2:    #3399ff;
-  --blue-dim: #003366;
-  --blue-glow:rgba(0,120,255,0.18);
-
-  --green:    #00cc66;
-  --red:      #ff3333;
-  --orange:   #ff8800;
-  --yellow:   #ffcc00;
-  --white:    #e8e8e8;
-  --dim:      #444444;
-  --muted:    #666666;
-
-  --mono: 'IBM Plex Mono', monospace;
-  --sans: 'IBM Plex Sans Condensed', sans-serif;
-  --rad: 2px;
+  --bg:       #1a1e24;
+  --surface:  #22272f;
+  --surface2: #2a3040;
+  --border:   #3a4455;
+  --accent:   #7eb8d4;
+  --accent2:  #5b9fba;
+  --text:     #c8cdd8;
+  --muted:    #6b7585;
+  --gold:     #c8a96e;
+  --green:    #5aab7a;
+  --red:      #c05a5a;
+  --olive:    #4a5530;
+  --olive2:   #5a6840;
+  --grid-color: rgba(255,255,255,0.03);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-html { background: #000; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
 body {
   background: var(--bg);
-  color: var(--white);
-  font-family: var(--mono);
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  font-family: 'DM Mono', 'Courier New', monospace;
   font-size: 13px;
-  min-height: 100dvh;
-  padding-bottom: 72px;
-  position: relative;
+  min-height: 100vh;
+  padding-bottom: 120px;
 }
 
-/* ── SCANLINES ── */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,120,255,0.015) 2px, rgba(0,120,255,0.015) 3px);
-  pointer-events: none;
-  z-index: 9999;
-}
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');
 
-/* ── HEADER ── */
-header {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--blue);
-  padding: 0 12px;
+/* ═══ HEADER ═══ */
+.header {
   position: sticky;
   top: 0;
-  z-index: 100;
-  height: 44px;
+  z-index: 200;
+  background: rgba(26,30,36,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 0 20px rgba(0,120,255,0.15);
-}
-
-header::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--blue), transparent);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
-
-.terminal-logo {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--blue2);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-
-.header-ticker {
-  font-size: 9px;
-  color: var(--muted);
-  letter-spacing: 1px;
-}
-
-.total-display {
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
   font-size: 16px;
-  font-weight: 700;
-  color: var(--blue2);
-  letter-spacing: 1px;
-  text-shadow: 0 0 10px rgba(51,153,255,0.5);
-}
-
-/* ── STATUS BAR ── */
-.status-bar {
-  background: var(--blue);
-  padding: 3px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  color: #fff;
-}
-
-.status-dot {
-  display: inline-block;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: #fff;
-  margin-right: 5px;
-  animation: blink 1.8s infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ── BANK SECTION ── */
-.bank-section {
-  margin: 10px 8px 0;
-  border: 1px solid var(--border2);
-  border-radius: var(--rad);
-  overflow: hidden;
-}
-
-.bank-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  position: relative;
-  cursor: default;
-  /* color injected inline */
-  background: var(--bh-bg, #001833);
-  border-bottom: 1px solid var(--bh-color, var(--blue));
-}
-
-.bank-header::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--bh-color, var(--blue));
-}
-
-.bank-name {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--bh-color, var(--blue2));
-  padding-left: 8px;
-}
-
-.bank-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.bank-total {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--bh-color, var(--blue2));
-  letter-spacing: 0.5px;
-}
-
-/* Color picker trigger */
-.color-trigger {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.2);
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-  background: var(--bh-color, var(--blue));
-  position: relative;
-}
-.color-trigger:hover { transform: scale(1.15); border-color: rgba(255,255,255,0.5); }
-
-/* Color picker popup */
-.color-popup {
-  display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 8px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 8px;
-  z-index: 50;
-  flex-wrap: wrap;
-  gap: 6px;
-  width: 162px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.8);
-}
-.color-popup.open { display: flex; }
-.cp-swatch {
-  width: 28px; height: 28px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform 0.1s, border-color 0.1s;
+  letter-spacing: -0.5px;
+  color: var(--accent);
   flex-shrink: 0;
 }
-.cp-swatch:hover { transform: scale(1.15); }
-.cp-swatch.active { border-color: #fff; }
-
-/* ── ROW ── */
-.bank-body { background: var(--bg2); }
-
-.row {
-  padding: 10px 12px 8px;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.1s;
-}
-.row:last-child { border-bottom: none; }
-.row:active { background: var(--bg3); }
-
-.row-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
-  gap: 8px;
-}
-
-.row-label {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  flex: 1;
-  min-width: 0;
-}
-
-.row-value {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--blue2);
-  text-align: right;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  text-shadow: 0 0 8px rgba(51,153,255,0.3);
-}
-.row-value.positive { color: var(--green); text-shadow: 0 0 8px rgba(0,204,102,0.3); }
-.row-value.negative { color: var(--red); text-shadow: 0 0 8px rgba(255,51,51,0.3); }
-.row-value.zero { color: var(--muted); text-shadow: none; }
-
-/* ── INPUT FIELDS ── */
-.fields-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-.fields-grid.invest { grid-template-columns: 1fr 1fr; }
-.fields-grid.invest .f-main { grid-column: 1 / -1; }
-
-.field-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.field-wrap label {
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-input[type="number"] {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: var(--rad);
-  color: var(--white);
-  font-family: var(--mono);
-  font-size: 16px;
-  font-weight: 500;
-  padding: 10px 10px;
-  width: 100%;
-  text-align: right;
-  -moz-appearance: textfield;
-  appearance: textfield;
-  touch-action: manipulation;
-  transition: border-color 0.15s, background 0.15s;
-  height: 44px;
-}
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button { display: none; }
-input[type="number"]:focus {
-  outline: none;
-  border-color: var(--blue);
-  background: #001122;
-  box-shadow: 0 0 0 2px rgba(0,120,255,0.15);
-}
-
-/* ── PCT BUTTONS ── */
-.btn-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 3px;
-  margin-bottom: 6px;
-}
-
-.adj-btn {
-  height: 34px;
-  background: var(--bg3);
+.logo span { color: var(--muted); font-weight: 700; }
+.header-btns { display: flex; gap: 8px; align-items: center; }
+.hbtn {
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--rad);
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 600;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 7px 12px;
+  border-radius: 8px;
   cursor: pointer;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: background 0.1s, border-color 0.1s, color 0.1s;
-  line-height: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  letter-spacing: 0.3px;
-}
-
-.adj-btn.neg {
-  color: #ff6666;
-  border-color: #330000;
-}
-.adj-btn.pos {
-  color: #33cc77;
-  border-color: #003322;
-}
-.adj-btn.neg:active { background: #330000; color: #ff3333; }
-.adj-btn.pos:active { background: #003322; color: #00cc66; }
-
-/* ── COMPUTED ── */
-.computed-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--muted);
-  padding: 2px 0;
-  letter-spacing: 0.5px;
-}
-.computed-line .cv {
-  font-weight: 600;
-  color: var(--white);
-}
-.computed-line .cv.pos { color: var(--green); }
-.computed-line .cv.neg { color: var(--red); }
-
-/* ── SECTION SPACER ── */
-.section-spacer { height: 6px; }
-
-/* ── BOTTOM BAR ── */
-.bottom-bar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: var(--bg2);
-  border-top: 1px solid var(--blue);
-  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-  display: flex;
-  gap: 8px;
-  z-index: 100;
-  box-shadow: 0 -4px 20px rgba(0,120,255,0.12);
-}
-
-.bottom-bar button {
-  flex: 1;
-  height: 44px;
-  border: none;
-  border-radius: var(--rad);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: opacity 0.15s;
-}
-.bottom-bar button:active { opacity: 0.75; }
-
-.btn-import {
-  background: var(--bg3);
-  color: var(--blue2);
-  border: 1px solid var(--blue-dim) !important;
-}
-.btn-export {
-  background: var(--blue);
-  color: #fff;
-  box-shadow: 0 0 16px rgba(0,120,255,0.35);
-}
-.btn-reset {
-  background: var(--bg3);
-  color: var(--red);
-  border: 1px solid #330000 !important;
-  flex: 0 0 70px;
-}
-
-/* ── TOAST ── */
-#toast {
-  position: fixed;
-  bottom: 80px; left: 50%;
-  transform: translateX(-50%) translateY(6px);
-  background: var(--blue);
-  color: #fff;
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 8px 20px;
-  border-radius: 2px;
-  opacity: 0;
-  transition: opacity 0.25s, transform 0.25s;
-  pointer-events: none;
-  z-index: 200;
-  letter-spacing: 1px;
+  gap: 5px;
   white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,120,255,0.5);
+  transition: all 0.18s;
+  min-height: 36px;
 }
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.hbtn:hover, .hbtn:active { border-color: var(--accent); color: var(--accent); }
+.hbtn.primary { background: var(--accent); color: #1a1e24; border-color: var(--accent); font-weight: 500; }
+.hbtn.primary:hover { background: var(--accent2); }
+.hbtn.danger { border-color: var(--red); color: var(--red); }
 
-/* ── PASSWORD OVERLAY ── */
-#pwd-overlay {
-  position: fixed; inset: 0;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 20px;
-  z-index: 999;
-}
-
-.pwd-logo {
+.save-status {
   font-size: 10px;
-  font-weight: 700;
-  color: var(--blue);
-  letter-spacing: 5px;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+  color: var(--green);
+  opacity: 0;
+  transition: opacity 0.4s;
+  white-space: nowrap;
 }
-.pwd-logo::before {
-  content: '▶ ';
-  color: var(--blue2);
-}
+.save-status.show { opacity: 1; }
 
-#pwd-overlay h2 {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-}
-
-#pwd-overlay input {
-  background: var(--bg3);
-  border: 1px solid var(--blue-dim);
-  color: var(--blue2);
-  font-family: var(--mono);
-  font-size: 22px;
-  font-weight: 600;
-  padding: 14px 20px;
-  border-radius: var(--rad);
-  text-align: center;
-  width: 260px;
-  letter-spacing: 8px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-#pwd-overlay input:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(0,120,255,0.15);
-}
-
-#pwd-overlay button {
-  background: var(--blue);
-  color: #fff;
-  border: none;
-  padding: 14px 40px;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  border-radius: var(--rad);
-  cursor: pointer;
-  text-transform: uppercase;
-  box-shadow: 0 0 20px rgba(0,120,255,0.4);
-}
-#pwd-overlay button:active { opacity: 0.85; }
-#pwd-err {
-  color: var(--red);
-  font-size: 11px;
-  letter-spacing: 1px;
-  min-height: 16px;
-}
-
-/* ── GRAND TOTAL ROW ── */
-.grand-total-row {
-  margin: 10px 8px 0;
-  background: var(--bg2);
-  border: 1px solid var(--blue);
-  border-radius: var(--rad);
-  padding: 12px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 0 16px rgba(0,120,255,0.1);
-}
-.gt-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: var(--blue2);
-  text-transform: uppercase;
-}
-.gt-value {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--blue2);
-  letter-spacing: 1px;
-  text-shadow: 0 0 12px rgba(51,153,255,0.5);
-}
-
-/* ── TABS ── */
+/* ═══ TABS ═══ */
 .tabs-bar {
   display: flex;
   overflow-x: auto;
-  overflow-y: hidden;
   scrollbar-width: none;
-  -ms-overflow-style: none;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border2);
-  padding: 0 8px;
-  gap: 2px;
-  margin-top: 8px;
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding: 0 4px;
+  position: sticky;
+  top: 61px;
+  z-index: 100;
 }
 .tabs-bar::-webkit-scrollbar { display: none; }
-
 .tab-btn {
   flex-shrink: 0;
-  padding: 9px 12px;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-family: var(--mono);
-  font-size: 9px;
+  padding: 11px 14px;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--muted);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-  position: relative;
+  border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  white-space: nowrap;
+  transition: all 0.18s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
 }
-.tab-btn:hover { color: var(--white); }
-.tab-btn.active {
-  color: var(--tab-color, var(--blue2));
-  border-bottom-color: var(--tab-color, var(--blue2));
-}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-.tab-total {
-  display: block;
-  font-size: 8px;
+/* ═══ PANELS ═══ */
+.panel { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+.panel.active { display: block; }
+
+/* ═══ SECTION ═══ */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.section-head {
+  background: var(--surface2);
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.section-body { padding: 14px 16px; }
+
+/* ═══ FIELD ROWS ═══ */
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.field-row:last-child { border-bottom: none; }
+.field-label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.3;
+  min-width: 0;
+}
+.field-label small { display: block; font-size: 10px; color: var(--muted); margin-top: 1px; }
+.field-input-wrap { flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+
+/* ═══ INPUTS ═══ */
+input[type="number"], input[type="text"], input[type="date"], select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.18s;
+  width: 100%;
+}
+input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+input[type="number"] { text-align: right; width: 120px; }
+.input-euro { position: relative; }
+.input-euro::after { content: '€'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 11px; pointer-events: none; }
+.input-euro input { padding-right: 26px; }
+.input-pct::after { content: '%'; }
+.input-pct input { padding-right: 26px; }
+
+/* Touch-friendly number with +/- */
+.num-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  padding: 0;
+}
+.num-ctrl button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  width: 38px;
+  height: 42px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.num-ctrl button:active { background: rgba(126,184,212,0.12); }
+.num-ctrl input[type="number"] {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  width: 90px;
+  text-align: center;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.5px;
-  color: var(--tab-color, var(--muted));
-  opacity: 0.8;
-  margin-top: 1px;
+  padding: 9px 4px;
+}
+.num-ctrl input[type="number"]:focus { border: none; box-shadow: none; }
+
+/* Euro input large */
+.euro-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.euro-input input {
+  padding-right: 28px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+  width: 130px;
+}
+.euro-input .unit {
+  position: absolute;
+  right: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  pointer-events: none;
 }
 
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
+/* ═══ MINI BUTTONS ═══ */
+.mini-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.18s;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+}
+.mini-btn:hover, .mini-btn:active { border-color: var(--accent); color: var(--accent); }
+.del-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 16px;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.del-btn:hover, .del-btn:active { color: var(--red); }
+
+/* ═══ CARD ═══ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.card-head {
+  background: var(--surface2);
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.card-title-sm {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-body { padding: 12px 14px; }
+
+/* ═══ BADGES ═══ */
+.badge {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.badge.green { background: rgba(90,171,122,0.15); border-color: rgba(90,171,122,0.3); color: var(--green); }
+.badge.gold { background: rgba(200,169,110,0.15); border-color: rgba(200,169,110,0.3); color: var(--gold); }
+.badge.blue { background: rgba(126,184,212,0.15); border-color: rgba(126,184,212,0.3); color: var(--accent); }
+
+/* ═══ RISK SELECTOR ═══ */
+.risk-sel {
+  display: flex;
+  gap: 3px;
+}
+.risk-sel label {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  color: #fff;
+  user-select: none;
+}
+.risk-sel input[type="radio"] { display: none; }
+.risk-sel input[type="radio"]:checked + label { border-color: #fff; transform: scale(1.1); }
+
+/* ═══ GRID 2 cols ═══ */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid2 .full { grid-column: 1 / -1; }
+
+/* ═══ LABEL ═══ */
+.lbl {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+  display: block;
+}
+.form-field { display: flex; flex-direction: column; margin-bottom: 10px; }
+.form-field:last-child { margin-bottom: 0; }
+
+/* ═══ LOG TABLE ═══ */
+.log-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.log-table th {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.log-table td { padding: 8px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+.log-table tr:last-child td { border-bottom: none; }
+.log-table input { font-size: 12px; padding: 5px 8px; }
+
+/* ═══ SEPARATOR ═══ */
+.sep {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+.sep::before, .sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ═══ TOAST ═══ */
+#toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green);
+  color: #1a1e24;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══ BOTTOM BAR ═══ */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(26,30,36,0.97);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 200;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.bar-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s;
+  min-height: 48px;
+}
+.bar-btn:hover, .bar-btn:active { border-color: var(--accent); color: var(--accent); }
+.bar-btn.primary { background: var(--accent); color: #1a1e24; border-color: var(--accent); }
+.bar-btn.primary:active { background: var(--accent2); }
+
+/* Responsive */
+@media (min-width: 640px) {
+  .bottom-bar { left: 50%; transform: translateX(-50%); right: auto; width: 640px; border-radius: 16px 16px 0 0; }
+}
+
+/* Collapse */
+.collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+.collapse-toggle { background: none; border: none; color: var(--accent); font-size: 13px; cursor: pointer; padding: 2px; }
+
+/* Accent line */
+.section.accent-green { border-top: 2px solid var(--green); }
+.section.accent-gold { border-top: 2px solid var(--gold); }
+.section.accent-blue { border-top: 2px solid var(--accent); }
+.section.accent-red { border-top: 2px solid var(--red); }
+
+/* Focus indicator for a11y */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Number input arrows hide */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
 </style>
 </head>
 <body>
 
-<div id="pwd-overlay">
-  <div class="pwd-logo">PATRIMOINE TERMINAL</div>
-  <h2>Accès sécurisé</h2>
-  <input type="password" id="pwd-input" placeholder="••••••" maxlength="32" autocomplete="current-password">
-  <button onclick="checkPwd()">▶ DÉVERROUILLER</button>
-  <div id="pwd-err"></div>
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="logo">SAISIE<span>·PAT</span></div>
+  <div class="header-btns">
+    <span class="save-status" id="saveStatus">✓ Copié</span>
+    <button class="hbtn" onclick="loadJSON()">📂 JSON</button>
+    <button class="hbtn" onclick="openKpiModal()" title="Export format KPI Terminal">📊 KPI</button>
+    <button class="hbtn primary" onclick="exportJSON()">💾 Export</button>
+  </div>
 </div>
 
+<!-- ═══ TABS ═══ -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('banques')">🏦 Banques</button>
+  <button class="tab-btn" onclick="switchTab('investissements')">📈 Invest.</button>
+  <button class="tab-btn" onclick="switchTab('scpi')">🏢 SCPI</button>
+  <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
+  <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
+  <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
+</div>
+
+<!-- ═══ PANEL : BANQUES ═══ -->
+<div class="panel active" id="panel-banques">
+
+  <!-- BOURSORAMA -->
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">🏦 Boursorama <span class="badge blue">Boursobank</span></div>
+    </div>
+    <div class="section-body" id="body-boursorama"></div>
+  </div>
+
+  <!-- FORTUNEO -->
+  <div class="section accent-green">
+    <div class="section-head">
+      <div class="section-title">🏦 Fortuneo</div>
+    </div>
+    <div class="section-body" id="body-fortuneo"></div>
+  </div>
+
+  <!-- REVOLUT -->
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">💳 Revolut</div>
+    </div>
+    <div class="section-body" id="body-revolut"></div>
+  </div>
+
+  <!-- NATIXIS -->
+  <div class="section accent-red">
+    <div class="section-head">
+      <div class="section-title">🏢 Natixis</div>
+    </div>
+    <div class="section-body" id="body-natixis"></div>
+  </div>
+
+  <!-- ESPÈCES -->
+  <div class="section">
+    <div class="section-head"><div class="section-title">💵 Espèces & Divers</div></div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field-label">Espèces cache / liquide<small>Non placé, hors compte</small></div>
+        <div class="euro-input">
+          <input type="number" id="especeCache" min="0" step="0.01" placeholder="0.00" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Revenu mensuel net<small>Salaire net après impôt</small></div>
+        <div class="euro-input">
+          <input type="number" id="revenuMensuelNet" min="0" step="0.01" placeholder="0.00" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ PANEL : INVESTISSEMENTS ═══ -->
+<div class="panel" id="panel-investissements">
+
+  <!-- PEA -->
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">📈 PEA</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('pea')">＋</button>
+    </div>
+    <div class="section-body" id="body-pea"></div>
+  </div>
+
+  <!-- CTO -->
+  <div class="section accent-green">
+    <div class="section-head">
+      <div class="section-title">📊 CTO</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('cto')">＋</button>
+    </div>
+    <div class="section-body" id="body-cto"></div>
+  </div>
+
+  <!-- REVOLUT INV -->
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">💳 Revolut Invest.</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('revolut')">＋</button>
+    </div>
+    <div class="section-body" id="body-inv-revolut"></div>
+  </div>
+
+  <!-- ÉPARGNE ENTREPRISE -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">🏢 Épargne Entreprise (PEE/PERCO)</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addEERow()">＋</button>
+    </div>
+    <div class="section-body" id="body-ee"></div>
+  </div>
+
+  <!-- ASSURANCE VIE -->
+  <div class="section accent-red">
+    <div class="section-head">
+      <div class="section-title">🛡️ Assurances Vie</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addAVRow()">＋</button>
+    </div>
+    <div class="section-body" id="body-av"></div>
+  </div>
+
+  <!-- ÉPARGNE BLOQUÉE -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">🔒 Épargne Réglementée</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addEBRow()">＋</button>
+    </div>
+    <div class="section-body" id="body-eb"></div>
+  </div>
+
+</div>
+
+<!-- ═══ PANEL : SCPI ═══ -->
+<div class="panel" id="panel-scpi">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">🏢 SCPI</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addSCPIRow()">＋</button>
+    </div>
+    <div class="section-body" id="body-scpi"></div>
+  </div>
+</div>
+
+<!-- ═══ PANEL : ACTIFS ═══ -->
+<div class="panel" id="panel-actifs">
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">🏠 Immobilier</div></div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field-label">Valeur estimée maison<small>Estimation marché actuel</small></div>
+        <div class="euro-input">
+          <input type="number" id="maison" min="0" step="1000" placeholder="0" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATH historique -->
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">🏆 All-Time High</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addATHEntry()">＋ ATH</button>
+    </div>
+    <div class="section-body" id="body-ath">
+      <p style="font-size:11px;color:var(--muted);">Enregistre les pics patrimoniaux successifs.</p>
+    </div>
+  </div>
+
+  <!-- DCA -->
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">📅 Suivi DCA</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDCAEntry()">＋ Versement</button>
+    </div>
+    <div class="section-body" id="body-dca"></div>
+  </div>
+
+</div>
+
+<!-- ═══ PANEL : DÉPENSES ═══ -->
+<div class="panel" id="panel-depenses">
+  <div id="body-depenses"></div>
+</div>
+
+<!-- ═══ PANEL : MOBILITÉ ═══ -->
+<div class="panel" id="panel-mobilite">
+
+  <!-- AUTO -->
+  <div class="section accent-blue">
+    <div class="section-head"><div class="section-title">🚗 Voiture — Kilométrage</div></div>
+    <div class="section-body">
+      <div id="body-odo-auto"></div>
+      <button class="mini-btn" onclick="addOdoEntry('auto')">＋ Relevé kilométrique</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">🚗 Carburant</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Conso (L/100km)</label>
+          <input type="number" id="conso100km" min="0" step="0.1" placeholder="0.0" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Prix au litre (€)</label>
+          <input type="number" id="prixLitre" min="0" step="0.001" placeholder="0.000" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Capacité réservoir (L)</label>
+          <input type="number" id="capaciteTank" min="0" step="1" placeholder="0" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km annuels essence</label>
+          <input type="number" id="essence" min="0" step="100" placeholder="0" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">💼 Trajet domicile-travail</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Distance A/R (km)</label>
+          <input type="number" id="trajetAR" min="0" step="0.1" placeholder="0" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Jours / an</label>
+          <input type="number" id="joursAn" min="0" step="1" placeholder="0" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VÉLO -->
+  <div class="section accent-green">
+    <div class="section-head"><div class="section-title">🚲 Vélo — Kilométrage</div></div>
+    <div class="section-body">
+      <div id="body-odo-velo"></div>
+      <button class="mini-btn" onclick="addOdoEntry('velo')">＋ Relevé kilométrique</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">🔋 Batterie Vélo</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Date de pose</label>
+          <input type="date" id="batDatePose" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km à la pose</label>
+          <input type="number" id="batKmPose" min="0" step="1" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Cycles actuels</label>
+          <input type="number" id="batCycles" min="0" step="1" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Cycles max</label>
+          <input type="number" id="batCyclesMax" min="0" step="1" oninput="autoSave()">
+        </div>
+        <div class="form-field full">
+          <label class="lbl">Durée théorique (km)</label>
+          <input type="number" id="batDureeKm" min="0" step="100" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">⚙️ Moteur Vélo</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Date de pose</label>
+          <input type="date" id="motDatePose" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km à la pose</label>
+          <input type="number" id="motKmPose" min="0" step="1" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km total</label>
+          <input type="number" id="motKmTotal" min="0" step="1" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Durée théorique (km)</label>
+          <input type="number" id="motDureeKm" min="0" step="100" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MODAL KPI EXPORT ═══ -->
+<div id="kpi-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:900;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:14px;width:100%;max-width:400px;overflow:hidden;">
+    <div style="background:var(--surface2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);">📊 Export KPI Terminal</span>
+      <button onclick="closeKpiModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px;">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+      <p style="font-size:11px;color:var(--muted);line-height:1.5;">Génère un JSON chiffré compatible avec <strong style="color:var(--text);">patrimoine_kpi_saisie.html</strong>.<br>Le mot de passe protège les données — il vous sera demandé à l'ouverture.</p>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Mot de passe (requis)</label>
+        <input type="password" id="kpi-pwd" placeholder="••••••••" maxlength="32"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 12px;width:100%;outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')exportKPI()">
+      </div>
+      <div id="kpi-err" style="font-size:11px;color:var(--red);min-height:14px;"></div>
+      <button onclick="exportKPI()" style="background:var(--accent);border:none;color:#1a1e24;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:13px;border-radius:10px;cursor:pointer;width:100%;">💾 Télécharger le fichier KPI</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
 <div id="toast"></div>
 
-<header>
-  <div class="header-left">
-    <div class="terminal-logo">▶ PATRIMOINE</div>
-  </div>
-  <div class="total-display" id="grand-total">— €</div>
-</header>
-
-<div class="status-bar">
-  <span><span class="status-dot"></span>TERMINAL ACTIF</span>
-  <span id="status-date"></span>
+<!-- ═══ BOTTOM BAR ═══ -->
+<div class="bottom-bar">
+  <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
+  <button class="bar-btn primary" onclick="exportJSON()">💾 Exporter JSON</button>
+  <button class="bar-btn" onclick="copyJSON()">📋 Copier</button>
 </div>
 
-<div id="main-content" style="display:none"></div>
-
-<input type="file" id="file-import" accept=".json" style="display:none">
-
-<div class="bottom-bar" id="bottom-bar" style="display:none">
-  <button class="btn-import" onclick="document.getElementById('file-import').click()">⇑ IMPORT</button>
-  <button class="btn-export" onclick="exportJSON()">⇓ EXPORT</button>
-  <button class="btn-reset" onclick="resetAll()">↺</button>
-</div>
+<input type="file" id="fileInput" accept=".json,.patrenenc" style="display:none" onchange="handleFileLoad(event)">
 
 <script>
-// ── SCROLL-SAFE TOUCH ──
-// Empêche les boutons de se déclencher si l'utilisateur scrollait
-let _touchStartY = 0;
-let _touchMoved = false;
-
-document.addEventListener('touchstart', e => {
-  _touchStartY = e.touches[0].clientY;
-  _touchMoved = false;
-}, { passive: true });
-
-document.addEventListener('touchmove', e => {
-  if (Math.abs(e.touches[0].clientY - _touchStartY) > 6) {
-    _touchMoved = true;
-  }
-}, { passive: true });
-
-// Intercept all adj-btn clicks — cancel if finger moved
-document.addEventListener('click', e => {
-  if (_touchMoved && e.target.closest('.adj-btn')) {
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    _touchMoved = false;
-  }
-}, true);
-
-// ── BANK COLORS ──
-const BANK_COLOR_PALETTE = [
-  '#0078ff','#3399ff','#00cc66','#ff8800','#ff3366',
-  '#cc44ff','#00cccc','#ffcc00','#ff6633','#44aaff',
-  '#88ff44','#ff44aa','#aaaaff','#ffaaaa','#aaffaa',
-];
-
-// Default colors per bank (index into palette)
-let bankColors = {};
-
-function getBankColor(bank) {
-  return bankColors[bank] || BANK_COLOR_PALETTE[0];
-}
-
-function setBankColor(bank, color) {
-  bankColors[bank] = color;
-  saveBankColors();
-  applyBankColor(bank, color);
-}
-
-function applyBankColor(bank, color) {
-  const header = document.querySelector(`.bank-header[data-bank="${CSS.escape(bank)}"]`);
-  if (!header) return;
-  const hex = color;
-  // compute dim background: very dark version
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  const bgHex = `rgb(${Math.round(r*0.08)},${Math.round(g*0.08)},${Math.round(b*0.08)})`;
-  header.style.setProperty('--bh-color', hex);
-  header.style.setProperty('--bh-bg', bgHex);
-  // update trigger button color
-  const trigger = header.querySelector('.color-trigger');
-  if (trigger) trigger.style.background = hex;
-  // update swatches active state
-  header.querySelectorAll('.cp-swatch').forEach(sw => {
-    sw.classList.toggle('active', sw.dataset.color === hex);
-  });
-  // update bank name & total color
-  const name = header.querySelector('.bank-name');
-  if (name) name.style.color = hex;
-  const total = header.querySelector('.bank-total');
-  if (total) total.style.color = hex;
-  // update tab button color
-  const tabBtn = document.querySelector(`.tab-btn[data-bank="${bank}"]`);
-  if (tabBtn) tabBtn.style.setProperty('--tab-color', hex);
-}
-
-function saveBankColors() {
-  try { localStorage.setItem('patri_bank_colors', JSON.stringify(bankColors)); } catch(e) {}
-}
-
-function loadBankColors() {
-  try {
-    const raw = localStorage.getItem('patri_bank_colors');
-    if (raw) bankColors = JSON.parse(raw);
-  } catch(e) {}
-}
-
-// ── COLOR POPUP LOGIC ──
-let activePopup = null;
-
-function toggleColorPopup(bank, trigger) {
-  const popup = trigger.nextElementSibling;
-  if (popup.classList.contains('open')) {
-    popup.classList.remove('open');
-    activePopup = null;
-    return;
-  }
-  if (activePopup) activePopup.classList.remove('open');
-  popup.classList.add('open');
-  activePopup = popup;
-}
-
-document.addEventListener('click', e => {
-  if (activePopup && !e.target.closest('.color-trigger') && !e.target.closest('.color-popup')) {
-    activePopup.classList.remove('open');
-    activePopup = null;
-  }
-});
-
-// ── PASSWORD ──
-const PWD_HASH_KEY = 'patri_pwd_hash';
-let sessionKey = null;
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async function checkPwd() {
-  const pwd = document.getElementById('pwd-input').value;
-  if (!pwd) return;
-  const hash = await sha256(pwd);
-  const stored = localStorage.getItem(PWD_HASH_KEY);
-  if (!stored) {
-    localStorage.setItem(PWD_HASH_KEY, hash);
-    sessionKey = pwd;
-    unlock();
-  } else if (stored === hash) {
-    sessionKey = pwd;
-    unlock();
-  } else {
-    document.getElementById('pwd-err').textContent = '// ACCÈS REFUSÉ — MOT DE PASSE INCORRECT';
-  }
-}
-
-document.getElementById('pwd-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') checkPwd();
-});
-
-function unlock() {
-  document.getElementById('pwd-overlay').style.display = 'none';
-  document.getElementById('main-content').style.display = 'block';
-  document.getElementById('bottom-bar').style.display = 'flex';
-  const d = new Date();
-  document.getElementById('status-date').textContent =
-    d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase()
-    + ' ' + d.toTimeString().slice(0,5);
-  loadBankColors();
-  buildUI();
-  loadFromStorage();
-  updateAllTotals();
-}
-
-// ── SCHEMA ──
-const SCHEMA = [
-  { id:'b1_cc',     bank:'BANQUE 1', label:'Compte Courant',   type:'simple'  },
-  { id:'b1_liva',   bank:'BANQUE 1', label:'Livret A',         type:'simple'  },
-  { id:'b1_livb',   bank:'BANQUE 1', label:'Livret B+',        type:'simple'  },
-  { id:'b1_cto',    bank:'BANQUE 1', label:'CTO',              type:'invest'  },
-  { id:'b1_ctoliq', bank:'BANQUE 1', label:'CTO Liquidités',   type:'simple'  },
-  { id:'b1_pea',    bank:'BANQUE 1', label:'PEA',              type:'invest'  },
-  { id:'b1_pealiq', bank:'BANQUE 1', label:'PEA Liquidités',   type:'simple'  },
-  { id:'b1_av',     bank:'BANQUE 1', label:'Assurance Vie',    type:'invest'  },
-
-  { id:'b2_cc',     bank:'BANQUE 2', label:'Compte Courant',   type:'simple'  },
-  { id:'b2_livp',   bank:'BANQUE 2', label:'Livret+',          type:'simple'  },
-  { id:'b2_ldds',   bank:'BANQUE 2', label:'LDDS',             type:'simple'  },
-  { id:'b2_av',     bank:'BANQUE 2', label:'Assurance Vie',    type:'invest'  },
-  { id:'b2_ctoliq', bank:'BANQUE 2', label:'CTO Liquidités',   type:'simple'  },
-  { id:'b2_cto',    bank:'BANQUE 2', label:'CTO',              type:'invest'  },
-  { id:'b2_pealiq', bank:'BANQUE 2', label:'PEA Liquidités',   type:'simple'  },
-  { id:'b2_pea',    bank:'BANQUE 2', label:'PEA',              type:'invest'  },
-
-  { id:'b3_cc',     bank:'BANQUE 3', label:'Compte Courant',   type:'simple'  },
-  { id:'b3_eur',    bank:'BANQUE 3', label:'€ster (€)',        type:'simple'  },
-  { id:'b3_usd',    bank:'BANQUE 3', label:'$ster (USD)',      type:'simple'  },
-  { id:'b3_gold',   bank:'BANQUE 3', label:'Gold (Or)',        type:'invest'  },
-  { id:'b3_actus',  bank:'BANQUE 3', label:'Actions US',       type:'invest'  },
-  { id:'b3_oblig',  bank:'BANQUE 3', label:'Obligations',      type:'invest'  },
-  { id:'b3_reit',   bank:'BANQUE 3', label:'REITs',            type:'simple'  },
-  { id:'b3_crypto', bank:'BANQUE 3', label:'Crypto',           type:'invest'  },
-
-  { id:'b4_pee',    bank:'BANQUE 4', label:'Compte Bloqué PEE',type:'simple' },
-
-  { id:'dv_maison', bank:'DIVERS',   label:'Maison',           type:'simple'  },
-  { id:'dv_liquide',bank:'DIVERS',   label:'Argent Liquide',   type:'simple'  },
-
-  { id:'sc_1',      bank:'SCPI',     label:'SCPI 1',           type:'simple'  },
-  { id:'sc_2',      bank:'SCPI',     label:'SCPI 2',           type:'simple'  },
-  { id:'sc_3',      bank:'SCPI',     label:'SCPI 3',           type:'simple'  },
-  { id:'sc_4',      bank:'SCPI',     label:'SCPI 4',           type:'simple'  },
-];
-
-const BTNS = [-10, -5, -1, 1, 5, 10]; // % buttons — 6 = 2 rows of 3 on small screens
-
-// Default bank colors
-const BANK_DEFAULT_COLORS = {
-  'BANQUE 1': '#0078ff',
-  'BANQUE 2': '#00cc66',
-  'BANQUE 3': '#ff8800',
-  'BANQUE 4': '#cc44ff',
-  'DIVERS':   '#ffcc00',
-  'SCPI':     '#00cccc',
+// ═══════════════════════════════════════════════════════════════════════════
+// DEFAULT DATA (same structure as patrimoine_dashboard.html)
+// ═══════════════════════════════════════════════════════════════════════════
+let DATA = {
+  boursorama:[
+    {label:"Compte courant",val:0,liq:0,risk:1},{label:"Livret A",val:0,liq:1,risk:1},
+    {label:"Livret B+",val:0,liq:1,risk:1},{label:"CTO",val:0,liq:1,risk:4},
+    {label:"CTO Liquidités",val:0,liq:0,risk:1},{label:"PEA",val:0,liq:1,risk:4},
+    {label:"PEA Liquidités",val:0,liq:0,risk:1},{label:"Assurance Vie",val:0,liq:1,risk:3},
+  ],
+  fortuneo:[
+    {label:"Compte Courant",val:0,liq:0,risk:1},{label:"Livret+",val:0,liq:1,risk:1},
+    {label:"LDDS",val:0,liq:1,risk:1},{label:"Assurance Vie",val:0,liq:1,risk:3},
+    {label:"CTO Liquidités",val:0,liq:0,risk:1},{label:"CTO",val:0,liq:1,risk:4},
+    {label:"PEA Liquidités",val:0,liq:0,risk:1},{label:"PEA",val:0,liq:1,risk:4},
+  ],
+  revolut:[
+    {label:"Compte Courant",val:0,liq:0,risk:1},{label:"€ster (€)",val:0,liq:0,risk:1},
+    {label:"$ster (USD)",val:0,liq:0,risk:2},{label:"Gold (or)",val:0,liq:1,risk:3},
+    {label:"Actions US",val:0,liq:1,risk:5},{label:"Obligations",val:0,liq:1,risk:2},
+    {label:"REITs",val:0,liq:1,risk:4},{label:"Crypto",val:0,liq:1,risk:7},
+  ],
+  natixis:[{label:"Placement",val:0,liq:1,risk:2}],
+  liens:{
+    boursorama:"https://clients.boursobank.com/",
+    fortuneo:"https://clients.fortuneo.fr/index.php",
+    revolut:"https://app.revolut.com/home",
+    natixis:"https://www.assurances.natixis.fr/espaceClient/login.do",
+    carburant:"https://www.e.leclerc/mag/e-leclerc-bourg-les-valence",
+  },
+  scpi:[
+    {gestionnaire:"ALDERAN",produit:"Activimmo Falcon",parts:34,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:"https://www.alderan-re.com/activimmo/"},
+    {gestionnaire:"ATLAND VOISIN",produit:"Epargne Pierre",parts:98,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:""},
+    {gestionnaire:"NORMACAPITAL",produit:"Vendome Région",parts:30,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:""},
+    {gestionnaire:"PERIAL",produit:"PFO Perial",parts:400,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:""},
+  ],
+  maison:0,
+  especeCache:0,
+  revenuMensuelNet:0,
+  ath:[],
+  dca:[],
+  depenses:{
+    categories:[
+      {nom:"Impôts & Taxes",icon:"🏛️",color:"#ef4444",items:[
+        {label:"Impôt sur le revenu",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Taxe foncière",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Logement & Énergie",icon:"🏠",color:"#d4875a",items:[
+        {label:"Électricité (Engie)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Eau",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Bois chauffage",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Ramonage",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Assurances & Santé",icon:"🛡️",color:"#3b82f6",items:[
+        {label:"Assurance auto (AXA)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Assurance responsabilité (AXA)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Assurance habitation (AXA)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Mutuelle",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Télécom",icon:"📡",color:"#7eb8d4",items:[
+        {label:"Téléphone (RED SFR)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Internet (RED SFR)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Vie Courante",icon:"🛒",color:"#7eb8d4",items:[
+        {label:"Alimentation (E.Leclerc Drive)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Essence (E.Leclerc)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Entretien voiture (Feu Vert)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Crédit immobilier",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Chien / Chat",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Ménage",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+    ]
+  },
+  investissements:{
+    pea:[
+      {nom:"iShares MSCI World Swap PEA UCITS ETF - EUR ACC",ticker:"WPEA",isin:"IE0002XZSHO1",qte:0.5,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+    ],
+    cto:[
+      {nom:"iShares MSCI World Swap PEA UCITS ETF - EUR ACC",ticker:"WPEA",isin:"IE0002XZSHO1",qte:0.3,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+    ],
+    revolut:[
+      {nom:"Bitcoin",ticker:"BTC",isin:"",qte:0.1234,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+      {nom:"Or (XAU/EUR)",ticker:"XAU",isin:"",qte:3.5,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+    ],
+    epargne_entreprise:[
+      {nom:"PEE — Natixis",fonds:"Fonds diversifié",parts:10,pr:0,valeurActuelle:0,tauxRendement:0,url:""},
+    ],
+    assurance_vie:[
+      {nom:"Assurance Vie Boursorama",assureur:"Boursorama",contrat:"",versements:0,valeurActuelle:0,tauxRendement:0,url:""},
+      {nom:"Assurance Vie Fortuneo",assureur:"Fortuneo",contrat:"",versements:0,valeurActuelle:0,tauxRendement:0,url:""},
+    ],
+    epargne_bloquee:[
+      {nom:"Livret A — Boursorama",type:"Livret A",banque:"Boursorama",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+      {nom:"Livret B+ — Boursorama",type:"Livret B+",banque:"Boursorama",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+      {nom:"LDDS — Fortuneo",type:"LDDS",banque:"Fortuneo",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+      {nom:"Livret+ — Fortuneo",type:"Livret+",banque:"Fortuneo",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+    ],
+  },
+  mobilite:{
+    auto:{
+      odoLog:[{date:"",km:0}],
+      composants:[],
+      entretien:[],
+    },
+    velo:{
+      odoLog:[{date:"",km:0}],
+      batterie:{datePose:"",kmPose:0,cyclesActuels:0,cyclesMax:150,dureeTheoKm:6750},
+      moteur:{datePose:"",kmPose:0,kmTotal:0,dureeTheoKm:12000},
+    },
+    travail:{trajetAR:0,joursAn:0},
+    carburant:{essence:0,prixLitre:0,capaciteTank:0,conso100km:0},
+  },
 };
 
-let state = {};
-SCHEMA.forEach(s => {
-  state[s.id] = s.type === 'invest'
-    ? { valeur: 0, prixRevient: 0, quantite: 0 }
-    : { valeur: 0 };
-});
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(name.slice(0,4)));
+  });
+  // fix tab btn highlight
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const map = {banques:0,investissements:1,scpi:2,actifs:3,depenses:4,mobilite:5};
+  document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+}
 
-// ── BUILD UI ──
-function buildUI() {
-  const banks = [...new Set(SCHEMA.map(s => s.bank))];
-  const container = document.getElementById('main-content');
-  container.innerHTML = '';
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER BANK ROWS
+// ═══════════════════════════════════════════════════════════════════════════
+const MANAGED = {
+  boursorama: [3,5,7], // CTO, PEA, AV → gérés dans Invest
+  fortuneo:   [3,5,7],
+  revolut:    [3,7],
+  natixis:    [0],
+};
 
-  // Grand total at top
-  const gtRow = document.createElement('div');
-  gtRow.className = 'grand-total-row';
-  gtRow.innerHTML = `<span class="gt-label">▶ TOTAL PATRIMOINE</span><span class="gt-value" id="grand-total-body">— €</span>`;
-  container.appendChild(gtRow);
+function renderBank(bankKey, containerId) {
+  const rows = DATA[bankKey];
+  const managed = MANAGED[bankKey] || [];
+  const container = document.getElementById(containerId);
+  container.innerHTML = rows.map((r, i) => {
+    const isManaged = managed.includes(i);
+    const liqLabel = r.liq === 0 ? '⚡ Immédiat' : r.liq === 1 ? '⏱ 1-3 mois' : '🔒 +6 mois';
+    const badgeClass = r.liq === 0 ? 'green' : r.liq === 1 ? 'blue' : '';
+    return `<div class="field-row">
+      <div class="field-label">${r.label}
+        <small><span class="badge ${badgeClass}">${liqLabel}</span> ${isManaged ? '<span class="badge" title="Synchronisé depuis Investissements">⇄ Auto</span>' : ''}</small>
+      </div>
+      <div class="euro-input">
+        <input type="number" 
+          id="${bankKey}_${i}" 
+          min="0" step="0.01" 
+          value="${r.val || ''}" 
+          placeholder="0.00"
+          ${isManaged ? 'readonly style="color:var(--muted);cursor:not-allowed;"' : ''}
+          oninput="DATA['${bankKey}'][${i}].val=parseFloat(this.value)||0;autoSave()">
+        <span class="unit">€</span>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  // Tabs bar
-  const tabsBar = document.createElement('div');
-  tabsBar.className = 'tabs-bar';
-  container.appendChild(tabsBar);
+function renderAllBanks() {
+  renderBank('boursorama', 'body-boursorama');
+  renderBank('fortuneo', 'body-fortuneo');
+  renderBank('revolut', 'body-revolut');
+  renderBank('natixis', 'body-natixis');
+  document.getElementById('especeCache').value = DATA.especeCache || '';
+  document.getElementById('revenuMensuelNet').value = DATA.revenuMensuelNet || '';
+}
 
-  // Panels container
-  const panelsContainer = document.createElement('div');
-  panelsContainer.id = 'panels-container';
-  container.appendChild(panelsContainer);
-
-  banks.forEach((bank, idx) => {
-    const accounts = SCHEMA.filter(s => s.bank === bank);
-    const color = bankColors[bank] || BANK_DEFAULT_COLORS[bank] || BANK_COLOR_PALETTE[0];
-    const safeId = bank.replace(/\s/g,'_');
-
-    // Tab button
-    const tabBtn = document.createElement('button');
-    tabBtn.className = 'tab-btn' + (idx === 0 ? ' active' : '');
-    tabBtn.dataset.bank = bank;
-    tabBtn.style.setProperty('--tab-color', color);
-    tabBtn.innerHTML = `${bank}<span class="tab-total" id="tab-total-${safeId}">— €</span>`;
-    tabBtn.onclick = () => switchTab(bank);
-    tabsBar.appendChild(tabBtn);
-
-    // Panel
-    const r = parseInt(color.slice(1,3),16);
-    const g = parseInt(color.slice(3,5),16);
-    const b = parseInt(color.slice(5,7),16);
-    const bgColor = `rgb(${Math.round(r*0.08)},${Math.round(g*0.08)},${Math.round(b*0.08)})`;
-
-    const swatches = BANK_COLOR_PALETTE.map(c =>
-      `<div class="cp-swatch${c===color?' active':''}" data-color="${c}" style="background:${c}"
-        onclick="setBankColor('${bank}','${c}');this.closest('.color-popup').classList.remove('open');activePopup=null;event.stopPropagation()"></div>`
-    ).join('');
-
-    const panel = document.createElement('div');
-    panel.className = 'tab-panel' + (idx === 0 ? ' active' : '');
-    panel.id = `panel-${safeId}`;
-    panel.innerHTML = `
-      <div class="bank-section" style="margin-top:10px">
-        <div class="bank-header" data-bank="${bank}"
-             style="--bh-color:${color};--bh-bg:${bgColor}">
-          <div class="bank-name" style="color:${color}">${bank}</div>
-          <div class="bank-header-right">
-            <div class="bank-total" id="bank-total-${safeId}" style="color:${color}">0 €</div>
-            <div class="color-trigger" style="background:${color}"
-                 onclick="toggleColorPopup('${bank}',this);event.stopPropagation()"></div>
-            <div class="color-popup">${swatches}</div>
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER INVESTISSEMENTS — PEA/CTO/Revolut
+// ═══════════════════════════════════════════════════════════════════════════
+function renderInvPortfolio(key, containerId) {
+  const rows = DATA.investissements[key] || [];
+  const container = document.getElementById(containerId);
+  container.innerHTML = rows.map((r, i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.ticker || r.nom || '—'}</span>
+        <button class="del-btn" onclick="delInvRow('${key}',${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom</label>
+            <input type="text" value="${r.nom||''}" placeholder="Nom complet" 
+              oninput="DATA.investissements['${key}'][${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Ticker</label>
+            <input type="text" value="${r.ticker||''}" placeholder="ex: WPEA" 
+              oninput="DATA.investissements['${key}'][${i}].ticker=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">ISIN</label>
+            <input type="text" value="${r.isin||''}" placeholder="IE000..." 
+              oninput="DATA.investissements['${key}'][${i}].isin=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Quantité</label>
+            <input type="number" value="${r.qte||''}" step="0.0001" min="0" placeholder="0.0000"
+              oninput="DATA.investissements['${key}'][${i}].qte=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">PRU (€)</label>
+            <input type="number" value="${r.pr||''}" step="0.01" min="0" placeholder="0.00"
+              oninput="DATA.investissements['${key}'][${i}].pr=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Cours actuel (€)</label>
+            <input type="number" value="${r.coursActuel||''}" step="0.01" min="0" placeholder="0.00"
+              oninput="DATA.investissements['${key}'][${i}].coursActuel=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Var. jour (%)</label>
+            <input type="number" value="${r.varJour||''}" step="0.01" placeholder="0.00"
+              oninput="DATA.investissements['${key}'][${i}].varJour=parseFloat(this.value)||0;autoSave()">
           </div>
         </div>
-        <div class="bank-body">
-          ${accounts.map(acc => buildRow(acc)).join('')}
-        </div>
-      </div>`;
-    panelsContainer.appendChild(panel);
-  });
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ pour ajouter.</p>';
+}
 
-  // Attach events
-  SCHEMA.forEach(acc => {
-    const fields = acc.type === 'invest' ? ['valeur','prixRevient','quantite'] : ['valeur'];
-    fields.forEach(field => {
-      const inp = document.getElementById(`inp-${acc.id}-${field}`);
-      if (inp) inp.addEventListener('input', () => { syncState(acc.id, field, inp); updateAllTotals(); });
+function addInvRow(key) {
+  DATA.investissements[key].push({nom:'',ticker:'',isin:'',qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:''});
+  renderInvPortfolio(key, 'body-'+key);
+  if(key==='revolut') renderInvPortfolio('revolut','body-inv-revolut');
+  autoSave();
+}
+function delInvRow(key, i) {
+  DATA.investissements[key].splice(i,1);
+  renderInvPortfolio(key, key==='revolut'?'body-inv-revolut':'body-'+key);
+  syncInvToBank();
+  autoSave();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ÉPARGNE ENTREPRISE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderEE() {
+  const rows = DATA.investissements.epargne_entreprise || [];
+  const c = document.getElementById('body-ee');
+  c.innerHTML = rows.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.nom||'PEE/PERCO'}</span>
+        <button class="del-btn" onclick="delEERow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom du produit</label>
+            <input type="text" value="${r.nom||''}" placeholder="ex: PEE Natixis"
+              oninput="DATA.investissements.epargne_entreprise[${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field full">
+            <label class="lbl">Fonds / Détail</label>
+            <input type="text" value="${r.fonds||''}" placeholder="Fonds diversifié"
+              oninput="DATA.investissements.epargne_entreprise[${i}].fonds=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Nb parts</label>
+            <input type="number" value="${r.parts||''}" step="0.01" min="0"
+              oninput="DATA.investissements.epargne_entreprise[${i}].parts=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">PRU (€)</label>
+            <input type="number" value="${r.pr||''}" step="0.01" min="0"
+              oninput="DATA.investissements.epargne_entreprise[${i}].pr=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Valeur actuelle (€)</label>
+            <input type="number" value="${r.valeurActuelle||''}" step="0.01" min="0"
+              oninput="DATA.investissements.epargne_entreprise[${i}].valeurActuelle=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Taux rendement (%)</label>
+            <input type="number" value="${r.tauxRendement||''}" step="0.01"
+              oninput="DATA.investissements.epargne_entreprise[${i}].tauxRendement=parseFloat(this.value)||0;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+function addEERow() { DATA.investissements.epargne_entreprise.push({nom:'',fonds:'',parts:0,pr:0,valeurActuelle:0,tauxRendement:0,url:''}); renderEE(); autoSave(); }
+function delEERow(i) { DATA.investissements.epargne_entreprise.splice(i,1); renderEE(); autoSave(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ASSURANCE VIE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderAV() {
+  const rows = DATA.investissements.assurance_vie || [];
+  const c = document.getElementById('body-av');
+  c.innerHTML = rows.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.nom||'Assurance Vie'}</span>
+        <button class="del-btn" onclick="delAVRow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom du contrat</label>
+            <input type="text" value="${r.nom||''}"
+              oninput="DATA.investissements.assurance_vie[${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Assureur</label>
+            <input type="text" value="${r.assureur||''}"
+              oninput="DATA.investissements.assurance_vie[${i}].assureur=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">N° contrat</label>
+            <input type="text" value="${r.contrat||''}"
+              oninput="DATA.investissements.assurance_vie[${i}].contrat=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Versements (€)</label>
+            <input type="number" value="${r.versements||''}" step="0.01" min="0"
+              oninput="DATA.investissements.assurance_vie[${i}].versements=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Valeur actuelle (€)</label>
+            <input type="number" value="${r.valeurActuelle||''}" step="0.01" min="0"
+              oninput="DATA.investissements.assurance_vie[${i}].valeurActuelle=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+          </div>
+          <div class="form-field full">
+            <label class="lbl">Taux rendement (%)</label>
+            <input type="number" value="${r.tauxRendement||''}" step="0.01"
+              oninput="DATA.investissements.assurance_vie[${i}].tauxRendement=parseFloat(this.value)||0;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+function addAVRow() { DATA.investissements.assurance_vie.push({nom:'',assureur:'',contrat:'',versements:0,valeurActuelle:0,tauxRendement:0,url:''}); renderAV(); autoSave(); }
+function delAVRow(i) { DATA.investissements.assurance_vie.splice(i,1); renderAV(); autoSave(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ÉPARGNE BLOQUÉE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderEB() {
+  const rows = DATA.investissements.epargne_bloquee || [];
+  const c = document.getElementById('body-eb');
+  c.innerHTML = rows.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.nom||'Livret'} <span class="badge">${r.type||''}</span></span>
+        <button class="del-btn" onclick="delEBRow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom</label>
+            <input type="text" value="${r.nom||''}"
+              oninput="DATA.investissements.epargne_bloquee[${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Type</label>
+            <select oninput="DATA.investissements.epargne_bloquee[${i}].type=this.value;autoSave()">
+              ${["Livret A","LDDS","Livret+","Livret B+","PEL","CEL","Autre"].map(t=>`<option${r.type===t?' selected':''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="lbl">Banque</label>
+            <input type="text" value="${r.banque||''}"
+              oninput="DATA.investissements.epargne_bloquee[${i}].banque=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Montant (€)</label>
+            <input type="number" value="${r.montant||''}" step="0.01" min="0"
+              oninput="DATA.investissements.epargne_bloquee[${i}].montant=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Taux annuel (%)</label>
+            <input type="number" value="${r.tauxAnnuel||''}" step="0.01" min="0"
+              oninput="DATA.investissements.epargne_bloquee[${i}].tauxAnnuel=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Date ouverture</label>
+            <input type="date" value="${r.dateOuverture||''}"
+              oninput="DATA.investissements.epargne_bloquee[${i}].dateOuverture=this.value;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+function addEBRow() { DATA.investissements.epargne_bloquee.push({nom:'',type:'Livret A',banque:'',montant:0,tauxAnnuel:0,dateOuverture:'',url:''}); renderEB(); autoSave(); }
+function delEBRow(i) { DATA.investissements.epargne_bloquee.splice(i,1); renderEB(); autoSave(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYNC INV → BANK (auto)
+// ═══════════════════════════════════════════════════════════════════════════
+function syncInvToBank() {
+  // AV Boursorama → boursorama[7]
+  const avBourso = DATA.investissements.assurance_vie.find(a=>a.assureur==='Boursorama'||a.nom.toLowerCase().includes('bourso'));
+  if(avBourso) DATA.boursorama[7].val = avBourso.valeurActuelle;
+  // AV Fortuneo → fortuneo[3]
+  const avFort = DATA.investissements.assurance_vie.find(a=>a.assureur==='Fortuneo'||a.nom.toLowerCase().includes('fortuneo'));
+  if(avFort) DATA.fortuneo[3].val = avFort.valeurActuelle;
+  // CTO Fortuneo → fortuneo[5]: sum of cto rows
+  const ctoPEA = DATA.investissements.cto.reduce((s,r)=>s+r.qte*r.coursActuel,0);
+  DATA.fortuneo[5].val = ctoPEA;
+  // PEA Fortuneo → fortuneo[7]: sum of pea rows  
+  const pea = DATA.investissements.pea.reduce((s,r)=>s+r.qte*r.coursActuel,0);
+  DATA.fortuneo[7].val = pea;
+  // Or Revolut → revolut[3]
+  const or = DATA.investissements.revolut.find(r=>r.ticker==='XAU'||r.nom.toLowerCase().includes('or'));
+  if(or) DATA.revolut[3].val = or.qte * or.coursActuel;
+  // Crypto Revolut → revolut[7]
+  const btc = DATA.investissements.revolut.find(r=>r.ticker==='BTC'||r.nom.toLowerCase().includes('bitcoin'));
+  if(btc) DATA.revolut[7].val = btc.qte * btc.coursActuel;
+  // EE → Natixis[0]
+  const ee = DATA.investissements.epargne_entreprise.reduce((s,r)=>s+r.valeurActuelle,0);
+  DATA.natixis[0].val = ee;
+  // Refresh bank display inputs
+  ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+    const managed = MANAGED[bank] || [];
+    managed.forEach(i => {
+      const inp = document.getElementById(`${bank}_${i}`);
+      if(inp) inp.value = DATA[bank][i].val || '';
     });
   });
-
-  document.getElementById('file-import').addEventListener('change', importJSON);
 }
 
-function switchTab(bank) {
-  const banks = [...new Set(SCHEMA.map(s => s.bank))];
-  banks.forEach(b => {
-    const safeId = b.replace(/\s/g,'_');
-    const btn = document.querySelector(`.tab-btn[data-bank="${b}"]`);
-    const panel = document.getElementById(`panel-${safeId}`);
-    const active = b === bank;
-    if (btn) btn.classList.toggle('active', active);
-    if (panel) panel.classList.toggle('active', active);
-  });
-}
-
-
-function buildRow(acc) {
-  const isInvest = acc.type === 'invest';
-
-  const btns = BTNS.map(v => {
-    const cls = v < 0 ? 'neg' : 'pos';
-    const label = v > 0 ? `+${v}` : `${v}`;
-    return `<button class="adj-btn ${cls}"
-      onclick="adjPct('${acc.id}','valeur',${v})">${label}%</button>`;
-  }).join('');
-
-  const investExtra = isInvest ? `
-    <div class="field-wrap">
-      <label>Prix de revient (€)</label>
-      <input type="number" id="inp-${acc.id}-prixRevient" value="0" step="0.01" inputmode="decimal" placeholder="0">
-    </div>
-    <div class="field-wrap">
-      <label>Quantité</label>
-      <input type="number" id="inp-${acc.id}-quantite" value="0" step="0.0001" inputmode="decimal" placeholder="0">
-    </div>` : '';
-
-  const computed = isInvest ? `
-    <div class="computed-line">
-      <span>P.R. TOTAL</span>
-      <span class="cv" id="pr-total-${acc.id}">0 €</span>
-    </div>
-    <div class="computed-line">
-      <span>+/- VALUE</span>
-      <span class="cv" id="pv-${acc.id}">0 €</span>
-    </div>` : '';
-
-  return `
-    <div class="row" id="row-${acc.id}">
-      <div class="row-top">
-        <div class="row-label">${acc.label}</div>
-        <div class="row-value zero" id="disp-${acc.id}">0 €</div>
+// ═══════════════════════════════════════════════════════════════════════════
+// SCPI
+// ═══════════════════════════════════════════════════════════════════════════
+function renderSCPI() {
+  const c = document.getElementById('body-scpi');
+  c.innerHTML = DATA.scpi.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.produit||'SCPI'}</span>
+        <button class="del-btn" onclick="delSCPIRow(${i})">✕</button>
       </div>
-      <div class="fields-grid${isInvest?' invest':''}">
-        <div class="field-wrap${isInvest?' f-main':''}">
-          <label>Valeur (€)</label>
-          <input type="number" id="inp-${acc.id}-valeur" value="0" step="0.01" inputmode="decimal" placeholder="0">
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field">
+            <label class="lbl">Gestionnaire</label>
+            <input type="text" value="${r.gestionnaire||''}"
+              oninput="DATA.scpi[${i}].gestionnaire=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Produit</label>
+            <input type="text" value="${r.produit||''}"
+              oninput="DATA.scpi[${i}].produit=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Nb parts</label>
+            <input type="number" value="${r.parts||''}" step="1" min="0"
+              oninput="DATA.scpi[${i}].parts=parseInt(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Prix achat (€)</label>
+            <input type="number" value="${r.pxAchat||''}" step="0.01" min="0"
+              oninput="DATA.scpi[${i}].pxAchat=parseFloat(this.value)||0;DATA.scpi[${i}].montantPlace=DATA.scpi[${i}].parts*DATA.scpi[${i}].pxAchat;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Prix actuel (€)</label>
+            <input type="number" value="${r.pxActuel||''}" step="0.01" min="0"
+              oninput="DATA.scpi[${i}].pxActuel=parseFloat(this.value)||0;DATA.scpi[${i}].totalActuel=DATA.scpi[${i}].parts*DATA.scpi[${i}].pxActuel;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Montant placé (€)</label>
+            <input type="number" value="${r.montantPlace||''}" step="0.01" min="0"
+              oninput="DATA.scpi[${i}].montantPlace=parseFloat(this.value)||0;autoSave()">
+          </div>
         </div>
-        ${investExtra}
       </div>
-      <div class="btn-row">${btns}</div>
-      ${computed}
-    </div>`;
+    </div>`).join('');
+}
+function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:''}); renderSCPI(); autoSave(); }
+function delSCPIRow(i) { DATA.scpi.splice(i,1); renderSCPI(); autoSave(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ATH + DCA
+// ═══════════════════════════════════════════════════════════════════════════
+function renderATH() {
+  const c = document.getElementById('body-ath');
+  const rows = DATA.ath || [];
+  c.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Enregistre les pics patrimoniaux successifs.</p>` +
+    (rows.length ? `<table class="log-table"><thead><tr><th>Date</th><th>Montant (€)</th><th></th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr>
+      <td><input type="date" value="${r.date||''}" style="width:130px" oninput="DATA.ath[${i}].date=this.value;autoSave()"></td>
+      <td><input type="number" value="${r.val||''}" step="0.01" min="0" style="width:120px;text-align:right" oninput="DATA.ath[${i}].val=parseFloat(this.value)||0;autoSave()"></td>
+      <td><button class="del-btn" onclick="DATA.ath.splice(${i},1);renderATH();autoSave()">✕</button></td>
+    </tr>`).join('')}
+    </tbody></table>` : '');
+}
+function addATHEntry() {
+  if(!DATA.ath) DATA.ath=[];
+  DATA.ath.push({date:new Date().toISOString().slice(0,10),val:0});
+  renderATH(); autoSave();
 }
 
-// ── STATE & ADJUST ──
-function adj(id, field, delta) {
-  state[id][field] = round2((state[id][field] || 0) + delta);
-  const inp = document.getElementById(`inp-${id}-${field}`);
-  if (inp) inp.value = state[id][field];
-  updateAllTotals(); saveToStorage();
+function renderDCA() {
+  const c = document.getElementById('body-dca');
+  const rows = DATA.dca || [];
+  c.innerHTML = rows.length ? `<table class="log-table"><thead><tr><th>Date</th><th>Montant (€)</th><th>Ticker</th><th></th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr>
+      <td><input type="date" value="${r.date||''}" style="width:120px" oninput="DATA.dca[${i}].date=this.value;autoSave()"></td>
+      <td><input type="number" value="${r.montant||''}" step="0.01" min="0" style="width:90px;text-align:right" oninput="DATA.dca[${i}].montant=parseFloat(this.value)||0;autoSave()"></td>
+      <td><input type="text" value="${r.ticker||''}" style="width:70px" oninput="DATA.dca[${i}].ticker=this.value;autoSave()"></td>
+      <td><button class="del-btn" onclick="DATA.dca.splice(${i},1);renderDCA();autoSave()">✕</button></td>
+    </tr>`).join('')}
+    </tbody></table>` : '<p style="font-size:11px;color:var(--muted);">Aucun versement enregistré.</p>';
+}
+function addDCAEntry() {
+  if(!DATA.dca) DATA.dca=[];
+  DATA.dca.push({date:new Date().toISOString().slice(0,10),montant:0,ticker:'WPEA'});
+  renderDCA(); autoSave();
 }
 
-function adjPct(id, field, pct) {
-  const current = state[id][field] || 0;
-  const delta = round2(current * pct / 100);
-  state[id][field] = round2(current + delta);
-  const inp = document.getElementById(`inp-${id}-${field}`);
-  if (inp) inp.value = state[id][field];
-  updateAllTotals(); saveToStorage();
+// ═══════════════════════════════════════════════════════════════════════════
+// DÉPENSES
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDepenses() {
+  const c = document.getElementById('body-depenses');
+  c.innerHTML = DATA.depenses.categories.map((cat, ci) => `
+    <div class="section" style="margin-bottom:16px;">
+      <div class="section-head">
+        <div class="section-title">${cat.icon} ${cat.nom}</div>
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDepenseItem(${ci})">＋</button>
+      </div>
+      <div class="section-body">
+        ${cat.items.map((item,ii) => `
+          <div class="card" style="margin-bottom:8px;">
+            <div class="card-head">
+              <span class="card-title-sm" style="font-size:10px;">${item.label}</span>
+              <button class="del-btn" onclick="delDepenseItem(${ci},${ii})">✕</button>
+            </div>
+            <div class="card-body">
+              <div class="grid2">
+                <div class="form-field full">
+                  <label class="lbl">Label</label>
+                  <input type="text" value="${item.label||''}"
+                    oninput="DATA.depenses.categories[${ci}].items[${ii}].label=this.value;renderDepenses();autoSave()">
+                </div>
+                <div class="form-field">
+                  <label class="lbl">Mensuel (€)</label>
+                  <input type="number" value="${item.mensuel||''}" step="0.01" min="0"
+                    oninput="DATA.depenses.categories[${ci}].items[${ii}].mensuel=parseFloat(this.value)||0;DATA.depenses.categories[${ci}].items[${ii}].annuel=DATA.depenses.categories[${ci}].items[${ii}].mensuel*12;autoSave()">
+                </div>
+                <div class="form-field">
+                  <label class="lbl">Annuel (€)</label>
+                  <input type="number" value="${item.annuel||''}" step="0.01" min="0"
+                    oninput="DATA.depenses.categories[${ci}].items[${ii}].annuel=parseFloat(this.value)||0;autoSave()">
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function addDepenseItem(ci) {
+  DATA.depenses.categories[ci].items.push({label:'Nouvelle dépense',mensuel:0,annuel:0,url:'',note:'mensuel'});
+  renderDepenses(); autoSave();
+}
+function delDepenseItem(ci, ii) {
+  DATA.depenses.categories[ci].items.splice(ii,1);
+  renderDepenses(); autoSave();
 }
 
-function syncState(id, field, inp) {
-  state[id][field] = parseFloat(inp.value) || 0;
-  saveToStorage();
+// ═══════════════════════════════════════════════════════════════════════════
+// MOBILITÉ
+// ═══════════════════════════════════════════════════════════════════════════
+function renderOdo(vehicle, containerId) {
+  const log = DATA.mobilite[vehicle].odoLog || [];
+  const c = document.getElementById(containerId);
+  c.innerHTML = log.length ? `<table class="log-table"><thead><tr><th>Date</th><th>Km</th><th></th></tr></thead><tbody>
+    ${log.map((r,i)=>`<tr>
+      <td><input type="date" value="${r.date||''}" style="width:130px" oninput="DATA.mobilite['${vehicle}'].odoLog[${i}].date=this.value;autoSave()"></td>
+      <td><input type="number" value="${r.km||''}" step="1" min="0" style="width:100px;text-align:right" oninput="DATA.mobilite['${vehicle}'].odoLog[${i}].km=parseInt(this.value)||0;autoSave()"></td>
+      <td><button class="del-btn" onclick="DATA.mobilite['${vehicle}'].odoLog.splice(${i},1);renderOdo('${vehicle}','${containerId}');autoSave()">✕</button></td>
+    </tr>`).join('')}
+    </tbody></table>` : '<p style="font-size:11px;color:var(--muted);">Aucun relevé.</p>';
+}
+function addOdoEntry(vehicle) {
+  DATA.mobilite[vehicle].odoLog.push({date:new Date().toISOString().slice(0,10),km:0});
+  renderOdo(vehicle, 'body-odo-'+vehicle);
+  autoSave();
 }
 
-function round2(n) { return Math.round(n * 100) / 100; }
-
-function fmtEur(n) {
-  const abs = Math.abs(n);
-  const sign = n < 0 ? '-' : '';
-  return sign + abs.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+function renderMobilite() {
+  renderOdo('auto','body-odo-auto');
+  renderOdo('velo','body-odo-velo');
+  const m = DATA.mobilite;
+  const v = (id, val) => { const e = document.getElementById(id); if(e) e.value = val||''; };
+  v('conso100km', m.carburant.conso100km);
+  v('prixLitre', m.carburant.prixLitre);
+  v('capaciteTank', m.carburant.capaciteTank);
+  v('essence', m.carburant.essence);
+  v('trajetAR', m.travail.trajetAR);
+  v('joursAn', m.travail.joursAn);
+  v('batDatePose', m.velo.batterie.datePose);
+  v('batKmPose', m.velo.batterie.kmPose);
+  v('batCycles', m.velo.batterie.cyclesActuels);
+  v('batCyclesMax', m.velo.batterie.cyclesMax);
+  v('batDureeKm', m.velo.batterie.dureeTheoKm);
+  v('motDatePose', m.velo.moteur.datePose);
+  v('motKmPose', m.velo.moteur.kmPose);
+  v('motKmTotal', m.velo.moteur.kmTotal);
+  v('motDureeKm', m.velo.moteur.dureeTheoKm);
 }
 
-function updateAllTotals() {
-  let grand = 0;
-  const bankTotals = {};
-
-  SCHEMA.forEach(acc => {
-    const s = state[acc.id];
-    const val = s.valeur || 0;
-
-    const disp = document.getElementById(`disp-${acc.id}`);
-    if (disp) {
-      disp.textContent = fmtEur(val);
-      disp.className = 'row-value ' + (val > 0 ? 'positive' : val < 0 ? 'negative' : 'zero');
-    }
-
-    const inpV = document.getElementById(`inp-${acc.id}-valeur`);
-    if (inpV && parseFloat(inpV.value) !== val) inpV.value = val || '';
-
-    if (acc.type === 'invest') {
-      const pr = s.prixRevient || 0;
-      const qt = s.quantite || 0;
-      const prTotal = round2(pr * qt);
-      const pv = round2(val - prTotal);
-
-      const prEl = document.getElementById(`pr-total-${acc.id}`);
-      if (prEl) { prEl.textContent = fmtEur(prTotal); prEl.className = 'cv'; }
-
-      const pvEl = document.getElementById(`pv-${acc.id}`);
-      if (pvEl) {
-        pvEl.textContent = (pv >= 0 ? '+' : '') + fmtEur(pv);
-        pvEl.className = 'cv ' + (pv > 0 ? 'pos' : pv < 0 ? 'neg' : '');
-      }
-
-      const inpPR = document.getElementById(`inp-${acc.id}-prixRevient`);
-      if (inpPR && parseFloat(inpPR.value) !== pr) inpPR.value = pr || '';
-      const inpQt = document.getElementById(`inp-${acc.id}-quantite`);
-      if (inpQt && parseFloat(inpQt.value) !== qt) inpQt.value = qt || '';
-    }
-
-    grand += val;
-    if (!bankTotals[acc.bank]) bankTotals[acc.bank] = 0;
-    bankTotals[acc.bank] += val;
-  });
-
-  Object.entries(bankTotals).forEach(([bank, total]) => {
-    const safeId = bank.replace(/\s/g,'_');
-    const el = document.getElementById(`bank-total-${safeId}`);
-    if (el) el.textContent = fmtEur(total);
-    const tabEl = document.getElementById(`tab-total-${safeId}`);
-    if (tabEl) tabEl.textContent = fmtEur(total);
-  });
-
-  const fmt = fmtEur(grand);
-  const gtH = document.getElementById('grand-total');
-  const gtB = document.getElementById('grand-total-body');
-  if (gtH) gtH.textContent = fmt;
-  if (gtB) gtB.textContent = fmt;
-}
-
-// ── STORAGE ──
-const LS_KEY = 'patri_saisie_v2';
-
-function saveToStorage() {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
-}
-
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return;
-    const loaded = JSON.parse(raw);
-    Object.keys(loaded).forEach(id => {
-      if (state[id]) Object.assign(state[id], loaded[id]);
+function bindMobiliteEvents() {
+  const b = (id, path) => {
+    const e = document.getElementById(id);
+    if(!e) return;
+    e.addEventListener('input', () => {
+      const keys = path.split('.');
+      let obj = DATA;
+      keys.slice(0,-1).forEach(k => obj = obj[k]);
+      const last = keys[keys.length-1];
+      const val = e.type==='date' ? e.value : (parseFloat(e.value)||0);
+      obj[last] = val;
+      autoSave();
     });
-  } catch(e) {}
+  };
+  b('conso100km','mobilite.carburant.conso100km');
+  b('prixLitre','mobilite.carburant.prixLitre');
+  b('capaciteTank','mobilite.carburant.capaciteTank');
+  b('essence','mobilite.carburant.essence');
+  b('trajetAR','mobilite.travail.trajetAR');
+  b('joursAn','mobilite.travail.joursAn');
+  b('batDatePose','mobilite.velo.batterie.datePose');
+  b('batKmPose','mobilite.velo.batterie.kmPose');
+  b('batCycles','mobilite.velo.batterie.cyclesActuels');
+  b('batCyclesMax','mobilite.velo.batterie.cyclesMax');
+  b('batDureeKm','mobilite.velo.batterie.dureeTheoKm');
+  b('motDatePose','mobilite.velo.moteur.datePose');
+  b('motKmPose','mobilite.velo.moteur.kmPose');
+  b('motKmTotal','mobilite.velo.moteur.kmTotal');
+  b('motDureeKm','mobilite.velo.moteur.dureeTheoKm');
+  b('especeCache','especeCache');
+  b('revenuMensuelNet','revenuMensuelNet');
+  // override for flat keys
+  ['especeCache','revenuMensuelNet'].forEach(id => {
+    const e = document.getElementById(id);
+    if(e) e.addEventListener('input', () => { DATA[id] = parseFloat(e.value)||0; autoSave(); });
+  });
 }
 
-// ── XOR ENCRYPTION ──
-function xorEncrypt(text, key) {
-  let r = '';
-  for (let i = 0; i < text.length; i++) r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  return btoa(r);
-}
-function xorDecrypt(b64, key) {
-  const text = atob(b64);
-  let r = '';
-  for (let i = 0; i < text.length; i++) r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  return r;
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTO-SAVE to localStorage
+// ═══════════════════════════════════════════════════════════════════════════
+let saveTimer;
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); } catch(e){}
+  }, 600);
 }
 
-// ── EXPORT / IMPORT ──
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORT JSON
+// ═══════════════════════════════════════════════════════════════════════════
+function getJSON() {
+  const out = JSON.parse(JSON.stringify(DATA));
+  out._exportDate = new Date().toISOString();
+  return JSON.stringify(out, null, 2);
+}
+
 function exportJSON() {
-  saveToStorage();
-  const payload = JSON.stringify({ version:2, date:new Date().toISOString(), data:state, bankColors }, null, 2);
-  const encrypted = xorEncrypt(payload, sessionKey);
-  const blob = new Blob([JSON.stringify({enc:encrypted})], {type:'application/json'});
+  const json = getJSON();
+  const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `patrimoine_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
+  const d = new Date();
+  const fname = `patrimoine_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  a.href = url; a.download = fname; a.click();
   URL.revokeObjectURL(url);
-  showToast('✓ EXPORT JSON CRYPTÉ');
+  showToast('✓ JSON exporté : ' + fname);
 }
 
-function importJSON(e) {
+function copyJSON() {
+  navigator.clipboard.writeText(getJSON()).then(() => {
+    showToast('✓ JSON copié dans le presse-papiers');
+  }).catch(() => showToast('❌ Erreur copie'));
+}
+
+function loadJSON() { document.getElementById('fileInput').click(); }
+
+function handleFileLoad(e) {
   const file = e.target.files[0];
-  if (!file) return;
+  if(!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
     try {
-      const wrapper = JSON.parse(ev.target.result);
-      let payload;
-      if (wrapper.enc) { payload = xorDecrypt(wrapper.enc, sessionKey); }
-      else { payload = ev.target.result; }
-      const obj = JSON.parse(payload);
-      const loaded = obj.data || obj;
-      Object.keys(loaded).forEach(id => { if (state[id]) Object.assign(state[id], loaded[id]); });
-      if (obj.bankColors) {
-        Object.assign(bankColors, obj.bankColors);
-        saveBankColors();
-        Object.entries(bankColors).forEach(([bank, color]) => applyBankColor(bank, color));
-      }
-      updateAllTotals(); saveToStorage();
-      showToast('✓ IMPORT RÉUSSI');
-    } catch(err) { showToast('✗ ERREUR — FICHIER OU MOT DE PASSE INVALIDE'); }
+      const loaded = JSON.parse(ev.target.result);
+      // Deep merge — keep structure, overlay values
+      mergeDeep(DATA, loaded);
+      renderAll();
+      showToast('✓ JSON chargé : ' + file.name);
+    } catch(err) {
+      showToast('❌ Erreur lecture JSON');
+    }
   };
   reader.readAsText(file);
   e.target.value = '';
 }
 
-function resetAll() {
-  if (!confirm('Remettre toutes les valeurs à zéro ?')) return;
-  SCHEMA.forEach(acc => {
-    state[acc.id] = acc.type === 'invest' ? { valeur:0, prixRevient:0, quantite:0 } : { valeur:0 };
-  });
-  updateAllTotals(); saveToStorage();
-  showToast('↺ RESET EFFECTUÉ');
+function mergeDeep(target, source) {
+  for(const key of Object.keys(source)) {
+    if(source[key] && typeof source[key]==='object' && !Array.isArray(source[key]) && key in target && typeof target[key]==='object' && !Array.isArray(target[key])) {
+      mergeDeep(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
 }
 
-// ── TOAST ──
-let toastTimer = null;
+// ═══════════════════════════════════════════════════════════════════════════
+// EXPORT KPI (format compatible patrimoine_kpi_saisie.html)
+// ═══════════════════════════════════════════════════════════════════════════
+function openKpiModal() {
+  const overlay = document.getElementById('kpi-overlay');
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('kpi-pwd').focus(), 50);
+}
+function closeKpiModal() {
+  document.getElementById('kpi-overlay').style.display = 'none';
+  document.getElementById('kpi-err').textContent = '';
+  document.getElementById('kpi-pwd').value = '';
+}
+
+function buildKPIPayload() {
+  // Retourne la structure plate attendue par le SCHEMA du KPI terminal.
+  // SCHEMA KPI:
+  //  b1 = Boursorama, b2 = Fortuneo, b3 = Revolut, b4 = Natixis
+  //  BANQUE 1 (boursorama) indices: [0]cc [1]liva [2]livb [3]cto [4]ctoliq [5]pea [6]pealiq [7]av
+  //  BANQUE 2 (fortuneo)   indices: [0]cc [1]livp [2]ldds [3]av  [4]ctoliq [5]cto [6]pealiq [7]pea
+  //  BANQUE 3 (revolut)    indices: [0]cc [1]eur  [2]usd  [3]gold[4]actus  [5]oblig[6]reit  [7]crypto
+  //  BANQUE 4 (natixis)    indices: [0]pee
+  //  dv_maison, dv_liquide, sc_1..sc_4
+
+  const b = (bank, idx) => ({ valeur: DATA[bank]?.[idx]?.val || 0 });
+  const bInv = (bank, idx, qte, pr) => ({
+    valeur: DATA[bank]?.[idx]?.val || 0,
+    prixRevient: pr || 0,
+    quantite: qte || 0,
+  });
+
+  // PEA total valeur = fortuneo[7].val ; PR global = sum(qte*pr) des lignes pea
+  const peaTotalVal = (DATA.fortuneo?.[7]?.val || 0);
+  const peaTotalPR  = DATA.investissements.pea.reduce((s,r) => s + (r.qte||0)*(r.pr||0), 0);
+  const peaTotalQte = DATA.investissements.pea.reduce((s,r) => s + (r.qte||0), 0);
+
+  const ctoTotalVal = (DATA.fortuneo?.[5]?.val || 0);
+  const ctoTotalPR  = DATA.investissements.cto.reduce((s,r) => s + (r.qte||0)*(r.pr||0), 0);
+  const ctoTotalQte = DATA.investissements.cto.reduce((s,r) => s + (r.qte||0), 0);
+
+  // Revolut invest: on encode chaque ligne Revolut via son index dans le tableau DATA.revolut
+  // Or (XAU) = revolut[3], Actions US = revolut[4], Crypto = revolut[7]
+  const revOr    = DATA.investissements.revolut.find(r => r.ticker==='XAU' || r.nom?.toLowerCase().includes('or'));
+  const revActUS = DATA.investissements.revolut.find(r => r.ticker!=='XAU' && r.ticker!=='BTC' && !r.nom?.toLowerCase().includes('or') && !r.nom?.toLowerCase().includes('bitcoin'));
+  const revCrypto= DATA.investissements.revolut.find(r => r.ticker==='BTC' || r.nom?.toLowerCase().includes('bitcoin') || r.nom?.toLowerCase().includes('crypto'));
+
+  // Épargne entreprise (Natixis PEE) → b4_pee
+  const eeTotalVal = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.valeurActuelle||0), 0);
+  const eeTotalPR  = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.parts||0)*(r.pr||0), 0);
+  const eeTotalParts = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.parts||0), 0);
+
+  // AV
+  const avBourso = DATA.investissements.assurance_vie.find(a => a.assureur==='Boursorama' || a.nom?.toLowerCase().includes('bourso'));
+  const avFort   = DATA.investissements.assurance_vie.find(a => a.assureur==='Fortuneo'   || a.nom?.toLowerCase().includes('fortuneo'));
+
+  // Livrets (épargne bloquée) — mapping par type vers les comptes banque
+  const findEB = (types) => DATA.investissements.epargne_bloquee.filter(r => types.includes(r.type)).reduce((s,r) => s + (r.montant||0), 0);
+
+  // SCPI → sc_1..sc_4
+  const scpiEntry = (i) => {
+    const s = DATA.scpi?.[i];
+    if(!s) return { valeur: 0 };
+    return { valeur: s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0 };
+  };
+
+  const payload = {
+    // ── BOURSORAMA ──
+    b1_cc:     { valeur: DATA.boursorama?.[0]?.val || 0 },
+    b1_liva:   { valeur: findEB(['Livret A']) || DATA.boursorama?.[1]?.val || 0 },
+    b1_livb:   { valeur: findEB(['Livret B+']) || DATA.boursorama?.[2]?.val || 0 },
+    b1_cto:    { valeur: ctoTotalVal, prixRevient: ctoTotalQte > 0 ? ctoTotalPR / ctoTotalQte : 0, quantite: ctoTotalQte },
+    b1_ctoliq: { valeur: DATA.boursorama?.[4]?.val || 0 },
+    b1_pea:    { valeur: peaTotalVal, prixRevient: peaTotalQte > 0 ? peaTotalPR / peaTotalQte : 0, quantite: peaTotalQte },
+    b1_pealiq: { valeur: DATA.boursorama?.[6]?.val || 0 },
+    b1_av:     { valeur: avBourso?.valeurActuelle || DATA.boursorama?.[7]?.val || 0,
+                 prixRevient: avBourso ? (avBourso.versements > 0 ? avBourso.versements / 1 : 0) : 0,
+                 quantite:    avBourso ? 1 : 0 },
+
+    // ── FORTUNEO ──
+    b2_cc:     { valeur: DATA.fortuneo?.[0]?.val || 0 },
+    b2_livp:   { valeur: findEB(['Livret+']) || DATA.fortuneo?.[1]?.val || 0 },
+    b2_ldds:   { valeur: findEB(['LDDS']) || DATA.fortuneo?.[2]?.val || 0 },
+    b2_av:     { valeur: avFort?.valeurActuelle || DATA.fortuneo?.[3]?.val || 0,
+                 prixRevient: avFort ? (avFort.versements > 0 ? avFort.versements : 0) : 0,
+                 quantite:    avFort ? 1 : 0 },
+    b2_ctoliq: { valeur: DATA.fortuneo?.[4]?.val || 0 },
+    b2_cto:    { valeur: ctoTotalVal, prixRevient: ctoTotalQte > 0 ? ctoTotalPR / ctoTotalQte : 0, quantite: ctoTotalQte },
+    b2_pealiq: { valeur: DATA.fortuneo?.[6]?.val || 0 },
+    b2_pea:    { valeur: peaTotalVal, prixRevient: peaTotalQte > 0 ? peaTotalPR / peaTotalQte : 0, quantite: peaTotalQte },
+
+    // ── REVOLUT ──
+    b3_cc:     { valeur: DATA.revolut?.[0]?.val || 0 },
+    b3_eur:    { valeur: DATA.revolut?.[1]?.val || 0 },
+    b3_usd:    { valeur: DATA.revolut?.[2]?.val || 0 },
+    b3_gold:   { valeur: DATA.revolut?.[3]?.val || revOr ? (revOr.qte||0)*(revOr.coursActuel||0) : 0,
+                 prixRevient: revOr?.pr || 0, quantite: revOr?.qte || 0 },
+    b3_actus:  { valeur: DATA.revolut?.[4]?.val || revActUS ? (revActUS?.qte||0)*(revActUS?.coursActuel||0) : 0,
+                 prixRevient: revActUS?.pr || 0, quantite: revActUS?.qte || 0 },
+    b3_oblig:  { valeur: DATA.revolut?.[5]?.val || 0 },
+    b3_reit:   { valeur: DATA.revolut?.[6]?.val || 0 },
+    b3_crypto: { valeur: DATA.revolut?.[7]?.val || revCrypto ? (revCrypto?.qte||0)*(revCrypto?.coursActuel||0) : 0,
+                 prixRevient: revCrypto?.pr || 0, quantite: revCrypto?.qte || 0 },
+
+    // ── NATIXIS / ÉPARGNE ENTREPRISE ──
+    b4_pee:    { valeur: eeTotalVal, prixRevient: eeTotalParts > 0 ? eeTotalPR / eeTotalParts : 0, quantite: eeTotalParts },
+
+    // ── DIVERS ──
+    dv_maison: { valeur: DATA.maison || 0 },
+    dv_liquide:{ valeur: DATA.especeCache || 0 },
+
+    // ── SCPI ──
+    sc_1: scpiEntry(0),
+    sc_2: scpiEntry(1),
+    sc_3: scpiEntry(2),
+    sc_4: scpiEntry(3),
+  };
+
+  return payload;
+}
+
+function xorEncrypt(text, key) {
+  let r = '';
+  for(let i = 0; i < text.length; i++)
+    r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  return btoa(r);
+}
+
+function exportKPI() {
+  const pwd = document.getElementById('kpi-pwd').value.trim();
+  const errEl = document.getElementById('kpi-err');
+  errEl.textContent = '';
+  if(!pwd) { errEl.textContent = '⚠ Mot de passe requis'; return; }
+
+  try {
+    const payload = buildKPIPayload();
+    const plaintext = JSON.stringify({ data: payload, date: new Date().toISOString() });
+    const enc = xorEncrypt(plaintext, pwd);
+    const blob = new Blob([JSON.stringify({ enc })], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const fname = `kpi_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+    a.href = url; a.download = fname; a.click();
+    URL.revokeObjectURL(url);
+    closeKpiModal();
+    showToast('✓ KPI exporté : ' + fname);
+  } catch(e) {
+    errEl.textContent = '❌ Erreur : ' + e.message;
+  }
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('kpi-overlay').addEventListener('click', function(e) {
+    if(e.target === this) closeKpiModal();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════════════
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════════════════════════
+function renderAll() {
+  renderAllBanks();
+  renderInvPortfolio('pea','body-pea');
+  renderInvPortfolio('cto','body-cto');
+  renderInvPortfolio('revolut','body-inv-revolut');
+  renderEE();
+  renderAV();
+  renderEB();
+  renderSCPI();
+  renderATH();
+  renderDCA();
+  renderDepenses();
+  renderMobilite();
+  document.getElementById('maison').value = DATA.maison || '';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Load from localStorage
+  try {
+    const saved = localStorage.getItem('patrimoine_saisie');
+    if(saved) mergeDeep(DATA, JSON.parse(saved));
+  } catch(e) {}
+  renderAll();
+  bindMobiliteEvents();
+  // Maison input
+  document.getElementById('maison').addEventListener('input', function() {
+    DATA.maison = parseFloat(this.value)||0; autoSave();
+  });
+});
 </script>
 </body>
 </html>
