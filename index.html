@@ -25,6 +25,7 @@
   --c8: #0078FF; --c8b: #001833;
   --c9: #00CC88; --c9b: #002218;
   --cA: #5B9E3A; --cAb: #122209;
+  --cB: #E05C8A; --cBb: #2E0A1A;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -211,6 +212,7 @@ body::before {
 .card-c8 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c8),transparent 65%);} .card-c8 .card-bar{background:linear-gradient(90deg,var(--c8),transparent);} .card-c8 .card-icon{background:var(--c8b);box-shadow:0 0 0 1px rgba(0,120,255,.22);} .card-c8 .tag{background:rgba(0,120,255,.15);color:#5AAEFF;}
 .card-c9 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c9),transparent 65%);} .card-c9 .card-bar{background:linear-gradient(90deg,var(--c9),transparent);} .card-c9 .card-icon{background:var(--c9b);box-shadow:0 0 0 1px rgba(0,204,136,.22);} .card-c9 .tag{background:rgba(0,204,136,.15);color:#33EEB0;}
 .card-cA .card-bg{background:radial-gradient(circle at 80% 50%,var(--cA),transparent 65%);} .card-cA .card-bar{background:linear-gradient(90deg,var(--cA),transparent);} .card-cA .card-icon{background:var(--cAb);box-shadow:0 0 0 1px rgba(91,158,58,.22);} .card-cA .tag{background:rgba(91,158,58,.15);color:#8ECC60;}
+.card-cB .card-bg{background:radial-gradient(circle at 80% 50%,var(--cB),transparent 65%);} .card-cB .card-bar{background:linear-gradient(90deg,var(--cB),transparent);} .card-cB .card-icon{background:var(--cBb);box-shadow:0 0 0 1px rgba(224,92,138,.22);} .card-cB .tag{background:rgba(224,92,138,.15);color:#F08AB0;}
 
 /* FOOTER */
 .footer { margin-top: 16px; text-align: center; animation: fadeUp 0.5s 0.5s ease both; padding-bottom: 4px; }
@@ -284,6 +286,7 @@ body::before {
     <div class="section-label" id="all-label">Toutes les apps</div>
     <div class="apps" id="apps">
 
+      <!-- MÉTÉO — full width -->
       <a class="app-card card-c7 full-width" href="meteo.html" onclick="rippleEffect(event)" data-card-id="card-wx" data-search="météo meteo valence vent pluie">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -299,6 +302,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- NUISANCES SONORES -->
       <a class="app-card card-c1" href="nuisances_sonores2.html" onclick="rippleEffect(event)" data-card-id="card-0" data-storage-key="nuisances_data" data-search="nuisances sonores bruit décibels journal rapport">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -310,6 +314,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- PATRIMOINE KPI -->
       <a class="app-card card-c2" href="patrimoine_kpi.html" onclick="rippleEffect(event)" data-card-id="card-1" data-storage-key="patrimoine_data" data-search="patrimoine kpi finances graphiques indicateurs">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -321,6 +326,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- PATRIMOINE SAISIE -->
       <a class="app-card card-c8" href="patrimoine_saisie.html" onclick="rippleEffect(event)" data-card-id="card-2" data-storage-key="patrimoine_saisie_data" data-search="patrimoine saisie terminal bloomberg comptes">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -332,6 +338,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- KPI SAISIE (tout-en-un) -->
       <a class="app-card card-c9" href="patrimoine_kpi_saisie.html" onclick="rippleEffect(event)" data-card-id="card-3" data-storage-key="patrimoine_kpi_saisie_data" data-search="kpi saisie dashboard tout-en-un patrimoine">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -343,6 +350,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- SUIVI SANTÉ -->
       <a class="app-card card-c3" href="suivi-sante.html" onclick="rippleEffect(event)" data-card-id="card-4" data-storage-key="sante_data" data-search="santé sinus essoufflement ventre symptômes courbes">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -354,6 +362,19 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- SUIVI SYMPTÔMES (nouveau) -->
+      <a class="app-card card-cB" href="symptomes.html" onclick="rippleEffect(event)" data-card-id="card-11" data-storage-key="symptomes_data" data-search="symptômes sinus souffle ventre suivi courbes respiration">
+        <div class="card-bg"></div><div class="card-bar"></div>
+        <div class="card-inner">
+          <div class="card-icon">🫁</div>
+          <div class="card-body"><div class="card-name">Suivi Symptômes</div><div class="card-desc">Sinus · Souffle · Ventre</div></div>
+          <div class="card-tags"><span class="tag">Symptômes</span><span class="tag">Courbes</span></div>
+        </div>
+        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
+        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
+      </a>
+
+      <!-- CALENDRIER -->
       <a class="app-card card-c4" href="calendrier_viewer_mobile.html" onclick="rippleEffect(event)" data-card-id="card-5" data-storage-key="calendrier_data" data-search="calendrier agenda événements mobile">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -365,6 +386,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- OPÉRATION COURSES -->
       <a class="app-card card-c5" href="liste_courses_militaire.html" onclick="rippleEffect(event)" data-card-id="card-6" data-storage-key="courses_data" data-search="courses liste tactique budget mission militaire">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -376,6 +398,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- MA TODO -->
       <a class="app-card card-c6" href="todo.html" onclick="rippleEffect(event)" data-card-id="card-7" data-storage-key="todo_data" data-search="todo tâches maison impression 3d admin">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -387,6 +410,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- TERMINAL BOURSE -->
       <a class="app-card card-c2" href="bourse.html" onclick="rippleEffect(event)" data-card-id="card-8" data-storage-key="bourse_data" data-search="bourse terminal btc bitcoin or nasdaq cac vix crypto indices">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -398,6 +422,7 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- MONTANT EN LETTRES -->
       <a class="app-card card-c3" href="cheque.html" onclick="rippleEffect(event)" data-card-id="card-9" data-storage-key="cheque_data" data-search="chèque montant lettres bancaire copie">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
@@ -409,23 +434,13 @@ body::before {
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
       </a>
 
+      <!-- GLUTEN & FODMAP -->
       <a class="app-card card-cA" href="gluten_fodmap_tracker.html" onclick="rippleEffect(event)" data-card-id="card-10" data-storage-key="gluten_data" data-search="gluten fodmap journal alimentaire nutrition symptômes">
         <div class="card-bg"></div><div class="card-bar"></div>
         <div class="card-inner">
           <div class="card-icon">🌿</div>
           <div class="card-body"><div class="card-name">Gluten & FODMAP</div><div class="card-desc">Journal alimentaire IA</div></div>
           <div class="card-tags"><span class="tag">Gluten</span><span class="tag">Nutrition</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <a class="app-card card-c4" href="symptomes.html" onclick="rippleEffect(event)" data-card-id="card-11" data-storage-key="symptomes_v1" data-search="symptômes sinus souffle ventre sommeil courbes journal santé">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🫁</div>
-          <div class="card-body"><div class="card-name">Suivi Symptômes</div><div class="card-desc">Sinus · Souffle · Ventre</div></div>
-          <div class="card-tags"><span class="tag">Symptômes</span><span class="tag">Courbes</span></div>
         </div>
         <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
         <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
@@ -487,7 +502,7 @@ function loadStats(){
     }else{document.getElementById('st-conges').textContent='—';document.getElementById('st-conges-sub').textContent='aucune donnée';}
   }catch(e){document.getElementById('st-conges').textContent='err';}
 
-  // BTC — CoinGecko puis fallback CoinCap
+  // BTC
   fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true')
     .then(r=>r.json())
     .then(d=>{
