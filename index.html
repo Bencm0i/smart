@@ -5,715 +5,600 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0D0D0F">
-<title>Mes Outils</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0A0C0F">
+<title>Smart — Outils</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0D0D0F;
-  --surface: #17181C;
-  --border: rgba(255,255,255,0.07);
-  --text: #F0EDE8;
-  --muted: #6B6A72;
-  --c1: #D4622A; --c1b: #3A1A0A;
-  --c2: #2A7DB5; --c2b: #0A1E2E;
-  --c3: #4C9B6E; --c3b: #0C2218;
-  --c4: #A0589A; --c4b: #2A0E28;
-  --c5: #7C9B35; --c5b: #1C2A08;
-  --c6: #E8C547; --c6b: #2E2708;
-  --c7: #4A8FC4; --c7b: #0A1E30;
-  --c8: #0078FF; --c8b: #001833;
-  --c9: #00CC88; --c9b: #002218;
-  --cA: #5B9E3A; --cAb: #122209;
-  --cB: #E05C8A; --cBb: #2E0A1A;
+  --bg:      #0A0C0F;
+  --surf:    #111318;
+  --surf2:   #181B22;
+  --border:  rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --text:    #E8EAF0;
+  --muted:   #565B6B;
+  --muted2:  #8890A4;
+  --accent:  #3D7FFF;
+  --acc2:    #0d1f40;
+  --green:   #2ECC8A;
+  --orange:  #FF8C42;
+  --red:     #FF4D6A;
+  --yellow:  #F5C842;
+  --pink:    #D966B0;
+  --teal:    #2EC4C4;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: 'Syne', sans-serif;
-  background: var(--bg); color: var(--text);
-  min-height: 100vh; min-height: 100dvh; overflow-x: hidden;
-}
-body::before {
-  content: ''; position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
-  background-size: 40px 40px; pointer-events: none; z-index: 0;
-}
-.content { position: relative; z-index: 1; padding: 0 14px 32px; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(61,127,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(61,127,255,0.025) 1px,transparent 1px);
+  background-size:32px 32px}
 
-/* HEADER */
-.header {
-  padding: 36px 0 12px;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  animation: fadeDown 0.5s ease both;
-}
-.header-tag { font-family: 'Syne Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
-.header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1; }
-.header h1 span { display: block; color: var(--muted); font-weight: 400; font-size: 10px; letter-spacing: 0; margin-top: 2px; }
-.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-.clock { font-family: 'Syne Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: 1px; line-height: 1; }
-.date-str { font-family: 'Syne Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.5px; text-align: right; }
-.edit-btn {
-  background: transparent; border: 1px solid rgba(255,255,255,0.10); border-radius: 8px;
-  color: var(--muted); font-family: 'Syne Mono', monospace; font-size: 9px;
-  letter-spacing: 1.5px; padding: 4px 10px; cursor: pointer; transition: all 0.2s; margin-top: 2px;
-}
-.edit-btn.active { background: rgba(255,255,255,0.06); color: var(--text); border-color: rgba(255,255,255,0.22); }
+.wrap{position:relative;z-index:1;padding:0 16px 48px;max-width:520px;margin:0 auto}
 
-/* BANDEAU STATS */
-.stats-band {
-  display: grid; grid-template-columns: repeat(4,1fr);
-  gap: 8px; margin-bottom: 12px;
-  animation: fadeUp 0.5s 0.05s ease both;
-}
-.stat-pill {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 9px 10px 8px;
-  display: flex; flex-direction: column; gap: 2px;
-  position: relative; overflow: hidden; min-width: 0;
-}
-.stat-pill::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-.sp-conges::before { background: linear-gradient(90deg, var(--c4), transparent); }
-.sp-btc::before    { background: linear-gradient(90deg, #F7931A, transparent); }
-.sp-sante::before  { background: linear-gradient(90deg, var(--c3), transparent); }
-.sp-rav::before    { background: linear-gradient(90deg, var(--c6), transparent); }
-.stat-label { font-family: 'Syne Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stat-value { font-family: 'Syne Mono', monospace; font-size: 13px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sp-conges .stat-value { color: #D07CCA; }
-.sp-btc .stat-value    { color: #F7931A; }
-.sp-sante .stat-value  { color: #6EC99A; }
-.sp-rav .stat-value    { color: #F0D76A; }
-.stat-sub { font-size: 8px; color: var(--muted); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ─ HEADER ─ */
+.header{padding:40px 0 16px;animation:slideDown .5s cubic-bezier(.22,1,.36,1) both}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.logo-tag{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2.5px;
+  text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.logo-tag::before{content:'';width:14px;height:1px;background:var(--accent)}
+.logo-title{font-size:27px;font-weight:800;letter-spacing:-1px;line-height:1}
+.logo-title em{font-style:normal;color:var(--accent)}
+.logo-sub{font-family:var(--mono);font-size:8.5px;color:var(--muted);letter-spacing:.4px;margin-top:5px}
+.clock-block{text-align:right;flex-shrink:0}
+.clock-time{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);letter-spacing:1px;line-height:1}
+.clock-date{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.3px}
 
-/* SEARCH */
-.search-wrap { position: relative; margin-bottom: 12px; animation: fadeUp 0.5s 0.1s ease both; }
-.search-input {
-  width: 100%; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; color: var(--text); font-family: 'Syne', sans-serif;
-  font-size: 13px; padding: 10px 36px 10px 36px; outline: none; transition: border-color 0.2s;
-}
-.search-input::placeholder { color: var(--muted); }
-.search-input:focus { border-color: rgba(255,255,255,0.2); }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; opacity: 0.45; }
-.search-clear {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  background: rgba(255,255,255,0.08); border: none; border-radius: 6px;
-  color: var(--muted); font-size: 11px; width: 22px; height: 22px;
-  display: none; align-items: center; justify-content: center; cursor: pointer;
-}
-.search-clear.visible { display: flex; }
+/* ─ STATUS ─ */
+.status-bar{display:flex;align-items:center;gap:8px;margin-top:14px;
+  font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.8px;
+  animation:slideDown .5s .05s cubic-bezier(.22,1,.36,1) both}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:background .3s,box-shadow .3s}
+.dot.ok     {background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2.5s infinite}
+.dot.loading{background:var(--yellow);box-shadow:0 0 7px var(--yellow);animation:blink 1s infinite}
+.dot.error  {background:var(--red);box-shadow:0 0 7px var(--red)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-/* SECTION LABEL */
-.section-label {
-  font-family: 'Syne Mono', monospace; font-size: 9px; color: var(--muted);
-  letter-spacing: 2px; text-transform: uppercase;
-  margin-bottom: 8px; margin-top: 4px;
-  display: flex; align-items: center; gap: 6px;
-}
-.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* ─ WEATHER CARD ─ */
+.wx-card{display:none;text-decoration:none;border-radius:14px;
+  background:var(--surf);border:1px solid var(--border);overflow:hidden;
+  margin:14px 0 0;
+  animation:slideUp .5s .08s cubic-bezier(.22,1,.36,1) both;
+  transition:border-color .2s,box-shadow .2s}
+.wx-card:active{transform:scale(.97)}
+.wx-bar{height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.wx-body{padding:12px 14px;display:flex;align-items:center;gap:12px}
+.wx-icon{font-size:28px;flex-shrink:0}
+.wx-main{flex:1;min-width:0}
+.wx-name{font-size:12px;font-weight:700;letter-spacing:-.2px;margin-bottom:2px}
+.wx-file{font-family:var(--mono);font-size:8px;color:var(--muted)}
+.wx-data{display:flex;align-items:baseline;gap:8px;margin-top:4px;flex-wrap:wrap}
+.wx-temp{font-family:var(--mono);font-size:22px;font-weight:700;color:#7AABFF;line-height:1}
+.wx-desc{font-size:10px;color:var(--muted2);font-style:italic}
+.wx-details{font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-top:3px;letter-spacing:.3px}
+.wx-tags{display:flex;gap:4px;margin-top:6px}
+.wx-tags .tag{background:rgba(61,127,255,.14);color:#7AABFF}
 
-/* GRID */
-.apps-section { animation: fadeUp 0.5s 0.15s ease both; }
-.apps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.apps.fav-grid { margin-bottom: 12px; }
+/* ─ SEARCH ROW ─ */
+.search-row{display:flex;gap:8px;align-items:center;margin:14px 0 6px;
+  animation:slideUp .5s .10s cubic-bezier(.22,1,.36,1) both}
+.search-wrap{position:relative;flex:1}
+.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:13px;color:var(--muted);pointer-events:none}
+.search-input{width:100%;background:var(--surf2);border:1px solid var(--border2);
+  border-radius:12px;color:var(--text);font-family:var(--mono);font-size:12px;
+  padding:11px 36px 11px 36px;outline:none;transition:border-color .2s,box-shadow .2s}
+.search-input::placeholder{color:var(--muted)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(61,127,255,.12)}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.08);border:none;border-radius:6px;
+  color:var(--muted);font-size:10px;width:22px;height:22px;
+  display:none;align-items:center;justify-content:center;cursor:pointer}
+.search-clear.on{display:flex}
+.layout-btn{background:transparent;border:1px solid var(--border2);border-radius:10px;
+  color:var(--muted2);font-size:15px;width:34px;height:34px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.layout-btn:active{transform:scale(.9)}
 
-/* CARD */
-.app-card {
-  position: relative; border-radius: 16px; overflow: visible;
-  cursor: pointer; text-decoration: none; display: block;
-  border: 1px solid var(--border);
-  transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), opacity 0.2s;
-  animation: fadeUp 0.45s ease both;
-}
-.app-card.full-width { grid-column: 1 / -1; }
-.app-card.hidden { display: none; }
-.app-card:active { transform: scale(0.96); }
-.app-card.is-fav { border-color: rgba(255,255,255,0.14); }
+/* ─ CHIPS ─ */
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;
+  scrollbar-width:none;animation:slideUp .5s .12s cubic-bezier(.22,1,.36,1) both}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;font-family:var(--mono);font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;border:1px solid var(--border2);border-radius:20px;
+  padding:5px 12px;cursor:pointer;transition:all .18s;
+  background:transparent;color:var(--muted2);white-space:nowrap}
+.chip.active{background:var(--acc2);border-color:var(--accent);color:var(--text)}
+.chip:active{transform:scale(.94)}
 
-.card-bg { position: absolute; inset: 0; border-radius: 16px; opacity: 0.10; transition: opacity 0.2s; overflow: hidden; }
-.app-card:active .card-bg { opacity: 0.18; }
-.card-bar { height: 2px; width: 100%; border-radius: 16px 16px 0 0; }
-.card-inner {
-  position: relative; padding: 12px 12px 11px;
-  display: flex; flex-direction: column; gap: 7px;
-  background: var(--surface); border-radius: 0 0 16px 16px;
-}
-.app-card.full-width .card-inner { flex-direction: row; align-items: center; padding: 11px 14px; }
-.card-icon {
-  width: 38px; height: 38px; border-radius: 11px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; flex-shrink: 0; position: relative; overflow: hidden;
-}
-.card-icon::after { content: ''; position: absolute; inset: 0; border-radius: 11px; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%); }
-.card-body { flex: 1; min-width: 0; }
-.card-name { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-desc { font-size: 9.5px; color: var(--muted); font-weight: 400; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
-.tag { font-size: 8.5px; font-weight: 600; padding: 2px 6px; border-radius: 20px; letter-spacing: 0.2px; white-space: nowrap; }
+/* ─ SECTION LABEL ─ */
+.sec-label{font-family:var(--mono);font-size:8.5px;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;margin:6px 0 8px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-count{color:var(--muted);font-size:8px}
 
-/* BADGE */
-.badge {
-  position: absolute; top: -5px; right: -5px;
-  font-size: 7.5px; font-weight: 700; padding: 2px 5px; border-radius: 6px;
-  letter-spacing: 0.5px; z-index: 10; pointer-events: none;
-  border: 1px solid var(--bg);
-}
-.badge-fresh { background: #1A3A1A; color: #6EC99A; border-color: #0C2218; }
-.badge-old   { background: #2E1A0A; color: #E8855A; border-color: #3A1A0A; }
-.badge-fav   { top: -5px; left: -5px; right: auto; background: #2E2708; color: #F0D76A; border-color: #2E2708; }
+/* ─ SKELETON ─ */
+.skel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.skel{height:88px;border-radius:14px;
+  background:linear-gradient(90deg,var(--surf) 25%,var(--surf2) 50%,var(--surf) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* FAV BTN */
-.fav-btn {
-  position: absolute; top: 6px; right: 6px;
-  width: 22px; height: 22px; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.6); color: var(--muted); font-size: 11px;
-  cursor: pointer; display: none; align-items: center; justify-content: center;
-  z-index: 20; pointer-events: all; backdrop-filter: blur(4px); transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.fav-btn:active { transform: scale(0.88); }
-.apps.editing .fav-btn { display: flex; }
-.fav-btn.on { color: #F0D76A; border-color: rgba(232,197,71,0.35); }
+/* ─ GRID ─ */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:slideUp .5s .14s cubic-bezier(.22,1,.36,1) both}
+.grid.list{grid-template-columns:1fr}
 
-/* MOVE BTNS */
-.move-btns { display: none; position: absolute; bottom: 6px; right: 6px; flex-direction: row; gap: 3px; z-index: 10; }
-.apps.editing .move-btns { display: flex; }
-.move-btn {
-  width: 24px; height: 24px; border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(0,0,0,0.55); color: var(--muted); font-size: 10px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; pointer-events: all; backdrop-filter: blur(4px);
-  -webkit-tap-highlight-color: transparent;
-}
-.move-btn:active { background: rgba(255,255,255,0.14); color: var(--text); transform: scale(0.9); }
-.move-btn:disabled { opacity: 0.2; pointer-events: none; }
-.apps.editing .app-card { border-color: rgba(255,255,255,0.14); pointer-events: none; }
+/* ─ CARD ─ */
+.card{position:relative;border-radius:14px;background:var(--surf);border:1px solid var(--border);
+  text-decoration:none;display:block;overflow:hidden;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),border-color .18s,box-shadow .18s;
+  animation:cardIn .35s cubic-bezier(.22,1,.36,1) both}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 24px rgba(0,0,0,.32)}
+.card:active{transform:scale(.95)}
+.card.hidden{display:none}
+.card-bar{height:2px;width:100%}
+.card-body{padding:11px 12px 12px;display:flex;gap:10px;align-items:flex-start}
+.card-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:18px;flex-shrink:0}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:12px;font-weight:700;color:var(--text);letter-spacing:-.2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.card-file{font-family:var(--mono);font-size:8px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:7.5px;letter-spacing:.3px;
+  padding:2px 6px;border-radius:20px;white-space:nowrap}
+/* List mode */
+.grid.list .card-name{font-size:13px}
+.grid.list .card-body{align-items:center}
 
-/* MÉTÉO */
-.wx-row { display: flex; align-items: baseline; gap: 6px; }
-.wx-temp { font-family: 'Syne Mono', monospace; font-size: 20px; font-weight: 700; color: #7AB8E8; line-height: 1; }
-.wx-desc { font-size: 10px; color: var(--muted); font-style: italic; }
-.wx-details { font-family: 'Syne Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 2px; letter-spacing: 0.3px; }
+/* ─ BADGE NEW ─ */
+.badge-new{position:absolute;top:-1px;right:10px;
+  font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.5px;
+  padding:2px 7px;border-radius:0 0 6px 6px;
+  background:var(--green);color:#001a0e;text-transform:uppercase}
 
-/* NO RESULTS */
-.no-results { grid-column: 1 / -1; text-align: center; padding: 24px 0; font-family: 'Syne Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; display: none; }
+/* ─ AGE TAG ─ */
+.age-fresh{background:rgba(46,204,138,.15);color:#5EDDA8}
+.age-mid  {background:rgba(245,200,66,.12);color:#FAD966}
+.age-old  {background:rgba(255,140,66,.12);color:#FFAA70}
 
-/* COLOR THEMES */
-.card-c1 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c1),transparent 65%);} .card-c1 .card-bar{background:linear-gradient(90deg,var(--c1),transparent);} .card-c1 .card-icon{background:var(--c1b);box-shadow:0 0 0 1px rgba(212,98,42,.22);} .card-c1 .tag{background:rgba(212,98,42,.15);color:#E8855A;}
-.card-c2 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c2),transparent 65%);} .card-c2 .card-bar{background:linear-gradient(90deg,var(--c2),transparent);} .card-c2 .card-icon{background:var(--c2b);box-shadow:0 0 0 1px rgba(42,125,181,.22);} .card-c2 .tag{background:rgba(42,125,181,.15);color:#5AAEE8;}
-.card-c3 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c3),transparent 65%);} .card-c3 .card-bar{background:linear-gradient(90deg,var(--c3),transparent);} .card-c3 .card-icon{background:var(--c3b);box-shadow:0 0 0 1px rgba(76,155,110,.22);} .card-c3 .tag{background:rgba(76,155,110,.15);color:#6EC99A;}
-.card-c4 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c4),transparent 65%);} .card-c4 .card-bar{background:linear-gradient(90deg,var(--c4),transparent);} .card-c4 .card-icon{background:var(--c4b);box-shadow:0 0 0 1px rgba(160,88,154,.22);} .card-c4 .tag{background:rgba(160,88,154,.15);color:#D07CCA;}
-.card-c5 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c5),transparent 65%);} .card-c5 .card-bar{background:linear-gradient(90deg,var(--c5),transparent);} .card-c5 .card-icon{background:var(--c5b);box-shadow:0 0 0 1px rgba(124,155,53,.22);} .card-c5 .tag{background:rgba(124,155,53,.15);color:#A8CC50;}
-.card-c6 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c6),transparent 65%);} .card-c6 .card-bar{background:linear-gradient(90deg,var(--c6),transparent);} .card-c6 .card-icon{background:var(--c6b);box-shadow:0 0 0 1px rgba(232,197,71,.22);} .card-c6 .tag{background:rgba(232,197,71,.15);color:#F0D76A;}
-.card-c7 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c7),transparent 65%);} .card-c7 .card-bar{background:linear-gradient(90deg,var(--c7),transparent);} .card-c7 .card-icon{background:var(--c7b);box-shadow:0 0 0 1px rgba(74,143,196,.22);} .card-c7 .tag{background:rgba(74,143,196,.15);color:#7AB8E8;}
-.card-c8 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c8),transparent 65%);} .card-c8 .card-bar{background:linear-gradient(90deg,var(--c8),transparent);} .card-c8 .card-icon{background:var(--c8b);box-shadow:0 0 0 1px rgba(0,120,255,.22);} .card-c8 .tag{background:rgba(0,120,255,.15);color:#5AAEFF;}
-.card-c9 .card-bg{background:radial-gradient(circle at 80% 50%,var(--c9),transparent 65%);} .card-c9 .card-bar{background:linear-gradient(90deg,var(--c9),transparent);} .card-c9 .card-icon{background:var(--c9b);box-shadow:0 0 0 1px rgba(0,204,136,.22);} .card-c9 .tag{background:rgba(0,204,136,.15);color:#33EEB0;}
-.card-cA .card-bg{background:radial-gradient(circle at 80% 50%,var(--cA),transparent 65%);} .card-cA .card-bar{background:linear-gradient(90deg,var(--cA),transparent);} .card-cA .card-icon{background:var(--cAb);box-shadow:0 0 0 1px rgba(91,158,58,.22);} .card-cA .tag{background:rgba(91,158,58,.15);color:#8ECC60;}
-.card-cB .card-bg{background:radial-gradient(circle at 80% 50%,var(--cB),transparent 65%);} .card-cB .card-bar{background:linear-gradient(90deg,var(--cB),transparent);} .card-cB .card-icon{background:var(--cBb);box-shadow:0 0 0 1px rgba(224,92,138,.22);} .card-cB .tag{background:rgba(224,92,138,.15);color:#F08AB0;}
+/* ─ COLOUR THEMES ─ */
+.c-blue  .card-bar{background:linear-gradient(90deg,#3D7FFF,transparent)} .c-blue  .card-ico{background:#0d1f40} .c-blue  .tag{background:rgba(61,127,255,.14);color:#7AABFF}
+.c-green .card-bar{background:linear-gradient(90deg,#2ECC8A,transparent)} .c-green .card-ico{background:#0d2a1e} .c-green .tag{background:rgba(46,204,138,.14);color:#5EDDA8}
+.c-orange.card-bar{background:linear-gradient(90deg,#FF8C42,transparent)} .c-orange.card-ico{background:#2a1a08} .c-orange.tag{background:rgba(255,140,66,.14);color:#FFAA70}
+.c-red   .card-bar{background:linear-gradient(90deg,#FF4D6A,transparent)} .c-red   .card-ico{background:#2a0a10} .c-red   .tag{background:rgba(255,77,106,.14);color:#FF8098}
+.c-yellow.card-bar{background:linear-gradient(90deg,#F5C842,transparent)} .c-yellow.card-ico{background:#2a2008} .c-yellow.tag{background:rgba(245,200,66,.14);color:#FAD966}
+.c-pink  .card-bar{background:linear-gradient(90deg,#D966B0,transparent)} .c-pink  .card-ico{background:#280820} .c-pink  .tag{background:rgba(217,102,176,.14);color:#E88ACA}
+.c-teal  .card-bar{background:linear-gradient(90deg,#2EC4C4,transparent)} .c-teal  .card-ico{background:#08252a} .c-teal  .tag{background:rgba(46,196,196,.14);color:#5EDADA}
+.c-purple.card-bar{background:linear-gradient(90deg,#8B5CF6,transparent)} .c-purple.card-ico{background:#1a0e2a} .c-purple.tag{background:rgba(139,92,246,.14);color:#B08AFB}
+.c-slate .card-bar{background:linear-gradient(90deg,#8890A4,transparent)} .c-slate .card-ico{background:#16181f} .c-slate .tag{background:rgba(136,144,164,.14);color:#AEB5C8}
 
-/* FOOTER */
-.footer { margin-top: 16px; text-align: center; animation: fadeUp 0.5s 0.5s ease both; padding-bottom: 4px; }
-.footer-text { font-family: 'Syne Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 1.5px; }
-.footer-dot { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: var(--muted); margin: 0 5px; vertical-align: middle; animation: pulse 2.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(1.5);} }
-@keyframes fadeDown { from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);} }
-@keyframes fadeUp   { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
-.ripple { position:absolute;border-radius:50%;background:rgba(255,255,255,.06);transform:scale(0);animation:ripple-anim .5s linear;pointer-events:none; }
-@keyframes ripple-anim { to{transform:scale(3.5);opacity:0;} }
+/* ─ EMPTY ─ */
+.empty{grid-column:1/-1;text-align:center;padding:48px 20px;
+  font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;line-height:2}
+.empty b{display:block;font-size:28px;margin-bottom:10px}
+
+/* ─ FOOTER ─ */
+.footer{margin-top:28px;text-align:center;
+  font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;
+  animation:slideUp .5s .4s cubic-bezier(.22,1,.36,1) both}
+.fdot{display:inline-block;width:3px;height:3px;border-radius:50%;
+  background:var(--muted);margin:0 6px;vertical-align:middle}
+
+/* ─ RIPPLE ─ */
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.05);
+  transform:scale(0);animation:rpl .5s linear;pointer-events:none}
+@keyframes rpl{to{transform:scale(4);opacity:0}}
+
+/* ─ KEYFRAMES ─ */
+@keyframes slideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp  {from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)}}
+@keyframes cardIn   {from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
-<div class="content">
+<div class="wrap">
 
   <!-- HEADER -->
   <div class="header">
-    <div class="header-left">
-      <div class="header-tag" id="dateStr"></div>
-      <h1>Mes Outils <span>Tableau de bord personnel</span></h1>
+    <div class="header-top">
+      <div>
+        <div class="logo-tag">bencm0i / smart</div>
+        <div class="logo-title">Mes <em>Outils</em></div>
+        <div class="logo-sub" id="repoSub">Connexion au dépôt…</div>
+      </div>
+      <div class="clock-block">
+        <div class="clock-time" id="clk">--:--</div>
+        <div class="clock-date" id="clkD"></div>
+      </div>
     </div>
-    <div class="header-right">
-      <div class="clock" id="clock"></div>
-      <div class="date-str" id="dateStr2"></div>
-      <button class="edit-btn" id="editBtn" onclick="toggleEdit()">⇅ TRIER</button>
-    </div>
-  </div>
-
-  <!-- BANDEAU STATS -->
-  <div class="stats-band">
-    <div class="stat-pill sp-conges">
-      <div class="stat-label">Congés</div>
-      <div class="stat-value" id="st-conges">--</div>
-      <div class="stat-sub" id="st-conges-sub">j. restants</div>
-    </div>
-    <div class="stat-pill sp-btc">
-      <div class="stat-label">BTC</div>
-      <div class="stat-value" id="st-btc">--</div>
-      <div class="stat-sub" id="st-btc-sub">chargement…</div>
-    </div>
-    <div class="stat-pill sp-sante">
-      <div class="stat-label">Santé</div>
-      <div class="stat-value" id="st-sante">--</div>
-      <div class="stat-sub" id="st-sante-sub">dernière saisie</div>
-    </div>
-    <div class="stat-pill sp-rav">
-      <div class="stat-label">RAV</div>
-      <div class="stat-value" id="st-rav">--</div>
-      <div class="stat-sub" id="st-rav-sub">reste à vivre</div>
+    <div class="status-bar">
+      <div class="dot loading" id="dot"></div>
+      <span id="statusTxt">Chargement…</span>
     </div>
   </div>
 
-  <!-- RECHERCHE -->
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input class="search-input" id="searchInput" type="search"
-      placeholder="Rechercher une app…"
-      oninput="onSearch(this.value)"
-      autocomplete="off" autocorrect="off" spellcheck="false">
-    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
-  </div>
-
-  <!-- FAVORIS -->
-  <div id="fav-section" style="display:none">
-    <div class="section-label">★ Épinglés</div>
-    <div class="apps fav-grid" id="fav-grid"></div>
-  </div>
-
-  <!-- TOUTES LES APPS -->
-  <div class="apps-section">
-    <div class="section-label" id="all-label">Toutes les apps</div>
-    <div class="apps" id="apps">
-
-      <!-- MÉTÉO — full width -->
-      <a class="app-card card-c7 full-width" href="meteo.html" onclick="rippleEffect(event)" data-card-id="card-wx" data-search="météo meteo valence vent pluie">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon" id="wx-icon">🌤</div>
-          <div class="card-body">
-            <div class="card-name">Météo — Valence</div>
-            <div class="wx-row"><span class="wx-temp" id="wx-temp">--°</span><span class="wx-desc" id="wx-desc">chargement…</span></div>
-            <div class="wx-details" id="wx-details"></div>
-          </div>
-          <div class="card-tags"><span class="tag">7 jours</span><span class="tag">Vent</span></div>
+  <!-- MÉTÉO -->
+  <a class="wx-card" href="meteo.html" id="wxCard">
+    <div class="wx-bar"></div>
+    <div class="wx-body">
+      <div class="wx-icon" id="wxIco">🌤</div>
+      <div class="wx-main">
+        <div class="wx-name">Météo — Valence</div>
+        <div class="wx-file">meteo.html</div>
+        <div class="wx-data">
+          <span class="wx-temp" id="wxT">--°</span>
+          <span class="wx-desc" id="wxD">chargement…</span>
         </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- NUISANCES SONORES -->
-      <a class="app-card card-c1" href="nuisances_sonores2.html" onclick="rippleEffect(event)" data-card-id="card-0" data-storage-key="nuisances_data" data-search="nuisances sonores bruit décibels journal rapport">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🔊</div>
-          <div class="card-body"><div class="card-name">Nuisances Sonores</div><div class="card-desc">Suivi et signalement</div></div>
-          <div class="card-tags"><span class="tag">Journal</span><span class="tag">Rapport</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- PATRIMOINE KPI -->
-      <a class="app-card card-c2" href="patrimoine_kpi.html" onclick="rippleEffect(event)" data-card-id="card-1" data-storage-key="patrimoine_data" data-search="patrimoine kpi finances graphiques indicateurs">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">📈</div>
-          <div class="card-body"><div class="card-name">Patrimoine KPI</div><div class="card-desc">Indicateurs financiers</div></div>
-          <div class="card-tags"><span class="tag">Finances</span><span class="tag">KPI</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- PATRIMOINE SAISIE -->
-      <a class="app-card card-c8" href="patrimoine_saisie.html" onclick="rippleEffect(event)" data-card-id="card-2" data-storage-key="patrimoine_saisie_data" data-search="patrimoine saisie terminal bloomberg comptes">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">💳</div>
-          <div class="card-body"><div class="card-name">Patrimoine Saisie</div><div class="card-desc">Terminal Bloomberg</div></div>
-          <div class="card-tags"><span class="tag">Saisie</span><span class="tag">Comptes</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- KPI SAISIE (tout-en-un) -->
-      <a class="app-card card-c9" href="patrimoine_kpi_saisie.html" onclick="rippleEffect(event)" data-card-id="card-3" data-storage-key="patrimoine_kpi_saisie_data" data-search="kpi saisie dashboard tout-en-un patrimoine">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🏦</div>
-          <div class="card-body"><div class="card-name">KPI Saisie</div><div class="card-desc">Dashboard tout-en-un</div></div>
-          <div class="card-tags"><span class="tag">KPI</span><span class="tag">Saisie</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- SUIVI SANTÉ -->
-      <a class="app-card card-c3" href="suivi-sante.html" onclick="rippleEffect(event)" data-card-id="card-4" data-storage-key="sante_data" data-search="santé sinus essoufflement ventre symptômes courbes">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🩺</div>
-          <div class="card-body"><div class="card-name">Suivi Santé</div><div class="card-desc">Sinus, ventre, export</div></div>
-          <div class="card-tags"><span class="tag">Symptômes</span><span class="tag">Courbes</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- SUIVI SYMPTÔMES (nouveau) -->
-      <a class="app-card card-cB" href="symptomes.html" onclick="rippleEffect(event)" data-card-id="card-11" data-storage-key="symptomes_data" data-search="symptômes sinus souffle ventre suivi courbes respiration">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🫁</div>
-          <div class="card-body"><div class="card-name">Suivi Symptômes</div><div class="card-desc">Sinus · Souffle · Ventre</div></div>
-          <div class="card-tags"><span class="tag">Symptômes</span><span class="tag">Courbes</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- CALENDRIER -->
-      <a class="app-card card-c4" href="calendrier_viewer_mobile.html" onclick="rippleEffect(event)" data-card-id="card-5" data-storage-key="calendrier_data" data-search="calendrier agenda événements mobile">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">📅</div>
-          <div class="card-body"><div class="card-name">Calendrier</div><div class="card-desc">Agenda mobile</div></div>
-          <div class="card-tags"><span class="tag">Agenda</span><span class="tag">Mobile</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- OPÉRATION COURSES -->
-      <a class="app-card card-c5" href="liste_courses_militaire.html" onclick="rippleEffect(event)" data-card-id="card-6" data-storage-key="courses_data" data-search="courses liste tactique budget mission militaire">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🪖</div>
-          <div class="card-body"><div class="card-name">Opération Courses</div><div class="card-desc">Liste tactique & budget</div></div>
-          <div class="card-tags"><span class="tag">Courses</span><span class="tag">Mission</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- MA TODO -->
-      <a class="app-card card-c6" href="todo.html" onclick="rippleEffect(event)" data-card-id="card-7" data-storage-key="todo_data" data-search="todo tâches maison impression 3d admin">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">✅</div>
-          <div class="card-body"><div class="card-name">Ma Todo</div><div class="card-desc">Maison · 3D · Admin</div></div>
-          <div class="card-tags"><span class="tag">Maison</span><span class="tag">Admin</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- TERMINAL BOURSE -->
-      <a class="app-card card-c2" href="bourse.html" onclick="rippleEffect(event)" data-card-id="card-8" data-storage-key="bourse_data" data-search="bourse terminal btc bitcoin or nasdaq cac vix crypto indices">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">📊</div>
-          <div class="card-body"><div class="card-name">Terminal Bourse</div><div class="card-desc">BTC · Or · Indices</div></div>
-          <div class="card-tags"><span class="tag">Crypto</span><span class="tag">Forex</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- MONTANT EN LETTRES -->
-      <a class="app-card card-c3" href="cheque.html" onclick="rippleEffect(event)" data-card-id="card-9" data-storage-key="cheque_data" data-search="chèque montant lettres bancaire copie">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🏦</div>
-          <div class="card-body"><div class="card-name">Montant en lettres</div><div class="card-desc">Chèques bancaires</div></div>
-          <div class="card-tags"><span class="tag">Chèques</span><span class="tag">Copie</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <!-- GLUTEN & FODMAP -->
-      <a class="app-card card-cA" href="gluten_fodmap_tracker.html" onclick="rippleEffect(event)" data-card-id="card-10" data-storage-key="gluten_data" data-search="gluten fodmap journal alimentaire nutrition symptômes">
-        <div class="card-bg"></div><div class="card-bar"></div>
-        <div class="card-inner">
-          <div class="card-icon">🌿</div>
-          <div class="card-body"><div class="card-name">Gluten & FODMAP</div><div class="card-desc">Journal alimentaire IA</div></div>
-          <div class="card-tags"><span class="tag">Gluten</span><span class="tag">Nutrition</span></div>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(event,this)">★</button>
-        <div class="move-btns"><button class="move-btn" onclick="moveCard(this,-1)">◀</button><button class="move-btn" onclick="moveCard(this,1)">▶</button></div>
-      </a>
-
-      <div class="no-results" id="no-results">Aucune app trouvée 🔍</div>
+        <div class="wx-details" id="wxDet"></div>
+        <div class="wx-tags"><span class="tag">7 jours</span><span class="tag">Vent</span><span class="tag">Open-Meteo</span></div>
+      </div>
     </div>
+  </a>
+
+  <!-- SEARCH + LAYOUT -->
+  <div class="search-row">
+    <div class="search-wrap">
+      <span class="search-ico">⌕</span>
+      <input class="search-input" id="srch" type="search" placeholder="Rechercher un outil…"
+        oninput="doSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="search-clear" id="srchClr" onclick="clearSrch()">✕</button>
+    </div>
+    <button class="layout-btn" id="layBtn" onclick="toggleLayout()" title="Grille / Liste">⊞</button>
   </div>
 
-  <div class="footer">
-    <div class="footer-text"><span class="footer-dot"></span>13 OUTILS ACTIFS<span class="footer-dot"></span></div>
+  <!-- FILTER CHIPS -->
+  <div class="filter-row" id="chips">
+    <button class="chip active" data-cat="all" onclick="setFilter('all',this)">Tout</button>
   </div>
+
+  <!-- SECTION LABEL -->
+  <div class="sec-label">
+    <span>Fichiers du dépôt</span>
+    <span class="sec-count" id="cnt"></span>
+  </div>
+
+  <!-- SKELETON -->
+  <div class="skel-grid" id="skel">
+    <div class="skel"></div><div class="skel"></div>
+    <div class="skel"></div><div class="skel"></div>
+    <div class="skel"></div><div class="skel"></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid" id="grid" style="display:none"></div>
+
+  <!-- FOOTER -->
+  <div class="footer" id="ftr" style="display:none">
+    <span class="fdot"></span>
+    <span id="ftrTxt">-- OUTILS</span>
+    <span class="fdot"></span>
+    github.com/bencm0i/smart
+    <span class="fdot"></span>
+  </div>
+
 </div>
-
 <script>
-// ══════════════════════════════════
-// MÉTÉO
-// ══════════════════════════════════
-const WMO_ICONS={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'🌧',95:'⛈',96:'⛈',99:'⛈'};
-const WMO_DESC={0:'Ciel dégagé',1:'Peu nuageux',2:'Partiellement nuageux',3:'Couvert',45:'Brouillard',48:'Brouillard givrant',51:'Bruine légère',53:'Bruine',55:'Bruine dense',61:'Pluie légère',63:'Pluie',65:'Pluie forte',71:'Neige légère',73:'Neige',75:'Neige forte',80:'Averses',81:'Averses',82:'Averses fortes',95:'Orage',96:'Orage',99:'Orage violent'};
-function dirWx(d){return['N','NE','E','SE','S','SO','O','NO'][Math.round(d/45)%8];}
-async function loadWxCard(){
+// ════════════════════════════════════════════════════════
+// MÉTADONNÉES — enrichissement local des fichiers connus
+// ════════════════════════════════════════════════════════
+const META = {
+  'meteo.html':                   {name:'Météo Valence',          icon:'🌤', cat:'Environnement',  tags:['Météo','7 jours','Vent'],       col:'c-blue'  },
+  'nuisances_sonores2.html':      {name:'Nuisances Sonores',      icon:'🔊', cat:'Vie quotidienne', tags:['Journal','Rapport','Bruit'],   col:'c-orange'},
+  'nuisances_sonores.html':       {name:'Nuisances Sonores v1',   icon:'🔉', cat:'Vie quotidienne', tags:['Journal'],                    col:'c-orange'},
+  'nuisances.html':               {name:'Nuisances (v1)',          icon:'📢', cat:'Vie quotidienne', tags:['Journal','PDF'],              col:'c-orange'},
+  'patrimoine_kpi.html':          {name:'Patrimoine KPI',          icon:'📈', cat:'Finances',        tags:['KPI','Graphiques'],           col:'c-blue'  },
+  'patrimoine_saisie.html':       {name:'Patrimoine Saisie',       icon:'💳', cat:'Finances',        tags:['Saisie','Comptes'],           col:'c-blue'  },
+  'patrimoine_kpi_saisie.html':   {name:'KPI + Saisie',            icon:'🏦', cat:'Finances',        tags:['Dashboard','All-in-one'],     col:'c-teal'  },
+  'patrimoine_dashboard.html':    {name:'Dashboard Patrimoine',    icon:'💰', cat:'Finances',        tags:['Wealth','Vue globale'],       col:'c-green' },
+  'suivi-sante.html':             {name:'Suivi Santé',             icon:'🩺', cat:'Santé',           tags:['Symptômes','Export'],         col:'c-green' },
+  'symptomes.html':               {name:'Suivi Symptômes',         icon:'🫁', cat:'Santé',           tags:['Sinus','Souffle','Ventre'],   col:'c-pink'  },
+  'gluten_fodmap_tracker.html':   {name:'Gluten & FODMAP',         icon:'🌿', cat:'Santé',           tags:['Nutrition','IA'],             col:'c-green' },
+  'calendrier_viewer_mobile.html':{name:'Calendrier Mobile',       icon:'📅', cat:'Planning',        tags:['Agenda','Mobile'],            col:'c-purple'},
+  'calendrier_2026_2027.html':    {name:'Calendrier 2026–27',      icon:'🗓', cat:'Planning',        tags:['2026','2027'],                col:'c-purple'},
+  'todo.html':                    {name:'Ma Todo',                 icon:'✅', cat:'Vie quotidienne', tags:['Tâches','Maison','3D'],       col:'c-yellow'},
+  'liste_courses_militaire.html': {name:'Opération Courses',       icon:'🪖', cat:'Vie quotidienne', tags:['Courses','Budget','Mission'], col:'c-yellow'},
+  'bourse.html':                  {name:'Terminal Bourse',         icon:'📊', cat:'Finances',        tags:['BTC','Or','Indices'],         col:'c-blue'  },
+  'bourse_tactical.html':         {name:'Bourse Tactical',         icon:'🎯', cat:'Finances',        tags:['Crypto','Forex','Copy'],      col:'c-orange'},
+  'cheque.html':                  {name:'Montant en Lettres',      icon:'🏦', cat:'Finances',        tags:['Chèques','Copie'],            col:'c-green' },
+  'affaire_tracker.html':         {name:'Affaire Tracker',         icon:'📁', cat:'Travail',         tags:['Projets','Suivi'],            col:'c-slate' },
+  'pointage_heures_par_affaire.html':{name:'Pointage Heures',      icon:'⏱', cat:'Travail',         tags:['Temps','Projets','ISO'],      col:'c-slate' },
+  'notebooklm_tracker.html':      {name:'NotebookLM Tracker',      icon:'🎙', cat:'Travail',         tags:['PDF','Podcast','IA'],         col:'c-purple'},
+  'velotaf_entretien.html':       {name:'Vélo — Entretien',        icon:'🚲', cat:'Mobilité',        tags:['Vélo','Maintenance'],         col:'c-teal'  },
+  'mobilite.html':                {name:'Mobilité',                icon:'🚗', cat:'Mobilité',        tags:['Yaris','Vélo','Odometer'],    col:'c-teal'  },
+  'depenses.html':                {name:'Dépenses',                icon:'💸', cat:'Finances',        tags:['Budget','Mensuel'],           col:'c-red'   },
+  'launcher.html':                {name:'Launcher v1',             icon:'🚀', cat:'Navigation',      tags:['Hub','Bookmarks'],            col:'c-slate' },
+  'launcher_pro.html':            {name:'Launcher Pro',            icon:'⚡', cat:'Navigation',      tags:['Hub','Velotaf','Météo'],      col:'c-yellow'},
+  'index.html':                   {name:'Index',                   icon:'🗂', cat:'Navigation',      tags:['Accueil','Hub'],              col:'c-slate' },
+};
+
+const WEATHER  = 'meteo.html';
+const SKIP     = new Set(['index.html']); // on s'exclut soi-même
+const CAT_ORDER= ['Finances','Santé','Vie quotidienne','Planning','Travail','Mobilité','Environnement','Navigation'];
+const COLS_CYC = ['c-blue','c-green','c-orange','c-teal','c-yellow','c-pink','c-purple','c-slate','c-red'];
+
+const OWNER = 'bencm0i', REPO = 'smart';
+const API_CONTENTS = `https://api.github.com/repos/${OWNER}/${REPO}/contents/`;
+const API_COMMITS  = `https://api.github.com/repos/${OWNER}/${REPO}/commits?per_page=100`;
+
+let files=[], commitMap={}, activeFilter='all', listMode=false, searchTerm='';
+let colIdx=0;
+
+// ── Clock ──
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clkD').textContent=n.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+}
+tick(); setInterval(tick,1000);
+
+// ── Status ──
+function setStatus(txt,state='ok'){
+  const d=document.getElementById('dot');
+  d.className='dot '+state;
+  document.getElementById('statusTxt').textContent=txt;
+}
+
+// ── Auto-meta ──
+function getMeta(fn){
+  if(META[fn]) return {...META[fn]};
+  const base=fn.replace(/\.html$/,'').replace(/[-_]/g,' ');
+  const name=base.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+  return {name, icon:'📄', cat:'Autres', tags:[], col:COLS_CYC[colIdx++%COLS_CYC.length]};
+}
+
+// ── GitHub API ──
+async function fetchFiles(){
+  setStatus('Connexion à GitHub…','loading');
   try{
-    const p=new URLSearchParams({latitude:44.9333,longitude:4.8833,current:'temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m',timezone:'auto',wind_speed_unit:'kmh'});
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?'+p);
-    const d=await r.json(); const c=d.current; const code=c.weather_code;
-    document.getElementById('wx-icon').textContent=WMO_ICONS[code]||'🌡';
-    document.getElementById('wx-temp').textContent=Math.round(c.temperature_2m)+'°';
-    document.getElementById('wx-desc').textContent=WMO_DESC[code]||'';
-    document.getElementById('wx-details').textContent=Math.round(c.wind_speed_10m)+' km/h '+dirWx(c.wind_direction_10m)+' · '+c.relative_humidity_2m+'% hum.';
-  }catch(e){document.getElementById('wx-desc').textContent='indisponible';}
+    const r=await fetch(API_CONTENTS,{headers:{Accept:'application/vnd.github+json'}});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data=await r.json();
+    files=data.filter(f=>f.type==='file'&&f.name.endsWith('.html')&&!SKIP.has(f.name));
+    const nb=files.length;
+    document.getElementById('repoSub').textContent=`${nb} fichier${nb>1?'s':''} · github.com/${OWNER}/${REPO}`;
+    setStatus(`${nb} fichier${nb>1?'s':''} détecté${nb>1?'s':''}`, 'ok');
+    return true;
+  }catch(e){
+    setStatus('GitHub indisponible — liste de secours','error');
+    // Fallback: known META files
+    files=Object.keys(META).filter(k=>!SKIP.has(k)&&k!==WEATHER).map(n=>({name:n}));
+    document.getElementById('repoSub').textContent='Mode hors-ligne — métadonnées locales';
+    return false;
+  }
 }
-loadWxCard();
 
-// ══════════════════════════════════
-// HORLOGE
-// ══════════════════════════════════
-function updateClock(){
-  const now=new Date();
-  document.getElementById('clock').textContent=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const ds=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
-  document.getElementById('dateStr').textContent=ds;
-  document.getElementById('dateStr2').textContent=ds;
-}
-updateClock(); setInterval(updateClock,1000);
-
-// ══════════════════════════════════
-// BANDEAU STATS
-// ══════════════════════════════════
-function loadStats(){
-  // CONGÉS
+// ── Commits (enrichissement dates) ──
+async function fetchCommits(){
   try{
-    const raw=localStorage.getItem('suivi_conges');
-    if(raw){
-      const data=JSON.parse(raw);
-      let r=data.solde_restant??data.restant??data.conges_restants??data.solde?.restant??null;
-      if(r!==null){document.getElementById('st-conges').textContent=r+'j';document.getElementById('st-conges-sub').textContent='restants CP';}
-      else{document.getElementById('st-conges').textContent='—';document.getElementById('st-conges-sub').textContent='structure ?';}
-    }else{document.getElementById('st-conges').textContent='—';document.getElementById('st-conges-sub').textContent='aucune donnée';}
-  }catch(e){document.getElementById('st-conges').textContent='err';}
-
-  // BTC
-  fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true')
-    .then(r=>r.json())
-    .then(d=>{
-      const price=d.bitcoin.eur; const chg=d.bitcoin.eur_24h_change;
-      document.getElementById('st-btc').textContent=price>=1000?(Math.round(price/100)/10)+'k€':Math.round(price)+'€';
-      const sub=document.getElementById('st-btc-sub');
-      sub.textContent=(chg>=0?'+':'')+chg.toFixed(1)+'% 24h';
-      sub.style.color=chg>=0?'#6EC99A':'#E8855A';
-    })
-    .catch(()=>fetch('https://api.coincap.io/v2/assets/bitcoin')
-      .then(r=>r.json())
-      .then(d=>{
-        const price=parseFloat(d.data.priceUsd)*0.93;
-        document.getElementById('st-btc').textContent=price>=1000?(Math.round(price/100)/10)+'k€':Math.round(price)+'€';
-        document.getElementById('st-btc-sub').textContent='≈ EUR';
-      })
-      .catch(()=>{document.getElementById('st-btc').textContent='—';})
-    );
-
-  // SANTÉ
-  try{
-    const raw=localStorage.getItem('sante_data');
-    if(raw){
-      const data=JSON.parse(raw); let lastDate=null;
-      if(Array.isArray(data)){const dates=data.map(e=>e.date||e.timestamp||e.jour).filter(Boolean).sort().reverse();if(dates.length)lastDate=dates[0];}
-      else if(data.entries&&Array.isArray(data.entries)){const dates=data.entries.map(e=>e.date||e.timestamp).filter(Boolean).sort().reverse();if(dates.length)lastDate=dates[0];}
-      else if(data.lastUpdate)lastDate=data.lastUpdate;
-      if(lastDate){
-        const diff=Math.round((Date.now()-new Date(lastDate).getTime())/(864e5));
-        document.getElementById('st-sante').textContent=diff===0?'auj.':diff+'j';
-        document.getElementById('st-sante-sub').textContent=diff===0?'mis à jour auj.':'il y a '+diff+' j';
-      }else{document.getElementById('st-sante').textContent='—';}
-    }else{document.getElementById('st-sante').textContent='—';document.getElementById('st-sante-sub').textContent='aucune entrée';}
-  }catch(e){document.getElementById('st-sante').textContent='err';}
-
-  // RAV
-  try{
-    const raw=localStorage.getItem('depenses_data')||localStorage.getItem('depenses');
-    if(raw){
-      const data=JSON.parse(raw);
-      let rav=data.rav??data.reste_a_vivre??data.restant??null;
-      if(rav!==null){
-        document.getElementById('st-rav').textContent=Math.abs(rav)>=1000?(Math.round(rav/100)/10)+'k€':Math.round(rav)+'€';
-        document.getElementById('st-rav-sub').textContent=rav>=0?'ce mois':'⚠ dépassé';
-        document.getElementById('st-rav').style.color=rav>=0?'#F0D76A':'#E8855A';
-      }else{document.getElementById('st-rav').textContent='—';}
-    }else{document.getElementById('st-rav').textContent='—';document.getElementById('st-rav-sub').textContent='aucune donnée';}
-  }catch(e){document.getElementById('st-rav').textContent='err';}
-}
-loadStats();
-
-// ══════════════════════════════════
-// BADGES "À JOUR"
-// ══════════════════════════════════
-function applyBadges(){
-  document.querySelectorAll('#apps .app-card[data-storage-key]').forEach(card=>{
-    const key=card.dataset.storageKey;
-    const raw=localStorage.getItem(key);
-    if(!raw) return;
-    try{
-      const d=JSON.parse(raw); let lastDate=null;
-      if(d.lastUpdate) lastDate=new Date(d.lastUpdate);
-      else if(d.updated_at) lastDate=new Date(d.updated_at);
-      else if(Array.isArray(d)&&d.length){const dates=d.map(e=>e.date||e.timestamp).filter(Boolean).sort().reverse();if(dates.length)lastDate=new Date(dates[0]);}
-      if(!lastDate) return;
-      const diff=Math.round((Date.now()-lastDate.getTime())/864e5);
-      const badge=document.createElement('span');
-      badge.className='badge '+(diff<=7?'badge-fresh':'badge-old');
-      badge.textContent=diff===0?'auj.':diff+'j';
-      badge.title='Dernière activité il y a '+diff+' jour(s)';
-      card.appendChild(badge);
-    }catch(e){}
-  });
-}
-applyBadges();
-
-// ══════════════════════════════════
-// FAVORIS
-// ══════════════════════════════════
-let favs=new Set(JSON.parse(localStorage.getItem('launcher_favs')||'[]'));
-function saveFavs(){localStorage.setItem('launcher_favs',JSON.stringify([...favs]));}
-
-function renderFavSection(){
-  const section=document.getElementById('fav-section');
-  const grid=document.getElementById('fav-grid');
-  grid.innerHTML='';
-  if(favs.size===0){section.style.display='none';return;}
-  section.style.display='block';
-  favs.forEach(id=>{
-    const orig=document.querySelector('#apps [data-card-id="'+id+'"]');
-    if(!orig) return;
-    const clone=orig.cloneNode(true);
-    clone.classList.add('is-fav');
-    clone.style.pointerEvents='all';
-    clone.querySelectorAll('.move-btns,.fav-btn').forEach(e=>e.remove());
-    const fb=document.createElement('span'); fb.className='badge badge-fav'; fb.textContent='★';
-    clone.appendChild(fb);
-    grid.appendChild(clone);
-  });
-}
-
-function toggleFav(e,btn){
-  e.preventDefault(); e.stopPropagation();
-  const card=btn.closest('.app-card');
-  const id=card.dataset.cardId;
-  if(favs.has(id)){favs.delete(id);btn.classList.remove('on');card.classList.remove('is-fav');}
-  else{favs.add(id);btn.classList.add('on');card.classList.add('is-fav');}
-  saveFavs(); renderFavSection();
-}
-
-function applyFavState(){
-  document.querySelectorAll('#apps .app-card').forEach(card=>{
-    if(favs.has(card.dataset.cardId)){
-      card.classList.add('is-fav');
-      const btn=card.querySelector('.fav-btn');
-      if(btn) btn.classList.add('on');
+    let page=1, found=false;
+    while(!found){
+      const r=await fetch(`${API_COMMITS}&page=${page}`,{headers:{Accept:'application/vnd.github+json'}});
+      if(!r.ok) break;
+      const commits=await r.json();
+      if(!commits.length) break;
+      // Use commit date as proxy — we can't get per-file dates without /commits?path= (expensive)
+      // Instead: use push date as a global "latest" indicator
+      commits.forEach(c=>{
+        const date=c.commit.author.date;
+        const sha=c.sha;
+        // We'll try to fetch per-file info from the commit tree if we have few commits
+        if(c.files){
+          c.files.forEach(f=>{
+            const fn=f.filename.split('/').pop();
+            if(!commitMap[fn]) commitMap[fn]=date;
+          });
+        }
+      });
+      if(page>=1) break; // one page is enough for a proxy
+      page++;
     }
-  });
-}
-
-// ══════════════════════════════════
-// RECHERCHE
-// ══════════════════════════════════
-function onSearch(q){
-  document.getElementById('searchClear').classList.toggle('visible',q.length>0);
-  const term=q.toLowerCase().trim();
-  let visible=0;
-  document.querySelectorAll('#apps .app-card').forEach(card=>{
-    const text=(card.dataset.search||'')+' '+(card.querySelector('.card-name')?.textContent||'');
-    const match=!term||text.toLowerCase().includes(term);
-    card.classList.toggle('hidden',!match);
-    if(match) visible++;
-  });
-  document.getElementById('no-results').style.display=visible===0&&term?'block':'none';
-  document.getElementById('fav-section').style.display=term?'none':(favs.size>0?'block':'none');
-}
-function clearSearch(){const i=document.getElementById('searchInput');i.value='';onSearch('');i.focus();}
-
-// ══════════════════════════════════
-// RIPPLE
-// ══════════════════════════════════
-function rippleEffect(e){
-  if(document.getElementById('apps').classList.contains('editing')) return;
-  const card=e.currentTarget;
-  const rect=card.getBoundingClientRect();
-  const x=(e.touches?.[0]?.clientX??e.clientX)-rect.left;
-  const y=(e.touches?.[0]?.clientY??e.clientY)-rect.top;
-  const size=Math.max(rect.width,rect.height)*1.2;
-  const ripple=document.createElement('span');
-  ripple.className='ripple';
-  ripple.style.cssText=`width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px;`;
-  card.querySelector('.card-inner').appendChild(ripple);
-  setTimeout(()=>ripple.remove(),520);
-}
-
-// ══════════════════════════════════
-// ORDRE PERSISTANT
-// ══════════════════════════════════
-function saveOrder(){
-  localStorage.setItem('launcher_order',JSON.stringify([...document.querySelectorAll('#apps .app-card')].map(c=>c.dataset.cardId)));
-}
-function loadOrder(){
-  try{
-    const saved=JSON.parse(localStorage.getItem('launcher_order'));
-    if(!saved||!saved.length) return;
-    const apps=document.getElementById('apps');
-    saved.forEach(id=>{const el=apps.querySelector('[data-card-id="'+id+'"]');if(el)apps.appendChild(el);});
   }catch(e){}
 }
 
-// ══════════════════════════════════
-// RÉORGANISATION
-// ══════════════════════════════════
-let editing=false;
-function toggleEdit(){
-  editing=!editing;
-  const apps=document.getElementById('apps'); const btn=document.getElementById('editBtn');
-  apps.classList.toggle('editing',editing);
-  btn.classList.toggle('active',editing);
-  btn.textContent=editing?'✓ OK':'⇅ TRIER';
-  if(!editing){saveOrder();renderFavSection();}
-  updateMoveButtons();
+// Fetch per-file last commit date using GitHub API path filter
+async function fetchFileDate(filename){
+  if(commitMap[filename]) return;
+  try{
+    const r=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits?path=${filename}&per_page=1`,
+      {headers:{Accept:'application/vnd.github+json'}});
+    if(!r.ok) return;
+    const data=await r.json();
+    if(data.length) commitMap[filename]=data[0].commit.author.date;
+  }catch(e){}
 }
-function moveCard(btn,dir){
-  const card=btn.closest('.app-card');
-  const apps=document.getElementById('apps');
-  const cards=[...apps.querySelectorAll('.app-card:not(.hidden)')];
-  const idx=cards.indexOf(card); const target=cards[idx+dir];
-  if(!target) return;
-  card.style.transition='opacity .15s'; card.style.opacity='0.5';
-  setTimeout(()=>{
-    if(dir<0)apps.insertBefore(card,target);else apps.insertBefore(target,card);
-    card.style.opacity=''; setTimeout(()=>{card.style.transition='';},200);
-    updateMoveButtons();
-  },120);
+
+// ── Age helpers ──
+function ageDays(iso){ if(!iso) return null; return Math.floor((Date.now()-new Date(iso))/(864e5)); }
+function ageLabel(d){
+  if(d===null) return null;
+  if(d===0) return 'Auj.';
+  if(d===1) return '1j';
+  if(d<7) return d+'j';
+  if(d<30) return Math.floor(d/7)+'sem';
+  if(d<365) return Math.floor(d/30)+'m';
+  return Math.floor(d/365)+'an';
 }
-function updateMoveButtons(){
-  const cards=[...document.querySelectorAll('#apps .app-card')];
-  cards.forEach((card,i)=>{
-    const btns=card.querySelectorAll('.move-btn');
-    if(btns.length<2)return;
-    btns[0].disabled=(i===0); btns[1].disabled=(i===cards.length-1);
+function ageClass(d){ if(d===null) return ''; if(d<=7) return 'age-fresh'; if(d<=30) return 'age-mid'; return 'age-old'; }
+
+// ── Ripple ──
+function ripple(e){
+  const el=e.currentTarget;
+  const r=el.getBoundingClientRect();
+  const x=(e.touches?.[0]?.clientX??e.clientX)-r.left;
+  const y=(e.touches?.[0]?.clientY??e.clientY)-r.top;
+  const sz=Math.max(r.width,r.height)*1.5;
+  const rp=document.createElement('span');
+  rp.className='ripple';
+  rp.style.cssText=`width:${sz}px;height:${sz}px;left:${x-sz/2}px;top:${y-sz/2}px`;
+  el.appendChild(rp);
+  setTimeout(()=>rp.remove(),520);
+}
+
+// ── Card builder ──
+function makeCard(file, delay){
+  const fn=file.name;
+  const meta=getMeta(fn);
+  const url=`https://${OWNER}.github.io/${REPO}/${fn}`;
+  const days=ageDays(commitMap[fn]||null);
+  const isNew=days!==null&&days<=3;
+  const lab=ageLabel(days);
+  const ageCls=ageClass(days);
+
+  const a=document.createElement('a');
+  a.className=`card ${meta.col}`;
+  a.href=url; a.target='_blank'; a.rel='noopener';
+  a.dataset.fn=fn; a.dataset.cat=meta.cat;
+  a.dataset.q=(meta.name+' '+fn+' '+meta.cat+' '+meta.tags.join(' ')).toLowerCase();
+  a.style.animationDelay=delay+'ms';
+  a.addEventListener('touchstart',ripple,{passive:true});
+
+  const tags=meta.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+  const age=lab?`<span class="tag ${ageCls}">${lab}</span>`:'';
+
+  a.innerHTML=`
+    <div class="card-bar"></div>
+    ${isNew?'<div class="badge-new">Nouveau</div>':''}
+    <div class="card-body">
+      <div class="card-ico">${meta.icon}</div>
+      <div class="card-info">
+        <div class="card-name">${meta.name}</div>
+        <div class="card-file">${fn}</div>
+        <div class="card-tags">${tags}${age}</div>
+      </div>
+    </div>`;
+  return a;
+}
+
+// ── Build category chips ──
+function buildChips(){
+  const cats=new Set();
+  files.forEach(f=>{ if(f.name!==WEATHER) cats.add(getMeta(f.name).cat); });
+  const row=document.getElementById('chips');
+  row.innerHTML='<button class="chip active" data-cat="all" onclick="setFilter(\'all\',this)">Tout</button>';
+  const sorted=[...cats].sort((a,b)=>{
+    const ia=CAT_ORDER.indexOf(a),ib=CAT_ORDER.indexOf(b);
+    return (ia===-1?99:ia)-(ib===-1?99:ib);
+  });
+  sorted.forEach(cat=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.dataset.cat=cat; b.textContent=cat;
+    b.onclick=function(){setFilter(cat,this)};
+    row.appendChild(b);
   });
 }
 
-// ══════════════════════════════════
-// INIT
-// ══════════════════════════════════
-window.addEventListener('DOMContentLoaded',()=>{
-  loadOrder(); applyFavState(); renderFavSection(); updateMoveButtons();
-});
+// ── Render ──
+function render(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML=''; grid.className=listMode?'grid list':'grid';
+  let shown=0, delay=0;
+
+  // Sort by CAT_ORDER then name
+  const sorted=[...files].filter(f=>f.name!==WEATHER).sort((a,b)=>{
+    const ma=getMeta(a.name), mb=getMeta(b.name);
+    const ia=CAT_ORDER.indexOf(ma.cat), ib=CAT_ORDER.indexOf(mb.cat);
+    const ca=ia===-1?99:ia, cb=ib===-1?99:ib;
+    if(ca!==cb) return ca-cb;
+    return ma.name.localeCompare(mb.name,'fr');
+  });
+
+  sorted.forEach(file=>{
+    const meta=getMeta(file.name);
+    const catOk=activeFilter==='all'||meta.cat===activeFilter;
+    const term=searchTerm.toLowerCase().trim();
+    const srchOk=!term||(meta.name+' '+file.name+' '+meta.cat+' '+meta.tags.join(' ')).toLowerCase().includes(term);
+    if(!catOk||!srchOk) return;
+    grid.appendChild(makeCard(file,delay));
+    delay+=25; shown++;
+  });
+
+  if(!shown){
+    const em=document.createElement('div');
+    em.className='empty';
+    em.innerHTML='<b>🔍</b>Aucun fichier trouvé<br>Essayez un autre filtre';
+    grid.appendChild(em);
+  }
+
+  const total=files.filter(f=>f.name!==WEATHER).length;
+  document.getElementById('cnt').textContent=shown?`(${shown}/${total})`:'';
+  document.getElementById('ftrTxt').textContent=`${total} FICHIER${total>1?'S':''} · ${shown} AFFICHÉ${shown>1?'S':''}`;
+}
+
+// ── Weather ──
+const WMO_I={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',75:'❄️',80:'🌦',95:'⛈'};
+const WMO_T={0:'Ciel dégagé',1:'Peu nuageux',2:'Partiellement nuageux',3:'Couvert',45:'Brouillard',51:'Bruine légère',53:'Bruine',55:'Bruine dense',61:'Pluie légère',63:'Pluie',65:'Forte pluie',71:'Neige légère',75:'Neige forte',80:'Averses',81:'Averses',95:'Orage',99:'Orage violent'};
+const DIR=['N','NE','E','SE','S','SO','O','NO'];
+
+async function loadWeather(){
+  const hasWx=files.some(f=>f.name===WEATHER);
+  document.getElementById('wxCard').style.display=hasWx?'block':'none';
+  if(!hasWx) return;
+  try{
+    const p=new URLSearchParams({latitude:44.9333,longitude:4.8833,current:'temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m',timezone:'auto',wind_speed_unit:'kmh'});
+    const d=await(await fetch('https://api.open-meteo.com/v1/forecast?'+p)).json();
+    const c=d.current,code=c.weather_code;
+    document.getElementById('wxIco').textContent=WMO_I[code]||'🌡';
+    document.getElementById('wxT').textContent=Math.round(c.temperature_2m)+'°';
+    document.getElementById('wxD').textContent=WMO_T[code]||'';
+    document.getElementById('wxDet').textContent=Math.round(c.wind_speed_10m)+' km/h '+DIR[Math.round(c.wind_direction_10m/45)%8]+' · '+c.relative_humidity_2m+'% hum.';
+  }catch(e){document.getElementById('wxD').textContent='indisponible';}
+}
+
+// ── Filters / search ──
+function setFilter(cat,btn){
+  activeFilter=cat;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active'); render();
+}
+function doSearch(q){
+  searchTerm=q;
+  document.getElementById('srchClr').classList.toggle('on',q.length>0);
+  render();
+}
+function clearSrch(){
+  const i=document.getElementById('srch');
+  i.value=''; searchTerm='';
+  document.getElementById('srchClr').classList.remove('on');
+  i.focus(); render();
+}
+function toggleLayout(){
+  listMode=!listMode;
+  document.getElementById('layBtn').textContent=listMode?'⊟':'⊞';
+  render();
+}
+
+// ── Lazy date enrichment ──
+async function enrichDates(){
+  // Fetch last commit date for each file sequentially (rate-limit friendly)
+  const toEnrich=files.filter(f=>!commitMap[f.name]).slice(0,20); // max 20 calls
+  for(const f of toEnrich){
+    await fetchFileDate(f.name);
+    // Silently re-render once dates are available
+  }
+  render(); // final re-render with dates
+}
+
+// ── INIT ──
+async function init(){
+  await fetchFiles();
+  buildChips();
+  loadWeather();
+
+  document.getElementById('skel').style.display='none';
+  document.getElementById('grid').style.display='grid';
+  document.getElementById('ftr').style.display='block';
+  render();
+
+  // Background: enrich with per-file commit dates
+  enrichDates();
+}
+
+init();
 </script>
 </body>
 </html>
