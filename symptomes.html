@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Symptômes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --bg2: #141720;
+    --bg3: #1a1e2a;
+    --border: #2a2f3f;
+    --border2: #353c52;
+    --text: #c8cfe0;
+    --text2: #6b7591;
+    --text3: #3d4460;
+    --accent: #7c6af7;
+    --accent2: #a394ff;
+    --accent-dim: #7c6af722;
+    --sinus: #38bdf8;
+    --souffle: #fb923c;
+    --ventre: #4ade80;
+    --sommeil: #e879f9;
+    --sinus-dim: #38bdf815;
+    --souffle-dim: #fb923c15;
+    --ventre-dim: #4ade8015;
+    --sommeil-dim: #e879f915;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --good: #22c55e;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+  header h1 span { color: var(--accent2); }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 28px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+  /* MAIN */
+  main { padding: 24px 28px; max-width: 1200px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  .btn.danger { border-color: #ef444440; color: var(--danger); }
+  .btn.danger:hover { background: #ef444415; border-color: var(--danger); }
+
+  /* SAISIE PAGE */
+  .saisie-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 700px) { .saisie-grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-title {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  /* DATE selector */
+  .date-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+  }
+  .date-row label { color: var(--text2); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .date-row input[type="date"] {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+  }
+  .date-row input[type="date"]:focus { border-color: var(--accent); }
+
+  /* SLIDER SYMPTOME */
+  .symptom-block { margin-bottom: 20px; }
+  .symptom-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .symptom-name {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; letter-spacing: 0.04em;
+  }
+  .symptom-icon { font-size: 15px; }
+  .symptom-value {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 800;
+    min-width: 28px;
+    text-align: right;
+  }
+  .slider-wrap {
+    position: relative;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: visible;
+  }
+  .slider-fill {
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.1s;
+  }
+  input[type="range"] {
+    position: absolute;
+    width: 100%;
+    top: -7px;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid currentColor;
+    box-shadow: 0 0 8px currentColor;
+    transition: transform 0.1s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type="range"].sinus { color: var(--sinus); accent-color: var(--sinus); }
+  input[type="range"].souffle { color: var(--souffle); accent-color: var(--souffle); }
+  input[type="range"].ventre { color: var(--ventre); accent-color: var(--ventre); }
+  input[type="range"].sommeil { color: var(--sommeil); accent-color: var(--sommeil); }
+
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    color: var(--text3);
+    font-size: 10px;
+  }
+
+  /* SLEEP INPUT */
+  .sleep-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .field-group label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+  .field-group input[type="time"],
+  .field-group input[type="number"],
+  .field-group input[type="text"],
+  .field-group textarea,
+  .field-group select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field-group input:focus,
+  .field-group textarea:focus,
+  .field-group select:focus { border-color: var(--accent); }
+  .field-group textarea { resize: vertical; min-height: 70px; }
+
+  /* FOOD TAGS */
+  .food-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .food-tag {
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text2);
+    background: var(--bg3);
+    user-select: none;
+  }
+  .food-tag:hover { border-color: var(--ventre); color: var(--ventre); }
+  .food-tag.selected { background: var(--ventre-dim); border-color: var(--ventre); color: var(--ventre); }
+
+  /* SAVE FEEDBACK */
+  .save-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .save-msg {
+    font-size: 11px;
+    color: var(--good);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .save-msg.visible { opacity: 1; }
+
+  /* GRAPHES PAGE */
+  .chart-section { margin-bottom: 32px; }
+  .section-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chart-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  canvas { display: block; width: 100% !important; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text2); cursor: pointer;
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-item.hidden { opacity: 0.35; }
+
+  /* HEATMAP */
+  .heatmap-grid {
+    display: grid;
+    gap: 3px;
+  }
+  .heatmap-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .heatmap-label {
+    width: 80px;
+    font-size: 10px;
+    color: var(--text2);
+    text-align: right;
+    padding-right: 8px;
+    flex-shrink: 0;
+  }
+  .heatmap-cell {
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform 0.1s;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .heatmap-cell:hover { transform: scale(1.3); z-index: 10; }
+  .heatmap-months {
+    display: flex;
+    padding-left: 88px;
+    gap: 3px;
+    margin-bottom: 4px;
+  }
+  .heatmap-month-label {
+    font-size: 9px;
+    color: var(--text3);
+    width: 18px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  /* TABLEAU */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: var(--bg3);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+  td {
+    padding: 9px 14px;
+    font-size: 12px;
+    vertical-align: middle;
+  }
+  .score-badge {
+    display: inline-block;
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    text-align: center;
+    line-height: 26px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .dot-sinus { background: var(--sinus-dim); color: var(--sinus); border: 1px solid var(--sinus); }
+  .dot-souffle { background: var(--souffle-dim); color: var(--souffle); border: 1px solid var(--souffle); }
+  .dot-ventre { background: var(--ventre-dim); color: var(--ventre); border: 1px solid var(--ventre); }
+  .dot-sommeil { background: var(--sommeil-dim); color: var(--sommeil); border: 1px solid var(--sommeil); }
+
+  .td-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .mini-tag {
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    background: var(--ventre-dim);
+    color: var(--ventre);
+    border: 1px solid #4ade8030;
+  }
+
+  .sleep-display { color: var(--sommeil); }
+
+  /* CORRELATION */
+  .corr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .corr-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .corr-title { font-size: 11px; color: var(--text2); margin-bottom: 10px; letter-spacing: 0.06em; }
+  .corr-value {
+    font-family: var(--sans);
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .corr-desc { font-size: 10px; color: var(--text2); }
+  .corr-bar-wrap { height: 4px; background: var(--bg3); border-radius: 2px; margin-top: 10px; }
+  .corr-bar { height: 100%; border-radius: 2px; transition: width 0.5s; }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text3);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .empty .big { font-size: 36px; margin-bottom: 12px; }
+
+  /* TOOLTIP */
+  .tooltip-box {
+    position: fixed;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+    max-width: 200px;
+    line-height: 1.6;
+  }
+  .tooltip-box.visible { display: block; }
+
+  /* RANGE 30/90 */
+  .range-selector { display: flex; gap: 6px; margin-bottom: 16px; }
+  .range-btn {
+    padding: 5px 12px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.15s;
+  }
+  .range-btn.active { border-color: var(--accent); color: var(--accent2); background: var(--accent-dim); }
+
+  /* STATS BANNER */
+  .stats-banner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .stats-banner { grid-template-columns: repeat(2, 1fr); } }
+  .stat-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-label { font-size: 10px; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-val {
+    font-family: var(--sans);
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .stat-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .no-data-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #0d0f14cc;
+    font-size: 12px; color: var(--text3);
+    border-radius: 12px;
+    letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Suivi <span>Symptômes</span></h1>
+  <div class="header-actions">
+    <button class="btn" onclick="exportJSON()">↓ Export JSON</button>
+    <label class="btn" style="cursor:pointer">
+      ↑ Import JSON
+      <input type="file" accept=".json" style="display:none" onchange="importJSON(event)">
+    </label>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" onclick="showPage('saisie', this)">Saisie</div>
+  <div class="tab" onclick="showPage('graphes', this)">Graphes</div>
+  <div class="tab" onclick="showPage('heatmap', this)">Heatmap</div>
+  <div class="tab" onclick="showPage('tableau', this)">Tableau</div>
+  <div class="tab" onclick="showPage('correlations', this)">Corrélations</div>
+</nav>
+
+<main>
+
+<!-- ===== SAISIE ===== -->
+<div id="page-saisie" class="page active">
+
+  <div class="date-row">
+    <label>Date</label>
+    <input type="date" id="entry-date">
+    <span style="color:var(--text3);font-size:11px;margin-left:auto" id="entry-exists-label"></span>
+  </div>
+
+  <div class="saisie-grid">
+
+    <!-- Symptômes -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Symptômes (0 = absent · 10 = intense)</div>
+
+      <div class="symptom-block">
+        <div class="symptom-label">
+          <div class="symptom-name"><span class="symptom-icon">🫁</span><span style="color:var(--sinus)">Sinusite / Congestion</span></div>
+          <div class="symptom-value" id="val-sinus" style="color:var(--sinus)">0</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-fill" id="fill-sinus" style="background:var(--sinus);width:0%"></div>
+          <input type="range" min="0" max="10" value="0" class="sinus" id="sl-sinus" oninput="updateSlider('sinus',this.value)">
+        </div>
+        <div class="scale-labels"><span>Rien</span><span>Modéré</span><span>Intense</span></div>
+      </div>
+
+      <div class="symptom-block">
+        <div class="symptom-label">
+          <div class="symptom-name"><span class="symptom-icon">😮‍💨</span><span style="color:var(--souffle)">Essoufflement</span></div>
+          <div class="symptom-value" id="val-souffle" style="color:var(--souffle)">0</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-fill" id="fill-souffle" style="background:var(--souffle);width:0%"></div>
+          <input type="range" min="0" max="10" value="0" class="souffle" id="sl-souffle" oninput="updateSlider('souffle',this.value)">
+        </div>
+        <div class="scale-labels"><span>Rien</span><span>Modéré</span><span>Intense</span></div>
+      </div>
+
+      <div class="symptom-block">
+        <div class="symptom-label">
+          <div class="symptom-name"><span class="symptom-icon">🫃</span><span style="color:var(--ventre)">Ballonnements / Gaz</span></div>
+          <div class="symptom-value" id="val-ventre" style="color:var(--ventre)">0</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-fill" id="fill-ventre" style="background:var(--ventre);width:0%"></div>
+          <input type="range" min="0" max="10" value="0" class="ventre" id="sl-ventre" oninput="updateSlider('ventre',this.value)">
+        </div>
+        <div class="scale-labels"><span>Rien</span><span>Modéré</span><span>Intense</span></div>
+      </div>
+
+      <div class="symptom-block">
+        <div class="symptom-label">
+          <div class="symptom-name"><span class="symptom-icon">😴</span><span style="color:var(--sommeil)">Qualité sommeil</span></div>
+          <div class="symptom-value" id="val-sommeil" style="color:var(--sommeil)">5</div>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-fill" id="fill-sommeil" style="background:var(--sommeil);width:50%"></div>
+          <input type="range" min="0" max="10" value="5" class="sommeil" id="sl-sommeil" oninput="updateSlider('sommeil',this.value)">
+        </div>
+        <div class="scale-labels"><span>Terrible</span><span>Moyen</span><span>Parfait</span></div>
+      </div>
+
+      <div class="field-group" style="margin-top:16px">
+        <label>Notes libres</label>
+        <textarea id="notes" placeholder="Contexte, observations..."></textarea>
+      </div>
+    </div>
+
+    <!-- Facteurs -->
+    <div>
+      <!-- Sommeil -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title"><span class="dot" style="background:var(--sommeil)"></span>Sommeil</div>
+        <div class="sleep-row">
+          <div class="field-group">
+            <label>Coucher</label>
+            <input type="time" id="sleep-start" value="23:00">
+          </div>
+          <div class="field-group">
+            <label>Lever</label>
+            <input type="time" id="sleep-end" value="06:00">
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text2)">Durée calculée : <span id="sleep-duration" style="color:var(--sommeil);font-weight:500">7h00</span></div>
+      </div>
+
+      <!-- Alimentation -->
+      <div class="card">
+        <div class="card-title"><span class="dot" style="background:var(--ventre)"></span>Alimentation</div>
+
+        <div style="font-size:11px;color:var(--text2);margin-bottom:10px;letter-spacing:0.04em">Aliments FODMAP / irritants consommés :</div>
+        <div class="food-tags" id="food-tags">
+          <div class="food-tag" onclick="toggleTag(this)" data-val="gluten">Gluten</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="lait">Lait/laitages</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="légumineuses">Légumineuses</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="oignon/ail">Oignon / ail</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="fructose">Fructose élevé</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="alcool">Alcool</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="café">Café</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="épicé">Épicé</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="poisson">Poisson gras</div>
+          <div class="food-tag" onclick="toggleTag(this)" data-val="choux">Choux/brassica</div>
+        </div>
+
+        <div class="field-group" style="margin-top:12px">
+          <label>Autre aliment notable</label>
+          <input type="text" id="food-other" placeholder="ex: artichaut, poire...">
+        </div>
+
+        <div class="field-group" style="margin-top:12px">
+          <label>Qualité générale repas</label>
+          <select id="diet-quality">
+            <option value="bon">Bon (peu d'irritants)</option>
+            <option value="moyen" selected>Moyen</option>
+            <option value="mauvais">Mauvais (beaucoup d'irritants)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="save-row">
+    <button class="btn primary" onclick="saveEntry()">Enregistrer</button>
+    <button class="btn danger" onclick="deleteEntry()" id="btn-delete" style="display:none">Supprimer</button>
+    <span class="save-msg" id="save-msg">✓ Sauvegardé</span>
+  </div>
+</div>
+
+<!-- ===== GRAPHES ===== -->
+<div id="page-graphes" class="page">
+  <div class="range-selector">
+    <button class="range-btn active" onclick="setRange(30,this)">30 jours</button>
+    <button class="range-btn" onclick="setRange(60,this)">60 jours</button>
+    <button class="range-btn" onclick="setRange(90,this)">90 jours</button>
+    <button class="range-btn" onclick="setRange(0,this)">Tout</button>
+  </div>
+
+  <div class="chart-section">
+    <div class="section-title">Symptômes</div>
+    <div class="chart-container" style="height:260px">
+      <canvas id="chart-symptoms"></canvas>
+      <div class="no-data-overlay" id="nd-symptoms" style="display:none">Aucune donnée</div>
+    </div>
+    <div class="legend" id="legend-symptoms"></div>
+  </div>
+
+  <div class="chart-section">
+    <div class="section-title">Durée de sommeil</div>
+    <div class="chart-container" style="height:180px">
+      <canvas id="chart-sleep"></canvas>
+      <div class="no-data-overlay" id="nd-sleep" style="display:none">Aucune donnée</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HEATMAP ===== -->
+<div id="page-heatmap" class="page">
+  <div id="heatmap-container">
+    <div class="empty"><div class="big">📅</div>Aucune donnée à afficher</div>
+  </div>
+</div>
+
+<!-- ===== TABLEAU ===== -->
+<div id="page-tableau" class="page">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>🫁 Sinus</th>
+          <th>😮‍💨 Souffle</th>
+          <th>🫃 Ventre</th>
+          <th>😴 Sommeil</th>
+          <th>Durée nuit</th>
+          <th>Alimentation</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="8" class="empty">Aucune donnée</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== CORRÉLATIONS ===== -->
+<div id="page-correlations" class="page">
+
+  <div class="stats-banner" id="stats-banner">
+    <div class="stat-box">
+      <div class="stat-label">Entrées</div>
+      <div class="stat-val" id="stat-count" style="color:var(--accent2)">0</div>
+      <div class="stat-sub">jours enregistrés</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Sinus moy.</div>
+      <div class="stat-val" id="stat-sinus" style="color:var(--sinus)">—</div>
+      <div class="stat-sub">sur 10</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Ventre moy.</div>
+      <div class="stat-val" id="stat-ventre" style="color:var(--ventre)">—</div>
+      <div class="stat-sub">sur 10</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Sommeil moy.</div>
+      <div class="stat-val" id="stat-sleep-dur" style="color:var(--sommeil)">—</div>
+      <div class="stat-sub">heures/nuit</div>
+    </div>
+  </div>
+
+  <div class="section-title">Impact alimentation sur symptômes digestifs</div>
+  <div class="corr-grid" id="corr-food"></div>
+
+  <div class="section-title" style="margin-top:28px">Impact sommeil sur symptômes</div>
+  <div class="corr-grid" id="corr-sleep"></div>
+
+</div>
+
+</main>
+
+<div class="tooltip-box" id="tooltip"></div>
+
+<script>
+// ===== DATA =====
+let data = JSON.parse(localStorage.getItem('symptomes_v1') || '{}');
+let chartRange = 30;
+let chartObjs = {};
+
+// ===== INIT =====
+window.onload = () => {
+  const d = new Date();
+  document.getElementById('entry-date').value = toDateStr(d);
+  document.getElementById('entry-date').addEventListener('change', loadEntryForDate);
+  document.getElementById('sleep-start').addEventListener('change', calcSleepDuration);
+  document.getElementById('sleep-end').addEventListener('change', calcSleepDuration);
+  loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js', () => {
+    loadEntryForDate();
+  });
+};
+
+function loadScript(src, cb) {
+  const s = document.createElement('script');
+  s.src = src;
+  s.onload = cb;
+  document.head.appendChild(s);
+}
+
+// ===== DATE UTILS =====
+function toDateStr(d) {
+  return d.toISOString().split('T')[0];
+}
+function parseDateStr(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+function formatDateFR(s) {
+  const d = parseDateStr(s);
+  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function calcDuration(start, end) {
+  const [sh,sm] = start.split(':').map(Number);
+  let [eh,em] = end.split(':').map(Number);
+  let mins = (eh*60+em) - (sh*60+sm);
+  if (mins < 0) mins += 1440;
+  const h = Math.floor(mins/60), m = mins%60;
+  return { h, m, total: mins/60 };
+}
+function calcSleepDuration() {
+  const s = document.getElementById('sleep-start').value;
+  const e = document.getElementById('sleep-end').value;
+  if (!s||!e) return;
+  const {h,m} = calcDuration(s,e);
+  document.getElementById('sleep-duration').textContent = `${h}h${String(m).padStart(2,'0')}`;
+}
+
+// ===== SLIDERS =====
+function updateSlider(id, val) {
+  document.getElementById('val-'+id).textContent = val;
+  document.getElementById('fill-'+id).style.width = (val*10)+'%';
+}
+
+// ===== FOOD TAGS =====
+function toggleTag(el) {
+  el.classList.toggle('selected');
+}
+function getSelectedTags() {
+  return [...document.querySelectorAll('.food-tag.selected')].map(t=>t.dataset.val);
+}
+function setSelectedTags(tags) {
+  document.querySelectorAll('.food-tag').forEach(t=>{
+    t.classList.toggle('selected', tags.includes(t.dataset.val));
+  });
+}
+
+// ===== LOAD ENTRY =====
+function loadEntryForDate() {
+  const date = document.getElementById('entry-date').value;
+  const e = data[date];
+  const lbl = document.getElementById('entry-exists-label');
+  const btnDel = document.getElementById('btn-delete');
+  if (e) {
+    lbl.textContent = '✎ Entrée existante — modification';
+    lbl.style.color = 'var(--warn)';
+    btnDel.style.display = 'inline-flex';
+    // load
+    ['sinus','souffle','ventre','sommeil'].forEach(k=>{
+      const v = e[k]??0;
+      document.getElementById('sl-'+k).value = v;
+      updateSlider(k,v);
+    });
+    document.getElementById('sleep-start').value = e.sleepStart||'23:00';
+    document.getElementById('sleep-end').value = e.sleepEnd||'06:00';
+    calcSleepDuration();
+    setSelectedTags(e.foodTags||[]);
+    document.getElementById('food-other').value = e.foodOther||'';
+    document.getElementById('diet-quality').value = e.dietQuality||'moyen';
+    document.getElementById('notes').value = e.notes||'';
+  } else {
+    lbl.textContent = 'Nouvelle entrée';
+    lbl.style.color = 'var(--text3)';
+    btnDel.style.display = 'none';
+    ['sinus','souffle','ventre'].forEach(k=>{
+      document.getElementById('sl-'+k).value=0; updateSlider(k,0);
+    });
+    document.getElementById('sl-sommeil').value=5; updateSlider('sommeil',5);
+    document.getElementById('sleep-start').value='23:00';
+    document.getElementById('sleep-end').value='06:00';
+    calcSleepDuration();
+    setSelectedTags([]);
+    document.getElementById('food-other').value='';
+    document.getElementById('diet-quality').value='moyen';
+    document.getElementById('notes').value='';
+  }
+}
+
+// ===== SAVE =====
+function saveEntry() {
+  const date = document.getElementById('entry-date').value;
+  const s = document.getElementById('sleep-start').value;
+  const e = document.getElementById('sleep-end').value;
+  const dur = (s&&e) ? calcDuration(s,e) : null;
+  data[date] = {
+    sinus: +document.getElementById('sl-sinus').value,
+    souffle: +document.getElementById('sl-souffle').value,
+    ventre: +document.getElementById('sl-ventre').value,
+    sommeil: +document.getElementById('sl-sommeil').value,
+    sleepStart: s, sleepEnd: e,
+    sleepDuration: dur?dur.total:null,
+    foodTags: getSelectedTags(),
+    foodOther: document.getElementById('food-other').value.trim(),
+    dietQuality: document.getElementById('diet-quality').value,
+    notes: document.getElementById('notes').value.trim()
+  };
+  localStorage.setItem('symptomes_v1', JSON.stringify(data));
+  const msg = document.getElementById('save-msg');
+  msg.classList.add('visible');
+  setTimeout(()=>msg.classList.remove('visible'),2000);
+  loadEntryForDate();
+}
+
+function deleteEntry() {
+  const date = document.getElementById('entry-date').value;
+  if (!data[date]) return;
+  if (!confirm(`Supprimer l'entrée du ${formatDateFR(date)} ?`)) return;
+  delete data[date];
+  localStorage.setItem('symptomes_v1', JSON.stringify(data));
+  loadEntryForDate();
+}
+
+// ===== TABS =====
+function showPage(id, tab) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  tab.classList.add('active');
+  if (id==='graphes') renderCharts();
+  if (id==='heatmap') renderHeatmap();
+  if (id==='tableau') renderTable();
+  if (id==='correlations') renderCorrelations();
+}
+
+// ===== GET SORTED DATA =====
+function getSortedEntries(days=0) {
+  let keys = Object.keys(data).sort();
+  if (days>0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate()-days);
+    const cutStr = toDateStr(cutoff);
+    keys = keys.filter(k=>k>=cutStr);
+  }
+  return keys.map(k=>({date:k,...data[k]}));
+}
+
+// ===== CHARTS =====
+function setRange(days, btn) {
+  chartRange = days;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCharts();
+}
+
+function renderCharts() {
+  if (typeof Chart === 'undefined') return;
+  const entries = getSortedEntries(chartRange);
+  const labels = entries.map(e=>formatDateFR(e.date));
+
+  // Symptomes
+  destroyChart('chart-symptoms');
+  const nd1 = document.getElementById('nd-symptoms');
+  if (entries.length<2) { nd1.style.display='flex'; return; }
+  nd1.style.display='none';
+  const ctx1 = document.getElementById('chart-symptoms').getContext('2d');
+  chartObjs['chart-symptoms'] = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Sinusite', data:entries.map(e=>e.sinus), borderColor:'#38bdf8', backgroundColor:'#38bdf808', tension:0.3, pointRadius:3 },
+        { label:'Essoufflement', data:entries.map(e=>e.souffle), borderColor:'#fb923c', backgroundColor:'#fb923c08', tension:0.3, pointRadius:3 },
+        { label:'Ballonnements', data:entries.map(e=>e.ventre), borderColor:'#4ade80', backgroundColor:'#4ade8008', tension:0.3, pointRadius:3 },
+        { label:'Qualité sommeil', data:entries.map(e=>e.sommeil), borderColor:'#e879f9', backgroundColor:'#e879f908', tension:0.3, pointRadius:3, borderDash:[4,3] },
+      ]
+    },
+    options: chartOpts(0,10)
+  });
+
+  // Sleep duration
+  destroyChart('chart-sleep');
+  const nd2 = document.getElementById('nd-sleep');
+  const sleepEntries = entries.filter(e=>e.sleepDuration!=null);
+  if (sleepEntries.length<2) { nd2.style.display='flex'; return; }
+  nd2.style.display='none';
+  const ctx2 = document.getElementById('chart-sleep').getContext('2d');
+  chartObjs['chart-sleep'] = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: sleepEntries.map(e=>formatDateFR(e.date)),
+      datasets: [{
+        label:'Durée (h)',
+        data: sleepEntries.map(e=>Math.round(e.sleepDuration*100)/100),
+        backgroundColor: sleepEntries.map(e=>{
+          const h = e.sleepDuration;
+          if (h>=7) return '#e879f940';
+          if (h>=6) return '#f59e0b40';
+          return '#ef444440';
+        }),
+        borderColor: sleepEntries.map(e=>{
+          const h = e.sleepDuration;
+          if (h>=7) return '#e879f9';
+          if (h>=6) return '#f59e0b';
+          return '#ef4444';
+        }),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      ...chartOpts(0,12),
+      plugins:{
+        legend:{display:false},
+        annotation:{annotations:[{type:'line',yMin:7,yMax:7,borderColor:'#e879f950',borderWidth:1,borderDash:[4,4],label:{content:'7h',display:true,font:{size:10}}}]}
+      }
+    }
+  });
+}
+
+function destroyChart(id) {
+  if (chartObjs[id]) { chartObjs[id].destroy(); delete chartObjs[id]; }
+}
+
+function chartOpts(yMin, yMax) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    scales: {
+      x: {
+        ticks: { color:'#6b7591', font:{family:'JetBrains Mono',size:10}, maxRotation:45, maxTicksLimit:15 },
+        grid: { color:'#2a2f3f' }
+      },
+      y: {
+        min: yMin, max: yMax,
+        ticks: { color:'#6b7591', font:{family:'JetBrains Mono',size:10}, stepSize:1 },
+        grid: { color:'#2a2f3f' }
+      }
+    },
+    plugins: {
+      legend: { labels:{ color:'#c8cfe0', font:{family:'JetBrains Mono',size:11}, boxWidth:12 } },
+      tooltip: {
+        backgroundColor:'#1a1e2a', borderColor:'#353c52', borderWidth:1,
+        titleColor:'#c8cfe0', bodyColor:'#6b7591',
+        titleFont:{family:'JetBrains Mono'}, bodyFont:{family:'JetBrains Mono',size:11}
+      }
+    }
+  };
+}
+
+// ===== HEATMAP =====
+function renderHeatmap() {
+  const entries = getSortedEntries(0);
+  const container = document.getElementById('heatmap-container');
+  if (entries.length===0) {
+    container.innerHTML = '<div class="empty"><div class="big">📅</div>Aucune donnée à afficher</div>';
+    return;
+  }
+
+  const symptomKeys = [
+    {key:'sinus', label:'Sinus', color:'#38bdf8'},
+    {key:'souffle', label:'Souffle', color:'#fb923c'},
+    {key:'ventre', label:'Ventre', color:'#4ade80'},
+    {key:'sommeil', label:'Sommeil', color:'#e879f9', invert:true}
+  ];
+
+  // build date map
+  const dateMap = {};
+  entries.forEach(e=>dateMap[e.date]=e);
+
+  // get date range
+  const first = parseDateStr(entries[0].date);
+  const last = parseDateStr(entries[entries.length-1].date);
+
+  // generate weeks
+  const startMonday = new Date(first);
+  startMonday.setDate(first.getDate() - ((first.getDay()+6)%7));
+
+  const days = [];
+  let d = new Date(startMonday);
+  while (d <= last) {
+    days.push(toDateStr(d));
+    d.setDate(d.getDate()+1);
+  }
+  const weeks = [];
+  for (let i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+
+  const tooltip = document.getElementById('tooltip');
+
+  let html = '';
+  html += '<div style="margin-bottom:20px">';
+
+  symptomKeys.forEach(sk => {
+    html += `<div style="margin-bottom:24px">`;
+    html += `<div style="font-size:11px;color:${sk.color};letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;font-weight:500">${sk.label}</div>`;
+    html += `<div class="heatmap-row" style="flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px">`;
+    weeks.forEach(week => {
+      html += '<div style="display:flex;flex-direction:column;gap:3px;margin-right:3px">';
+      week.forEach(dateStr => {
+        const entry = dateMap[dateStr];
+        let val = entry ? entry[sk.key] : null;
+        let opacity = 0;
+        let color = sk.color;
+        if (val !== null && val !== undefined) {
+          // for sommeil: invert (low score = bad)
+          const score = sk.invert ? (10-val) : val;
+          opacity = 0.1 + score/10*0.85;
+        }
+        const bg = val!==null && val!==undefined
+          ? hexWithAlpha(color, opacity)
+          : '#1a1e2a';
+        const border = dateStr===toDateStr(new Date()) ? '1px solid #ffffff60' : '1px solid transparent';
+        html += `<div class="heatmap-cell" style="background:${bg};border:${border}" 
+          data-date="${dateStr}" data-val="${val??'-'}" data-key="${sk.label}"
+          onmouseenter="showTooltip(event,this)" onmouseleave="hideTooltip()"></div>`;
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+    // scale
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:10px;color:var(--text3)">
+      <span>${sk.invert?'Bon':'Absent'}</span>`;
+    for(let i=0;i<=10;i++) {
+      const score = sk.invert?(10-i):i;
+      const op = 0.1+score/10*0.85;
+      html+=`<div style="width:12px;height:12px;border-radius:2px;background:${hexWithAlpha(sk.color,op)};flex-shrink:0"></div>`;
+    }
+    html += `<span>${sk.invert?'Mauvais':'Intense'}</span></div>`;
+    html += '</div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function hexWithAlpha(hex, alpha) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+}
+
+function showTooltip(e, el) {
+  const t = document.getElementById('tooltip');
+  const date = el.dataset.date;
+  const val = el.dataset.val;
+  const key = el.dataset.key;
+  const entry = data[date];
+  let content = `<strong style="color:#fff">${formatDateFR(date)}</strong><br>`;
+  content += `${key} : <span style="color:#a394ff">${val==='null'||val==='-'?'—':val+'/10'}</span>`;
+  if (entry && entry.notes) content += `<br><span style="color:var(--text3)">${entry.notes.substring(0,60)}...</span>`;
+  t.innerHTML = content;
+  t.classList.add('visible');
+  t.style.left = (e.clientX+12)+'px';
+  t.style.top = (e.clientY-40)+'px';
+}
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+// ===== TABLE =====
+function renderTable() {
+  const entries = getSortedEntries(0).reverse();
+  const tbody = document.getElementById('table-body');
+  if (entries.length===0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Aucune donnée</td></tr>';
+    return;
+  }
+  tbody.innerHTML = entries.map(e=>{
+    const tags = (e.foodTags||[]).map(t=>`<span class="mini-tag">${t}</span>`).join('');
+    const dur = e.sleepDuration ? `${Math.floor(e.sleepDuration)}h${String(Math.round((e.sleepDuration%1)*60)).padStart(2,'0')}` : '—';
+    return `<tr>
+      <td style="color:var(--text2)">${formatDateFR(e.date)}</td>
+      <td><span class="score-badge dot-sinus">${e.sinus??'—'}</span></td>
+      <td><span class="score-badge dot-souffle">${e.souffle??'—'}</span></td>
+      <td><span class="score-badge dot-ventre">${e.ventre??'—'}</span></td>
+      <td><span class="score-badge dot-sommeil">${e.sommeil??'—'}</span></td>
+      <td class="sleep-display">${dur}</td>
+      <td><div class="td-tags">${tags}</div></td>
+      <td style="color:var(--text3);font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.notes||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== CORRELATIONS =====
+function renderCorrelations() {
+  const entries = getSortedEntries(0);
+  const n = entries.length;
+
+  document.getElementById('stat-count').textContent = n;
+  if (n===0) return;
+
+  const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : '—';
+
+  document.getElementById('stat-sinus').textContent = avg(entries.map(e=>e.sinus));
+  document.getElementById('stat-ventre').textContent = avg(entries.map(e=>e.ventre));
+  const sleepEntries = entries.filter(e=>e.sleepDuration!=null);
+  document.getElementById('stat-sleep-dur').textContent = sleepEntries.length
+    ? (sleepEntries.reduce((a,e)=>a+e.sleepDuration,0)/sleepEntries.length).toFixed(1)+'h' : '—';
+
+  // FOOD correlations
+  const foods = ['gluten','lait','légumineuses','oignon/ail','fructose','alcool','café','épicé','choux'];
+  const corrFood = document.getElementById('corr-food');
+  corrFood.innerHTML = '';
+  foods.forEach(food=>{
+    const withFood = entries.filter(e=>(e.foodTags||[]).includes(food));
+    const without = entries.filter(e=>!(e.foodTags||[]).includes(food));
+    if (withFood.length<2) return;
+    const wAvg = avg(withFood.map(e=>e.ventre));
+    const woAvg = without.length ? avg(without.map(e=>e.ventre)) : null;
+    const diff = woAvg ? (parseFloat(wAvg)-parseFloat(woAvg)).toFixed(1) : null;
+    const color = diff>0 ? 'var(--danger)' : 'var(--good)';
+    corrFood.innerHTML += `<div class="corr-card">
+      <div class="corr-title">${food} (${withFood.length}j)</div>
+      <div class="corr-value" style="color:var(--ventre)">${wAvg}<span style="font-size:14px;color:var(--text2)">/10</span></div>
+      <div class="corr-desc">Ventre moyen${diff!==null?` · <span style="color:${color}">${diff>0?'+':''}${diff} vs sans</span>`:''}</div>
+      <div class="corr-bar-wrap"><div class="corr-bar" style="background:var(--ventre);width:${parseFloat(wAvg)*10}%"></div></div>
+    </div>`;
+  });
+  if (!corrFood.innerHTML) corrFood.innerHTML = '<div style="color:var(--text3);font-size:12px">Pas encore assez de données (min. 2 occurrences par aliment)</div>';
+
+  // SLEEP correlations
+  const corrSleep = document.getElementById('corr-sleep');
+  corrSleep.innerHTML = '';
+  const sleepBands = [
+    {label:'< 5h', filter:e=>e.sleepDuration<5},
+    {label:'5h – 6h', filter:e=>e.sleepDuration>=5&&e.sleepDuration<6},
+    {label:'6h – 7h', filter:e=>e.sleepDuration>=6&&e.sleepDuration<7},
+    {label:'≥ 7h', filter:e=>e.sleepDuration>=7},
+  ];
+  const symptoms = [{key:'sinus',label:'Sinus',color:'var(--sinus)'},{key:'souffle',label:'Souffle',color:'var(--souffle)'},{key:'ventre',label:'Ventre',color:'var(--ventre)'}];
+  sleepBands.forEach(band=>{
+    const group = sleepEntries.filter(band.filter);
+    if (group.length<2) return;
+    const lines = symptoms.map(s=>{
+      const a = avg(group.map(e=>e[s.key]));
+      return `<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+        <span style="color:var(--text2)">${s.label}</span>
+        <span style="color:${s.color};font-weight:500">${a}/10</span>
+      </div>`;
+    }).join('');
+    corrSleep.innerHTML += `<div class="corr-card">
+      <div class="corr-title">${band.label} · ${group.length} nuits</div>
+      ${lines}
+    </div>`;
+  });
+  if (!corrSleep.innerHTML) corrSleep.innerHTML = '<div style="color:var(--text3);font-size:12px">Pas encore assez de données</div>';
+}
+
+// ===== EXPORT / IMPORT =====
+function exportJSON() {
+  const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString(),entries:data},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `symptomes_${toDateStr(new Date())}.json`;
+  a.click();
+}
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = e=>{
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const entries = parsed.entries || parsed;
+      if (typeof entries !== 'object') throw new Error();
+      if (!confirm(`Importer ${Object.keys(entries).length} entrées ? (Remplace les données existantes)`)) return;
+      data = entries;
+      localStorage.setItem('symptomes_v1', JSON.stringify(data));
+      loadEntryForDate();
+      alert('Import réussi.');
+    } catch { alert('Fichier JSON invalide.'); }
+  };
+  r.readAsText(file);
+  event.target.value='';
+}
+</script>
+</body>
+</html>
