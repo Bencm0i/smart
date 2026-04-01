@@ -95,6 +95,87 @@ body {
 .save-status.show { opacity: 1; }
 
 /* ═══ TABS ═══ */
+/* ═══ TICKER BAND ═══ */
+.ticker-band {
+  position: sticky;
+  top: 61px;
+  z-index: 150;
+  background: rgba(18,21,27,0.97);
+  border-bottom: 1px solid var(--border);
+  height: 28px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+.ticker-band::before,
+.ticker-band::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 32px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ticker-band::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(18,21,27,1), transparent);
+}
+.ticker-band::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(18,21,27,1), transparent);
+}
+.ticker-track {
+  display: flex;
+  align-items: center;
+  animation: tickerScroll 38s linear infinite;
+  will-change: transform;
+}
+.ticker-band:hover .ticker-track {
+  animation-play-state: paused;
+}
+@keyframes tickerScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.ticker-item:last-child { border-right: none; }
+.t-sym {
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 9px;
+}
+.t-price {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text);
+}
+.t-chg {
+  font-size: 9px;
+  letter-spacing: 0.3px;
+}
+.t-chg.up  { color: var(--green); }
+.t-chg.dn  { color: var(--red); }
+.t-chg.neu { color: var(--muted); }
+.t-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
 .tabs-bar {
   display: flex;
   overflow-x: auto;
@@ -103,7 +184,7 @@ body {
   background: var(--bg);
   padding: 0 4px;
   position: sticky;
-  top: 61px;
+  top: 89px;
   z-index: 100;
 }
 .tabs-bar::-webkit-scrollbar { display: none; }
@@ -499,6 +580,13 @@ input[type=number] { -moz-appearance: textfield; }
     <button class="hbtn" onclick="loadJSON()">📂 JSON</button>
     <button class="hbtn" onclick="openKpiModal()" title="Export format KPI Terminal">📊 KPI</button>
     <button class="hbtn primary" onclick="exportJSON()">💾 Export</button>
+  </div>
+</div>
+
+<!-- ═══ TICKER BAND ═══ -->
+<div class="ticker-band" id="tickerBand" title="Pause au survol · Clic pour actualiser">
+  <div class="ticker-track" id="tickerTrack">
+    <!-- items injectés par JS × 2 pour boucle seamless -->
   </div>
 </div>
 
@@ -1754,6 +1842,165 @@ window.addEventListener('DOMContentLoaded', () => {
     DATA.maison = parseFloat(this.value)||0; autoSave();
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// TICKER BAND — Live market data (GAS → Yahoo fallback)
+// ═══════════════════════════════════════════════════════════════════
+(function() {
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiXiLpcnIxT_ViTV-3Jfo3BrXuzBuMgFeD-l3-V3LU8vfWDs_b-f1keu_H-PjLGzBaKA/exec';
+
+  const TICKERS_DEF = [
+    { id:'btc',  sym:'BTC/EUR',   gfSym:'CURRENCY:BTCEUR',   yf:'BTC-EUR',   fmt:'eur',  dot:'#f7931a', yfOnly:false },
+    { id:'wpea', sym:'WPEA',      gfSym:'EPA:WPEA',           yf:'WPEA.PA',   fmt:'eur',  dot:'#a855f7', yfOnly:false },
+    { id:'nas',  sym:'NASDAQ',    gfSym:'INDEXNASDAQ:.IXIC',  yf:'%5EIXIC',   fmt:'idx',  dot:'#e8c96e', yfOnly:false },
+    { id:'eur',  sym:'EUR/USD',   gfSym:'CURRENCY:EURUSD',    yf:'EURUSD=X',  fmt:'fx',   dot:'#4df0c8', yfOnly:true  },
+    { id:'gold', sym:'OR (XAU)',  gfSym:'CURRENCY:XAUUSD',    yf:'GC=F',      fmt:'usd',  dot:'#c8a96e', yfOnly:false },
+    { id:'cac',  sym:'CAC 40',    gfSym:'INDEXEURO:PX1',      yf:'%5EFCHI',   fmt:'idx',  dot:'#5aab7a', yfOnly:false },
+  ];
+
+  const CORS_PROXIES = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  ];
+
+  // State: price & change per id
+  const state = {};
+  TICKERS_DEF.forEach(t => { state[t.id] = { price: null, chgAbs: null, chgPct: null }; });
+
+  // ── Formatters ─────────────────────────────────────────────────────────────
+  function fmtPrice(v, fmt) {
+    if (!v && v !== 0) return '—';
+    if (fmt === 'usd') return '$' + (v >= 1000
+      ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:0}).format(v)
+      : v.toFixed(2));
+    if (fmt === 'eur') return new Intl.NumberFormat('fr-FR',
+      {style:'currency', currency:'EUR', maximumFractionDigits:2}).format(v);
+    if (fmt === 'fx') return v.toFixed(4);
+    return v >= 1000
+      ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:2}).format(v)
+      : v.toFixed(2);
+  }
+
+  function fmtChg(chgPct) {
+    if (chgPct === null) return { txt: '—', cls: 'neu' };
+    const up = chgPct >= 0;
+    return { txt: (up ? '▲' : '▼') + ' ' + Math.abs(chgPct).toFixed(2) + '%', cls: up ? 'up' : 'dn' };
+  }
+
+  // ── Build DOM ──────────────────────────────────────────────────────────────
+  function buildTrack() {
+    const track = document.getElementById('tickerTrack');
+    if (!track) return;
+    // Build items × 2 for seamless loop
+    let html = '';
+    for (let pass = 0; pass < 2; pass++) {
+      TICKERS_DEF.forEach(t => {
+        const s = state[t.id];
+        const priceStr = fmtPrice(s.price, t.fmt);
+        const { txt: chgTxt, cls: chgCls } = fmtChg(s.chgPct);
+        const suffix = pass === 0 ? '' : '-b';
+        html += `<div class="ticker-item">
+          <span class="t-dot" style="background:${t.dot}"></span>
+          <span class="t-sym">${t.sym}</span>
+          <span class="t-price" id="tp-${t.id}${suffix}">${priceStr}</span>
+          <span class="t-chg ${chgCls}" id="tc-${t.id}${suffix}">${chgTxt}</span>
+        </div>`;
+      });
+    }
+    track.innerHTML = html;
+    // Fit animation duration to content width
+    requestAnimationFrame(() => {
+      const half = track.scrollWidth / 2;
+      const speed = 60; // px/s
+      const dur = Math.round(half / speed);
+      track.style.animationDuration = dur + 's';
+    });
+  }
+
+  function updateItem(id, price, chgAbs, chgPct) {
+    state[id] = { price, chgAbs, chgPct };
+    ['', '-b'].forEach(suffix => {
+      const pe = document.getElementById('tp-' + id + suffix);
+      const ce = document.getElementById('tc-' + id + suffix);
+      const t  = TICKERS_DEF.find(x => x.id === id);
+      if (pe) pe.textContent = fmtPrice(price, t.fmt);
+      if (ce) {
+        const { txt, cls } = fmtChg(chgPct);
+        ce.textContent = txt;
+        ce.className = 't-chg ' + cls;
+      }
+    });
+  }
+
+  function markError(id) {
+    ['', '-b'].forEach(suffix => {
+      const pe = document.getElementById('tp-' + id + suffix);
+      const ce = document.getElementById('tc-' + id + suffix);
+      if (pe) pe.textContent = 'N/A';
+      if (ce) { ce.textContent = '—'; ce.className = 't-chg neu'; }
+    });
+  }
+
+  // ── Fetch GAS ──────────────────────────────────────────────────────────────
+  async function fetchGAS() {
+    if (!GAS_URL) throw new Error('no GAS_URL');
+    const res = await fetch(GAS_URL, { signal: AbortSignal.timeout(14000) });
+    if (!res.ok) throw new Error('GAS HTTP ' + res.status);
+    const j = await res.json();
+    if (!j.ok) throw new Error('GAS bad resp');
+    TICKERS_DEF.forEach(t => {
+      if (t.yfOnly) return;
+      const d = j.data?.[t.id];
+      if (!d || d.error || d.price === null) { markError(t.id); return; }
+      updateItem(t.id, d.price, d.change, d.changePct);
+    });
+  }
+
+  // ── Fetch Yahoo ────────────────────────────────────────────────────────────
+  async function fetchYahoo(t) {
+    const base = `https://query1.finance.yahoo.com/v8/finance/chart/${t.yf}?interval=1d&range=2d`;
+    const urls = [base, ...CORS_PROXIES.map(p => p(base))];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
+        const j = await res.json();
+        const meta = j?.chart?.result?.[0]?.meta;
+        if (!meta) continue;
+        const price   = meta.regularMarketPrice ?? meta.previousClose;
+        const prev    = meta.previousClose || meta.chartPreviousClose;
+        if (!price) continue;
+        const chgAbs  = prev ? price - prev : null;
+        const chgPct  = prev ? (price - prev) / prev * 100 : null;
+        updateItem(t.id, price, chgAbs, chgPct);
+        return;
+      } catch(_) {}
+    }
+    markError(t.id);
+  }
+
+  // ── Orchestration ──────────────────────────────────────────────────────────
+  async function refresh() {
+    const yfOnly = TICKERS_DEF.filter(t => t.yfOnly);
+    const gasT   = TICKERS_DEF.filter(t => !t.yfOnly);
+    const yfOnlyP = Promise.allSettled(yfOnly.map(fetchYahoo));
+    if (GAS_URL) {
+      try {
+        await Promise.all([fetchGAS(), yfOnlyP]);
+        return;
+      } catch(e) { console.warn('Ticker GAS fallback Yahoo:', e.message); }
+    }
+    await Promise.allSettled(TICKERS_DEF.map(fetchYahoo));
+  }
+
+  // ── Click to refresh ───────────────────────────────────────────────────────
+  document.getElementById('tickerBand')?.addEventListener('click', refresh);
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  buildTrack();
+  refresh();
+  setInterval(refresh, 5 * 60 * 1000);
+})();
 </script>
 </body>
 </html>
