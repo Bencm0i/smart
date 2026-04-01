@@ -1,0 +1,163 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem 0;max-width:480px;margin:0 auto}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:.75rem}
+.section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin-bottom:.6rem}
+.field-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:5px}
+.item-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.item-row input[type=text]{flex:1;font-size:14px}
+.item-row input[type=range]{width:80px}
+.val-badge{font-size:12px;font-weight:500;min-width:18px;color:var(--color-text-primary)}
+.btn-del{background:none;border:none;cursor:pointer;font-size:16px;color:var(--color-text-tertiary);padding:0 2px}
+.btn-del:hover{color:var(--color-text-danger)}
+.btn-add{width:100%;padding:8px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px dashed var(--color-border-secondary);background:none;cursor:pointer;color:var(--color-text-secondary);margin-top:4px}
+.btn-add:hover{background:var(--color-background-secondary)}
+.output-box{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:14px;font-size:13px;line-height:1.7;color:var(--color-text-primary);white-space:pre-wrap;font-family:var(--font-mono);min-height:80px;margin-bottom:10px;word-break:break-word}
+.copy-btn{width:100%;padding:11px;font-size:14px;font-weight:500;border-radius:var(--border-radius-md);background:#185FA5;color:#E6F1FB;border:none;cursor:pointer}
+.copy-btn:hover{background:#0C447C}
+.copy-btn.copied{background:#3B6D11;color:#EAF3DE}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+</style>
+
+<div class="wrap">
+
+<div class="card">
+  <div class="section-label">La décision</div>
+  <input type="text" id="dec" placeholder="Ex : Accepter le nouveau poste ?" style="width:100%;font-size:15px;font-weight:500" oninput="gen()">
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="section-label" style="color:#27500A">Pour</div>
+    <div id="pros"></div>
+    <button class="btn-add" onclick="add('pro')">+ Positif</button>
+  </div>
+  <div class="card">
+    <div class="section-label" style="color:#791F1F">Contre</div>
+    <div id="cons"></div>
+    <button class="btn-add" onclick="add('con')">+ Négatif</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-label">Critères importants</div>
+  <div id="crits"></div>
+  <button class="btn-add" onclick="add('crit')">+ Critère</button>
+</div>
+
+<div class="card">
+  <div class="section-label">Contexte / infos supplémentaires</div>
+  <textarea id="context" placeholder="Délai, budget, contraintes, doutes particuliers..." style="width:100%;font-size:13px;min-height:60px;resize:vertical;font-family:var(--font-sans)" oninput="gen()"></textarea>
+</div>
+
+<div class="card">
+  <div class="section-label">Résumé prêt à coller</div>
+  <div class="output-box" id="output">Remplis les champs ci-dessus pour générer ton prompt...</div>
+  <button class="copy-btn" id="copy-btn" onclick="copy()">Copier le texte</button>
+</div>
+
+</div>
+
+<script>
+let uid=0;
+const data={pros:[],cons:[],crits:[]};
+
+function add(type){
+  const id=uid++;
+  const arr=type==='pro'?data.pros:type==='con'?data.cons:data.crits;
+  arr.push({id,text:'',w:5});
+  renderAll();
+  setTimeout(()=>{const el=document.getElementById('i'+id);if(el)el.focus();},30);
+}
+
+function remove(type,id){
+  const arr=type==='pro'?data.pros:type==='con'?data.cons:data.crits;
+  const i=arr.findIndex(x=>x.id===id);
+  if(i>-1)arr.splice(i,1);
+  renderAll();
+}
+
+function update(type,id,field,val){
+  const arr=type==='pro'?data.pros:type==='con'?data.cons:data.crits;
+  const item=arr.find(x=>x.id===id);
+  if(item){item[field]=val;gen();}
+}
+
+function renderList(containerId,arr,type,placeholder){
+  const c=document.getElementById(containerId);
+  c.innerHTML='';
+  arr.forEach(item=>{
+    const d=document.createElement('div');
+    d.className='item-row';
+    d.innerHTML=`<input type="text" id="i${item.id}" value="${item.text}" placeholder="${placeholder}" style="flex:1;font-size:13px" oninput="update('${type}',${item.id},'text',this.value)">
+    <input type="range" min="1" max="10" step="1" value="${item.w}" style="width:64px" oninput="update('${type}',${item.id},'w',+this.value);this.nextElementSibling.textContent=this.value">
+    <span class="val-badge">${item.w}</span>
+    <button class="btn-del" onclick="remove('${type}',${item.id})">×</button>`;
+    c.appendChild(d);
+  });
+}
+
+function renderAll(){
+  renderList('pros',data.pros,'pro','Bénéfice...');
+  renderList('cons',data.cons,'con','Inconvénient...');
+  renderList('crits',data.crits,'crit','Ex: impact financier');
+  gen();
+}
+
+function stars(w){return '★'.repeat(Math.round(w/2))+'☆'.repeat(5-Math.round(w/2));}
+
+function gen(){
+  const dec=document.getElementById('dec').value.trim();
+  const ctx=document.getElementById('context').value.trim();
+  if(!dec&&!data.pros.length&&!data.cons.length&&!data.crits.length){
+    document.getElementById('output').textContent='Remplis les champs ci-dessus pour générer ton prompt...';
+    return;
+  }
+  let txt='';
+  txt+='## Aide à la décision\n\n';
+  txt+=`Je dois prendre une décision importante et j'ai besoin d'un avis objectif et structuré.\n\n`;
+  txt+=`**Décision à prendre :** ${dec||'(non précisée)'}\n\n`;
+
+  if(data.pros.length){
+    txt+='**Points positifs (pour) :**\n';
+    data.pros.forEach(x=>{if(x.text)txt+=`- ${x.text} (importance : ${x.w}/10)\n`;});
+    txt+='\n';
+  }
+  if(data.cons.length){
+    txt+='**Points négatifs (contre) :**\n';
+    data.cons.forEach(x=>{if(x.text)txt+=`- ${x.text} (importance : ${x.w}/10)\n`;});
+    txt+='\n';
+  }
+  if(data.crits.length){
+    txt+='**Critères d\'évaluation :**\n';
+    data.crits.forEach(x=>{if(x.text)txt+=`- ${x.text} (score : ${x.w}/10)\n`;});
+    txt+='\n';
+  }
+  if(ctx){txt+=`**Contexte supplémentaire :**\n${ctx}\n\n`;}
+
+  const pSum=data.pros.reduce((s,x)=>s+(+x.w||0),0);
+  const nSum=data.cons.reduce((s,x)=>s+(+x.w||0),0);
+  const cSum=data.crits.reduce((s,x)=>s+(+x.w||0),0);
+  const net=pSum-nSum+cSum;
+  txt+=`**Score brut :** Pour ${pSum} — Contre ${nSum} — Critères ${cSum} → Balance nette : ${net>=0?'+':''}${net}\n\n`;
+  txt+='**Ce que j\'attends :**\nAnalyse ces éléments, identifie ce que j\'aurais pu oublier, et donne-moi une recommandation claire avec ton raisonnement.';
+
+  document.getElementById('output').textContent=txt;
+  document.getElementById('copy-btn').textContent='Copier le texte';
+  document.getElementById('copy-btn').className='copy-btn';
+}
+
+function copy(){
+  const txt=document.getElementById('output').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    btn.textContent='Copié !';
+    btn.className='copy-btn copied';
+    setTimeout(()=>{btn.textContent='Copier le texte';btn.className='copy-btn';},2000);
+  });
+}
+
+renderAll();
+</script>
