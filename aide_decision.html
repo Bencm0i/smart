@@ -1,0 +1,202 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem 0}
+.section{margin-bottom:1.5rem}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:.75rem}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:.5rem}
+.row:last-child{margin-bottom:0}
+input[type=text]{flex:1;font-family:var(--font-sans);font-size:14px}
+input[type=range]{flex:1}
+.label-sm{font-size:12px;color:var(--color-text-secondary);min-width:28px;text-align:center}
+.badge{font-size:12px;font-weight:500;padding:2px 10px;border-radius:var(--border-radius-md)}
+.badge-pos{background:#EAF3DE;color:#27500A}
+.badge-neg{background:#FCEBEB;color:#791F1F}
+.btn-add{font-size:13px;color:var(--color-text-secondary);background:none;border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 14px;cursor:pointer;width:100%;margin-top:4px}
+.btn-add:hover{background:var(--color-background-secondary)}
+.btn-del{font-size:16px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:0 4px;line-height:1}
+.btn-del:hover{color:var(--color-text-danger)}
+.score-bar-wrap{height:10px;background:var(--color-background-secondary);border-radius:99px;overflow:hidden;flex:1}
+.score-bar{height:100%;border-radius:99px;transition:width .3s}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.04em}
+.crit-row{display:flex;gap:8px;align-items:center;padding:.5rem 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.crit-row:last-child{border-bottom:none}
+.verdict{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-top:.5rem}
+</style>
+
+<div class="wrap">
+
+<div class="section">
+  <div class="section-title">La décision</div>
+  <input type="text" id="decision-title" placeholder="Ex : Changer de travail, Acheter une voiture..." style="width:100%;font-size:16px;font-weight:500">
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+
+  <div>
+    <div class="section-title" style="color:#27500A">Points positifs</div>
+    <div id="pros-list"></div>
+    <button class="btn-add" onclick="addItem('pro')">+ Ajouter un point positif</button>
+  </div>
+
+  <div>
+    <div class="section-title" style="color:#791F1F">Points négatifs</div>
+    <div id="cons-list"></div>
+    <button class="btn-add" onclick="addItem('con')">+ Ajouter un point négatif</button>
+  </div>
+
+</div>
+
+<div class="section">
+  <div class="section-title">Critères & poids</div>
+  <div id="criteria-list"></div>
+  <button class="btn-add" onclick="addCriteria()">+ Ajouter un critère</button>
+</div>
+
+<div class="card" id="result-card">
+  <div class="section-title">Résultat</div>
+  <div class="result-grid">
+    <div class="metric"><div class="metric-label">Score positif</div><div class="metric-val" id="score-pos" style="color:#27500A">0</div></div>
+    <div class="metric"><div class="metric-label">Score négatif</div><div class="metric-val" id="score-neg" style="color:#791F1F">0</div></div>
+    <div class="metric"><div class="metric-label">Balance nette</div><div class="metric-val" id="score-net">0</div></div>
+    <div class="metric"><div class="metric-label">Recommandation</div><div class="metric-val" id="verdict" style="font-size:15px">—</div></div>
+  </div>
+  <div style="margin-top:1rem">
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:6px">Rapport positif / total</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="score-bar-wrap"><div class="score-bar" id="bar-pos" style="background:#639922;width:50%"></div></div>
+      <span class="label-sm" id="bar-pct">50%</span>
+    </div>
+  </div>
+  <button style="margin-top:1rem;width:100%" onclick="sendPrompt('Analyse ma décision : ' + getDecisionText())">Analyser avec Claude ↗</button>
+</div>
+
+</div>
+
+<script>
+const state = { pros:[], cons:[], criteria:[] };
+let uid = 0;
+
+function addItem(type) {
+  const id = uid++;
+  const list = state[type === 'pro' ? 'pros' : 'cons'];
+  list.push({ id, text:'', weight:5 });
+  render();
+  setTimeout(() => {
+    const el = document.getElementById('txt-' + id);
+    if(el) el.focus();
+  }, 50);
+}
+
+function addCriteria() {
+  const id = uid++;
+  state.criteria.push({ id, text:'', score:5 });
+  render();
+  setTimeout(() => {
+    const el = document.getElementById('ctxt-' + id);
+    if(el) el.focus();
+  }, 50);
+}
+
+function removeItem(type, id) {
+  state[type] = state[type].filter(x => x.id !== id);
+  render();
+}
+
+function updateItem(type, id, field, val) {
+  const item = state[type].find(x => x.id === id);
+  if(item) { item[field] = val; compute(); }
+}
+
+function render() {
+  renderList('pros-list', state.pros, 'pros', 'pro');
+  renderList('cons-list', state.cons, 'cons', 'con');
+  renderCriteria();
+  compute();
+}
+
+function renderList(containerId, items, stateKey, type) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.marginBottom = '8px';
+    div.style.padding = '10px 12px';
+    div.innerHTML = `
+      <div class="row">
+        <input type="text" id="txt-${item.id}" value="${item.text}" placeholder="Décrivez ce point..." style="flex:1" oninput="updateItem('${stateKey}',${item.id},'text',this.value)">
+        <button class="btn-del" onclick="removeItem('${stateKey}',${item.id})">×</button>
+      </div>
+      <div class="row" style="margin-top:4px">
+        <span style="font-size:12px;color:var(--color-text-secondary);min-width:52px">Importance</span>
+        <input type="range" min="1" max="10" step="1" value="${item.weight}" oninput="updateItem('${stateKey}',${item.id},'weight',+this.value);this.nextElementSibling.textContent=this.value">
+        <span class="label-sm">${item.weight}</span>
+      </div>
+    `;
+    c.appendChild(div);
+  });
+}
+
+function renderCriteria() {
+  const c = document.getElementById('criteria-list');
+  c.innerHTML = '';
+  state.criteria.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.marginBottom = '8px';
+    div.style.padding = '10px 12px';
+    div.innerHTML = `
+      <div class="row">
+        <input type="text" id="ctxt-${item.id}" value="${item.text}" placeholder="Ex: impact financier, qualité de vie..." style="flex:1" oninput="updateItem('criteria',${item.id},'text',this.value)">
+        <button class="btn-del" onclick="removeItem('criteria',${item.id})">×</button>
+      </div>
+      <div class="row" style="margin-top:4px">
+        <span style="font-size:12px;color:var(--color-text-secondary);min-width:52px">Score</span>
+        <input type="range" min="1" max="10" step="1" value="${item.score}" oninput="updateItem('criteria',${item.id},'score',+this.value);this.nextElementSibling.textContent=this.value">
+        <span class="label-sm">${item.score}</span>
+      </div>
+    `;
+    c.appendChild(div);
+  });
+}
+
+function compute() {
+  const posSum = state.pros.reduce((s,x) => s + (x.weight || 0), 0);
+  const negSum = state.cons.reduce((s,x) => s + (x.weight || 0), 0);
+  const critBonus = state.criteria.reduce((s,x) => s + (x.score || 0), 0);
+  const total = posSum + negSum || 1;
+  const net = posSum - negSum + critBonus;
+  const pct = Math.round((posSum / total) * 100);
+
+  document.getElementById('score-pos').textContent = posSum + (critBonus > 0 ? '+' + critBonus : '');
+  document.getElementById('score-neg').textContent = negSum;
+  document.getElementById('score-net').textContent = (net >= 0 ? '+' : '') + net;
+  document.getElementById('score-net').style.color = net > 0 ? '#27500A' : net < 0 ? '#791F1F' : 'var(--color-text-primary)';
+  document.getElementById('bar-pos').style.width = pct + '%';
+  document.getElementById('bar-pct').textContent = pct + '%';
+
+  const v = document.getElementById('verdict');
+  if(posSum === 0 && negSum === 0) { v.textContent = '—'; return; }
+  if(net > 5) { v.textContent = 'Plutôt oui'; v.style.color = '#27500A'; }
+  else if(net > 0) { v.textContent = 'Légèrement oui'; v.style.color = '#3B6D11'; }
+  else if(net === 0) { v.textContent = 'Équilibre'; v.style.color = 'var(--color-text-primary)'; }
+  else if(net > -5) { v.textContent = 'Légèrement non'; v.style.color = '#A32D2D'; }
+  else { v.textContent = 'Plutôt non'; v.style.color = '#791F1F'; }
+}
+
+function getDecisionText() {
+  const title = document.getElementById('decision-title').value || 'une décision';
+  const pros = state.pros.map(x => x.text + ' (poids:' + x.weight + ')').join(', ');
+  const cons = state.cons.map(x => x.text + ' (poids:' + x.weight + ')').join(', ');
+  const crit = state.criteria.map(x => x.text + ' (score:' + x.score + ')').join(', ');
+  return `"${title}" — Pour: ${pros || 'aucun'}. Contre: ${cons || 'aucun'}. Critères: ${crit || 'aucun'}.`;
+}
+
+render();
+</script>
