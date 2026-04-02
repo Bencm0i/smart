@@ -1035,7 +1035,7 @@ button, input, select { touch-action: manipulation; }
           onkeydown="if(event.key==='Enter')exportKPI()">
       </div>
       <div id="kpi-err" style="font-size:11px;color:var(--red);min-height:14px;"></div>
-      <button onclick="exportKPI()" style="background:var(--accent);border:none;color:#1a1e24;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:13px;border-radius:10px;cursor:pointer;width:100%;">💾 Télécharger le fichier KPI</button>
+      <button onclick="exportKPI()" style="background:var(--accent);border:none;color:#1a1e24;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:13px;border-radius:10px;cursor:pointer;width:100%;">💾 Enregistrer le fichier KPI</button>
     </div>
   </div>
 </div>
@@ -1046,7 +1046,7 @@ button, input, select { touch-action: manipulation; }
 <!-- ═══ BOTTOM BAR ═══ -->
 <div class="bottom-bar">
   <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
-  <button class="bar-btn primary" onclick="exportJSON()">💾 Exporter JSON</button>
+  <button class="bar-btn primary" onclick="exportJSON()">💾 Enregistrer JSON</button>
   <button class="bar-btn" onclick="copyJSON()">📋 Copier</button>
 </div>
 
@@ -1762,15 +1762,31 @@ function getJSON() {
   return JSON.stringify(out, null, 2);
 }
 
-function exportJSON() {
+async function exportJSON() {
   const json = getJSON();
-  const blob = new Blob([json], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
   const d = new Date();
   const fname = `patrimoine_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  const blob = new Blob([json], {type:'application/json'});
+
+  // ── Tentative Web Share API (mobile natif : iOS Files, AirDrop, Google Drive…)
+  if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
+    try {
+      await navigator.share({
+        title: 'Patrimoine — Export JSON',
+        files: [new File([blob], fname, {type:'application/json'})],
+      });
+      showToast('✓ Partagé : ' + fname);
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // utilisateur a annulé
+    }
+  }
+
+  // ── Fallback : téléchargement classique (desktop / Firefox Android…)
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   a.href = url; a.download = fname; a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
   showToast('✓ JSON exporté : ' + fname);
 }
 
@@ -1938,7 +1954,7 @@ function xorEncrypt(text, key) {
   return btoa(r);
 }
 
-function exportKPI() {
+async function exportKPI() {
   const pwd = document.getElementById('kpi-pwd').value.trim();
   const errEl = document.getElementById('kpi-err');
   errEl.textContent = '';
@@ -1948,13 +1964,30 @@ function exportKPI() {
     const payload = buildKPIPayload();
     const plaintext = JSON.stringify({ data: payload, date: new Date().toISOString() });
     const enc = xorEncrypt(plaintext, pwd);
-    const blob = new Blob([JSON.stringify({ enc })], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
     const d = new Date();
     const fname = `kpi_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+    const blob = new Blob([JSON.stringify({ enc })], { type: 'application/json' });
+
+    // ── Web Share API mobile
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
+      try {
+        await navigator.share({
+          title: 'Patrimoine — Export KPI',
+          files: [new File([blob], fname, {type:'application/json'})],
+        });
+        closeKpiModal();
+        showToast('✓ KPI partagé : ' + fname);
+        return;
+      } catch(e) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+
+    // ── Fallback téléchargement classique
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url; a.download = fname; a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
     closeKpiModal();
     showToast('✓ KPI exporté : ' + fname);
   } catch(e) {
