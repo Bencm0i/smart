@@ -2296,6 +2296,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
     const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
     const avVers = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.versements||0), 0);
+    // AV déjà synchées dans banquesTotal (Boursorama[7] et Fortuneo[3]) → exclure du total pour éviter le double-compte
+    const avSyncVal = DATA.investissements.assurance_vie
+      .filter(r => r.assureur==='Boursorama' || r.nom?.toLowerCase().includes('bourso') ||
+                   r.assureur==='Fortuneo'   || r.nom?.toLowerCase().includes('fortuneo'))
+      .reduce((s,r) => s+(r.valeurActuelle||0), 0);
+    const avValNonSync = avVal - avSyncVal; // AV tierces, non présentes dans les comptes banques
     const ebVal  = DATA.investissements.epargne_bloquee.reduce((s,r) => s+(r.montant||0), 0);
 
     const scpiVal = (DATA.scpi||[]).reduce((s,r) => s+(r.totalActuel || (r.parts||0)*(r.pxActuel||0) || 0), 0);
@@ -2314,8 +2320,9 @@ window.addEventListener('DOMContentLoaded', () => {
       }, 0), 0);
 
     // Natixis[0].val = EE (sync depuis epargne_entreprise) → banquesTotal inclut deja eeVal via natixisTotal, pas de double-compte
+    // AV Boursorama/Fortuneo déjà dans banquesTotal via syncInvToBank → on n'ajoute que les AV tierces (avValNonSync)
     // SCPI : coût de revient (montantPlace) pour le patrimoine total
-    const grandTotal = banquesTotal + scpiVal + maison + liquide + avVal + ebVal;
+    const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal;
 
     const pmvPEA  = peaVal - peaPR;
     const pmvCTO  = ctoVal - ctoPR;
@@ -2329,7 +2336,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     return {
       grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
-      scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, ebVal, avVers,
+      scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
       depMens, revenu, txEpargne, moisLiberte,
@@ -2361,7 +2368,7 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:'Fortuneo',        val: k.fortuneoTotal, color:'#5aab7a', icon:'🏦' },
       { label:'Revolut',         val: k.revolutTotal,  color:'#c8a96e', icon:'💳' },
       { label:'Natixis / PEE',   val: k.natixisTotal,  color:'#c05a5a', icon:'🏢', sub:'Épargne Entreprise' },
-      { label:'Assur. Vie',      val: k.avVal,         color:'#4df0c8', icon:'🛡️' },
+      { label:'Assur. Vie',      val: k.avValNonSync,   color:'#4df0c8', icon:'🛡️', sub:'Contrats hors banques' },
       { label:'Ép. Bloquée',     val: k.ebVal,         color:'#8b9fba', icon:'🔒' },
       { label:'Espèces',         val: k.liquide,       color:'#6b7585', icon:'💵' },
       { label:'SCPI',            val: k.scpiVal,       color:'#a855f7', icon:'🏢', sub:'Parts × prix actuel' },
@@ -2417,7 +2424,7 @@ window.addEventListener('DOMContentLoaded', () => {
       { l:'Natixis',    v:k.natixisTotal,  c:'#c05a5a' },
       { l:'SCPI',        v:k.scpiVal,        c:'#a855f7' },
       { l:'Immobilier', v:k.maison,        c:'#e8c96e' },
-      { l:'Assur. Vie', v:k.avVal,         c:'#4df0c8' },
+      { l:'Assur. Vie', v:k.avValNonSync,  c:'#4df0c8' },
       { l:'Ép. Bloquée',v:k.ebVal,         c:'#8b9fba' },
       { l:'Espèces',    v:k.liquide,       c:'#6b7585' },
     ].filter(x => x.v > 0);
