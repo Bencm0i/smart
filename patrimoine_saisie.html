@@ -627,6 +627,31 @@ select option { background: var(--surface2); }
 .section.accent-blue { border-top: 2px solid var(--accent); }
 .section.accent-red { border-top: 2px solid var(--red); }
 
+/* ═══ BANK TOTAL ROW ═══ */
+.bank-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+.bank-total-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bank-total-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+}
+
 /* Focus indicator for a11y */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -700,6 +725,72 @@ button, input, select { touch-action: manipulation; }
 
 /* Slider-style risk selector bigger */
 .risk-sel label { width: 34px; height: 34px; font-size: 12px; }
+
+/* ═══ KPI PANEL ═══ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kpi-card.full { grid-column: 1 / -1; }
+.kpi-card-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.kpi-card-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.kpi-card-value.green { color: var(--green); }
+.kpi-card-value.red   { color: var(--red); }
+.kpi-card-value.gold  { color: var(--gold); }
+.kpi-card-value.blue  { color: var(--accent); }
+.kpi-card-sub {
+  font-size: 10px;
+  color: var(--muted);
+}
+.kpi-ratio-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: 12px;
+}
+.kpi-ratio-row:last-child { border-bottom: none; }
+.kpi-ratio-label { font-size: 12px; color: var(--text); flex: 1; }
+.kpi-ratio-label small { display:block; font-size:10px; color:var(--muted); }
+.kpi-ratio-val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+.kpi-ratio-bar-wrap { width: 80px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; flex-shrink:0; }
+.kpi-ratio-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+.pmv-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.pmv-row:last-child { border-bottom: none; }
+
 </style>
 </head>
 <body>
@@ -730,6 +821,7 @@ button, input, select { touch-action: manipulation; }
   <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
   <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
   <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
+  <button class="tab-btn" onclick="switchTab('kpi')">📊 KPI</button>
 </div>
 
 <!-- ═══ PANEL : BANQUES ═══ -->
@@ -1018,6 +1110,89 @@ button, input, select { touch-action: manipulation; }
 
 </div>
 
+<!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
+<div class="panel" id="panel-kpi">
+
+  <!-- KPI CARDS ROW -->
+  <div class="kpi-grid" id="kpi-cards"></div>
+
+  <!-- RÉPARTITION PATRIMONIALE -->
+  <div class="section accent-blue" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">🥧 Répartition du patrimoine</div>
+      <span class="badge blue" id="kpi-total-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-patrimoine" height="220"></canvas>
+      <div id="chart-patrimoine-legend" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- RÉPARTITION RISQUE -->
+  <div class="section accent-gold" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">⚖️ Répartition par niveau de risque</div>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-risque" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- DÉPENSES -->
+  <div class="section accent-red" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">💸 Dépenses mensuelles par catégorie</div>
+      <span class="badge" id="kpi-depenses-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-depenses" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- TAUX D'ÉPARGNE -->
+  <div class="section accent-green" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">📐 Taux d'épargne & ratios</div>
+    </div>
+    <div class="section-body" style="padding:14px 16px;">
+      <div id="kpi-ratios"></div>
+    </div>
+  </div>
+
+  <!-- PLUS/MOINS VALUES -->
+  <div class="section" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">📈 Plus/moins-values latentes</div>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-pmv" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- KPI MOBILITÉ -->
+  <div class="section accent-blue" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">🚗 KPI Mobilité</div>
+      <span class="badge blue" id="kpi-mob-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:14px 16px;">
+      <div id="kpi-mobilite-content"></div>
+    </div>
+  </div>
+
+  <!-- KPI SCPI DÉTAIL -->
+  <div class="section accent-gold" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">🏢 SCPI — Prix de revient & Performance</div>
+      <span class="badge gold" id="kpi-scpi-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:14px 16px;">
+      <div id="kpi-scpi-content"></div>
+    </div>
+  </div>
+
+</div>
+
 <!-- ═══ MODAL KPI EXPORT ═══ -->
 <div id="kpi-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:900;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:14px;width:100%;max-width:400px;overflow:hidden;">
@@ -1176,10 +1351,11 @@ function switchTab(name) {
   });
   // fix tab btn highlight
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const map = {banques:0,investissements:1,scpi:2,actifs:3,depenses:4,mobilite:5};
+  const map = {banques:0,investissements:1,scpi:2,actifs:3,depenses:4,mobilite:5,kpi:6};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'kpi') { if (typeof renderKPIPanel === 'function') renderKPIPanel(); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1196,6 +1372,8 @@ function renderBank(bankKey, containerId) {
   const rows = DATA[bankKey];
   const managed = MANAGED[bankKey] || [];
   const container = document.getElementById(containerId);
+  const total = rows.reduce((s,r) => s+(r.val||0), 0);
+  const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
   container.innerHTML = rows.map((r, i) => {
     const isManaged = managed.includes(i);
     const liqLabel = r.liq === 0 ? '⚡ Immédiat' : r.liq === 1 ? '⏱ 1-3 mois' : '🔒 +6 mois';
@@ -1213,11 +1391,23 @@ function renderBank(bankKey, containerId) {
           inputmode="decimal"
           autocomplete="off"
           ${isManaged ? 'readonly style="color:var(--muted);cursor:not-allowed;"' : ''}
-          oninput="DATA['${bankKey}'][${i}].val=parseFloat(this.value)||0;autoSave()">
+          oninput="DATA['${bankKey}'][${i}].val=parseFloat(this.value)||0;updateBankTotal('${bankKey}','${containerId}');autoSave()">
         <span class="unit">€</span>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `
+  <div class="bank-total-row" id="bank-total-${bankKey}">
+    <span class="bank-total-label">TOTAL ${bankKey.toUpperCase()}</span>
+    <span class="bank-total-val">${fmtEur(total)}</span>
+  </div>`;
+}
+
+function updateBankTotal(bankKey, containerId) {
+  const rows = DATA[bankKey];
+  const total = rows.reduce((s,r) => s+(r.val||0), 0);
+  const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+  const el = document.getElementById('bank-total-'+bankKey);
+  if(el) el.querySelector('.bank-total-val').textContent = fmtEur(total);
 }
 
 function renderAllBanks() {
@@ -1482,6 +1672,7 @@ function syncInvToBank() {
       const inp = document.getElementById(`${bank}_${i}`);
       if(inp) inp.value = DATA[bank][i].val || '';
     });
+    updateBankTotal(bank, 'body-'+bank);
   });
 }
 
@@ -1888,8 +2079,17 @@ function buildKPIPayload() {
   // SCPI → sc_1..sc_4
   const scpiEntry = (i) => {
     const s = DATA.scpi?.[i];
-    if(!s) return { valeur: 0 };
-    return { valeur: s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0 };
+    if(!s) return { valeur: 0, prixRevient: 0, parts: 0, produit: '' };
+    const valActuelle = s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0;
+    const prixRevient = s.montantPlace || (s.parts||0)*(s.pxAchat||0) || 0;
+    return {
+      valeur: valActuelle,
+      prixRevient: prixRevient,
+      parts: s.parts || 0,
+      produit: s.produit || '',
+      gestionnaire: s.gestionnaire || '',
+      pmv: valActuelle - prixRevient,
+    };
   };
 
   const payload = {
@@ -2047,6 +2247,439 @@ window.addEventListener('DOMContentLoaded', () => {
     DATA.maison = parseFloat(this.value)||0; autoSave();
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// KPI & GRAPHIQUES
+// ═══════════════════════════════════════════════════════════════════
+(function() {
+  let chartJsPromise = null;
+  function loadChartJS() {
+    if (chartJsPromise) return chartJsPromise;
+    chartJsPromise = new Promise((res, rej) => {
+      if (window.Chart) { res(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js';
+      s.onload  = res;
+      s.onerror = () => rej(new Error('Chart.js load failed'));
+      document.head.appendChild(s);
+    });
+    return chartJsPromise;
+  }
+
+  const charts = {};
+  function mkChart(id, config) {
+    if (charts[id]) { charts[id].destroy(); }
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    charts[id] = new Chart(ctx.getContext('2d'), config);
+  }
+
+  const fmt  = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+  const fmtK = v => v >= 1000 ? (v/1000).toFixed(1)+'k\u202f€' : v.toFixed(0)+'\u202f€';
+  const pct  = v => v.toFixed(1)+'%';
+
+  function computeKPIs() {
+    const sumBank = (key) => (DATA[key]||[]).reduce((s,r) => s+(r.val||0), 0);
+    const boursoTotal   = sumBank('boursorama');
+    const fortuneoTotal = sumBank('fortuneo');
+    const revolutTotal  = sumBank('revolut');
+    const natixisTotal  = sumBank('natixis');
+    const banquesTotal  = boursoTotal + fortuneoTotal + revolutTotal + natixisTotal;
+
+    const peaVal = DATA.investissements.pea.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const peaPR  = DATA.investissements.pea.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const ctoVal = DATA.investissements.cto.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const ctoPR  = DATA.investissements.cto.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const revInvVal = DATA.investissements.revolut.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const revInvPR  = DATA.investissements.revolut.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const eeVal  = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.valeurActuelle||0), 0);
+    const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
+    const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
+    const avVers = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.versements||0), 0);
+    const ebVal  = DATA.investissements.epargne_bloquee.reduce((s,r) => s+(r.montant||0), 0);
+
+    const scpiVal = (DATA.scpi||[]).reduce((s,r) => s+(r.totalActuel || (r.parts||0)*(r.pxActuel||0) || 0), 0);
+    const scpiPrix= (DATA.scpi||[]).reduce((s,r) => s+(r.parts||0)*(r.pxAchat||0), 0);
+    // Coût de revient SCPI = montantPlace (versements réels, frais inclus)
+    const scpiCR  = (DATA.scpi||[]).reduce((s,r) => s+(r.montantPlace || (r.parts||0)*(r.pxAchat||0) || 0), 0);
+
+    const maison  = DATA.maison || 0;
+    const liquide = DATA.especeCache || 0;
+    const revenu  = DATA.revenuMensuelNet || 0;
+
+    const depMens = (DATA.depenses?.categories||[]).reduce((s,cat) =>
+      s + cat.items.reduce((ss, it) => {
+        const m = it.mensuel || (it.note==='annuel' ? (it.annuel||0)/12 : 0);
+        return ss + m;
+      }, 0), 0);
+
+    // Natixis[0].val = EE (sync depuis epargne_entreprise) → banquesTotal inclut deja eeVal via natixisTotal, pas de double-compte
+    // SCPI : coût de revient (montantPlace) pour le patrimoine total
+    const grandTotal = banquesTotal + scpiVal + maison + liquide + avVal + ebVal;
+
+    const pmvPEA  = peaVal - peaPR;
+    const pmvCTO  = ctoVal - ctoPR;
+    const pmvRev  = revInvVal - revInvPR;
+    const pmvEE   = eeVal - eePR;
+    const pmvAV   = avVal - avVers;
+    const pmvSCPI = scpiVal - scpiPrix;
+
+    const txEpargne   = revenu > 0 ? Math.max(0, revenu - depMens) / revenu * 100 : 0;
+    const moisLiberte = depMens > 0 ? grandTotal / depMens : 0;
+
+    return {
+      grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
+      scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, ebVal, avVers,
+      peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
+      pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
+      depMens, revenu, txEpargne, moisLiberte,
+    };
+  }
+
+  function renderKPICards(k) {
+    const pmvTot  = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV + k.pmvSCPI;
+    const epargne = Math.max(0, k.revenu - k.depMens);
+    const cards = [
+      { label:'Banques & Liquidités', value: fmtK(k.banquesTotal), cls:'', sub:'Comptes consolidés' },
+      { label:'SCPI', value: fmtK(k.scpiVal), cls:'gold', sub:'Pierre-papier' },
+      { label:'Immobilier direct', value: fmtK(k.maison), cls:'', sub:'Résidence principale' },
+      { label:'Épargne bloquée', value: fmtK(k.ebVal), cls:'', sub:'Livrets réglementés' },
+      { label:'P/MV latentes', value: (pmvTot>=0?'+':'')+fmtK(pmvTot), cls:pmvTot>=0?'green':'red', sub:'Toutes poches invest.' },
+      { label:'Dépenses / mois', value: fmtK(k.depMens), cls:'red', sub:'Toutes catégories' },
+      { label:'Épargne mensuelle', value: fmtK(epargne), cls:'green', sub:'Revenu − Dépenses' },
+      { label:'Taux d\'épargne', value: pct(k.txEpargne), cls: k.txEpargne>=20?'green':k.txEpargne>=10?'gold':'red', sub:'% du revenu net' },
+      { label:'Indépendance', value: k.moisLiberte.toFixed(0)+' mois', cls:'gold', sub:'Patrimoine ÷ dépenses' },
+    ];
+    const el = document.getElementById('kpi-cards');
+    if (!el) return;
+
+    // Détail patrimoine total — lignes
+    // Natixis = EE (même chose, pas de double-compte) — on affiche via banques
+    // SCPI : coût de revient (montantPlace)
+    const detailLines = [
+      { label:'Boursorama',      val: k.boursoTotal,   color:'#7eb8d4', icon:'🏦' },
+      { label:'Fortuneo',        val: k.fortuneoTotal, color:'#5aab7a', icon:'🏦' },
+      { label:'Revolut',         val: k.revolutTotal,  color:'#c8a96e', icon:'💳' },
+      { label:'Natixis / PEE',   val: k.natixisTotal,  color:'#c05a5a', icon:'🏢', sub:'Épargne Entreprise' },
+      { label:'Assur. Vie',      val: k.avVal,         color:'#4df0c8', icon:'🛡️' },
+      { label:'Ép. Bloquée',     val: k.ebVal,         color:'#8b9fba', icon:'🔒' },
+      { label:'Espèces',         val: k.liquide,       color:'#6b7585', icon:'💵' },
+      { label:'SCPI',            val: k.scpiVal,       color:'#a855f7', icon:'🏢', sub:'Parts × prix actuel' },
+      { label:'Immobilier',      val: k.maison,        color:'#e8c96e', icon:'🏠' },
+    ].filter(x => x.val > 0);
+
+    const detailHTML = detailLines.map(d => {
+      const pctPart = k.grandTotal > 0 ? (d.val / k.grandTotal * 100) : 0;
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span style="font-size:12px;width:18px;flex-shrink:0;">${d.icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;color:var(--text);">${d.label}</div>
+            ${d.sub ? `<div style="font-size:9px;color:var(--muted);">${d.sub}</div>` : ''}
+          </div>
+          <div style="width:60px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0;">
+            <div style="width:${pctPart.toFixed(1)}%;height:100%;background:${d.color};border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;">${pctPart.toFixed(0)}%</span>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${d.color};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
+        </div>`;
+    }).join('');
+
+    const patrimoineCard = `
+      <div class="kpi-card full" style="cursor:pointer;" onclick="this.querySelector('.pat-detail').style.display=this.querySelector('.pat-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Patrimoine total <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value blue">${fmt(k.grandTotal)}</div>
+        <div class="kpi-card-sub">Toutes classes confondues</div>
+        <div class="pat-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${detailHTML}
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:2px;">
+            <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL</span>
+            <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">${fmt(k.grandTotal)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    el.innerHTML = patrimoineCard + cards.map(c => `
+      <div class="kpi-card${c.full?' full':''}">
+        <div class="kpi-card-label">${c.label}</div>
+        <div class="kpi-card-value ${c.cls}">${c.value}</div>
+        <div class="kpi-card-sub">${c.sub}</div>
+      </div>`).join('');
+  }
+
+  function renderChartPatrimoine(k) {
+    const raw = [
+      { l:'Boursorama', v:k.boursoTotal, c:'#7eb8d4' },
+      { l:'Fortuneo',   v:k.fortuneoTotal, c:'#5aab7a' },
+      { l:'Revolut',    v:k.revolutTotal,  c:'#c8a96e' },
+      { l:'Natixis',    v:k.natixisTotal,  c:'#c05a5a' },
+      { l:'SCPI',        v:k.scpiVal,        c:'#a855f7' },
+      { l:'Immobilier', v:k.maison,        c:'#e8c96e' },
+      { l:'Assur. Vie', v:k.avVal,         c:'#4df0c8' },
+      { l:'Ép. Bloquée',v:k.ebVal,         c:'#8b9fba' },
+      { l:'Espèces',    v:k.liquide,       c:'#6b7585' },
+    ].filter(x => x.v > 0);
+
+    const total = raw.reduce((s,x) => s+x.v, 0);
+    const badge = document.getElementById('kpi-total-badge');
+    if (badge) badge.textContent = fmt(total);
+
+    mkChart('chart-patrimoine', {
+      type: 'doughnut',
+      data: { labels: raw.map(x=>x.l), datasets: [{ data: raw.map(x=>x.v), backgroundColor: raw.map(x=>x.c), borderWidth:2, borderColor:'#1a1e24' }] },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' '+fmt(ctx.raw)+' ('+pct(ctx.raw/total*100)+')' } }
+        },
+        cutout:'62%',
+      }
+    });
+
+    const leg = document.getElementById('chart-patrimoine-legend');
+    if (leg) leg.innerHTML = raw.map(x=>`
+      <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text);">
+        <span style="width:10px;height:10px;border-radius:2px;background:${x.c};flex-shrink:0;display:inline-block;"></span>
+        ${x.l} <span style="color:var(--muted)">(${pct(x.v/total*100)})</span>
+      </div>`).join('');
+  }
+
+  function renderChartRisque(k) {
+    const byRisk = Array(8).fill(0);
+    ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+      (DATA[bank]||[]).forEach(r => { byRisk[Math.min(7,r.risk||1)] += (r.val||0); });
+    });
+    byRisk[3] += k.scpiVal + k.eeVal;
+    byRisk[2] += k.avVal + k.maison;
+    byRisk[1] += k.ebVal + k.liquide;
+
+    const labels = ['R1 Sécurisé','R2 Prudent','R3 Équilibré','R4 Dynamique','R5 Offensif','R6 Spéculatif','R7 Très risqué'];
+    const colors = ['#5aab7a','#4df0c8','#7eb8d4','#c8a96e','#e8c96e','#d4875a','#c05a5a'];
+    const active = byRisk.slice(1).map((v,i)=>({v,l:labels[i],c:colors[i]})).filter(x=>x.v>0);
+
+    mkChart('chart-risque', {
+      type:'bar',
+      data:{ labels:active.map(x=>x.l), datasets:[{ data:active.map(x=>x.v), backgroundColor:active.map(x=>x.c), borderRadius:6, borderSkipped:false }] },
+      options:{
+        indexAxis:'y',
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}} },
+        scales:{
+          x:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} },
+          y:{ ticks:{color:'#c8cdd8',font:{size:10}}, grid:{display:false} }
+        }
+      }
+    });
+  }
+
+  function renderChartDepenses(k) {
+    const cats = DATA.depenses?.categories||[];
+    const active = cats.map(cat => ({
+      l: cat.icon+' '+cat.nom,
+      v: cat.items.reduce((s,it)=>s+(it.mensuel||(it.note==='annuel'?(it.annuel||0)/12:0)),0),
+      c: cat.color||'#6b7585'
+    })).filter(x=>x.v>0);
+
+    const badge = document.getElementById('kpi-depenses-badge');
+    if (badge) badge.textContent = fmt(k.depMens)+'/mois';
+
+    mkChart('chart-depenses', {
+      type:'bar',
+      data:{ labels:active.map(x=>x.l), datasets:[{ data:active.map(x=>x.v), backgroundColor:active.map(x=>x.c+'cc'), borderColor:active.map(x=>x.c), borderWidth:1, borderRadius:6, borderSkipped:false }] },
+      options:{
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+'/mois'}} },
+        scales:{
+          x:{ ticks:{color:'#6b7585',font:{size:9},maxRotation:30}, grid:{display:false} },
+          y:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} }
+        }
+      }
+    });
+  }
+
+  function renderChartPMV(k) {
+    const items = [
+      {l:'PEA',v:k.pmvPEA},{l:'CTO',v:k.pmvCTO},
+      {l:'Revolut',v:k.pmvRev},{l:'Épar. Entr.',v:k.pmvEE},
+      {l:'Assur. Vie',v:k.pmvAV},{l:'SCPI',v:k.pmvSCPI},
+    ].filter(x=>x.v!==0);
+    if (!items.length) return;
+    mkChart('chart-pmv', {
+      type:'bar',
+      data:{
+        labels:items.map(x=>x.l),
+        datasets:[{ data:items.map(x=>x.v), backgroundColor:items.map(x=>x.v>=0?'rgba(90,171,122,0.7)':'rgba(192,90,90,0.7)'), borderColor:items.map(x=>x.v>=0?'#5aab7a':'#c05a5a'), borderWidth:1, borderRadius:5, borderSkipped:false }]
+      },
+      options:{
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+fmt(ctx.raw)}} },
+        scales:{
+          x:{ ticks:{color:'#c8cdd8',font:{size:11}}, grid:{display:false} },
+          y:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} }
+        }
+      }
+    });
+  }
+
+  function renderRatios(k) {
+    const el = document.getElementById('kpi-ratios');
+    if (!el) return;
+    const rows = [
+      { label:"Taux d'épargne", sub:"Épargne / Revenu net", val:pct(k.txEpargne), num:k.txEpargne, max:50, color:k.txEpargne>=20?'#5aab7a':k.txEpargne>=10?'#c8a96e':'#c05a5a' },
+      { label:"Charge des dépenses", sub:"Dépenses / Revenu mensuel", val:pct(k.revenu>0?k.depMens/k.revenu*100:0), num:k.revenu>0?k.depMens/k.revenu*100:0, max:100, color:k.revenu>0&&k.depMens/k.revenu<0.7?'#5aab7a':'#c05a5a' },
+      { label:"Indépendance financière", sub:"Patrimoine ÷ dépenses mensuelles", val:k.moisLiberte.toFixed(0)+' mois', num:Math.min(k.moisLiberte,120), max:120, color:k.moisLiberte>=24?'#5aab7a':k.moisLiberte>=6?'#c8a96e':'#c05a5a' },
+      { label:"Exposition actions", sub:"PEA + CTO + Revolut / Patrimoine", val:pct(k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0, max:100, color:'#7eb8d4' },
+      { label:"Exposition immobilier", sub:"Maison + SCPI (CR) / Patrimoine", val:pct(k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0, max:100, color:'#c8a96e' },
+    ];
+    el.innerHTML = rows.map(r=>`
+      <div class="kpi-ratio-row">
+        <div class="kpi-ratio-label">${r.label}<small>${r.sub}</small></div>
+        <div class="kpi-ratio-bar-wrap">
+          <div class="kpi-ratio-bar-fill" style="width:${Math.min(100,r.num/r.max*100).toFixed(1)}%;background:${r.color};"></div>
+        </div>
+        <div class="kpi-ratio-val" style="color:${r.color};">${r.val}</div>
+      </div>`).join('');
+  }
+
+  window.renderKPIPanel = async function() {
+    const k = computeKPIs();
+    renderKPICards(k);
+    renderRatios(k);
+    renderKPIMobilite();
+    renderKPISCPI();
+    try {
+      await loadChartJS();
+      renderChartPatrimoine(k);
+      renderChartRisque(k);
+      renderChartDepenses(k);
+      renderChartPMV(k);
+    } catch(e) { console.warn('KPI charts:', e); }
+  };
+
+  function renderKPIMobilite() {
+    const el = document.getElementById('kpi-mobilite-content');
+    if (!el) return;
+    const m = DATA.mobilite;
+    if (!m) { el.innerHTML = '<p style="color:var(--muted);font-size:11px;">Aucune donnée mobilité.</p>'; return; }
+
+    const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+    const fmtDec = (v,d=2) => new Intl.NumberFormat('fr-FR',{maximumFractionDigits:d}).format(v);
+
+    // — AUTO —
+    const odoAuto = m.auto?.odoLog || [];
+    const sortedAuto = [...odoAuto].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
+    const kmActualAuto = sortedAuto.length ? sortedAuto[sortedAuto.length-1].km : 0;
+    const kmDebutAuto  = sortedAuto.length > 1 ? sortedAuto[0].km : 0;
+    const kmAnnuelEssence = m.carburant?.essence || 0;
+    const prixLitre = m.carburant?.prixLitre || 0;
+    const conso100 = m.carburant?.conso100km || 0;
+    const trajetAR = m.travail?.trajetAR || 0;
+    const joursAn = m.travail?.joursAn || 0;
+
+    const kmTravailAn = trajetAR * joursAn;
+    const litresAn = kmAnnuelEssence > 0 && conso100 > 0 ? kmAnnuelEssence * conso100 / 100 : 0;
+    const coutCarburantAn = litresAn * prixLitre;
+    const coutCarburantMois = coutCarburantAn / 12;
+    const coutKm = kmAnnuelEssence > 0 && coutCarburantAn > 0 ? coutCarburantAn / kmAnnuelEssence : 0;
+    const coutTank = m.carburant?.capaciteTank ? m.carburant.capaciteTank * prixLitre : 0;
+
+    // — VÉLO —
+    const odoVelo = m.velo?.odoLog || [];
+    const sortedVelo = [...odoVelo].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
+    const kmActualVelo = sortedVelo.length ? sortedVelo[sortedVelo.length-1].km : 0;
+    const bat = m.velo?.batterie || {};
+    const mot = m.velo?.moteur || {};
+    const batUsagePct = bat.cyclesMax > 0 ? Math.min(100,(bat.cyclesActuels||0)/bat.cyclesMax*100) : 0;
+    const batKmRestants = bat.dureeTheoKm > 0 && bat.kmPose >= 0 ? Math.max(0, bat.dureeTheoKm - (kmActualVelo - (bat.kmPose||0))) : null;
+    const motKmRestants = mot.dureeTheoKm > 0 && mot.kmPose >= 0 ? Math.max(0, mot.dureeTheoKm - (kmActualVelo - (mot.kmPose||0))) : null;
+
+    const badge = document.getElementById('kpi-mob-badge');
+    if (badge && coutCarburantMois > 0) badge.textContent = fmt(coutCarburantMois)+'/mois carburant';
+
+    const mkRow = (label, val, sub, color='') => `
+      <div class="kpi-ratio-row">
+        <div class="kpi-ratio-label">${label}<small>${sub||''}</small></div>
+        <div class="kpi-ratio-val" style="${color?'color:'+color:''}">${val}</div>
+      </div>`;
+
+    const batColor = batUsagePct > 80 ? '#c05a5a' : batUsagePct > 60 ? '#c8a96e' : '#5aab7a';
+
+    el.innerHTML = `
+      <div style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🚗 Voiture</div>
+      ${kmActualAuto > 0 ? mkRow('Kilométrage actuel', fmtDec(kmActualAuto,0)+' km', 'Dernier relevé odométrique') : ''}
+      ${kmAnnuelEssence > 0 ? mkRow('Km essence / an', fmtDec(kmAnnuelEssence,0)+' km', 'Base déclarée', 'var(--text)') : ''}
+      ${kmTravailAn > 0 ? mkRow('Km travail / an', fmtDec(kmTravailAn,0)+' km', trajetAR+' km A/R × '+joursAn+' jours', 'var(--text)') : ''}
+      ${litresAn > 0 ? mkRow('Litres consommés / an', fmtDec(litresAn,0)+' L', conso100+' L/100km × '+kmAnnuelEssence+' km') : ''}
+      ${coutCarburantAn > 0 ? mkRow('Coût carburant / an', fmt(coutCarburantAn), 'Base '+prixLitre.toFixed(3)+' €/L', '#c8a96e') : ''}
+      ${coutCarburantMois > 0 ? mkRow('Coût carburant / mois', fmt(coutCarburantMois), 'Lissé sur 12 mois', '#c8a96e') : ''}
+      ${coutKm > 0 ? mkRow('Coût au km (carburant)', fmtDec(coutKm,3)+' €/km', 'Carburant seul, hors entretien') : ''}
+      ${coutTank > 0 ? mkRow('Plein de réservoir', fmt(coutTank), m.carburant.capaciteTank+' L × '+prixLitre.toFixed(3)+' €/L') : ''}
+      <div style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🚲 Vélo</div>
+      ${kmActualVelo > 0 ? mkRow('Kilométrage vélo actuel', fmtDec(kmActualVelo,0)+' km', 'Dernier relevé') : ''}
+      ${bat.cyclesActuels > 0 ? mkRow('Cycles batterie', (bat.cyclesActuels||0)+' / '+(bat.cyclesMax||'?')+' cycles', 'Usage: '+batUsagePct.toFixed(0)+'%', batColor) : ''}
+      ${batKmRestants !== null ? mkRow('Km restants batterie', fmtDec(Math.max(0,batKmRestants),0)+' km estimés', 'Durée théo: '+(bat.dureeTheoKm||0)+' km', batKmRestants < 500 ? '#c05a5a' : '#5aab7a') : ''}
+      ${motKmRestants !== null ? mkRow('Km restants moteur', fmtDec(Math.max(0,motKmRestants),0)+' km estimés', 'Durée théo: '+(mot.dureeTheoKm||0)+' km', motKmRestants < 1000 ? '#c05a5a' : '#5aab7a') : ''}
+      ${(!kmActualAuto && !kmActualVelo && !coutCarburantAn) ? '<p style="color:var(--muted);font-size:11px;">Renseigner les données dans l\'onglet Mobilité.</p>' : ''}
+    `;
+  }
+
+  function renderKPISCPI() {
+    const el = document.getElementById('kpi-scpi-content');
+    if (!el) return;
+    const scpis = DATA.scpi || [];
+    if (!scpis.length) { el.innerHTML = '<p style="color:var(--muted);font-size:11px;">Aucune SCPI renseignée.</p>'; return; }
+
+    const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+    const pct = (a,b) => b > 0 ? ((a-b)/b*100).toFixed(1)+'%' : '—';
+
+    let totalVal = 0, totalPR = 0;
+    const rows = scpis.map(s => {
+      const val = s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0;
+      const pr  = s.montantPlace || (s.parts||0)*(s.pxAchat||0) || 0;
+      const pmv = val - pr;
+      totalVal += val; totalPR += pr;
+      const pmvColor = pmv >= 0 ? '#5aab7a' : '#c05a5a';
+      const pmvSign  = pmv >= 0 ? '+' : '';
+      return `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div>
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);">${s.produit||'SCPI'}</span>
+              <small style="display:block;font-size:10px;color:var(--muted);">${s.gestionnaire||''} · ${s.parts||0} parts</small>
+            </div>
+            <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--gold);">${val > 0 ? fmt(val) : '—'}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <div style="background:var(--surface);border-radius:6px;padding:6px 8px;">
+              <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Prix revient</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-top:2px;">${pr > 0 ? fmt(pr) : '—'}</div>
+            </div>
+            <div style="background:var(--surface);border-radius:6px;padding:6px 8px;">
+              <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">+/- value</div>
+              <div style="font-size:12px;font-weight:600;color:${pmvColor};margin-top:2px;">${val > 0 && pr > 0 ? pmvSign+fmt(pmv) : '—'}</div>
+            </div>
+            <div style="background:var(--surface);border-radius:6px;padding:6px 8px;">
+              <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Perf.</div>
+              <div style="font-size:12px;font-weight:600;color:${pmvColor};margin-top:2px;">${val > 0 && pr > 0 ? pmvSign+pct(val,pr) : '—'}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const totalPmv = totalVal - totalPR;
+    const totalPmvColor = totalPmv >= 0 ? '#5aab7a' : '#c05a5a';
+    const badge = document.getElementById('kpi-scpi-badge');
+    if (badge && totalVal > 0) badge.textContent = fmt(totalVal);
+
+    el.innerHTML = rows + (totalVal > 0 ? `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">
+        <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL SCPI</span>
+        <div style="text-align:right;">
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--gold);">${fmt(totalVal)}</div>
+          <div style="font-size:10px;color:${totalPmvColor};">${totalPmv >= 0 ? '+' : ''}${fmt(totalPmv)} / PR: ${fmt(totalPR)}</div>
+        </div>
+      </div>` : '');
+  }
+})();
 
 // ═══════════════════════════════════════════════════════════════════
 // TICKER BAND — Live market data (GAS → Yahoo fallback)
