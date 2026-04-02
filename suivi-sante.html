@@ -36,6 +36,11 @@
   --stool-bg:  #f8f0ea;
   --stool-mid: #c8a080;
 
+  /* Sleep → deep indigo */
+  --sleep:     #3a2070;
+  --sleep-bg:  #f0eefa;
+  --sleep-mid: #a090d8;
+
   --danger:  #c0282a;
   --green:   #1a7a3a;
 
@@ -286,6 +291,7 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .symptom-block.breath  { background: var(--breath-bg); border: 1.5px solid var(--breath-mid); border-left: 4px solid var(--breath); }
 .symptom-block.belly   { background: var(--belly-bg);  border: 1.5px solid var(--belly-mid);  border-left: 4px solid var(--belly); }
 .symptom-block.stool   { background: var(--stool-bg);  border: 1.5px solid var(--stool-mid);  border-left: 4px solid var(--stool); }
+.symptom-block.sleep   { background: var(--sleep-bg);  border: 1.5px solid var(--sleep-mid);  border-left: 4px solid var(--sleep); }
 
 .sym-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
 
@@ -301,6 +307,7 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .sym-title.breath { color: var(--breath); }
 .sym-title.belly  { color: var(--belly); }
 .sym-title.stool  { color: var(--stool); }
+.sym-title.sleep  { color: var(--sleep); }
 
 .sym-emoji { font-size: 18px; }
 
@@ -595,6 +602,7 @@ input[type="range"]::-webkit-slider-thumb {
 .hist-badge.breath { background: var(--breath-bg); color: var(--breath); }
 .hist-badge.belly  { background: var(--belly-bg);  color: var(--belly); }
 .hist-badge.stool  { background: var(--stool-bg);  color: var(--stool); }
+.hist-badge.sleep  { background: var(--sleep-bg);  color: var(--sleep); }
 .hist-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
 .tag-pill {
   font-family: 'Barlow Condensed', sans-serif;
@@ -1017,6 +1025,44 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
   </div>
 
+  <!-- SOMMEIL -->
+  <div class="symptom-block sleep">
+    <div class="sym-header">
+      <div class="sym-title sleep"><span class="sym-emoji">🌙</span>Sommeil</div>
+    </div>
+    <div class="dt-row">
+      <div class="field-group">
+        <label>🛏 Coucher</label>
+        <input type="time" id="sleepBed">
+      </div>
+      <div class="field-group">
+        <label>☀️ Lever</label>
+        <input type="time" id="sleepWake">
+      </div>
+    </div>
+    <div class="checks-title" style="margin-top:10px;">Qualité</div>
+    <div class="checks-grid" id="sleepChecks">
+      <div class="chk-item" data-key="sommeil_agite" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div><span>Agité</span>
+      </div>
+      <div class="chk-item" data-key="sommeil_insomnies" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div><span>Insomnies</span>
+      </div>
+      <div class="chk-item" data-key="sommeil_reveils" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div><span>Réveils nuit</span>
+      </div>
+      <div class="chk-item" data-key="sommeil_endormissement" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div><span>Endorm. difficile</span>
+      </div>
+      <div class="chk-item" data-key="sommeil_fatigue" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div><span>Fatigué réveil</span>
+      </div>
+      <div class="chk-item" data-key="sommeil_reposant" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div><span>Reposant</span>
+      </div>
+    </div>
+  </div>
+
   <div class="card card-pad">
     <div class="field-group">
       <label>📝 Note libre</label>
@@ -1168,7 +1214,9 @@ const SYM = {
   cote_droit:'Côté D.',crampes:'Crampes',ballonnements:'Ballonnements',
   nausees:'Nausées',brulures:'Brûlures',apres_repas:'Après repas',a_jeun:'À jeun',flatulences:'Flatulences',
   sang:'Sang',mucus:'Mucus',urgence:'Urgence',douleur_evacuation:'Doul. évac.',
-  incomplete:'Incomplète',frequente:'+3/jour'
+  incomplete:'Incomplète',frequente:'+3/jour',
+  sommeil_agite:'Agité',sommeil_insomnies:'Insomnies',sommeil_reveils:'Réveils nuit',
+  sommeil_endormissement:'Endorm. difficile',sommeil_fatigue:'Fatigué réveil',sommeil_reposant:'Reposant'
 };
 
 // ── PLAGES HORAIRES ──
@@ -1359,7 +1407,7 @@ function toggleChk(el, type){
 
 function getChecked(id){
   return [...document.querySelectorAll('#'+id+' .chk-item')]
-    .filter(e=>['checked-sinus','checked-breath','checked-belly','checked-stool'].some(c=>e.classList.contains(c)))
+    .filter(e=>['checked-sinus','checked-breath','checked-belly','checked-stool','checked-sleep'].some(c=>e.classList.contains(c)))
     .map(e=>e.dataset.key);
 }
 
@@ -1418,6 +1466,11 @@ function addEntry(){
       color: stoolAbsent ? null : selectedStoolColor,
       details: stoolAbsent ? [] : getChecked('stoolChecks')
     },
+    sleep: {
+      bed:  document.getElementById('sleepBed').value  || null,
+      wake: document.getElementById('sleepWake').value || null,
+      details: getChecked('sleepChecks')
+    },
     note: document.getElementById('entryNote').value.trim()
   };
 
@@ -1460,6 +1513,14 @@ function resetForm(){
   document.getElementById('stoolDetail').classList.remove('visible');
   document.querySelectorAll('#stoolTypeGrid .stool-type').forEach(x=>x.classList.remove('selected'));
   document.querySelectorAll('#stoolColorGrid .color-item').forEach(x=>x.classList.remove('selected'));
+
+  // reset sleep
+  document.getElementById('sleepBed').value = '';
+  document.getElementById('sleepWake').value = '';
+  document.querySelectorAll('#sleepChecks .chk-item').forEach(el=>{
+    el.querySelector('.chk-dot').textContent = '';
+    el.className = 'chk-item';
+  });
 }
 
 // ── STATS ──
@@ -1561,7 +1622,12 @@ function renderHistory(){
               ? `<span class="hist-badge stool">🚽 T${e.stool.type}${e.stool.color?' · '+STOOL_COLORS[e.stool.color]:''}</span>`
               : ''))
       : '';
-    const allTags = [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])];
+    const sleepBed  = e.sleep?.bed  || null;
+    const sleepWake = e.sleep?.wake || null;
+    const sleepBadge = (sleepBed||sleepWake)
+      ? `<span class="hist-badge sleep">🌙 ${sleepBed||'?'} → ${sleepWake||'?'}</span>`
+      : '';
+    const allTags = [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[]),...(e.sleep?.details||[])];
     return `
     <div class="hist-item">
       <div class="hist-date">${e.date.slice(5).replace('-','/')}<br>${e.time}</div>
@@ -1571,6 +1637,7 @@ function renderHistory(){
           <span class="hist-badge breath">💨 ${e.breath}/10</span>
           <span class="hist-badge belly">🫀 ${e.belly||0}/10</span>
           ${stoolBadge}
+          ${sleepBadge}
         </div>
         <div class="hist-tags">
           ${allTags.map(s=>`<span class="tag-pill">${SYM[s]||s}</span>`).join('')}
@@ -1609,7 +1676,7 @@ function exportJSON(){
 
 function exportCSV(){
   if(!entries.length){toast('⚠️ Aucune donnée');return;}
-  const hdr = ['id','date','heure','sinus','essoufflement','ventre','sinus_symptomes','breath_symptomes','belly_symptomes','selle_absente','selle_type','selle_couleur','selle_details','note'];
+  const hdr = ['id','date','heure','sinus','essoufflement','ventre','sinus_symptomes','breath_symptomes','belly_symptomes','selle_absente','selle_type','selle_couleur','selle_details','sommeil_coucher','sommeil_lever','sommeil_details','note'];
   const rows = entries.map(e=>[
     e.id,e.date,e.time,e.sinus,e.breath,e.belly||0,
     (e.sinusSymptoms||[]).join('|'),(e.breathSymptoms||[]).join('|'),(e.bellySymptoms||[]).join('|'),
@@ -1617,6 +1684,9 @@ function exportCSV(){
     e.stool?.type!=null?e.stool.type:'',
     e.stool?.color||'',
     (e.stool?.details||[]).join('|'),
+    e.sleep?.bed||'',
+    e.sleep?.wake||'',
+    (e.sleep?.details||[]).join('|'),
     '"'+(e.note||'').replace(/"/g,'""')+'"'
   ].join(','));
   dl('suivi_sante.csv','data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent([hdr.join(','),...rows].join('\n')));
@@ -1659,6 +1729,11 @@ function exportText(){
       }
     }
     if(e.note) txt+=`  Note       : ${e.note}\n`;
+    if(e.sleep && (e.sleep.bed||e.sleep.wake)){
+      txt+=`  Sommeil    : Coucher ${e.sleep.bed||'?'} — Lever ${e.sleep.wake||'?'}`;
+      if(e.sleep.details?.length) txt+=` | ${e.sleep.details.map(s=>SYM[s]||s).join(', ')}`;
+      txt+='\n';
+    }
     txt+='\n';
   });
   txt+='═'.repeat(45)+'\nFin du rapport — Suivi Santé\n';
