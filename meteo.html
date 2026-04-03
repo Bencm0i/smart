@@ -31,6 +31,116 @@
       --accent: #d46848;
     }
   }
+
+  /* ── THÈME MILITAIRE ── */
+  [data-theme="military"] {
+    --bg: #1a1f14;
+    --bg2: #232b1a;
+    --ink: #c8d4a0;
+    --ink2: #8a9a6a;
+    --ink3: #5a6a48;
+    --line: #2e3a22;
+    --accent: #7aaa38;
+    --blue: #4a7a3a;
+    --snow: #6a9a58;
+    --purple: #5a7a30;
+    --amber: #a0b030;
+    font-family: 'DM Mono', monospace;
+  }
+  [data-theme="military"] body {
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.012) 2px,
+        rgba(255,255,255,0.012) 4px
+      );
+  }
+  [data-theme="military"] .city-name {
+    font-family: 'DM Mono', monospace !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: clamp(1.4rem, 5vw, 2.2rem) !important;
+    color: #7aaa38 !important;
+  }
+  [data-theme="military"] .temp-big,
+  [data-theme="military"] .wind-hero-speed,
+  [data-theme="military"] .ex-value,
+  [data-theme="military"] .day-max,
+  [data-theme="military"] .day-name,
+  [data-theme="military"] .tl-temp,
+  [data-theme="military"] .desc-italic {
+    font-family: 'DM Mono', monospace !important;
+  }
+  [data-theme="military"] .slabel {
+    color: #7aaa38;
+    letter-spacing: 0.35em;
+  }
+  [data-theme="military"] .tl-node {
+    border-color: #2e3a22;
+    background: #1a1f14;
+  }
+  [data-theme="military"] .tl-row.now .tl-node {
+    border-color: #7aaa38;
+    box-shadow: 0 0 6px #7aaa3855;
+  }
+  [data-theme="military"] .range-fill {
+    background: linear-gradient(90deg, #4a7a3a, #7aaa38) !important;
+    box-shadow: 0 0 5px 1px rgba(100,160,50,0.4) !important;
+  }
+  [data-theme="military"] .uv-track {
+    background: linear-gradient(90deg,#4a7a3a,#7aaa38,#a0b030,#c8aa30) !important;
+  }
+  [data-theme="military"] .wind-hero {
+    border-color: #2e3a22;
+    background: #232b1a;
+    border-left: 2px solid #7aaa38;
+  }
+  [data-theme="military"] .search-input {
+    color: #c8d4a0;
+  }
+  [data-theme="military"] .search-input::placeholder {
+    color: #5a6a48;
+  }
+  [data-theme="military"] #haPanel {
+    border-color: #2e3a22;
+    background: #232b1a;
+  }
+  [data-theme="military"] .ac {
+    background: #1a1f14;
+    border-color: #2e3a22;
+  }
+  [data-theme="military"] .ac-item:hover {
+    background: #232b1a;
+  }
+
+  /* THEME TOGGLE BUTTON */
+  #theme-toggle {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  #theme-toggle:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  [data-theme="military"] #theme-toggle {
+    border-color: #4a6a30;
+    color: #7aaa38;
+  }
+  [data-theme="military"] #theme-toggle:hover {
+    border-color: #7aaa38;
+    background: #232b1a;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; }
   #app { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
@@ -271,6 +381,7 @@
     </div>
     <button class="geo-btn" onclick="geo()" title="Ma position">◎</button>
     <button class="geo-btn" onclick="haTogglePanel()" title="Token Home Assistant" id="haBtnToggle" style="font-size:0.75rem;letter-spacing:0.05em;opacity:0.5">HA</button>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Changer de thème">☀ Civil</button>
   </div>
 
   <!-- HA TOKEN PANEL -->
@@ -771,7 +882,27 @@ function toast(msg){
   clearTimeout(tt);tt=setTimeout(()=>t.className='',2500);
 }
 
+function toggleTheme(){
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  if(html.getAttribute('data-theme') === 'military'){
+    html.removeAttribute('data-theme');
+    btn.textContent = '☀ Civil';
+    localStorage.setItem('meteo_theme','default');
+  } else {
+    html.setAttribute('data-theme','military');
+    btn.textContent = '⚔ Militaire';
+    localStorage.setItem('meteo_theme','military');
+  }
+}
+
 window.addEventListener('load',()=>{
+  // Restore theme
+  const savedTheme = localStorage.getItem('meteo_theme');
+  if(savedTheme === 'military'){
+    document.documentElement.setAttribute('data-theme','military');
+    document.getElementById('theme-toggle').textContent = '⚔ Militaire';
+  }
   document.getElementById('si').value='Bourg-lès-Valence';
   loadWX(44.9333,4.8833,'Bourg-lès-Valence','France');
   initHA();
