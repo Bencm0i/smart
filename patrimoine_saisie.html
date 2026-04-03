@@ -94,7 +94,6 @@ body {
 }
 .save-status.show { opacity: 1; }
 
-/* ═══ TABS ═══ */
 /* ═══ TICKER BAND ═══ */
 .ticker-band {
   position: sticky;
@@ -268,7 +267,7 @@ input[type="number"], input[type="text"], input[type="date"], select, textarea {
   border-radius: 10px;
   color: var(--text);
   font-family: 'DM Mono', monospace;
-  font-size: 16px; /* prevent iOS zoom */
+  font-size: 16px;
   padding: 12px 14px;
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s;
@@ -288,7 +287,6 @@ input[type="number"] { text-align: right; width: 130px; font-size: 16px; }
 .input-pct::after { content: '%'; }
 .input-pct input { padding-right: 30px; }
 
-/* Select styling */
 select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7585' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -298,7 +296,6 @@ select {
 }
 select option { background: var(--surface2); }
 
-/* Touch-friendly number with +/- */
 .num-ctrl {
   display: flex;
   align-items: center;
@@ -339,7 +336,6 @@ select option { background: var(--surface2); }
 }
 .num-ctrl input[type="number"]:focus { border: none; box-shadow: none; }
 
-/* Euro input large */
 .euro-input {
   position: relative;
   display: flex;
@@ -499,7 +495,7 @@ select option { background: var(--surface2); }
 .log-table tr:last-child td { border-bottom: none; }
 .log-table input { font-size: 15px; padding: 10px 8px; min-height: 44px; }
 
-/* ═══ LOG CARDS (mobile-friendly ATH/DCA/Odo) ═══ */
+/* ═══ LOG CARDS ═══ */
 .log-card {
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -612,16 +608,13 @@ select option { background: var(--surface2); }
 .bar-btn.primary { background: var(--accent); color: #1a1e24; border-color: var(--accent); }
 .bar-btn.primary:active { background: var(--accent2); }
 
-/* Responsive */
 @media (min-width: 640px) {
   .bottom-bar { left: 50%; transform: translateX(-50%); right: auto; width: 640px; border-radius: 16px 16px 0 0; }
 }
 
-/* Collapse */
 .collapsible { overflow: hidden; transition: max-height 0.3s ease; }
 .collapse-toggle { background: none; border: none; color: var(--accent); font-size: 13px; cursor: pointer; padding: 2px; }
 
-/* Accent line */
 .section.accent-green { border-top: 2px solid var(--green); }
 .section.accent-gold { border-top: 2px solid var(--gold); }
 .section.accent-blue { border-top: 2px solid var(--accent); }
@@ -652,29 +645,21 @@ select option { background: var(--surface2); }
   letter-spacing: -0.3px;
 }
 
-/* Focus indicator for a11y */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Number input arrows hide */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 input[type=number] { -moz-appearance: textfield; }
 
-/* ═══ MOBILE IMPROVEMENTS ═══ */
-/* Larger card body padding on mobile */
 .card-body { padding: 14px; }
-
-/* Better section body spacing */
 .section-body { padding: 12px 14px; }
 
-/* Input saved flash animation */
 @keyframes inputSaved {
   0%   { border-color: var(--green); box-shadow: 0 0 0 3px rgba(90,171,122,0.2); }
   100% { border-color: var(--border); box-shadow: none; }
 }
 .input-saved { animation: inputSaved 0.8s ease-out forwards; }
 
-/* Swipe hint on tabs */
 .tabs-bar::after {
   content: '';
   position: absolute;
@@ -684,7 +669,6 @@ input[type=number] { -moz-appearance: textfield; }
   pointer-events: none;
 }
 
-/* Active tab indicator improved */
 .tab-btn.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
@@ -692,20 +676,16 @@ input[type=number] { -moz-appearance: textfield; }
   border-radius: 6px 6px 0 0;
 }
 
-/* Better hbtn tap area */
 .hbtn { min-height: 40px; padding: 8px 14px; font-size: 12px; }
 
-/* Number input: full width on small screen */
 @media (max-width: 400px) {
   .euro-input input { width: 120px; }
   input[type="number"] { width: 110px; }
   .grid2 { grid-template-columns: 1fr; }
 }
 
-/* Fast tap response */
 button, input, select { touch-action: manipulation; }
 
-/* Sticky add button in section head */
 .section-head .mini-btn {
   margin: 0;
   width: auto;
@@ -717,13 +697,8 @@ button, input, select { touch-action: manipulation; }
   border-radius: 8px;
 }
 
-/* Input group label spacing */
 .lbl { margin-bottom: 6px; font-size: 10px; }
-
-/* Form field gap */
 .form-field { margin-bottom: 12px; }
-
-/* Slider-style risk selector bigger */
 .risk-sel label { width: 34px; height: 34px; font-size: 12px; }
 
 /* ═══ KPI PANEL ═══ */
@@ -808,9 +783,7 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ TICKER BAND ═══ -->
 <div class="ticker-band" id="tickerBand" title="Pause au survol · Clic pour actualiser">
-  <div class="ticker-track" id="tickerTrack">
-    <!-- items injectés par JS × 2 pour boucle seamless -->
-  </div>
+  <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
 <!-- ═══ TABS ═══ -->
@@ -826,40 +799,30 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ PANEL : BANQUES ═══ -->
 <div class="panel active" id="panel-banques">
-
-  <!-- BOURSORAMA -->
   <div class="section accent-blue">
     <div class="section-head">
       <div class="section-title">🏦 Boursorama <span class="badge blue">Boursobank</span></div>
     </div>
     <div class="section-body" id="body-boursorama"></div>
   </div>
-
-  <!-- FORTUNEO -->
   <div class="section accent-green">
     <div class="section-head">
       <div class="section-title">🏦 Fortuneo</div>
     </div>
     <div class="section-body" id="body-fortuneo"></div>
   </div>
-
-  <!-- REVOLUT -->
   <div class="section accent-gold">
     <div class="section-head">
       <div class="section-title">💳 Revolut</div>
     </div>
     <div class="section-body" id="body-revolut"></div>
   </div>
-
-  <!-- NATIXIS -->
   <div class="section accent-red">
     <div class="section-head">
       <div class="section-title">🏢 Natixis</div>
     </div>
     <div class="section-body" id="body-natixis"></div>
   </div>
-
-  <!-- ESPÈCES -->
   <div class="section">
     <div class="section-head"><div class="section-title">💵 Espèces & Divers</div></div>
     <div class="section-body">
@@ -879,13 +842,10 @@ button, input, select { touch-action: manipulation; }
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- ═══ PANEL : INVESTISSEMENTS ═══ -->
 <div class="panel" id="panel-investissements">
-
-  <!-- PEA -->
   <div class="section accent-blue">
     <div class="section-head">
       <div class="section-title">📈 PEA</div>
@@ -893,8 +853,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-pea"></div>
   </div>
-
-  <!-- CTO -->
   <div class="section accent-green">
     <div class="section-head">
       <div class="section-title">📊 CTO</div>
@@ -902,8 +860,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-cto"></div>
   </div>
-
-  <!-- REVOLUT INV -->
   <div class="section accent-gold">
     <div class="section-head">
       <div class="section-title">💳 Revolut Invest.</div>
@@ -911,8 +867,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-inv-revolut"></div>
   </div>
-
-  <!-- ÉPARGNE ENTREPRISE -->
   <div class="section">
     <div class="section-head">
       <div class="section-title">🏢 Épargne Entreprise (PEE/PERCO)</div>
@@ -920,8 +874,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-ee"></div>
   </div>
-
-  <!-- ASSURANCE VIE -->
   <div class="section accent-red">
     <div class="section-head">
       <div class="section-title">🛡️ Assurances Vie</div>
@@ -929,8 +881,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-av"></div>
   </div>
-
-  <!-- ÉPARGNE BLOQUÉE -->
   <div class="section">
     <div class="section-head">
       <div class="section-title">🔒 Épargne Réglementée</div>
@@ -938,7 +888,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-eb"></div>
   </div>
-
 </div>
 
 <!-- ═══ PANEL : SCPI ═══ -->
@@ -954,7 +903,6 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ PANEL : ACTIFS ═══ -->
 <div class="panel" id="panel-actifs">
-
   <div class="section">
     <div class="section-head"><div class="section-title">🏠 Immobilier</div></div>
     <div class="section-body">
@@ -967,8 +915,6 @@ button, input, select { touch-action: manipulation; }
       </div>
     </div>
   </div>
-
-  <!-- ATH historique -->
   <div class="section accent-gold">
     <div class="section-head">
       <div class="section-title">🏆 All-Time High</div>
@@ -978,8 +924,6 @@ button, input, select { touch-action: manipulation; }
       <p style="font-size:11px;color:var(--muted);">Enregistre les pics patrimoniaux successifs.</p>
     </div>
   </div>
-
-  <!-- DCA -->
   <div class="section accent-blue">
     <div class="section-head">
       <div class="section-title">📅 Suivi DCA</div>
@@ -987,7 +931,6 @@ button, input, select { touch-action: manipulation; }
     </div>
     <div class="section-body" id="body-dca"></div>
   </div>
-
 </div>
 
 <!-- ═══ PANEL : DÉPENSES ═══ -->
@@ -997,8 +940,6 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ PANEL : MOBILITÉ ═══ -->
 <div class="panel" id="panel-mobilite">
-
-  <!-- AUTO -->
   <div class="section accent-blue">
     <div class="section-head"><div class="section-title">🚗 Voiture — Kilométrage</div></div>
     <div class="section-body">
@@ -1006,7 +947,6 @@ button, input, select { touch-action: manipulation; }
       <button class="mini-btn" onclick="addOdoEntry('auto')">＋ Relevé kilométrique</button>
     </div>
   </div>
-
   <div class="section">
     <div class="section-head"><div class="section-title">🚗 Carburant</div></div>
     <div class="section-body">
@@ -1030,7 +970,6 @@ button, input, select { touch-action: manipulation; }
       </div>
     </div>
   </div>
-
   <div class="section">
     <div class="section-head"><div class="section-title">💼 Trajet domicile-travail</div></div>
     <div class="section-body">
@@ -1046,8 +985,6 @@ button, input, select { touch-action: manipulation; }
       </div>
     </div>
   </div>
-
-  <!-- VÉLO -->
   <div class="section accent-green">
     <div class="section-head"><div class="section-title">🚲 Vélo — Kilométrage</div></div>
     <div class="section-body">
@@ -1055,7 +992,6 @@ button, input, select { touch-action: manipulation; }
       <button class="mini-btn" onclick="addOdoEntry('velo')">＋ Relevé kilométrique</button>
     </div>
   </div>
-
   <div class="section">
     <div class="section-head"><div class="section-title">🔋 Batterie Vélo</div></div>
     <div class="section-body">
@@ -1083,7 +1019,6 @@ button, input, select { touch-action: manipulation; }
       </div>
     </div>
   </div>
-
   <div class="section">
     <div class="section-head"><div class="section-title">⚙️ Moteur Vélo</div></div>
     <div class="section-body">
@@ -1107,7 +1042,6 @@ button, input, select { touch-action: manipulation; }
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
@@ -1180,17 +1114,6 @@ button, input, select { touch-action: manipulation; }
     </div>
   </div>
 
-  <!-- KPI SCPI DÉTAIL -->
-  <div class="section accent-gold" style="margin-bottom:16px;">
-    <div class="section-head">
-      <div class="section-title">🏢 SCPI — Prix de revient & Performance</div>
-      <span class="badge gold" id="kpi-scpi-badge">—</span>
-    </div>
-    <div class="section-body" style="padding:14px 16px;">
-      <div id="kpi-scpi-content"></div>
-    </div>
-  </div>
-
 </div>
 
 <!-- ═══ MODAL KPI EXPORT ═══ -->
@@ -1228,9 +1151,6 @@ button, input, select { touch-action: manipulation; }
 <input type="file" id="fileInput" accept=".json,.patrenenc" style="display:none" onchange="handleFileLoad(event)">
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// DEFAULT DATA (same structure as patrimoine_dashboard.html)
-// ═══════════════════════════════════════════════════════════════════════════
 let DATA = {
   boursorama:[
     {label:"Compte courant",val:0,liq:0,risk:1},{label:"Livret A",val:0,liq:1,risk:1},
@@ -1327,11 +1247,7 @@ let DATA = {
     ],
   },
   mobilite:{
-    auto:{
-      odoLog:[{date:"",km:0}],
-      composants:[],
-      entretien:[],
-    },
+    auto:{odoLog:[{date:"",km:0}],composants:[],entretien:[]},
     velo:{
       odoLog:[{date:"",km:0}],
       batterie:{datePose:"",kmPose:0,cyclesActuels:0,cyclesMax:150,dureeTheoKm:6750},
@@ -1342,14 +1258,8 @@ let DATA = {
   },
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TAB SWITCHING
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── TAB SWITCHING ─────────────────────────────────────────────────────────
 function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', b.textContent.toLowerCase().includes(name.slice(0,4)));
-  });
-  // fix tab btn highlight
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   const map = {banques:0,investissements:1,scpi:2,actifs:3,depenses:4,mobilite:5,kpi:6};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
@@ -1358,11 +1268,9 @@ function switchTab(name) {
   if (name === 'kpi') { if (typeof renderKPIPanel === 'function') renderKPIPanel(); }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER BANK ROWS
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── RENDER BANK ROWS ──────────────────────────────────────────────────────
 const MANAGED = {
-  boursorama: [3,5,7], // CTO, PEA, AV → gérés dans Invest
+  boursorama: [3,5,7],
   fortuneo:   [3,5,7],
   revolut:    [3,7],
   natixis:    [0],
@@ -1419,9 +1327,7 @@ function renderAllBanks() {
   document.getElementById('revenuMensuelNet').value = DATA.revenuMensuelNet || '';
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER INVESTISSEMENTS — PEA/CTO/Revolut
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── INVESTISSEMENTS ───────────────────────────────────────────────────────
 function renderInvPortfolio(key, containerId) {
   const rows = DATA.investissements[key] || [];
   const container = document.getElementById(containerId);
@@ -1475,8 +1381,7 @@ function renderInvPortfolio(key, containerId) {
 
 function addInvRow(key) {
   DATA.investissements[key].push({nom:'',ticker:'',isin:'',qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:''});
-  renderInvPortfolio(key, 'body-'+key);
-  if(key==='revolut') renderInvPortfolio('revolut','body-inv-revolut');
+  renderInvPortfolio(key, key==='revolut'?'body-inv-revolut':'body-'+key);
   autoSave();
 }
 function delInvRow(key, i) {
@@ -1486,9 +1391,7 @@ function delInvRow(key, i) {
   autoSave();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ÉPARGNE ENTREPRISE
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── ÉPARGNE ENTREPRISE ────────────────────────────────────────────────────
 function renderEE() {
   const rows = DATA.investissements.epargne_entreprise || [];
   const c = document.getElementById('body-ee');
@@ -1537,9 +1440,7 @@ function renderEE() {
 function addEERow() { DATA.investissements.epargne_entreprise.push({nom:'',fonds:'',parts:0,pr:0,valeurActuelle:0,tauxRendement:0,url:''}); renderEE(); autoSave(); }
 function delEERow(i) { DATA.investissements.epargne_entreprise.splice(i,1); renderEE(); autoSave(); }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ASSURANCE VIE
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── ASSURANCE VIE ─────────────────────────────────────────────────────────
 function renderAV() {
   const rows = DATA.investissements.assurance_vie || [];
   const c = document.getElementById('body-av');
@@ -1588,9 +1489,7 @@ function renderAV() {
 function addAVRow() { DATA.investissements.assurance_vie.push({nom:'',assureur:'',contrat:'',versements:0,valeurActuelle:0,tauxRendement:0,url:''}); renderAV(); autoSave(); }
 function delAVRow(i) { DATA.investissements.assurance_vie.splice(i,1); renderAV(); autoSave(); }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ÉPARGNE BLOQUÉE
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── ÉPARGNE BLOQUÉE ───────────────────────────────────────────────────────
 function renderEB() {
   const rows = DATA.investissements.epargne_bloquee || [];
   const c = document.getElementById('body-eb');
@@ -1640,32 +1539,22 @@ function renderEB() {
 function addEBRow() { DATA.investissements.epargne_bloquee.push({nom:'',type:'Livret A',banque:'',montant:0,tauxAnnuel:0,dateOuverture:'',url:''}); renderEB(); autoSave(); }
 function delEBRow(i) { DATA.investissements.epargne_bloquee.splice(i,1); renderEB(); autoSave(); }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SYNC INV → BANK (auto)
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── SYNC INV → BANK ───────────────────────────────────────────────────────
 function syncInvToBank() {
-  // AV Boursorama → boursorama[7]
   const avBourso = DATA.investissements.assurance_vie.find(a=>a.assureur==='Boursorama'||a.nom.toLowerCase().includes('bourso'));
   if(avBourso) DATA.boursorama[7].val = avBourso.valeurActuelle;
-  // AV Fortuneo → fortuneo[3]
   const avFort = DATA.investissements.assurance_vie.find(a=>a.assureur==='Fortuneo'||a.nom.toLowerCase().includes('fortuneo'));
   if(avFort) DATA.fortuneo[3].val = avFort.valeurActuelle;
-  // CTO Fortuneo → fortuneo[5]: sum of cto rows
   const ctoPEA = DATA.investissements.cto.reduce((s,r)=>s+r.qte*r.coursActuel,0);
   DATA.fortuneo[5].val = ctoPEA;
-  // PEA Fortuneo → fortuneo[7]: sum of pea rows  
   const pea = DATA.investissements.pea.reduce((s,r)=>s+r.qte*r.coursActuel,0);
   DATA.fortuneo[7].val = pea;
-  // Or Revolut → revolut[3]
   const or = DATA.investissements.revolut.find(r=>r.ticker==='XAU'||r.nom.toLowerCase().includes('or'));
   if(or) DATA.revolut[3].val = or.qte * or.coursActuel;
-  // Crypto Revolut → revolut[7]
   const btc = DATA.investissements.revolut.find(r=>r.ticker==='BTC'||r.nom.toLowerCase().includes('bitcoin'));
   if(btc) DATA.revolut[7].val = btc.qte * btc.coursActuel;
-  // EE → Natixis[0]
   const ee = DATA.investissements.epargne_entreprise.reduce((s,r)=>s+r.valeurActuelle,0);
   DATA.natixis[0].val = ee;
-  // Refresh bank display inputs
   ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
     const managed = MANAGED[bank] || [];
     managed.forEach(i => {
@@ -1676,9 +1565,7 @@ function syncInvToBank() {
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SCPI
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── SCPI ──────────────────────────────────────────────────────────────────
 function renderSCPI() {
   const c = document.getElementById('body-scpi');
   c.innerHTML = DATA.scpi.map((r,i) => `
@@ -1726,9 +1613,7 @@ function renderSCPI() {
 function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:''}); renderSCPI(); autoSave(); }
 function delSCPIRow(i) { DATA.scpi.splice(i,1); renderSCPI(); autoSave(); }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ATH + DCA
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── ATH + DCA ─────────────────────────────────────────────────────────────
 function renderATH() {
   const c = document.getElementById('body-ath');
   const rows = DATA.ath || [];
@@ -1786,9 +1671,7 @@ function addDCAEntry() {
   renderDCA(); autoSave();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// DÉPENSES
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── DÉPENSES ──────────────────────────────────────────────────────────────
 function renderDepenses() {
   const c = document.getElementById('body-depenses');
   c.innerHTML = DATA.depenses.categories.map((cat, ci) => `
@@ -1836,9 +1719,7 @@ function delDepenseItem(ci, ii) {
   renderDepenses(); autoSave();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// MOBILITÉ
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── MOBILITÉ ──────────────────────────────────────────────────────────────
 function renderOdo(vehicle, containerId) {
   const log = DATA.mobilite[vehicle].odoLog || [];
   const c = document.getElementById(containerId);
@@ -1916,26 +1797,20 @@ function bindMobiliteEvents() {
   b('motKmPose','mobilite.velo.moteur.kmPose');
   b('motKmTotal','mobilite.velo.moteur.kmTotal');
   b('motDureeKm','mobilite.velo.moteur.dureeTheoKm');
-  b('especeCache','especeCache');
-  b('revenuMensuelNet','revenuMensuelNet');
-  // override for flat keys
   ['especeCache','revenuMensuelNet'].forEach(id => {
     const e = document.getElementById(id);
     if(e) e.addEventListener('input', () => { DATA[id] = parseFloat(e.value)||0; autoSave(); });
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// AUTO-SAVE to localStorage
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── AUTO-SAVE ─────────────────────────────────────────────────────────────
 let saveTimer;
 function autoSave() {
   clearTimeout(saveTimer);
-  // Flash the active input green briefly
   const active = document.activeElement;
   if(active && (active.tagName==='INPUT'||active.tagName==='SELECT'||active.tagName==='TEXTAREA')) {
     active.classList.remove('input-saved');
-    void active.offsetWidth; // reflow
+    void active.offsetWidth;
     active.classList.add('input-saved');
     setTimeout(()=>active.classList.remove('input-saved'), 900);
   }
@@ -1944,9 +1819,7 @@ function autoSave() {
   }, 600);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EXPORT JSON
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── EXPORT JSON ───────────────────────────────────────────────────────────
 function getJSON() {
   const out = JSON.parse(JSON.stringify(DATA));
   out._exportDate = new Date().toISOString();
@@ -1958,22 +1831,13 @@ async function exportJSON() {
   const d = new Date();
   const fname = `patrimoine_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
   const blob = new Blob([json], {type:'application/json'});
-
-  // ── Tentative Web Share API (mobile natif : iOS Files, AirDrop, Google Drive…)
   if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
     try {
-      await navigator.share({
-        title: 'Patrimoine — Export JSON',
-        files: [new File([blob], fname, {type:'application/json'})],
-      });
+      await navigator.share({ title: 'Patrimoine — Export JSON', files: [new File([blob], fname, {type:'application/json'})] });
       showToast('✓ Partagé : ' + fname);
       return;
-    } catch(e) {
-      if (e.name === 'AbortError') return; // utilisateur a annulé
-    }
+    } catch(e) { if (e.name === 'AbortError') return; }
   }
-
-  // ── Fallback : téléchargement classique (desktop / Firefox Android…)
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = fname; a.click();
@@ -1996,7 +1860,6 @@ function handleFileLoad(e) {
   reader.onload = ev => {
     try {
       const loaded = JSON.parse(ev.target.result);
-      // Deep merge — keep structure, overlay values
       mergeDeep(DATA, loaded);
       renderAll();
       showToast('✓ JSON chargé : ' + file.name);
@@ -2018,9 +1881,7 @@ function mergeDeep(target, source) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// EXPORT KPI (format compatible patrimoine_kpi_saisie.html)
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── EXPORT KPI ────────────────────────────────────────────────────────────
 function openKpiModal() {
   const overlay = document.getElementById('kpi-overlay');
   overlay.style.display = 'flex';
@@ -2033,67 +1894,29 @@ function closeKpiModal() {
 }
 
 function buildKPIPayload() {
-  // Retourne la structure plate attendue par le SCHEMA du KPI terminal.
-  // SCHEMA KPI:
-  //  b1 = Boursorama, b2 = Fortuneo, b3 = Revolut, b4 = Natixis
-  //  BANQUE 1 (boursorama) indices: [0]cc [1]liva [2]livb [3]cto [4]ctoliq [5]pea [6]pealiq [7]av
-  //  BANQUE 2 (fortuneo)   indices: [0]cc [1]livp [2]ldds [3]av  [4]ctoliq [5]cto [6]pealiq [7]pea
-  //  BANQUE 3 (revolut)    indices: [0]cc [1]eur  [2]usd  [3]gold[4]actus  [5]oblig[6]reit  [7]crypto
-  //  BANQUE 4 (natixis)    indices: [0]pee
-  //  dv_maison, dv_liquide, sc_1..sc_4
-
-  const b = (bank, idx) => ({ valeur: DATA[bank]?.[idx]?.val || 0 });
-  const bInv = (bank, idx, qte, pr) => ({
-    valeur: DATA[bank]?.[idx]?.val || 0,
-    prixRevient: pr || 0,
-    quantite: qte || 0,
-  });
-
-  // PEA total valeur = fortuneo[7].val ; PR global = sum(qte*pr) des lignes pea
   const peaTotalVal = (DATA.fortuneo?.[7]?.val || 0);
   const peaTotalPR  = DATA.investissements.pea.reduce((s,r) => s + (r.qte||0)*(r.pr||0), 0);
   const peaTotalQte = DATA.investissements.pea.reduce((s,r) => s + (r.qte||0), 0);
-
   const ctoTotalVal = (DATA.fortuneo?.[5]?.val || 0);
   const ctoTotalPR  = DATA.investissements.cto.reduce((s,r) => s + (r.qte||0)*(r.pr||0), 0);
   const ctoTotalQte = DATA.investissements.cto.reduce((s,r) => s + (r.qte||0), 0);
-
-  // Revolut invest: on encode chaque ligne Revolut via son index dans le tableau DATA.revolut
-  // Or (XAU) = revolut[3], Actions US = revolut[4], Crypto = revolut[7]
   const revOr    = DATA.investissements.revolut.find(r => r.ticker==='XAU' || r.nom?.toLowerCase().includes('or'));
   const revActUS = DATA.investissements.revolut.find(r => r.ticker!=='XAU' && r.ticker!=='BTC' && !r.nom?.toLowerCase().includes('or') && !r.nom?.toLowerCase().includes('bitcoin'));
   const revCrypto= DATA.investissements.revolut.find(r => r.ticker==='BTC' || r.nom?.toLowerCase().includes('bitcoin') || r.nom?.toLowerCase().includes('crypto'));
-
-  // Épargne entreprise (Natixis PEE) → b4_pee
   const eeTotalVal = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.valeurActuelle||0), 0);
   const eeTotalPR  = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.parts||0)*(r.pr||0), 0);
   const eeTotalParts = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.parts||0), 0);
-
-  // AV
   const avBourso = DATA.investissements.assurance_vie.find(a => a.assureur==='Boursorama' || a.nom?.toLowerCase().includes('bourso'));
   const avFort   = DATA.investissements.assurance_vie.find(a => a.assureur==='Fortuneo'   || a.nom?.toLowerCase().includes('fortuneo'));
-
-  // Livrets (épargne bloquée) — mapping par type vers les comptes banque
   const findEB = (types) => DATA.investissements.epargne_bloquee.filter(r => types.includes(r.type)).reduce((s,r) => s + (r.montant||0), 0);
-
-  // SCPI → sc_1..sc_4
   const scpiEntry = (i) => {
     const s = DATA.scpi?.[i];
     if(!s) return { valeur: 0, prixRevient: 0, parts: 0, produit: '' };
     const valActuelle = s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0;
     const prixRevient = s.montantPlace || (s.parts||0)*(s.pxAchat||0) || 0;
-    return {
-      valeur: valActuelle,
-      prixRevient: prixRevient,
-      parts: s.parts || 0,
-      produit: s.produit || '',
-      gestionnaire: s.gestionnaire || '',
-      pmv: valActuelle - prixRevient,
-    };
+    return { valeur: valActuelle, prixRevient: prixRevient, parts: s.parts || 0, produit: s.produit || '', gestionnaire: s.gestionnaire || '', pmv: valActuelle - prixRevient };
   };
-
-  const payload = {
-    // ── BOURSORAMA ──
+  return {
     b1_cc:     { valeur: DATA.boursorama?.[0]?.val || 0 },
     b1_liva:   { valeur: findEB(['Livret A']) || DATA.boursorama?.[1]?.val || 0 },
     b1_livb:   { valeur: findEB(['Livret B+']) || DATA.boursorama?.[2]?.val || 0 },
@@ -2101,50 +1924,28 @@ function buildKPIPayload() {
     b1_ctoliq: { valeur: DATA.boursorama?.[4]?.val || 0 },
     b1_pea:    { valeur: peaTotalVal, prixRevient: peaTotalQte > 0 ? peaTotalPR / peaTotalQte : 0, quantite: peaTotalQte },
     b1_pealiq: { valeur: DATA.boursorama?.[6]?.val || 0 },
-    b1_av:     { valeur: avBourso?.valeurActuelle || DATA.boursorama?.[7]?.val || 0,
-                 prixRevient: avBourso ? (avBourso.versements > 0 ? avBourso.versements / 1 : 0) : 0,
-                 quantite:    avBourso ? 1 : 0 },
-
-    // ── FORTUNEO ──
+    b1_av:     { valeur: avBourso?.valeurActuelle || DATA.boursorama?.[7]?.val || 0, prixRevient: avBourso ? (avBourso.versements > 0 ? avBourso.versements / 1 : 0) : 0, quantite: avBourso ? 1 : 0 },
     b2_cc:     { valeur: DATA.fortuneo?.[0]?.val || 0 },
     b2_livp:   { valeur: findEB(['Livret+']) || DATA.fortuneo?.[1]?.val || 0 },
     b2_ldds:   { valeur: findEB(['LDDS']) || DATA.fortuneo?.[2]?.val || 0 },
-    b2_av:     { valeur: avFort?.valeurActuelle || DATA.fortuneo?.[3]?.val || 0,
-                 prixRevient: avFort ? (avFort.versements > 0 ? avFort.versements : 0) : 0,
-                 quantite:    avFort ? 1 : 0 },
+    b2_av:     { valeur: avFort?.valeurActuelle || DATA.fortuneo?.[3]?.val || 0, prixRevient: avFort ? (avFort.versements > 0 ? avFort.versements : 0) : 0, quantite: avFort ? 1 : 0 },
     b2_ctoliq: { valeur: DATA.fortuneo?.[4]?.val || 0 },
     b2_cto:    { valeur: ctoTotalVal, prixRevient: ctoTotalQte > 0 ? ctoTotalPR / ctoTotalQte : 0, quantite: ctoTotalQte },
     b2_pealiq: { valeur: DATA.fortuneo?.[6]?.val || 0 },
     b2_pea:    { valeur: peaTotalVal, prixRevient: peaTotalQte > 0 ? peaTotalPR / peaTotalQte : 0, quantite: peaTotalQte },
-
-    // ── REVOLUT ──
     b3_cc:     { valeur: DATA.revolut?.[0]?.val || 0 },
     b3_eur:    { valeur: DATA.revolut?.[1]?.val || 0 },
     b3_usd:    { valeur: DATA.revolut?.[2]?.val || 0 },
-    b3_gold:   { valeur: DATA.revolut?.[3]?.val || revOr ? (revOr.qte||0)*(revOr.coursActuel||0) : 0,
-                 prixRevient: revOr?.pr || 0, quantite: revOr?.qte || 0 },
-    b3_actus:  { valeur: DATA.revolut?.[4]?.val || revActUS ? (revActUS?.qte||0)*(revActUS?.coursActuel||0) : 0,
-                 prixRevient: revActUS?.pr || 0, quantite: revActUS?.qte || 0 },
+    b3_gold:   { valeur: DATA.revolut?.[3]?.val || revOr ? (revOr.qte||0)*(revOr.coursActuel||0) : 0, prixRevient: revOr?.pr || 0, quantite: revOr?.qte || 0 },
+    b3_actus:  { valeur: DATA.revolut?.[4]?.val || revActUS ? (revActUS?.qte||0)*(revActUS?.coursActuel||0) : 0, prixRevient: revActUS?.pr || 0, quantite: revActUS?.qte || 0 },
     b3_oblig:  { valeur: DATA.revolut?.[5]?.val || 0 },
     b3_reit:   { valeur: DATA.revolut?.[6]?.val || 0 },
-    b3_crypto: { valeur: DATA.revolut?.[7]?.val || revCrypto ? (revCrypto?.qte||0)*(revCrypto?.coursActuel||0) : 0,
-                 prixRevient: revCrypto?.pr || 0, quantite: revCrypto?.qte || 0 },
-
-    // ── NATIXIS / ÉPARGNE ENTREPRISE ──
+    b3_crypto: { valeur: DATA.revolut?.[7]?.val || revCrypto ? (revCrypto?.qte||0)*(revCrypto?.coursActuel||0) : 0, prixRevient: revCrypto?.pr || 0, quantite: revCrypto?.qte || 0 },
     b4_pee:    { valeur: eeTotalVal, prixRevient: eeTotalParts > 0 ? eeTotalPR / eeTotalParts : 0, quantite: eeTotalParts },
-
-    // ── DIVERS ──
     dv_maison: { valeur: DATA.maison || 0 },
     dv_liquide:{ valeur: DATA.especeCache || 0 },
-
-    // ── SCPI ──
-    sc_1: scpiEntry(0),
-    sc_2: scpiEntry(1),
-    sc_3: scpiEntry(2),
-    sc_4: scpiEntry(3),
+    sc_1: scpiEntry(0), sc_2: scpiEntry(1), sc_3: scpiEntry(2), sc_4: scpiEntry(3),
   };
-
-  return payload;
 }
 
 function xorEncrypt(text, key) {
@@ -2159,7 +1960,6 @@ async function exportKPI() {
   const errEl = document.getElementById('kpi-err');
   errEl.textContent = '';
   if(!pwd) { errEl.textContent = '⚠ Mot de passe requis'; return; }
-
   try {
     const payload = buildKPIPayload();
     const plaintext = JSON.stringify({ data: payload, date: new Date().toISOString() });
@@ -2167,23 +1967,14 @@ async function exportKPI() {
     const d = new Date();
     const fname = `kpi_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
     const blob = new Blob([JSON.stringify({ enc })], { type: 'application/json' });
-
-    // ── Web Share API mobile
     if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
       try {
-        await navigator.share({
-          title: 'Patrimoine — Export KPI',
-          files: [new File([blob], fname, {type:'application/json'})],
-        });
+        await navigator.share({ title: 'Patrimoine — Export KPI', files: [new File([blob], fname, {type:'application/json'})] });
         closeKpiModal();
         showToast('✓ KPI partagé : ' + fname);
         return;
-      } catch(e) {
-        if (e.name === 'AbortError') return;
-      }
+      } catch(e) { if (e.name === 'AbortError') return; }
     }
-
-    // ── Fallback téléchargement classique
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = fname; a.click();
@@ -2195,16 +1986,13 @@ async function exportKPI() {
   }
 }
 
-// Close modal on overlay click
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('kpi-overlay').addEventListener('click', function(e) {
     if(e.target === this) closeKpiModal();
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── TOAST ─────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -2212,9 +2000,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER ALL
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── RENDER ALL ────────────────────────────────────────────────────────────
 function renderAll() {
   renderAllBanks();
   renderInvPortfolio('pea','body-pea');
@@ -2231,18 +2017,14 @@ function renderAll() {
   document.getElementById('maison').value = DATA.maison || '';
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════════════════
+// ─── INIT ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Load from localStorage
   try {
     const saved = localStorage.getItem('patrimoine_saisie');
     if(saved) mergeDeep(DATA, JSON.parse(saved));
   } catch(e) {}
   renderAll();
   bindMobiliteEvents();
-  // Maison input
   document.getElementById('maison').addEventListener('input', function() {
     DATA.maison = parseFloat(this.value)||0; autoSave();
   });
@@ -2296,17 +2078,15 @@ window.addEventListener('DOMContentLoaded', () => {
     const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
     const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
     const avVers = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.versements||0), 0);
-    // AV déjà synchées dans banquesTotal (Boursorama[7] et Fortuneo[3]) → exclure du total pour éviter le double-compte
     const avSyncVal = DATA.investissements.assurance_vie
       .filter(r => r.assureur==='Boursorama' || r.nom?.toLowerCase().includes('bourso') ||
                    r.assureur==='Fortuneo'   || r.nom?.toLowerCase().includes('fortuneo'))
       .reduce((s,r) => s+(r.valeurActuelle||0), 0);
-    const avValNonSync = avVal - avSyncVal; // AV tierces, non présentes dans les comptes banques
+    const avValNonSync = avVal - avSyncVal;
     const ebVal  = DATA.investissements.epargne_bloquee.reduce((s,r) => s+(r.montant||0), 0);
 
     const scpiVal = (DATA.scpi||[]).reduce((s,r) => s+(r.totalActuel || (r.parts||0)*(r.pxActuel||0) || 0), 0);
     const scpiPrix= (DATA.scpi||[]).reduce((s,r) => s+(r.parts||0)*(r.pxAchat||0), 0);
-    // Coût de revient SCPI = montantPlace (versements réels, frais inclus)
     const scpiCR  = (DATA.scpi||[]).reduce((s,r) => s+(r.montantPlace || (r.parts||0)*(r.pxAchat||0) || 0), 0);
 
     const maison  = DATA.maison || 0;
@@ -2319,9 +2099,6 @@ window.addEventListener('DOMContentLoaded', () => {
         return ss + m;
       }, 0), 0);
 
-    // Natixis[0].val = EE (sync depuis epargne_entreprise) → banquesTotal inclut deja eeVal via natixisTotal, pas de double-compte
-    // AV Boursorama/Fortuneo déjà dans banquesTotal via syncInvToBank → on n'ajoute que les AV tierces (avValNonSync)
-    // SCPI : coût de revient (montantPlace) pour le patrimoine total
     const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal;
 
     const pmvPEA  = peaVal - peaPR;
@@ -2333,36 +2110,42 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const txEpargne   = revenu > 0 ? Math.max(0, revenu - depMens) / revenu * 100 : 0;
     const moisLiberte = depMens > 0 ? grandTotal / depMens : 0;
+    // ── NOUVEAU : indépendance sans résidence principale
+    const moisLiberteSansMaison = depMens > 0 ? (grandTotal - maison) / depMens : 0;
 
     return {
       grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
       scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
-      depMens, revenu, txEpargne, moisLiberte,
+      depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
     };
   }
 
   function renderKPICards(k) {
     const pmvTot  = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV + k.pmvSCPI;
+    // ── NOUVEAU : P/MV sans SCPI
+    const pmvHorsSCPI = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV;
     const epargne = Math.max(0, k.revenu - k.depMens);
     const cards = [
       { label:'Banques & Liquidités', value: fmtK(k.banquesTotal), cls:'', sub:'Comptes consolidés' },
       { label:'SCPI', value: fmtK(k.scpiVal), cls:'gold', sub:'Pierre-papier' },
       { label:'Immobilier direct', value: fmtK(k.maison), cls:'', sub:'Résidence principale' },
-      { label:'Épargne bloquée', value: fmtK(k.ebVal), cls:'', sub:'Livrets réglementés' },
-      { label:'P/MV latentes', value: (pmvTot>=0?'+':'')+fmtK(pmvTot), cls:pmvTot>=0?'green':'red', sub:'Toutes poches invest.' },
+      // ── MODIFIÉ : Épargne bloquée + Natixis PEE
+      { label:'Épargne bloquée & Natixis', value: fmtK(k.ebVal + k.eeVal), cls:'', sub:'Livrets réglementés · PEE/PERCO' },
+      // ── MODIFIÉ : P/MV hors SCPI (1re card)
+      { label:'P/MV hors SCPI', value: (pmvHorsSCPI>=0?'+':'')+fmtK(pmvHorsSCPI), cls:pmvHorsSCPI>=0?'green':'red', sub:'PEA · CTO · Revolut · EE · AV' },
+      // P/MV tout (2e card)
+      { label:'P/MV (tout)', value: (pmvTot>=0?'+':'')+fmtK(pmvTot), cls:pmvTot>=0?'green':'red', sub:'Toutes poches incl. SCPI' },
       { label:'Dépenses / mois', value: fmtK(k.depMens), cls:'red', sub:'Toutes catégories' },
       { label:'Épargne mensuelle', value: fmtK(epargne), cls:'green', sub:'Revenu − Dépenses' },
       { label:'Taux d\'épargne', value: pct(k.txEpargne), cls: k.txEpargne>=20?'green':k.txEpargne>=10?'gold':'red', sub:'% du revenu net' },
-      { label:'Indépendance', value: k.moisLiberte.toFixed(0)+' mois', cls:'gold', sub:'Patrimoine ÷ dépenses' },
+      // ── MODIFIÉ : Indépendance hors résidence principale
+      { label:'Indépendance (hors immo)', value: k.moisLiberteSansMaison.toFixed(0)+' mois', cls:'gold', sub:'Patrimoine liquide ÷ dépenses' },
     ];
     const el = document.getElementById('kpi-cards');
     if (!el) return;
 
-    // Détail patrimoine total — lignes
-    // Natixis = EE (même chose, pas de double-compte) — on affiche via banques
-    // SCPI : coût de revient (montantPlace)
     const detailLines = [
       { label:'Boursorama',      val: k.boursoTotal,   color:'#7eb8d4', icon:'🏦' },
       { label:'Fortuneo',        val: k.fortuneoTotal, color:'#5aab7a', icon:'🏦' },
@@ -2533,7 +2316,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const rows = [
       { label:"Taux d'épargne", sub:"Épargne / Revenu net", val:pct(k.txEpargne), num:k.txEpargne, max:50, color:k.txEpargne>=20?'#5aab7a':k.txEpargne>=10?'#c8a96e':'#c05a5a' },
       { label:"Charge des dépenses", sub:"Dépenses / Revenu mensuel", val:pct(k.revenu>0?k.depMens/k.revenu*100:0), num:k.revenu>0?k.depMens/k.revenu*100:0, max:100, color:k.revenu>0&&k.depMens/k.revenu<0.7?'#5aab7a':'#c05a5a' },
-      { label:"Indépendance financière", sub:"Patrimoine ÷ dépenses mensuelles", val:k.moisLiberte.toFixed(0)+' mois', num:Math.min(k.moisLiberte,120), max:120, color:k.moisLiberte>=24?'#5aab7a':k.moisLiberte>=6?'#c8a96e':'#c05a5a' },
+      { label:"Indépendance (hors immo)", sub:"Patrimoine liquide ÷ dépenses mensuelles", val:k.moisLiberteSansMaison.toFixed(0)+' mois', num:Math.min(k.moisLiberteSansMaison,120), max:120, color:k.moisLiberteSansMaison>=24?'#5aab7a':k.moisLiberteSansMaison>=6?'#c8a96e':'#c05a5a' },
       { label:"Exposition actions", sub:"PEA + CTO + Revolut / Patrimoine", val:pct(k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0, max:100, color:'#7eb8d4' },
       { label:"Exposition immobilier", sub:"Maison + SCPI (CR) / Patrimoine", val:pct(k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0, max:100, color:'#c8a96e' },
     ];
@@ -2552,7 +2335,6 @@ window.addEventListener('DOMContentLoaded', () => {
     renderKPICards(k);
     renderRatios(k);
     renderKPIMobilite();
-    renderKPISCPI();
     try {
       await loadChartJS();
       renderChartPatrimoine(k);
@@ -2571,11 +2353,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
     const fmtDec = (v,d=2) => new Intl.NumberFormat('fr-FR',{maximumFractionDigits:d}).format(v);
 
-    // — AUTO —
     const odoAuto = m.auto?.odoLog || [];
     const sortedAuto = [...odoAuto].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
     const kmActualAuto = sortedAuto.length ? sortedAuto[sortedAuto.length-1].km : 0;
-    const kmDebutAuto  = sortedAuto.length > 1 ? sortedAuto[0].km : 0;
     const kmAnnuelEssence = m.carburant?.essence || 0;
     const prixLitre = m.carburant?.prixLitre || 0;
     const conso100 = m.carburant?.conso100km || 0;
@@ -2589,7 +2369,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const coutKm = kmAnnuelEssence > 0 && coutCarburantAn > 0 ? coutCarburantAn / kmAnnuelEssence : 0;
     const coutTank = m.carburant?.capaciteTank ? m.carburant.capaciteTank * prixLitre : 0;
 
-    // — VÉLO —
     const odoVelo = m.velo?.odoLog || [];
     const sortedVelo = [...odoVelo].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
     const kmActualVelo = sortedVelo.length ? sortedVelo[sortedVelo.length-1].km : 0;
@@ -2629,67 +2408,10 @@ window.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  function renderKPISCPI() {
-    const el = document.getElementById('kpi-scpi-content');
-    if (!el) return;
-    const scpis = DATA.scpi || [];
-    if (!scpis.length) { el.innerHTML = '<p style="color:var(--muted);font-size:11px;">Aucune SCPI renseignée.</p>'; return; }
-
-    const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
-    const pct = (a,b) => b > 0 ? ((a-b)/b*100).toFixed(1)+'%' : '—';
-
-    let totalVal = 0, totalPR = 0;
-    const rows = scpis.map(s => {
-      const val = s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0;
-      const pr  = s.montantPlace || (s.parts||0)*(s.pxAchat||0) || 0;
-      const pmv = val - pr;
-      totalVal += val; totalPR += pr;
-      const pmvColor = pmv >= 0 ? '#5aab7a' : '#c05a5a';
-      const pmvSign  = pmv >= 0 ? '+' : '';
-      return `
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <div>
-              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);">${s.produit||'SCPI'}</span>
-              <small style="display:block;font-size:10px;color:var(--muted);">${s.gestionnaire||''} · ${s.parts||0} parts</small>
-            </div>
-            <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--gold);">${val > 0 ? fmt(val) : '—'}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-            <div style="background:var(--surface);border-radius:6px;padding:6px 8px;">
-              <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Prix revient</div>
-              <div style="font-size:12px;font-weight:600;color:var(--text);margin-top:2px;">${pr > 0 ? fmt(pr) : '—'}</div>
-            </div>
-            <div style="background:var(--surface);border-radius:6px;padding:6px 8px;">
-              <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">+/- value</div>
-              <div style="font-size:12px;font-weight:600;color:${pmvColor};margin-top:2px;">${val > 0 && pr > 0 ? pmvSign+fmt(pmv) : '—'}</div>
-            </div>
-            <div style="background:var(--surface);border-radius:6px;padding:6px 8px;">
-              <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Perf.</div>
-              <div style="font-size:12px;font-weight:600;color:${pmvColor};margin-top:2px;">${val > 0 && pr > 0 ? pmvSign+pct(val,pr) : '—'}</div>
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-
-    const totalPmv = totalVal - totalPR;
-    const totalPmvColor = totalPmv >= 0 ? '#5aab7a' : '#c05a5a';
-    const badge = document.getElementById('kpi-scpi-badge');
-    if (badge && totalVal > 0) badge.textContent = fmt(totalVal);
-
-    el.innerHTML = rows + (totalVal > 0 ? `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;">
-        <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL SCPI</span>
-        <div style="text-align:right;">
-          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--gold);">${fmt(totalVal)}</div>
-          <div style="font-size:10px;color:${totalPmvColor};">${totalPmv >= 0 ? '+' : ''}${fmt(totalPmv)} / PR: ${fmt(totalPR)}</div>
-        </div>
-      </div>` : '');
-  }
 })();
 
 // ═══════════════════════════════════════════════════════════════════
-// TICKER BAND — Live market data (GAS → Yahoo fallback)
+// TICKER BAND
 // ═══════════════════════════════════════════════════════════════════
 (function() {
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiXiLpcnIxT_ViTV-3Jfo3BrXuzBuMgFeD-l3-V3LU8vfWDs_b-f1keu_H-PjLGzBaKA/exec';
@@ -2708,22 +2430,15 @@ window.addEventListener('DOMContentLoaded', () => {
     u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   ];
 
-  // State: price & change per id
   const state = {};
   TICKERS_DEF.forEach(t => { state[t.id] = { price: null, chgAbs: null, chgPct: null }; });
 
-  // ── Formatters ─────────────────────────────────────────────────────────────
   function fmtPrice(v, fmt) {
     if (!v && v !== 0) return '—';
-    if (fmt === 'usd') return '$' + (v >= 1000
-      ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:0}).format(v)
-      : v.toFixed(2));
-    if (fmt === 'eur') return new Intl.NumberFormat('fr-FR',
-      {style:'currency', currency:'EUR', maximumFractionDigits:2}).format(v);
+    if (fmt === 'usd') return '$' + (v >= 1000 ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:0}).format(v) : v.toFixed(2));
+    if (fmt === 'eur') return new Intl.NumberFormat('fr-FR',{style:'currency', currency:'EUR', maximumFractionDigits:2}).format(v);
     if (fmt === 'fx') return v.toFixed(4);
-    return v >= 1000
-      ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:2}).format(v)
-      : v.toFixed(2);
+    return v >= 1000 ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:2}).format(v) : v.toFixed(2);
   }
 
   function fmtChg(chgPct) {
@@ -2732,11 +2447,9 @@ window.addEventListener('DOMContentLoaded', () => {
     return { txt: (up ? '▲' : '▼') + ' ' + Math.abs(chgPct).toFixed(2) + '%', cls: up ? 'up' : 'dn' };
   }
 
-  // ── Build DOM ──────────────────────────────────────────────────────────────
   function buildTrack() {
     const track = document.getElementById('tickerTrack');
     if (!track) return;
-    // Build items × 2 for seamless loop
     let html = '';
     for (let pass = 0; pass < 2; pass++) {
       TICKERS_DEF.forEach(t => {
@@ -2753,11 +2466,10 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }
     track.innerHTML = html;
-    // Fit animation duration to content width
     requestAnimationFrame(() => {
       const half = track.scrollWidth / 2;
-      const speed = 60; // px/s
-      const dur = Math.round(half / speed) * 2; // vitesse ÷ 2
+      const speed = 60;
+      const dur = Math.round(half / speed) * 2;
       track.style.animationDuration = dur + 's';
     });
   }
@@ -2786,7 +2498,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Fetch GAS ──────────────────────────────────────────────────────────────
   async function fetchGAS() {
     if (!GAS_URL) throw new Error('no GAS_URL');
     const res = await fetch(GAS_URL, { signal: AbortSignal.timeout(14000) });
@@ -2801,7 +2512,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── Fetch Yahoo ────────────────────────────────────────────────────────────
   async function fetchYahoo(t) {
     const base = `https://query1.finance.yahoo.com/v8/finance/chart/${t.yf}?interval=1d&range=2d`;
     const urls = [base, ...CORS_PROXIES.map(p => p(base))];
@@ -2824,10 +2534,8 @@ window.addEventListener('DOMContentLoaded', () => {
     markError(t.id);
   }
 
-  // ── Orchestration ──────────────────────────────────────────────────────────
   async function refresh() {
     const yfOnly = TICKERS_DEF.filter(t => t.yfOnly);
-    const gasT   = TICKERS_DEF.filter(t => !t.yfOnly);
     const yfOnlyP = Promise.allSettled(yfOnly.map(fetchYahoo));
     if (GAS_URL) {
       try {
@@ -2838,10 +2546,8 @@ window.addEventListener('DOMContentLoaded', () => {
     await Promise.allSettled(TICKERS_DEF.map(fetchYahoo));
   }
 
-  // ── Click to refresh ───────────────────────────────────────────────────────
   document.getElementById('tickerBand')?.addEventListener('click', refresh);
 
-  // ── Init ───────────────────────────────────────────────────────────────────
   buildTrack();
   refresh();
   setInterval(refresh, 5 * 60 * 1000);
