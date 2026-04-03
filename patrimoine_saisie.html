@@ -1816,6 +1816,7 @@ function autoSave() {
   }
   saveTimer = setTimeout(() => {
     try { localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); } catch(e){}
+    if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
   }, 600);
 }
 
@@ -2015,6 +2016,7 @@ function renderAll() {
   renderDepenses();
   renderMobilite();
   document.getElementById('maison').value = DATA.maison || '';
+  if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
@@ -2335,6 +2337,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderKPICards(k);
     renderRatios(k);
     renderKPIMobilite();
+    updateKPITickers();
     try {
       await loadChartJS();
       renderChartPatrimoine(k);
@@ -2447,16 +2450,74 @@ window.addEventListener('DOMContentLoaded', () => {
     return { txt: (up ? '▲' : '▼') + ' ' + Math.abs(chgPct).toFixed(2) + '%', cls: up ? 'up' : 'dn' };
   }
 
+  function getKPITickerItems(suffix) {
+    const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+    // Patrimoine total
+    const sumBank = (key) => (typeof DATA !== 'undefined' ? (DATA[key]||[]).reduce((s,r)=>s+(r.val||0),0) : 0);
+    const bTotal = sumBank('boursorama') + sumBank('fortuneo') + sumBank('revolut') + sumBank('natixis');
+    const scpiVal = typeof DATA !== 'undefined' ? (DATA.scpi||[]).reduce((s,r)=>s+(r.totalActuel||(r.parts||0)*(r.pxActuel||0)||0),0) : 0;
+    const avVal   = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0) : 0;
+    const avSyncVal = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0) : 0;
+    const ebVal   = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0) : 0;
+    const maison  = typeof DATA !== 'undefined' ? (DATA.maison||0) : 0;
+    const liquide = typeof DATA !== 'undefined' ? (DATA.especeCache||0) : 0;
+    const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal;
+
+    // PV hors SCPI
+    const peaVal = typeof DATA !== 'undefined' ? (DATA.investissements?.pea||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
+    const peaPR  = typeof DATA !== 'undefined' ? (DATA.investissements?.pea||[]).reduce((s,r)=>s+(r.qte||0)*(r.pr||0),0) : 0;
+    const ctoVal = typeof DATA !== 'undefined' ? (DATA.investissements?.cto||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
+    const ctoPR  = typeof DATA !== 'undefined' ? (DATA.investissements?.cto||[]).reduce((s,r)=>s+(r.qte||0)*(r.pr||0),0) : 0;
+    const revVal = typeof DATA !== 'undefined' ? (DATA.investissements?.revolut||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
+    const revPR  = typeof DATA !== 'undefined' ? (DATA.investissements?.revolut||[]).reduce((s,r)=>s+(r.qte||0)*(r.pr||0),0) : 0;
+    const eeVal  = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_entreprise||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0) : 0;
+    const eePR   = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_entreprise||[]).reduce((s,r)=>s+(r.parts||0)*(r.pr||0),0) : 0;
+    const avVers = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.versements||0),0) : 0;
+    const pmvHorsSCPI = (peaVal-peaPR) + (ctoVal-ctoPR) + (revVal-revPR) + (eeVal-eePR) + (avVal-avVers);
+
+    // ATH
+    const athRows = typeof DATA !== 'undefined' ? (DATA.ath||[]).filter(r=>r.val>0).sort((a,b)=>a.date?.localeCompare(b.date||'')||0) : [];
+    const lastATH = athRows.length ? athRows[athRows.length-1] : null;
+    const athVal  = lastATH ? lastATH.val : 0;
+    const athDiff = athVal > 0 ? grandTotal - athVal : null;
+    const athPct  = athVal > 0 ? (grandTotal - athVal) / athVal * 100 : null;
+
+    const pvCls  = pmvHorsSCPI >= 0 ? 'up' : 'dn';
+    const pvSign = pmvHorsSCPI >= 0 ? '+' : '';
+    const athCls = athDiff === null ? 'neu' : athDiff >= 0 ? 'up' : 'dn';
+    const athSign= athDiff !== null && athDiff >= 0 ? '▲' : '▼';
+
+    return [
+      `<div class="ticker-item" id="kpi-patrimoine${suffix}" style="border-left:1px solid rgba(255,255,255,0.10);border-right:1px solid rgba(255,255,255,0.06);">
+        <span class="t-dot" style="background:#7eb8d4"></span>
+        <span class="t-sym">PATRIMOINE</span>
+        <span class="t-price">${grandTotal > 0 ? fmtEur(grandTotal) : '—'}</span>
+      </div>`,
+      `<div class="ticker-item" id="kpi-pvhs${suffix}">
+        <span class="t-dot" style="background:#5aab7a"></span>
+        <span class="t-sym">PV/HS</span>
+        <span class="t-price ${pvCls}">${grandTotal > 0 ? pvSign+fmtEur(pmvHorsSCPI) : '—'}</span>
+      </div>`,
+      `<div class="ticker-item" id="kpi-ath${suffix}">
+        <span class="t-dot" style="background:#c8a96e"></span>
+        <span class="t-sym">ATH</span>
+        <span class="t-price">${athVal > 0 ? fmtEur(athVal) : '—'}</span>
+        ${athDiff !== null ? `<span class="t-chg ${athCls}">${athSign} ${Math.abs(athPct).toFixed(1)}%</span>` : ''}
+      </div>`,
+    ].join('');
+  }
+
   function buildTrack() {
     const track = document.getElementById('tickerTrack');
     if (!track) return;
     let html = '';
     for (let pass = 0; pass < 2; pass++) {
+      const suffix = pass === 0 ? '' : '-b';
+      html += getKPITickerItems(suffix);
       TICKERS_DEF.forEach(t => {
         const s = state[t.id];
         const priceStr = fmtPrice(s.price, t.fmt);
         const { txt: chgTxt, cls: chgCls } = fmtChg(s.chgPct);
-        const suffix = pass === 0 ? '' : '-b';
         html += `<div class="ticker-item">
           <span class="t-dot" style="background:${t.dot}"></span>
           <span class="t-sym">${t.sym}</span>
@@ -2473,6 +2534,20 @@ window.addEventListener('DOMContentLoaded', () => {
       track.style.animationDuration = dur + 's';
     });
   }
+
+  function updateKPITickers() {
+    ['', '-b'].forEach(suffix => {
+      const ids = ['kpi-patrimoine','kpi-pvhs','kpi-ath'];
+      const tmp = document.createElement('div');
+      tmp.innerHTML = getKPITickerItems(suffix);
+      const newNodes = Array.from(tmp.children);
+      ids.forEach((baseId, idx) => {
+        const existing = document.getElementById(baseId + suffix);
+        if (existing && newNodes[idx]) existing.replaceWith(newNodes[idx]);
+      });
+    });
+  }
+  window.updateKPITickers = updateKPITickers;
 
   function updateItem(id, price, chgAbs, chgPct) {
     state[id] = { price, chgAbs, chgPct };
