@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
+  /* Red Cross Medical Theme */
   --bg:      #f8f4f4;
   --surface: #ffffff;
   --surface2:#f0ebeb;
@@ -15,22 +16,27 @@
   --text:    #1a0808;
   --muted:   #8a7070;
 
+  /* Sinus → medical orange/alert */
   --sinus:     #c0282a;
   --sinus-bg:  #fff0f0;
   --sinus-mid: #f4a0a0;
 
+  /* Breath → steel blue medical */
   --breath:     #1a5f8a;
   --breath-bg:  #eef4fa;
   --breath-mid: #90b8d8;
 
+  /* Belly → deep medical purple */
   --belly:     #7a2060;
   --belly-bg:  #f8eef5;
   --belly-mid: #d090c0;
 
+  /* Stool → clinical brown */
   --stool:     #7a4a2a;
   --stool-bg:  #f8f0ea;
   --stool-mid: #c8a080;
 
+  /* Sleep → deep indigo */
   --sleep:     #3a2070;
   --sleep-bg:  #f0eefa;
   --sleep-mid: #a090d8;
@@ -55,10 +61,12 @@ body {
   position: relative;
 }
 
+/* BACKGROUND CROSS WATERMARK */
 body::before {
   content: '✚';
   position: fixed;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
   font-size: 55vw;
   color: rgba(192,40,42,0.028);
@@ -67,6 +75,7 @@ body::before {
   line-height: 1;
 }
 
+/* Scanlines subtle */
 body::after {
   content: '';
   position: fixed;
@@ -92,6 +101,7 @@ body::after {
   height: 56px;
   box-shadow: 0 3px 16px rgba(192,40,42,0.35);
 }
+
 .topbar::before {
   content: '';
   position: absolute;
@@ -99,6 +109,7 @@ body::after {
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
 }
+
 .topbar-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
@@ -108,12 +119,14 @@ body::after {
   align-items: center;
   gap: 10px;
 }
+
 .topbar-title::before {
   content: '✚';
   font-size: 20px;
   color: #fff;
   text-shadow: 0 0 12px rgba(255,255,255,0.6);
 }
+
 .pulse {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -124,6 +137,7 @@ body::after {
   0%,100%{opacity:1;transform:scale(1);}
   50%{opacity:.4;transform:scale(1.4);}
 }
+
 .save-indicator {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
@@ -137,6 +151,7 @@ body::after {
   letter-spacing: 0.08em;
 }
 .save-indicator.show { opacity: 1; }
+
 #topDate {
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
@@ -155,6 +170,7 @@ body::after {
   z-index: 200;
   box-shadow: 0 -2px 16px rgba(192,40,42,0.25);
 }
+
 .nav-btn {
   display: flex;
   flex-direction: column;
@@ -174,7 +190,10 @@ body::after {
   position: relative;
 }
 .nav-btn:last-child { border-right: none; }
-.nav-btn.active { color: #fff; background: rgba(192,40,42,0.18); }
+.nav-btn.active {
+  color: #fff;
+  background: rgba(192,40,42,0.18);
+}
 .nav-btn.active::before {
   content: '';
   position: absolute;
@@ -228,6 +247,7 @@ body::after {
   letter-spacing: 0.16em;
   margin-bottom: 6px;
 }
+
 input[type="date"], input[type="time"], select, textarea {
   width: 100%;
   padding: 11px 13px;
@@ -256,6 +276,7 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
   position: relative;
   overflow: hidden;
 }
+
 .symptom-block::before {
   content: '✚';
   position: absolute;
@@ -265,6 +286,7 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
   line-height: 1;
   pointer-events: none;
 }
+
 .symptom-block.sinus   { background: var(--sinus-bg);  border: 1.5px solid var(--sinus-mid);  border-left: 4px solid var(--sinus); }
 .symptom-block.breath  { background: var(--breath-bg); border: 1.5px solid var(--breath-mid); border-left: 4px solid var(--breath); }
 .symptom-block.belly   { background: var(--belly-bg);  border: 1.5px solid var(--belly-mid);  border-left: 4px solid var(--belly); }
@@ -272,6 +294,7 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .symptom-block.sleep   { background: var(--sleep-bg);  border: 1.5px solid var(--sleep-mid);  border-left: 4px solid var(--sleep); }
 
 .sym-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+
 .sym-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 16px;
@@ -300,9 +323,7 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .breath .score-display { color: var(--breath); }
 .belly .score-display  { color: var(--belly); }
 
-/* ══════════════════════════════════════
-   CUSTOM SLIDER — mobile-friendly
-   ══════════════════════════════════════ */
+/* ── SLIDER ── */
 .slider-wrap { margin-bottom: 13px; }
 .slider-labels {
   display: flex;
@@ -310,83 +331,26 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
   font-family: 'Share Tech Mono', monospace;
   font-size: 9px;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   letter-spacing: 0.06em;
 }
+input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 2px; outline: none; cursor: pointer; }
+.sinus  input[type="range"] { background: var(--sinus-mid); }
+.breath input[type="range"] { background: var(--breath-mid); }
+.belly  input[type="range"] { background: var(--belly-mid); }
 
-/* Hide native range everywhere */
-input[type="range"] { display: none !important; }
-
-/* Custom track container */
-.custom-slider {
-  position: relative;
-  height: 48px;           /* grand zone tactile */
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  touch-action: none;     /* bloque le scroll pendant le drag */
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Track background */
-.custom-slider .cs-track {
-  position: absolute;
-  left: 0; right: 0;
-  height: 8px;
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px; height: 26px;
   border-radius: 4px;
-  background: var(--track-color, #ddd);
-  overflow: hidden;
-}
-
-/* Fill */
-.custom-slider .cs-fill {
-  height: 100%;
-  border-radius: 4px;
-  background: var(--thumb-color, #c0282a);
-  transition: width 0.05s linear;
-  pointer-events: none;
-}
-
-/* Thumb */
-.custom-slider .cs-thumb {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
   background: #fff;
-  border: 3px solid var(--thumb-color, #c0282a);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 13px;
-  color: var(--thumb-color, #c0282a);
-  transition: box-shadow 0.15s, transform 0.1s;
-  pointer-events: none;
-  z-index: 2;
+  border: 3px solid;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
 }
-.custom-slider.dragging .cs-thumb {
-  box-shadow: 0 0 0 8px rgba(0,0,0,0.08), 0 2px 10px rgba(0,0,0,0.18);
-  transform: translate(-50%, -50%) scale(1.12);
-}
-
-/* Tick marks under the track */
-.cs-ticks {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2px;
-  margin-top: 4px;
-}
-.cs-tick {
-  width: 1px;
-  height: 4px;
-  background: var(--track-color, #ddd);
-  border-radius: 1px;
-}
+.sinus  input[type="range"]::-webkit-slider-thumb { border-color: var(--sinus); }
+.breath input[type="range"]::-webkit-slider-thumb { border-color: var(--breath); }
+.belly  input[type="range"]::-webkit-slider-thumb { border-color: var(--belly); }
 
 /* ── CHECKBOXES ── */
 .checks-title {
@@ -398,6 +362,7 @@ input[type="range"] { display: none !important; }
   letter-spacing: 0.16em;
   margin-bottom: 8px;
 }
+
 .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 .checks-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
 
@@ -419,10 +384,10 @@ input[type="range"] { display: none !important; }
   -webkit-user-select: none;
   touch-action: manipulation;
 }
-.chk-item.checked-sinus  { background: #fff0f0; border-color: var(--sinus);  color: var(--sinus); }
+.chk-item.checked-sinus { background: #fff0f0; border-color: var(--sinus); color: var(--sinus); }
 .chk-item.checked-breath { background: #eef4fa; border-color: var(--breath); color: var(--breath); }
-.chk-item.checked-belly  { background: #f8eef5; border-color: var(--belly);  color: var(--belly); }
-.chk-item.checked-stool  { background: #f8f0ea; border-color: var(--stool);  color: var(--stool); }
+.chk-item.checked-belly { background: #f8eef5; border-color: var(--belly); color: var(--belly); }
+.chk-item.checked-stool { background: #f8f0ea; border-color: var(--stool); color: var(--stool); }
 
 .chk-dot {
   width: 16px; height: 16px;
@@ -488,6 +453,7 @@ input[type="range"] { display: none !important; }
 .color-item .cl-label { font-size: 9px; font-weight: 600; color: var(--muted); text-align: center; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; }
 .color-item.selected .cl-label { color: var(--stool); }
 
+/* STOOL absent */
 .stool-toggle {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px;
@@ -530,9 +496,14 @@ input[type="range"] { display: none !important; }
   position: relative;
   overflow: hidden;
 }
-.add-btn::before { content: '✚'; font-size: 16px; opacity: 0.6; }
+.add-btn::before {
+  content: '✚';
+  font-size: 16px;
+  opacity: 0.6;
+}
 .add-btn:active { transform: scale(0.98); background: #8a0a0c; }
 
+/* Hors plage : résistance orange */
 .add-btn.hors-plage {
   background: #3a1a00;
   color: #ff8c00;
@@ -577,6 +548,7 @@ input[type="range"] { display: none !important; }
   opacity: 0.05;
   pointer-events: none;
 }
+
 .stat-label {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 11px;
@@ -711,746 +683,3 @@ input[type="range"] { display: none !important; }
 /* ── STOOL SECTION ── */
 .stool-detail { display: none; }
 .stool-detail.visible { display: block; }
-</style>
-</head>
-<body>
-
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="topbar-title">DOSSIER MÉD.</div>
-  <div id="topDate">—</div>
-  <div style="display:flex;align-items:center;gap:8px;">
-    <span class="save-indicator" id="saveInd">✚ SAUVEGARDÉ</span>
-    <div class="pulse"></div>
-  </div>
-</div>
-
-<!-- PAGES -->
-<div class="page active" id="page-saisie">
-
-  <div class="sec-label">Saisie du jour</div>
-  <div class="card">
-    <div class="card-pad">
-      <div class="dt-row">
-        <div class="field-group">
-          <label>Date</label>
-          <input type="date" id="entryDate">
-        </div>
-        <div class="field-group">
-          <label>Heure</label>
-          <input type="time" id="entryTime">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SINUS -->
-  <div class="symptom-block sinus">
-    <div class="sym-header">
-      <div class="sym-title sinus"><span class="sym-emoji">🩸</span> SINUS / INFLAM.</div>
-      <div class="score-display" id="sinusScore">5</div>
-    </div>
-    <div class="slider-wrap">
-      <div class="slider-labels"><span>0 Aucun</span><span>5 Modéré</span><span>10 Intense</span></div>
-      <div class="custom-slider"
-           data-min="0" data-max="10" data-value="5"
-           data-track="var(--sinus-mid)" data-thumb="var(--sinus)"
-           data-target="sinusScore" data-key="sinusVal"
-           style="--track-color:var(--sinus-mid);--thumb-color:var(--sinus)">
-        <div class="cs-track"><div class="cs-fill"></div></div>
-        <div class="cs-thumb">5</div>
-      </div>
-    </div>
-    <div class="checks-title">Symptômes</div>
-    <div class="checks-grid">
-      <div class="chk-item" data-group="sinus" data-val="congestion" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div>Congestion
-      </div>
-      <div class="chk-item" data-group="sinus" data-val="douleur" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div>Douleur
-      </div>
-      <div class="chk-item" data-group="sinus" data-val="éternuements" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div>Éternuements
-      </div>
-      <div class="chk-item" data-group="sinus" data-val="écoulement" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div>Écoulement
-      </div>
-      <div class="chk-item" data-group="sinus" data-val="maux-tête" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div>Maux de tête
-      </div>
-      <div class="chk-item" data-group="sinus" data-val="fièvre" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div>Fièvre
-      </div>
-    </div>
-  </div>
-
-  <!-- BREATH -->
-  <div class="symptom-block breath">
-    <div class="sym-header">
-      <div class="sym-title breath"><span class="sym-emoji">🫁</span> RESPIRATION</div>
-      <div class="score-display" id="breathScore">5</div>
-    </div>
-    <div class="slider-wrap">
-      <div class="slider-labels"><span>0 Libre</span><span>5 Difficile</span><span>10 Bloquée</span></div>
-      <div class="custom-slider"
-           data-min="0" data-max="10" data-value="5"
-           data-target="breathScore" data-key="breathVal"
-           style="--track-color:var(--breath-mid);--thumb-color:var(--breath)">
-        <div class="cs-track"><div class="cs-fill"></div></div>
-        <div class="cs-thumb">5</div>
-      </div>
-    </div>
-    <div class="checks-title">Symptômes</div>
-    <div class="checks-grid">
-      <div class="chk-item" data-group="breath" data-val="sifflement" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div>Sifflement
-      </div>
-      <div class="chk-item" data-group="breath" data-val="toux" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div>Toux
-      </div>
-      <div class="chk-item" data-group="breath" data-val="oppression" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div>Oppression
-      </div>
-      <div class="chk-item" data-group="breath" data-val="essoufflement" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div>Essoufflement
-      </div>
-    </div>
-  </div>
-
-  <!-- BELLY -->
-  <div class="symptom-block belly">
-    <div class="sym-header">
-      <div class="sym-title belly"><span class="sym-emoji">🫃</span> VENTRE</div>
-      <div class="score-display" id="bellyScore">5</div>
-    </div>
-    <div class="slider-wrap">
-      <div class="slider-labels"><span>0 Calme</span><span>5 Gêne</span><span>10 Douleur</span></div>
-      <div class="custom-slider"
-           data-min="0" data-max="10" data-value="5"
-           data-target="bellyScore" data-key="bellyVal"
-           style="--track-color:var(--belly-mid);--thumb-color:var(--belly)">
-        <div class="cs-track"><div class="cs-fill"></div></div>
-        <div class="cs-thumb">5</div>
-      </div>
-    </div>
-    <div class="checks-title">Symptômes</div>
-    <div class="checks-grid">
-      <div class="chk-item" data-group="belly" data-val="ballonnements" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div>Ballonnements
-      </div>
-      <div class="chk-item" data-group="belly" data-val="crampes" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div>Crampes
-      </div>
-      <div class="chk-item" data-group="belly" data-val="nausées" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div>Nausées
-      </div>
-      <div class="chk-item" data-group="belly" data-val="reflux" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div>Reflux
-      </div>
-    </div>
-  </div>
-
-  <!-- STOOL -->
-  <div class="symptom-block stool">
-    <div class="sym-header">
-      <div class="sym-title stool"><span class="sym-emoji">🚽</span> SELLES</div>
-    </div>
-
-    <div class="stool-toggle" id="stoolToggle" onclick="toggleStool()">
-      <div class="toggle-box" id="stoolToggleBox"></div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;">Aucune selle aujourd'hui</div>
-    </div>
-
-    <div class="stool-detail" id="stoolDetail">
-      <div class="checks-title">Type (Échelle de Bristol)</div>
-      <div class="stool-types">
-        <div class="stool-type" data-type="1" onclick="selectStoolType(this)">
-          <span class="st-emoji">⚫</span><span class="st-num">TYPE 1</span>
-          <span class="st-label">Dure, séparée</span>
-        </div>
-        <div class="stool-type" data-type="2" onclick="selectStoolType(this)">
-          <span class="st-emoji">🟤</span><span class="st-num">TYPE 2</span>
-          <span class="st-label">Saucisse bosselée</span>
-        </div>
-        <div class="stool-type" data-type="3" onclick="selectStoolType(this)">
-          <span class="st-emoji">🟫</span><span class="st-num">TYPE 3</span>
-          <span class="st-label">Fissurée</span>
-        </div>
-        <div class="stool-type" data-type="4" onclick="selectStoolType(this)">
-          <span class="st-emoji">🟧</span><span class="st-num">TYPE 4</span>
-          <span class="st-label">Lisse, souple</span>
-        </div>
-        <div class="stool-type" data-type="5" onclick="selectStoolType(this)">
-          <span class="st-emoji">🟨</span><span class="st-num">TYPE 5</span>
-          <span class="st-label">Morceaux mous</span>
-        </div>
-        <div class="stool-type" data-type="6" onclick="selectStoolType(this)">
-          <span class="st-emoji">🟠</span><span class="st-num">TYPE 6</span>
-          <span class="st-label">Pâteuse</span>
-        </div>
-        <div class="stool-type" data-type="7" onclick="selectStoolType(this)">
-          <span class="st-emoji">💧</span><span class="st-num">TYPE 7</span>
-          <span class="st-label">Liquide</span>
-        </div>
-      </div>
-
-      <div class="checks-title">Couleur</div>
-      <div class="color-grid">
-        <div class="color-item" data-color="brun" onclick="selectColor(this)">
-          <div class="color-dot" style="background:#8B4513;"></div>
-          <span class="cl-label">Brun normal</span>
-        </div>
-        <div class="color-item" data-color="jaune" onclick="selectColor(this)">
-          <div class="color-dot" style="background:#DAA520;"></div>
-          <span class="cl-label">Jaune</span>
-        </div>
-        <div class="color-item" data-color="vert" onclick="selectColor(this)">
-          <div class="color-dot" style="background:#2d6a2d;"></div>
-          <span class="cl-label">Vert</span>
-        </div>
-        <div class="color-item" data-color="noir" onclick="selectColor(this)">
-          <div class="color-dot" style="background:#1a1a1a;border:1px solid #555;"></div>
-          <span class="cl-label">Noir ⚠</span>
-        </div>
-        <div class="color-item" data-color="rouge" onclick="selectColor(this)">
-          <div class="color-dot" style="background:#c0282a;"></div>
-          <span class="cl-label">Rouge ⚠</span>
-        </div>
-        <div class="color-item" data-color="beige" onclick="selectColor(this)">
-          <div class="color-dot" style="background:#D2B48C;"></div>
-          <span class="cl-label">Beige/pâle</span>
-        </div>
-      </div>
-
-      <div class="checks-title">Caractéristiques</div>
-      <div class="checks-grid">
-        <div class="chk-item" data-group="stool" data-val="sang" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div>Sang visible<span class="precheck-flag">⚠</span>
-        </div>
-        <div class="chk-item" data-group="stool" data-val="mucus" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div>Mucus
-        </div>
-        <div class="chk-item" data-group="stool" data-val="douleur" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div>Douleur évac.
-        </div>
-        <div class="chk-item" data-group="stool" data-val="urgence" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div>Urgence
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLEEP -->
-  <div class="symptom-block sleep">
-    <div class="sym-header">
-      <div class="sym-title sleep"><span class="sym-emoji">😴</span> SOMMEIL</div>
-    </div>
-    <div class="checks-title">Qualité de la nuit</div>
-    <div class="checks-grid col3">
-      <div class="chk-item" data-group="sleep" data-val="bon" onclick="toggleChkSingle(this,'sleep')">
-        <div class="chk-dot"></div>Bon
-      </div>
-      <div class="chk-item" data-group="sleep" data-val="moyen" onclick="toggleChkSingle(this,'sleep')">
-        <div class="chk-dot"></div>Moyen
-      </div>
-      <div class="chk-item" data-group="sleep" data-val="mauvais" onclick="toggleChkSingle(this,'sleep')">
-        <div class="chk-dot"></div>Mauvais
-      </div>
-    </div>
-    <div class="checks-title" style="margin-top:10px;">Perturbations</div>
-    <div class="checks-grid">
-      <div class="chk-item" data-group="sleepd" data-val="apnée" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div>Apnée/ronflement
-      </div>
-      <div class="chk-item" data-group="sleepd" data-val="insomnie" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div>Insomnie
-      </div>
-      <div class="chk-item" data-group="sleepd" data-val="réveils" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div>Réveils nuit
-      </div>
-      <div class="chk-item" data-group="sleepd" data-val="cauchemars" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div>Cauchemars
-      </div>
-    </div>
-  </div>
-
-  <div class="sec-label">Notes libres</div>
-  <textarea id="notes" placeholder="Médicaments pris, contexte, événements particuliers…"></textarea>
-
-  <button class="add-btn" id="addBtn" onclick="saveEntry()">ENREGISTRER L'ENTRÉE</button>
-</div>
-
-<!-- PAGE STATS -->
-<div class="page" id="page-stats">
-  <div class="sec-label">Moyennes — 7 derniers jours</div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-label">🩸 Sinus moy.</div>
-      <div class="stat-value sinus" id="avgSinus">—</div>
-      <div class="stat-sub">/ 10</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">🫁 Respir. moy.</div>
-      <div class="stat-value breath" id="avgBreath">—</div>
-      <div class="stat-sub">/ 10</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">🫃 Ventre moy.</div>
-      <div class="stat-value belly" id="avgBelly">—</div>
-      <div class="stat-sub">/ 10</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">📋 Entrées totales</div>
-      <div class="stat-value sinus" id="totalEntries">0</div>
-      <div class="stat-sub">enregistrements</div>
-    </div>
-  </div>
-
-  <div class="sec-label">Évolution 14 jours</div>
-  <div class="card">
-    <div class="card-pad">
-      <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
-    </div>
-  </div>
-</div>
-
-<!-- PAGE HISTORY -->
-<div class="page" id="page-history">
-  <div class="sec-label">Historique complet</div>
-  <div class="card" id="histContainer">
-    <div class="empty"><div class="ei">📋</div><p>Aucune entrée enregistrée</p></div>
-  </div>
-</div>
-
-<!-- PAGE EXPORT -->
-<div class="page" id="page-export">
-  <div class="sec-label">Export & Import</div>
-  <div class="export-grid">
-    <button class="export-btn" onclick="exportJSON()">
-      <span class="export-icon">💾</span>
-      <span class="export-label">JSON</span>
-      <span class="export-sub">Sauvegarde</span>
-    </button>
-    <button class="export-btn" onclick="exportCSV()">
-      <span class="export-icon">📊</span>
-      <span class="export-label">CSV</span>
-      <span class="export-sub">Tableur</span>
-    </button>
-    <button class="export-btn" onclick="exportTXT()">
-      <span class="export-icon">📄</span>
-      <span class="export-label">TEXTE</span>
-      <span class="export-sub">Médecin</span>
-    </button>
-  </div>
-
-  <div class="sec-label" style="margin-top:18px;">Importer des données</div>
-  <div class="import-zone" onclick="document.getElementById('fileInput').click()">
-    <div style="font-size:32px;margin-bottom:8px;">📂</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.12em;color:var(--sinus);">CHARGER UN FICHIER JSON</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-top:5px;">Fusion avec données existantes</div>
-  </div>
-  <input type="file" id="fileInput" accept=".json" onchange="importJSON(event)">
-
-  <div class="sec-label" style="margin-top:18px;">Danger Zone</div>
-  <button class="add-btn" style="background:#3a1a00;color:#ff4444;border:1px solid #ff4444;box-shadow:none;" onclick="clearAll()">
-    🗑 EFFACER TOUTES LES DONNÉES
-  </button>
-</div>
-
-<!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <button class="nav-btn active" onclick="showPage('saisie',this)">
-    <span class="icon">✏️</span>SAISIE
-  </button>
-  <button class="nav-btn" onclick="showPage('stats',this)">
-    <span class="icon">📈</span>STATS
-  </button>
-  <button class="nav-btn" onclick="showPage('history',this)">
-    <span class="icon">📋</span>HISTORIQUE
-  </button>
-  <button class="nav-btn" onclick="showPage('export',this)">
-    <span class="icon">📤</span>EXPORT
-  </button>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ════════════════════════════════════════════════
-   CUSTOM SLIDER ENGINE — anti-sensitivity mobile
-   ════════════════════════════════════════════════ */
-(function() {
-  const DRAG_THRESHOLD = 6; // px minimum avant de déclencher le drag
-
-  function initSlider(el) {
-    const min   = parseInt(el.dataset.min)  || 0;
-    const max   = parseInt(el.dataset.max)  || 10;
-    const step  = parseInt(el.dataset.step) || 1;
-    let   val   = parseInt(el.dataset.value) || 0;
-
-    const fill  = el.querySelector('.cs-fill');
-    const thumb = el.querySelector('.cs-thumb');
-    const targetId = el.dataset.target;
-    const storeKey = el.dataset.key;
-
-    // Restore from storage
-    const stored = localStorage.getItem(storeKey);
-    if (stored !== null) val = parseInt(stored);
-
-    function pct() { return (val - min) / (max - min); }
-
-    function render() {
-      const p = pct() * 100;
-      fill.style.width  = p + '%';
-      thumb.style.left  = p + '%';
-      thumb.textContent = val;
-      if (targetId) {
-        const t = document.getElementById(targetId);
-        if (t) t.textContent = val;
-      }
-      el.dataset.value = val;
-      if (storeKey) localStorage.setItem(storeKey, val);
-    }
-
-    function valFromX(clientX) {
-      const rect = el.getBoundingClientRect();
-      const pct  = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      const raw  = min + pct * (max - min);
-      return Math.round(raw / step) * step;
-    }
-
-    // ── TOUCH ──
-    let startX = null, startVal = null, isDragging = false;
-
-    el.addEventListener('touchstart', function(e) {
-      // On prend seulement le premier touch
-      startX   = e.touches[0].clientX;
-      startVal = val;
-      isDragging = false;
-    }, { passive: true });
-
-    el.addEventListener('touchmove', function(e) {
-      if (startX === null) return;
-      const dx = e.touches[0].clientX - startX;
-
-      if (!isDragging) {
-        if (Math.abs(dx) < DRAG_THRESHOLD) return; // seuil anti-sensitivity
-        isDragging = true;
-        el.classList.add('dragging');
-      }
-
-      e.preventDefault(); // bloque le scroll uniquement une fois le drag confirmé
-      val = valFromX(e.touches[0].clientX);
-      render();
-    }, { passive: false });
-
-    el.addEventListener('touchend', function() {
-      if (isDragging) el.classList.remove('dragging');
-      startX = null; isDragging = false;
-    });
-
-    // ── MOUSE (desktop) ──
-    let mouseDown = false;
-    el.addEventListener('mousedown', function(e) {
-      mouseDown = true;
-      el.classList.add('dragging');
-      val = valFromX(e.clientX);
-      render();
-    });
-    window.addEventListener('mousemove', function(e) {
-      if (!mouseDown) return;
-      val = valFromX(e.clientX);
-      render();
-    });
-    window.addEventListener('mouseup', function() {
-      if (mouseDown) { mouseDown = false; el.classList.remove('dragging'); }
-    });
-
-    // ── TAP (single tap = set value directly) ──
-    el.addEventListener('click', function(e) {
-      if (isDragging) return;
-      val = valFromX(e.clientX);
-      render();
-    });
-
-    render();
-  }
-
-  // Init all sliders on DOM ready
-  document.querySelectorAll('.custom-slider').forEach(initSlider);
-})();
-
-/* ════════════════════════
-   APP STATE
-   ════════════════════════ */
-let entries = JSON.parse(localStorage.getItem('medEntries') || '[]');
-let chart   = null;
-
-// Init date/time
-(function initDateTime() {
-  const now = new Date();
-  document.getElementById('entryDate').value = now.toISOString().slice(0,10);
-  document.getElementById('entryTime').value = now.toTimeString().slice(0,5);
-  document.getElementById('topDate').textContent =
-    now.toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'}).toUpperCase();
-})();
-
-/* ════════════════════════
-   NAVIGATION
-   ════════════════════════ */
-function showPage(name, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  if (btn) btn.classList.add('active');
-  if (name === 'stats')   { updateStats(); renderChart(); }
-  if (name === 'history') renderHistory();
-}
-
-/* ════════════════════════
-   CHECKBOXES
-   ════════════════════════ */
-function toggleChk(el, group) {
-  const cls = 'checked-' + group;
-  el.classList.toggle(cls);
-  const dot = el.querySelector('.chk-dot');
-  dot.textContent = el.classList.contains(cls) ? '✓' : '';
-}
-function toggleChkSingle(el, group) {
-  const cls = 'checked-' + group;
-  const siblings = el.closest('.checks-grid').querySelectorAll('.chk-item');
-  siblings.forEach(s => { s.classList.remove(cls); s.querySelector('.chk-dot').textContent = ''; });
-  el.classList.add(cls);
-  el.querySelector('.chk-dot').textContent = '✓';
-}
-
-/* ════════════════════════
-   STOOL
-   ════════════════════════ */
-let stoolAbsent = false;
-function toggleStool() {
-  stoolAbsent = !stoolAbsent;
-  document.getElementById('stoolToggle').classList.toggle('active', stoolAbsent);
-  document.getElementById('stoolToggleBox').textContent = stoolAbsent ? '✓' : '';
-  document.getElementById('stoolDetail').classList.toggle('visible', !stoolAbsent);
-}
-function selectStoolType(el) {
-  document.querySelectorAll('.stool-type').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function selectColor(el) {
-  document.querySelectorAll('.color-item').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-/* ════════════════════════
-   READ VALUES
-   ════════════════════════ */
-function getSliderVal(key, fallback) {
-  const s = localStorage.getItem(key);
-  return s !== null ? parseInt(s) : fallback;
-}
-function getChecked(group) {
-  return [...document.querySelectorAll(`.chk-item[data-group="${group}"].checked-${group},
-    .chk-item[data-group="${group}"].checked-sinus,
-    .chk-item[data-group="${group}"].checked-breath,
-    .chk-item[data-group="${group}"].checked-belly,
-    .chk-item[data-group="${group}"].checked-stool,
-    .chk-item[data-group="${group}"].checked-sleep`)]
-    .map(e => e.dataset.val);
-}
-function getCheckedAny(group) {
-  return [...document.querySelectorAll(`.chk-item[data-group="${group}"][class*="checked-"]`)]
-    .map(e => e.dataset.val);
-}
-
-/* ════════════════════════
-   SAVE
-   ════════════════════════ */
-function saveEntry() {
-  const date = document.getElementById('entryDate').value;
-  const time = document.getElementById('entryTime').value;
-  if (!date) { showToast('⚠ DATE REQUISE'); return; }
-
-  const sinusVal  = getSliderVal('sinusVal',  5);
-  const breathVal = getSliderVal('breathVal', 5);
-  const bellyVal  = getSliderVal('bellyVal',  5);
-
-  // Stool data
-  const stoolType  = document.querySelector('.stool-type.selected')?.dataset.type || null;
-  const stoolColor = document.querySelector('.color-item.selected')?.dataset.color || null;
-  const stoolFeats = getCheckedAny('stool');
-
-  // Sleep
-  const sleepQual = document.querySelector('.chk-item[data-group="sleep"][class*="checked-"]')?.dataset.val || null;
-  const sleepDisturb = getCheckedAny('sleepd');
-
-  const entry = {
-    id:       Date.now(),
-    date, time,
-    sinus:    sinusVal,
-    breath:   breathVal,
-    belly:    bellyVal,
-    sinusSyms:  getCheckedAny('sinus'),
-    breathSyms: getCheckedAny('breath'),
-    bellySyms:  getCheckedAny('belly'),
-    stool: stoolAbsent ? { absent: true } : { type: stoolType, color: stoolColor, feats: stoolFeats },
-    sleep: { quality: sleepQual, disturb: sleepDisturb },
-    notes: document.getElementById('notes').value.trim()
-  };
-
-  entries.push(entry);
-  localStorage.setItem('medEntries', JSON.stringify(entries));
-
-  // Flash save indicator
-  const ind = document.getElementById('saveInd');
-  ind.classList.add('show');
-  setTimeout(() => ind.classList.remove('show'), 2200);
-
-  showToast('✚ ENTRÉE ENREGISTRÉE');
-}
-
-/* ════════════════════════
-   STATS & CHART
-   ════════════════════════ */
-function updateStats() {
-  const seven = entries.slice(-7);
-  const avg = (key) => seven.length ? (seven.reduce((s,e)=>s+(+e[key]||0),0)/seven.length).toFixed(1) : '—';
-  document.getElementById('avgSinus').textContent  = avg('sinus');
-  document.getElementById('avgBreath').textContent = avg('breath');
-  document.getElementById('avgBelly').textContent  = avg('belly');
-  document.getElementById('totalEntries').textContent = entries.length;
-}
-
-function renderChart() {
-  const last14 = entries.slice(-14);
-  const labels = last14.map(e => e.date.slice(5));
-  const ds = (key,color) => ({
-    label: key,
-    data: last14.map(e=>e[key]||0),
-    borderColor: color, backgroundColor: color+'22',
-    tension: 0.35, pointRadius: 4, pointHoverRadius: 6, borderWidth: 2, fill: true
-  });
-
-  const ctx = document.getElementById('mainChart').getContext('2d');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        ds('sinus',  '#c0282a'),
-        ds('breath', '#1a5f8a'),
-        ds('belly',  '#7a2060')
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      scales: {
-        y: { min: 0, max: 10, grid: { color: '#ddd0d033' } },
-        x: { grid: { display: false } }
-      },
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } } }
-    }
-  });
-}
-
-/* ════════════════════════
-   HISTORY
-   ════════════════════════ */
-function renderHistory() {
-  const c = document.getElementById('histContainer');
-  if (!entries.length) {
-    c.innerHTML = '<div class="empty"><div class="ei">📋</div><p>Aucune entrée enregistrée</p></div>';
-    return;
-  }
-  c.innerHTML = [...entries].reverse().map(e => `
-    <div class="hist-item">
-      <div class="hist-date">${e.date}<br>${e.time}</div>
-      <div>
-        <div class="hist-scores">
-          <span class="hist-badge sinus">🩸 ${e.sinus}</span>
-          <span class="hist-badge breath">🫁 ${e.breath}</span>
-          <span class="hist-badge belly">🫃 ${e.belly}</span>
-          ${e.stool?.absent ? '<span class="hist-badge stool">🚽 —</span>'
-            : e.stool?.type ? `<span class="hist-badge stool">🚽 T${e.stool.type}</span>` : ''}
-          ${e.sleep?.quality ? `<span class="hist-badge sleep">😴 ${e.sleep.quality}</span>` : ''}
-        </div>
-        ${e.notes ? `<div class="hist-tags"><span class="tag-pill">📝 ${e.notes.slice(0,40)}${e.notes.length>40?'…':''}</span></div>` : ''}
-      </div>
-      <button class="del-btn" onclick="deleteEntry(${e.id})">✕</button>
-    </div>
-  `).join('');
-}
-
-function deleteEntry(id) {
-  if (!confirm('Supprimer cette entrée ?')) return;
-  entries = entries.filter(e => e.id !== id);
-  localStorage.setItem('medEntries', JSON.stringify(entries));
-  renderHistory();
-  showToast('🗑 SUPPRIMÉE');
-}
-
-/* ════════════════════════
-   EXPORT / IMPORT
-   ════════════════════════ */
-function exportJSON() {
-  download(JSON.stringify(entries, null, 2), 'dossier_medical.json', 'application/json');
-  showToast('✚ JSON EXPORTÉ');
-}
-function exportCSV() {
-  const h = 'date,heure,sinus,respiration,ventre,notes';
-  const rows = entries.map(e => `${e.date},${e.time},${e.sinus},${e.breath},${e.belly},"${(e.notes||'').replace(/"/g,'""')}"`);
-  download([h,...rows].join('\n'), 'dossier_medical.csv', 'text/csv');
-  showToast('✚ CSV EXPORTÉ');
-}
-function exportTXT() {
-  const txt = entries.map(e =>
-    `[${e.date} ${e.time}]\nSinus: ${e.sinus}/10  Respiration: ${e.breath}/10  Ventre: ${e.belly}/10\n${e.notes ? 'Notes: '+e.notes : ''}\n`
-  ).join('\n---\n');
-  download(txt, 'dossier_medical.txt', 'text/plain');
-  showToast('✚ TEXTE EXPORTÉ');
-}
-function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const r = new FileReader();
-  r.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (Array.isArray(data)) {
-        const ids = new Set(entries.map(x=>x.id));
-        data.forEach(d => { if (!ids.has(d.id)) entries.push(d); });
-        localStorage.setItem('medEntries', JSON.stringify(entries));
-        showToast('✚ ' + data.length + ' ENTRÉES IMPORTÉES');
-      }
-    } catch { showToast('⚠ FICHIER INVALIDE'); }
-  };
-  r.readAsText(file);
-}
-function download(content, name, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], {type}));
-  a.download = name; a.click();
-}
-function clearAll() {
-  if (!confirm('Effacer TOUTES les données ? Action irréversible.')) return;
-  entries = [];
-  localStorage.removeItem('medEntries');
-  showToast('🗑 DONNÉES EFFACÉES');
-}
-
-/* ════════════════════════
-   TOAST
-   ════════════════════════ */
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
-}
-</script>
-</body>
-</html>
