@@ -113,6 +113,21 @@ body{
 .item-del{color:var(--muted);font-size:16px;cursor:pointer;padding:4px;border-radius:5px;transition:color 0.15s;flex-shrink:0;line-height:1;background:none;border:none;}
 .item-del:hover{color:var(--red);}
 
+/* ── OVERDUE (échéance dépassée) ── */
+.item-row.overdue{
+  background:rgba(184,90,74,0.10);
+  border-left:3px solid var(--red);
+}
+.item-row.overdue .item-amount{color:var(--red);}
+.item-row.overdue .date-tag{
+  color:#fff!important;
+  background:var(--red)!important;
+  border-color:var(--red)!important;
+  font-weight:700;
+}
+.item-row.overdue .item-label{color:var(--text);}
+.overdue-badge{font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;background:var(--red);color:#fff;padding:1px 6px;border-radius:4px;border:none;}
+
 /* ── FORM ── */
 .add-form{padding:12px 14px;background:var(--accentbg);border-top:1px dashed var(--border2);display:flex;flex-direction:column;gap:8px;}
 .add-form-row{display:flex;gap:8px;align-items:center;}
@@ -581,17 +596,22 @@ function renderItems(items, cats) {
     container.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span>Aucune dépense${filterActive!=='all'?' dans cette catégorie':' ce mois-ci'}</div>`;
     return;
   }
+  const todayStr = new Date().toISOString().slice(0,10); // YYYY-MM-DD
   let html = '';
   sorted.forEach(item => {
     const realIdx = items.findIndex(i => i._id === item._id);
     const cat = cats.find(c => c.id === item.cat);
-    html += `<div class="item-row ${item.done?'paid':''}">
+    // Surbrillance si : date renseignée, non payé, et date <= aujourd'hui
+    const isOverdue = !item.done && item.date && item.date <= todayStr;
+    const rowClass = item.done ? 'paid' : (isOverdue ? 'overdue' : '');
+    html += `<div class="item-row ${rowClass}">
       <div class="check-box ${item.done?'done':''}" onclick="toggleItem(${realIdx})">${item.done?'✓':''}</div>
       <div class="item-info">
         <div class="item-label">${escHtml(item.label)}</div>
         <div class="item-extras">
           ${cat?`<span class="item-tag cat-tag">${cat.icon} ${cat.name}</span>`:''}
           ${item.date?`<span class="item-tag date-tag">📅 ${item.date}</span>`:''}
+          ${isOverdue?`<span class="overdue-badge">⚠ ÉCHU</span>`:''}
           ${item.note?`<span class="item-tag note-tag">${escHtml(item.note)}</span>`:''}
         </div>
       </div>
