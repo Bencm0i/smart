@@ -766,6 +766,47 @@ button, input, select { touch-action: manipulation; }
 }
 .pmv-row:last-child { border-bottom: none; }
 
+/* ═══ SURBRILLANCE INVEST ═══ */
+.card.inv-btc {
+  border-color: rgba(126,184,212,0.55);
+  background: rgba(126,184,212,0.06);
+}
+.card.inv-btc .card-head {
+  background: rgba(126,184,212,0.12);
+  border-bottom-color: rgba(126,184,212,0.35);
+}
+.card.inv-btc .card-title-sm { color: var(--accent); }
+.card.inv-btc .lbl { color: rgba(126,184,212,0.7); }
+
+.card.inv-gold {
+  border-color: rgba(200,169,110,0.55);
+  background: rgba(200,169,110,0.06);
+}
+.card.inv-gold .card-head {
+  background: rgba(200,169,110,0.12);
+  border-bottom-color: rgba(200,169,110,0.35);
+}
+.card.inv-gold .card-title-sm { color: var(--gold); }
+.card.inv-gold .lbl { color: rgba(200,169,110,0.7); }
+
+.card.inv-av {
+  border-color: rgba(90,171,122,0.55);
+  background: rgba(90,171,122,0.06);
+}
+.card.inv-av .card-head {
+  background: rgba(90,171,122,0.12);
+  border-bottom-color: rgba(90,171,122,0.35);
+}
+.card.inv-av .card-title-sm { color: var(--green); }
+.card.inv-av .lbl { color: rgba(90,171,122,0.7); }
+
+/* ATH auto badge */
+.ath-auto-badge {
+  font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  background:rgba(200,169,110,0.18);border:1px solid rgba(200,169,110,0.4);
+  color:var(--gold);padding:2px 8px;border-radius:4px;margin-left:8px;
+}
+
 </style>
 </head>
 <body>
@@ -1331,8 +1372,12 @@ function renderAllBanks() {
 function renderInvPortfolio(key, containerId) {
   const rows = DATA.investissements[key] || [];
   const container = document.getElementById(containerId);
-  container.innerHTML = rows.map((r, i) => `
-    <div class="card" style="margin-bottom:10px;">
+  container.innerHTML = rows.map((r, i) => {
+    const isBTC  = r.ticker==='BTC' || (r.nom||'').toLowerCase().includes('bitcoin');
+    const isGold = r.ticker==='XAU' || (r.nom||'').toLowerCase().includes(' or') || (r.nom||'').toLowerCase().startsWith('or ') || (r.nom||'').toLowerCase().includes('gold') || (r.nom||'').toLowerCase().includes('xau');
+    const cardCls = isBTC ? 'inv-btc' : isGold ? 'inv-gold' : '';
+    return `
+    <div class="card ${cardCls}" style="margin-bottom:10px;">
       <div class="card-head">
         <span class="card-title-sm">${r.ticker || r.nom || '—'}</span>
         <button class="del-btn" onclick="delInvRow('${key}',${i})">✕</button>
@@ -1376,7 +1421,8 @@ function renderInvPortfolio(key, containerId) {
           </div>
         </div>
       </div>
-    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ pour ajouter.</p>';
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ pour ajouter.</p>';
 }
 
 function addInvRow(key) {
@@ -1445,7 +1491,7 @@ function renderAV() {
   const rows = DATA.investissements.assurance_vie || [];
   const c = document.getElementById('body-av');
   c.innerHTML = rows.map((r,i) => `
-    <div class="card" style="margin-bottom:10px;">
+    <div class="card inv-av" style="margin-bottom:10px;">
       <div class="card-head">
         <span class="card-title-sm">${r.nom||'Assurance Vie'}</span>
         <button class="del-btn" onclick="delAVRow(${i})">✕</button>
@@ -1626,7 +1672,7 @@ function renderATH() {
           <input type="date" value="${r.date||''}" oninput="DATA.ath[${i}].date=this.value;autoSave()">
         </div>
         <div class="log-card-field">
-          <label>Montant (€)</label>
+          <label>Montant (€) ${r.auto ? '<span class="ath-auto-badge">AUTO</span>' : ''}</label>
           <input type="number" value="${r.val||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off" placeholder="0.00" style="text-align:right" oninput="DATA.ath[${i}].val=parseFloat(this.value)||0;autoSave()">
         </div>
       </div>
@@ -1816,6 +1862,30 @@ function autoSave() {
   }
   saveTimer = setTimeout(() => {
     try { localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); } catch(e){}
+    // ─── ATH AUTO ───────────────────────────────────────────────────
+    try {
+      const bTotal = ['boursorama','fortuneo','revolut','natixis'].reduce((s,k) => s + (DATA[k]||[]).reduce((ss,r)=>ss+(r.val||0),0), 0);
+      const scpiVal = (DATA.scpi||[]).reduce((s,r)=>s+(r.totalActuel||(r.parts||0)*(r.pxActuel||0)||0),0);
+      const avVal   = (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0);
+      const avSyncVal = (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0);
+      const ebVal   = (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0);
+      const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal;
+      if (grandTotal > 100) { // ignorer si données vides
+        const maxATH = (DATA.ath||[]).reduce((mx,r)=>Math.max(mx,r.val||0),0);
+        if (grandTotal > maxATH) {
+          if (!DATA.ath) DATA.ath = [];
+          const today = new Date().toISOString().slice(0,10);
+          // Mettre à jour si déjà une entrée aujourd'hui, sinon ajouter
+          const todayEntry = DATA.ath.find(r=>r.date===today);
+          if (todayEntry) { todayEntry.val = grandTotal; }
+          else { DATA.ath.push({date: today, val: grandTotal, auto: true}); }
+          localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+          if (typeof renderATH === 'function') renderATH();
+          showToast('🏆 Nouveau ATH enregistré : ' + new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(grandTotal));
+        }
+      }
+    } catch(_) {}
+    // ────────────────────────────────────────────────────────────────
     if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
   }, 600);
 }
