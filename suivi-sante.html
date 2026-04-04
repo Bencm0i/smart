@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Red Cross Medical Theme */
   --bg:      #f8f4f4;
   --surface: #ffffff;
   --surface2:#f0ebeb;
@@ -16,27 +15,22 @@
   --text:    #1a0808;
   --muted:   #8a7070;
 
-  /* Sinus → medical orange/alert */
   --sinus:     #c0282a;
   --sinus-bg:  #fff0f0;
   --sinus-mid: #f4a0a0;
 
-  /* Breath → steel blue medical */
   --breath:     #1a5f8a;
   --breath-bg:  #eef4fa;
   --breath-mid: #90b8d8;
 
-  /* Belly → deep medical purple */
   --belly:     #7a2060;
   --belly-bg:  #f8eef5;
   --belly-mid: #d090c0;
 
-  /* Stool → clinical brown */
   --stool:     #7a4a2a;
   --stool-bg:  #f8f0ea;
   --stool-mid: #c8a080;
 
-  /* Sleep → deep indigo */
   --sleep:     #3a2070;
   --sleep-bg:  #f0eefa;
   --sleep-mid: #a090d8;
@@ -61,12 +55,10 @@ body {
   position: relative;
 }
 
-/* BACKGROUND CROSS WATERMARK */
 body::before {
   content: '✚';
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   font-size: 55vw;
   color: rgba(192,40,42,0.028);
@@ -75,7 +67,6 @@ body::before {
   line-height: 1;
 }
 
-/* Scanlines subtle */
 body::after {
   content: '';
   position: fixed;
@@ -101,7 +92,6 @@ body::after {
   height: 56px;
   box-shadow: 0 3px 16px rgba(192,40,42,0.35);
 }
-
 .topbar::before {
   content: '';
   position: absolute;
@@ -109,7 +99,6 @@ body::after {
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
 }
-
 .topbar-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
@@ -119,14 +108,12 @@ body::after {
   align-items: center;
   gap: 10px;
 }
-
 .topbar-title::before {
   content: '✚';
   font-size: 20px;
   color: #fff;
   text-shadow: 0 0 12px rgba(255,255,255,0.6);
 }
-
 .pulse {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -137,7 +124,6 @@ body::after {
   0%,100%{opacity:1;transform:scale(1);}
   50%{opacity:.4;transform:scale(1.4);}
 }
-
 .save-indicator {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px;
@@ -151,7 +137,6 @@ body::after {
   letter-spacing: 0.08em;
 }
 .save-indicator.show { opacity: 1; }
-
 #topDate {
   font-family: 'Share Tech Mono', monospace;
   font-size: 11px;
@@ -170,7 +155,6 @@ body::after {
   z-index: 200;
   box-shadow: 0 -2px 16px rgba(192,40,42,0.25);
 }
-
 .nav-btn {
   display: flex;
   flex-direction: column;
@@ -190,10 +174,7 @@ body::after {
   position: relative;
 }
 .nav-btn:last-child { border-right: none; }
-.nav-btn.active {
-  color: #fff;
-  background: rgba(192,40,42,0.18);
-}
+.nav-btn.active { color: #fff; background: rgba(192,40,42,0.18); }
 .nav-btn.active::before {
   content: '';
   position: absolute;
@@ -247,7 +228,6 @@ body::after {
   letter-spacing: 0.16em;
   margin-bottom: 6px;
 }
-
 input[type="date"], input[type="time"], select, textarea {
   width: 100%;
   padding: 11px 13px;
@@ -276,7 +256,6 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
   position: relative;
   overflow: hidden;
 }
-
 .symptom-block::before {
   content: '✚';
   position: absolute;
@@ -286,7 +265,6 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
   line-height: 1;
   pointer-events: none;
 }
-
 .symptom-block.sinus   { background: var(--sinus-bg);  border: 1.5px solid var(--sinus-mid);  border-left: 4px solid var(--sinus); }
 .symptom-block.breath  { background: var(--breath-bg); border: 1.5px solid var(--breath-mid); border-left: 4px solid var(--breath); }
 .symptom-block.belly   { background: var(--belly-bg);  border: 1.5px solid var(--belly-mid);  border-left: 4px solid var(--belly); }
@@ -294,7 +272,6 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .symptom-block.sleep   { background: var(--sleep-bg);  border: 1.5px solid var(--sleep-mid);  border-left: 4px solid var(--sleep); }
 
 .sym-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
-
 .sym-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 16px;
@@ -323,7 +300,9 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .breath .score-display { color: var(--breath); }
 .belly .score-display  { color: var(--belly); }
 
-/* ── SLIDER ── */
+/* ══════════════════════════════════════
+   CUSTOM SLIDER — mobile-friendly
+   ══════════════════════════════════════ */
 .slider-wrap { margin-bottom: 13px; }
 .slider-labels {
   display: flex;
@@ -331,26 +310,83 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
   font-family: 'Share Tech Mono', monospace;
   font-size: 9px;
   color: var(--muted);
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   letter-spacing: 0.06em;
 }
-input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 2px; outline: none; cursor: pointer; }
-.sinus  input[type="range"] { background: var(--sinus-mid); }
-.breath input[type="range"] { background: var(--breath-mid); }
-.belly  input[type="range"] { background: var(--belly-mid); }
 
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 26px; height: 26px;
-  border-radius: 4px;
-  background: #fff;
-  border: 3px solid;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+/* Hide native range everywhere */
+input[type="range"] { display: none !important; }
+
+/* Custom track container */
+.custom-slider {
+  position: relative;
+  height: 48px;           /* grand zone tactile */
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  touch-action: none;     /* bloque le scroll pendant le drag */
+  user-select: none;
+  -webkit-user-select: none;
 }
-.sinus  input[type="range"]::-webkit-slider-thumb { border-color: var(--sinus); }
-.breath input[type="range"]::-webkit-slider-thumb { border-color: var(--breath); }
-.belly  input[type="range"]::-webkit-slider-thumb { border-color: var(--belly); }
+
+/* Track background */
+.custom-slider .cs-track {
+  position: absolute;
+  left: 0; right: 0;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--track-color, #ddd);
+  overflow: hidden;
+}
+
+/* Fill */
+.custom-slider .cs-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--thumb-color, #c0282a);
+  transition: width 0.05s linear;
+  pointer-events: none;
+}
+
+/* Thumb */
+.custom-slider .cs-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #fff;
+  border: 3px solid var(--thumb-color, #c0282a);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  color: var(--thumb-color, #c0282a);
+  transition: box-shadow 0.15s, transform 0.1s;
+  pointer-events: none;
+  z-index: 2;
+}
+.custom-slider.dragging .cs-thumb {
+  box-shadow: 0 0 0 8px rgba(0,0,0,0.08), 0 2px 10px rgba(0,0,0,0.18);
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+/* Tick marks under the track */
+.cs-ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  margin-top: 4px;
+}
+.cs-tick {
+  width: 1px;
+  height: 4px;
+  background: var(--track-color, #ddd);
+  border-radius: 1px;
+}
 
 /* ── CHECKBOXES ── */
 .checks-title {
@@ -362,7 +398,6 @@ input[type="range"]::-webkit-slider-thumb {
   letter-spacing: 0.16em;
   margin-bottom: 8px;
 }
-
 .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 .checks-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
 
@@ -384,10 +419,10 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-user-select: none;
   touch-action: manipulation;
 }
-.chk-item.checked-sinus { background: #fff0f0; border-color: var(--sinus); color: var(--sinus); }
+.chk-item.checked-sinus  { background: #fff0f0; border-color: var(--sinus);  color: var(--sinus); }
 .chk-item.checked-breath { background: #eef4fa; border-color: var(--breath); color: var(--breath); }
-.chk-item.checked-belly { background: #f8eef5; border-color: var(--belly); color: var(--belly); }
-.chk-item.checked-stool { background: #f8f0ea; border-color: var(--stool); color: var(--stool); }
+.chk-item.checked-belly  { background: #f8eef5; border-color: var(--belly);  color: var(--belly); }
+.chk-item.checked-stool  { background: #f8f0ea; border-color: var(--stool);  color: var(--stool); }
 
 .chk-dot {
   width: 16px; height: 16px;
@@ -453,7 +488,6 @@ input[type="range"]::-webkit-slider-thumb {
 .color-item .cl-label { font-size: 9px; font-weight: 600; color: var(--muted); text-align: center; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.04em; }
 .color-item.selected .cl-label { color: var(--stool); }
 
-/* STOOL absent */
 .stool-toggle {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px;
@@ -496,14 +530,9 @@ input[type="range"]::-webkit-slider-thumb {
   position: relative;
   overflow: hidden;
 }
-.add-btn::before {
-  content: '✚';
-  font-size: 16px;
-  opacity: 0.6;
-}
+.add-btn::before { content: '✚'; font-size: 16px; opacity: 0.6; }
 .add-btn:active { transform: scale(0.98); background: #8a0a0c; }
 
-/* Hors plage : résistance orange */
 .add-btn.hors-plage {
   background: #3a1a00;
   color: #ff8c00;
@@ -548,7 +577,6 @@ input[type="range"]::-webkit-slider-thumb {
   opacity: 0.05;
   pointer-events: none;
 }
-
 .stat-label {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 11px;
@@ -683,102 +711,35 @@ input[type="range"]::-webkit-slider-thumb {
 /* ── STOOL SECTION ── */
 .stool-detail { display: none; }
 .stool-detail.visible { display: block; }
-
-/* ── PLAGE HORAIRE BANNER ── */
-.plage-banner {
-  position: sticky;
-  top: 56px;
-  z-index: 150;
-  padding: 7px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  transition: background 0.4s;
-}
-.plage-banner.active-plage {
-  background: #1a4a1a;
-  border-bottom-color: #2a7a2a;
-}
-.plage-banner.inactive-plage {
-  background: #2a1a08;
-  border-bottom-color: #5a3a10;
-}
-.plage-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-weight: 700;
-}
-.plage-label .dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.active-plage .dot { background: #4aff4a; box-shadow: 0 0 6px #4aff4a88; animation: pulse 2s infinite; }
-.inactive-plage .dot { background: #ff8c00; }
-.active-plage .plage-label { color: #aaffaa; }
-.inactive-plage .plage-label { color: #ffcc88; }
-.plage-count {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 2px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-.plage-count.ok { background: rgba(74,255,74,0.15); color: #4aff4a; }
-.plage-count.warn { background: rgba(255,60,60,0.2); color: #ff6060; border: 1px solid rgba(255,60,60,0.4); animation: blink-warn 1.2s infinite; }
-@keyframes blink-warn { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
-
-/* ── PLAGE INLINE WARNING (form) ── */
-.plage-warn-form {
-  display: none;
-  margin-bottom: 10px;
-  padding: 10px 13px;
-  background: #2a1500;
-  border: 1px solid #ff8c00;
-  border-left: 3px solid #ff8c00;
-  border-radius: var(--rs);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  color: #ffcc88;
-  letter-spacing: 0.06em;
-  line-height: 1.6;
-}
-.plage-warn-form.visible { display: block; }
 </style>
 </head>
 <body>
 
+<!-- TOP BAR -->
 <div class="topbar">
-  <div class="topbar-title">DOSSIER MÉDICAL</div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div class="save-indicator" id="saveIndicator">✚ SAUVEGARDÉ</div>
-    <div style="font-size:12px;color:var(--muted);font-weight:600;" id="topDate"></div>
+  <div class="topbar-title">DOSSIER MÉD.</div>
+  <div id="topDate">—</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="save-indicator" id="saveInd">✚ SAUVEGARDÉ</span>
+    <div class="pulse"></div>
   </div>
 </div>
 
-<!-- PLAGE HORAIRE BANNER -->
-<div class="plage-banner inactive-plage" id="plageBanner">
-  <div class="plage-label"><div class="dot"></div><span id="plageText">—</span></div>
-  <div class="plage-count ok" id="plageCount"></div>
-</div>
-
-<!-- PAGE SAISIE -->
+<!-- PAGES -->
 <div class="page active" id="page-saisie">
-  <div class="sec-label">Nouvelle entrée</div>
-  <div class="card card-pad">
-    <div class="dt-row">
-      <div class="field-group">
-        <label>📅 Date</label>
-        <input type="date" id="entryDate">
-      </div>
-      <div class="field-group">
-        <label>🕐 Heure</label>
-        <input type="time" id="entryTime">
+
+  <div class="sec-label">Saisie du jour</div>
+  <div class="card">
+    <div class="card-pad">
+      <div class="dt-row">
+        <div class="field-group">
+          <label>Date</label>
+          <input type="date" id="entryDate">
+        </div>
+        <div class="field-group">
+          <label>Heure</label>
+          <input type="time" id="entryTime">
+        </div>
       </div>
     </div>
   </div>
@@ -786,360 +747,284 @@ input[type="range"]::-webkit-slider-thumb {
   <!-- SINUS -->
   <div class="symptom-block sinus">
     <div class="sym-header">
-      <div class="sym-title sinus"><span class="sym-emoji">🫁</span>Sinus</div>
-      <div class="score-display" id="sinusVal">0</div>
+      <div class="sym-title sinus"><span class="sym-emoji">🩸</span> SINUS / INFLAM.</div>
+      <div class="score-display" id="sinusScore">5</div>
     </div>
     <div class="slider-wrap">
-      <div class="slider-labels"><span>Aucun</span><span>Modéré</span><span>Intense</span></div>
-      <input type="range" min="0" max="10" value="0" id="sinusRange" oninput="updateSlider('sinus',this.value)">
+      <div class="slider-labels"><span>0 Aucun</span><span>5 Modéré</span><span>10 Intense</span></div>
+      <div class="custom-slider"
+           data-min="0" data-max="10" data-value="5"
+           data-track="var(--sinus-mid)" data-thumb="var(--sinus)"
+           data-target="sinusScore" data-key="sinusVal"
+           style="--track-color:var(--sinus-mid);--thumb-color:var(--sinus)">
+        <div class="cs-track"><div class="cs-fill"></div></div>
+        <div class="cs-thumb">5</div>
+      </div>
     </div>
-    <div class="checks-title">Symptômes présents</div>
-    <div class="checks-grid" id="sinusChecks">
-      <div class="chk-item checked-sinus" data-key="douleur_gauche" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot">✓</div><span>Douleur gauche</span><span class="precheck-flag">★</span>
+    <div class="checks-title">Symptômes</div>
+    <div class="checks-grid">
+      <div class="chk-item" data-group="sinus" data-val="congestion" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div>Congestion
       </div>
-      <div class="chk-item" data-key="douleur_droite" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Douleur droite</span>
+      <div class="chk-item" data-group="sinus" data-val="douleur" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div>Douleur
       </div>
-      <div class="chk-item" data-key="douleur_bilaterale" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Bilatérale</span>
+      <div class="chk-item" data-group="sinus" data-val="éternuements" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div>Éternuements
       </div>
-      <div class="chk-item checked-sinus" data-key="pression_faciale" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot">✓</div><span>Pression faciale</span><span class="precheck-flag">★</span>
+      <div class="chk-item" data-group="sinus" data-val="écoulement" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div>Écoulement
       </div>
-      <div class="chk-item" data-key="nez_bouche" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Nez bouché</span>
+      <div class="chk-item" data-group="sinus" data-val="maux-tête" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div>Maux de tête
       </div>
-      <div class="chk-item" data-key="maux_tete" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Maux de tête</span>
-      </div>
-      <div class="chk-item" data-key="yeux_lourds" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Yeux lourds</span>
-      </div>
-      <div class="chk-item" data-key="ecoulement" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Écoulement</span>
-      </div>
-      <div class="chk-item" data-key="fievre" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Fièvre</span>
-      </div>
-      <div class="chk-item" data-key="odeur_perturbee" onclick="toggleChk(this,'sinus')">
-        <div class="chk-dot"></div><span>Odorat perturbé</span>
+      <div class="chk-item" data-group="sinus" data-val="fièvre" onclick="toggleChk(this,'sinus')">
+        <div class="chk-dot"></div>Fièvre
       </div>
     </div>
   </div>
 
-  <!-- ESSOUFFLEMENT -->
+  <!-- BREATH -->
   <div class="symptom-block breath">
     <div class="sym-header">
-      <div class="sym-title breath"><span class="sym-emoji">💨</span>Essoufflement</div>
-      <div class="score-display" id="breathVal">0</div>
+      <div class="sym-title breath"><span class="sym-emoji">🫁</span> RESPIRATION</div>
+      <div class="score-display" id="breathScore">5</div>
     </div>
     <div class="slider-wrap">
-      <div class="slider-labels"><span>Aucun</span><span>Modéré</span><span>Intense</span></div>
-      <input type="range" min="0" max="10" value="0" id="breathRange" oninput="updateSlider('breath',this.value)">
+      <div class="slider-labels"><span>0 Libre</span><span>5 Difficile</span><span>10 Bloquée</span></div>
+      <div class="custom-slider"
+           data-min="0" data-max="10" data-value="5"
+           data-target="breathScore" data-key="breathVal"
+           style="--track-color:var(--breath-mid);--thumb-color:var(--breath)">
+        <div class="cs-track"><div class="cs-fill"></div></div>
+        <div class="cs-thumb">5</div>
+      </div>
     </div>
-    <div class="checks-title">Symptômes présents</div>
-    <div class="checks-grid" id="breathChecks">
-      <div class="chk-item" data-key="repos" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div><span>Au repos</span>
+    <div class="checks-title">Symptômes</div>
+    <div class="checks-grid">
+      <div class="chk-item" data-group="breath" data-val="sifflement" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div>Sifflement
       </div>
-      <div class="chk-item" data-key="effort" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div><span>À l'effort</span>
+      <div class="chk-item" data-group="breath" data-val="toux" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div>Toux
       </div>
-      <div class="chk-item" data-key="nuit" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div><span>La nuit</span>
+      <div class="chk-item" data-group="breath" data-val="oppression" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div>Oppression
       </div>
-      <div class="chk-item" data-key="oppression" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div><span>Oppression</span>
-      </div>
-      <div class="chk-item" data-key="sifflement" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div><span>Sifflement</span>
-      </div>
-      <div class="chk-item" data-key="toux" onclick="toggleChk(this,'breath')">
-        <div class="chk-dot"></div><span>Toux</span>
+      <div class="chk-item" data-group="breath" data-val="essoufflement" onclick="toggleChk(this,'breath')">
+        <div class="chk-dot"></div>Essoufflement
       </div>
     </div>
   </div>
 
-  <!-- DOULEUR VENTRE -->
+  <!-- BELLY -->
   <div class="symptom-block belly">
     <div class="sym-header">
-      <div class="sym-title belly"><span class="sym-emoji">🫀</span>Douleur ventre</div>
-      <div class="score-display" id="bellyVal">0</div>
+      <div class="sym-title belly"><span class="sym-emoji">🫃</span> VENTRE</div>
+      <div class="score-display" id="bellyScore">5</div>
     </div>
     <div class="slider-wrap">
-      <div class="slider-labels"><span>Aucune</span><span>Modérée</span><span>Intense</span></div>
-      <input type="range" min="0" max="10" value="0" id="bellyRange" oninput="updateSlider('belly',this.value)">
+      <div class="slider-labels"><span>0 Calme</span><span>5 Gêne</span><span>10 Douleur</span></div>
+      <div class="custom-slider"
+           data-min="0" data-max="10" data-value="5"
+           data-target="bellyScore" data-key="bellyVal"
+           style="--track-color:var(--belly-mid);--thumb-color:var(--belly)">
+        <div class="cs-track"><div class="cs-fill"></div></div>
+        <div class="cs-thumb">5</div>
+      </div>
     </div>
-    <div class="checks-title">Localisation & type</div>
-    <div class="checks-grid" id="bellyChecks">
-      <div class="chk-item" data-key="haut_ventre" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Haut ventre</span>
+    <div class="checks-title">Symptômes</div>
+    <div class="checks-grid">
+      <div class="chk-item" data-group="belly" data-val="ballonnements" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div>Ballonnements
       </div>
-      <div class="chk-item" data-key="bas_ventre" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Bas ventre</span>
+      <div class="chk-item" data-group="belly" data-val="crampes" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div>Crampes
       </div>
-      <div class="chk-item" data-key="cote_gauche" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Côté gauche</span>
+      <div class="chk-item" data-group="belly" data-val="nausées" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div>Nausées
       </div>
-      <div class="chk-item" data-key="cote_droit" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Côté droit</span>
-      </div>
-      <div class="chk-item" data-key="crampes" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Crampes</span>
-      </div>
-      <div class="chk-item" data-key="ballonnements" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Ballonnements</span>
-      </div>
-      <div class="chk-item" data-key="nausees" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Nausées</span>
-      </div>
-      <div class="chk-item" data-key="brulures" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Brûlures</span>
-      </div>
-      <div class="chk-item" data-key="apres_repas" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Après repas</span>
-      </div>
-      <div class="chk-item" data-key="a_jeun" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>À jeun</span>
-      </div>
-      <div class="chk-item" data-key="flatulences" onclick="toggleChk(this,'belly')">
-        <div class="chk-dot"></div><span>Flatulences</span>
+      <div class="chk-item" data-group="belly" data-val="reflux" onclick="toggleChk(this,'belly')">
+        <div class="chk-dot"></div>Reflux
       </div>
     </div>
   </div>
 
-  <!-- SUIVI SELLES -->
+  <!-- STOOL -->
   <div class="symptom-block stool">
     <div class="sym-header">
-      <div class="sym-title stool"><span class="sym-emoji">🚽</span>Selles</div>
+      <div class="sym-title stool"><span class="sym-emoji">🚽</span> SELLES</div>
     </div>
 
-    <div class="stool-toggle" id="stoolAbsentToggle" onclick="toggleStoolAbsent()">
-      <div class="toggle-box" id="stoolAbsentBox"></div>
-      <span style="font-size:13px;font-weight:600;color:var(--stool);">Pas de selles aujourd'hui</span>
+    <div class="stool-toggle" id="stoolToggle" onclick="toggleStool()">
+      <div class="toggle-box" id="stoolToggleBox"></div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;">Aucune selle aujourd'hui</div>
     </div>
 
     <div class="stool-detail" id="stoolDetail">
-      <div class="checks-title">Type (échelle de Bristol)</div>
-      <div class="stool-types" id="stoolTypeGrid">
+      <div class="checks-title">Type (Échelle de Bristol)</div>
+      <div class="stool-types">
         <div class="stool-type" data-type="1" onclick="selectStoolType(this)">
-          <span class="st-emoji">🪨</span>
-          <span class="st-num">T1</span>
-          <span class="st-label">Dur grumeleux</span>
+          <span class="st-emoji">⚫</span><span class="st-num">TYPE 1</span>
+          <span class="st-label">Dure, séparée</span>
         </div>
         <div class="stool-type" data-type="2" onclick="selectStoolType(this)">
-          <span class="st-emoji">🥜</span>
-          <span class="st-num">T2</span>
-          <span class="st-label">Boudinée bosselée</span>
+          <span class="st-emoji">🟤</span><span class="st-num">TYPE 2</span>
+          <span class="st-label">Saucisse bosselée</span>
         </div>
         <div class="stool-type" data-type="3" onclick="selectStoolType(this)">
-          <span class="st-emoji">🌭</span>
-          <span class="st-num">T3</span>
+          <span class="st-emoji">🟫</span><span class="st-num">TYPE 3</span>
           <span class="st-label">Fissurée</span>
         </div>
         <div class="stool-type" data-type="4" onclick="selectStoolType(this)">
-          <span class="st-emoji">🍌</span>
-          <span class="st-num">T4</span>
-          <span class="st-label">Lisse normale</span>
+          <span class="st-emoji">🟧</span><span class="st-num">TYPE 4</span>
+          <span class="st-label">Lisse, souple</span>
         </div>
         <div class="stool-type" data-type="5" onclick="selectStoolType(this)">
-          <span class="st-emoji">🫘</span>
-          <span class="st-num">T5</span>
+          <span class="st-emoji">🟨</span><span class="st-num">TYPE 5</span>
           <span class="st-label">Morceaux mous</span>
         </div>
         <div class="stool-type" data-type="6" onclick="selectStoolType(this)">
-          <span class="st-emoji">🥣</span>
-          <span class="st-num">T6</span>
+          <span class="st-emoji">🟠</span><span class="st-num">TYPE 6</span>
           <span class="st-label">Pâteuse</span>
         </div>
         <div class="stool-type" data-type="7" onclick="selectStoolType(this)">
-          <span class="st-emoji">💧</span>
-          <span class="st-num">T7</span>
+          <span class="st-emoji">💧</span><span class="st-num">TYPE 7</span>
           <span class="st-label">Liquide</span>
-        </div>
-        <div class="stool-type" data-type="0" onclick="selectStoolType(this)">
-          <span class="st-emoji">❓</span>
-          <span class="st-num">—</span>
-          <span class="st-label">Non précisé</span>
         </div>
       </div>
 
       <div class="checks-title">Couleur</div>
-      <div class="color-grid" id="stoolColorGrid">
-        <div class="color-item" data-color="marron" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#7B4F2B;"></div>
-          <span class="cl-label">Marron</span>
+      <div class="color-grid">
+        <div class="color-item" data-color="brun" onclick="selectColor(this)">
+          <div class="color-dot" style="background:#8B4513;"></div>
+          <span class="cl-label">Brun normal</span>
         </div>
-        <div class="color-item" data-color="marron_clair" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#C49A6C;"></div>
-          <span class="cl-label">Marron clair</span>
-        </div>
-        <div class="color-item" data-color="jaune" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#E8C84B;"></div>
+        <div class="color-item" data-color="jaune" onclick="selectColor(this)">
+          <div class="color-dot" style="background:#DAA520;"></div>
           <span class="cl-label">Jaune</span>
         </div>
-        <div class="color-item" data-color="vert" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#4B7D3F;"></div>
+        <div class="color-item" data-color="vert" onclick="selectColor(this)">
+          <div class="color-dot" style="background:#2d6a2d;"></div>
           <span class="cl-label">Vert</span>
         </div>
-        <div class="color-item" data-color="noir" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#2A1E1A;"></div>
-          <span class="cl-label">Noir</span>
+        <div class="color-item" data-color="noir" onclick="selectColor(this)">
+          <div class="color-dot" style="background:#1a1a1a;border:1px solid #555;"></div>
+          <span class="cl-label">Noir ⚠</span>
         </div>
-        <div class="color-item" data-color="rouge" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#C0282A;"></div>
-          <span class="cl-label">Rouge</span>
+        <div class="color-item" data-color="rouge" onclick="selectColor(this)">
+          <div class="color-dot" style="background:#c0282a;"></div>
+          <span class="cl-label">Rouge ⚠</span>
         </div>
-        <div class="color-item" data-color="gris" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:#9E9E9E;"></div>
-          <span class="cl-label">Gris/Blanc</span>
-        </div>
-        <div class="color-item" data-color="autre" onclick="selectStoolColor(this)">
-          <div class="color-dot" style="background:linear-gradient(135deg,#c49a6c 50%,#7b4f2b 50%);"></div>
-          <span class="cl-label">Autre</span>
+        <div class="color-item" data-color="beige" onclick="selectColor(this)">
+          <div class="color-dot" style="background:#D2B48C;"></div>
+          <span class="cl-label">Beige/pâle</span>
         </div>
       </div>
 
-      <div class="checks-title">Particularités</div>
-      <div class="checks-grid" id="stoolChecks">
-        <div class="chk-item" data-key="sang" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div><span>Sang visible</span>
+      <div class="checks-title">Caractéristiques</div>
+      <div class="checks-grid">
+        <div class="chk-item" data-group="stool" data-val="sang" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div>Sang visible<span class="precheck-flag">⚠</span>
         </div>
-        <div class="chk-item" data-key="mucus" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div><span>Mucus</span>
+        <div class="chk-item" data-group="stool" data-val="mucus" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div>Mucus
         </div>
-        <div class="chk-item" data-key="urgence" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div><span>Urgence</span>
+        <div class="chk-item" data-group="stool" data-val="douleur" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div>Douleur évac.
         </div>
-        <div class="chk-item" data-key="douleur_evacuation" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div><span>Douleur évac.</span>
-        </div>
-        <div class="chk-item" data-key="incomplete" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div><span>Incomplète</span>
-        </div>
-        <div class="chk-item" data-key="frequente" onclick="toggleChk(this,'stool')">
-          <div class="chk-dot"></div><span>+3/jour</span>
+        <div class="chk-item" data-group="stool" data-val="urgence" onclick="toggleChk(this,'stool')">
+          <div class="chk-dot"></div>Urgence
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SOMMEIL -->
+  <!-- SLEEP -->
   <div class="symptom-block sleep">
     <div class="sym-header">
-      <div class="sym-title sleep"><span class="sym-emoji">🌙</span>Sommeil</div>
+      <div class="sym-title sleep"><span class="sym-emoji">😴</span> SOMMEIL</div>
     </div>
-    <div class="dt-row">
-      <div class="field-group">
-        <label>🛏 Coucher</label>
-        <input type="time" id="sleepBed">
+    <div class="checks-title">Qualité de la nuit</div>
+    <div class="checks-grid col3">
+      <div class="chk-item" data-group="sleep" data-val="bon" onclick="toggleChkSingle(this,'sleep')">
+        <div class="chk-dot"></div>Bon
       </div>
-      <div class="field-group">
-        <label>☀️ Lever</label>
-        <input type="time" id="sleepWake">
+      <div class="chk-item" data-group="sleep" data-val="moyen" onclick="toggleChkSingle(this,'sleep')">
+        <div class="chk-dot"></div>Moyen
+      </div>
+      <div class="chk-item" data-group="sleep" data-val="mauvais" onclick="toggleChkSingle(this,'sleep')">
+        <div class="chk-dot"></div>Mauvais
       </div>
     </div>
-    <div class="checks-title" style="margin-top:10px;">Qualité</div>
-    <div class="checks-grid" id="sleepChecks">
-      <div class="chk-item" data-key="sommeil_agite" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div><span>Agité</span>
+    <div class="checks-title" style="margin-top:10px;">Perturbations</div>
+    <div class="checks-grid">
+      <div class="chk-item" data-group="sleepd" data-val="apnée" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div>Apnée/ronflement
       </div>
-      <div class="chk-item" data-key="sommeil_insomnies" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div><span>Insomnies</span>
+      <div class="chk-item" data-group="sleepd" data-val="insomnie" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div>Insomnie
       </div>
-      <div class="chk-item" data-key="sommeil_reveils" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div><span>Réveils nuit</span>
+      <div class="chk-item" data-group="sleepd" data-val="réveils" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div>Réveils nuit
       </div>
-      <div class="chk-item" data-key="sommeil_endormissement" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div><span>Endorm. difficile</span>
-      </div>
-      <div class="chk-item" data-key="sommeil_fatigue" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div><span>Fatigué réveil</span>
-      </div>
-      <div class="chk-item" data-key="sommeil_reposant" onclick="toggleChk(this,'sleep')">
-        <div class="chk-dot"></div><span>Reposant</span>
+      <div class="chk-item" data-group="sleepd" data-val="cauchemars" onclick="toggleChk(this,'sleep')">
+        <div class="chk-dot"></div>Cauchemars
       </div>
     </div>
   </div>
 
-  <div class="card card-pad">
-    <div class="field-group">
-      <label>📝 Note libre</label>
-      <textarea id="entryNote" placeholder="Contexte, médicaments, déclenchants, alimentation…"></textarea>
-    </div>
-  </div>
+  <div class="sec-label">Notes libres</div>
+  <textarea id="notes" placeholder="Médicaments pris, contexte, événements particuliers…"></textarea>
 
-  <div class="plage-warn-form" id="plageWarnForm"></div>
-  <button class="add-btn" onclick="addEntry()">ENREGISTRER L'ENTRÉE</button>
+  <button class="add-btn" id="addBtn" onclick="saveEntry()">ENREGISTRER L'ENTRÉE</button>
 </div>
 
-<!-- PAGE GRAPHIQUES -->
+<!-- PAGE STATS -->
 <div class="page" id="page-stats">
-  <div class="sec-label">Résumé</div>
+  <div class="sec-label">Moyennes — 7 derniers jours</div>
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-label">🫁 Sinus moy.</div>
+      <div class="stat-label">🩸 Sinus moy.</div>
       <div class="stat-value sinus" id="avgSinus">—</div>
       <div class="stat-sub">/ 10</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">💨 Essouf. moy.</div>
+      <div class="stat-label">🫁 Respir. moy.</div>
       <div class="stat-value breath" id="avgBreath">—</div>
       <div class="stat-sub">/ 10</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">🫀 Ventre moy.</div>
+      <div class="stat-label">🫃 Ventre moy.</div>
       <div class="stat-value belly" id="avgBelly">—</div>
       <div class="stat-sub">/ 10</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">📊 Entrées</div>
-      <div class="stat-value" id="totalEntries">0</div>
-      <div class="stat-sub">enregistrées</div>
+      <div class="stat-label">📋 Entrées totales</div>
+      <div class="stat-value sinus" id="totalEntries">0</div>
+      <div class="stat-sub">enregistrements</div>
     </div>
   </div>
 
-  <div class="sec-label">Évolution (30 jours)</div>
-  <div class="card card-pad">
-    <div style="display:flex;gap:14px;font-size:11px;font-weight:700;margin-bottom:12px;flex-wrap:wrap;">
-      <span style="color:var(--sinus);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--sinus);border-radius:2px;display:inline-block;"></span>Sinus</span>
-      <span style="color:var(--breath);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--breath);border-radius:2px;display:inline-block;"></span>Essouf.</span>
-      <span style="color:var(--belly);display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--belly);border-radius:2px;display:inline-block;"></span>Ventre</span>
+  <div class="sec-label">Évolution 14 jours</div>
+  <div class="card">
+    <div class="card-pad">
+      <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
     </div>
-    <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
-  </div>
-
-  <div class="sec-label">Sommeil — coucher / lever (30 jours)</div>
-  <div class="card card-pad">
-    <div style="display:flex;gap:14px;font-size:11px;font-weight:700;margin-bottom:12px;flex-wrap:wrap;">
-      <span style="color:#3a2070;display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#3a2070;border-radius:2px;display:inline-block;"></span>Coucher</span>
-      <span style="color:#a060e0;display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#a060e0;border-radius:2px;display:inline-block;"></span>Lever</span>
-      <span style="color:#50a0a0;display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#50a0a0;border-radius:2px;display:inline-block;border-top:2px dashed #50a0a0;height:0;"></span>Durée (h)</span>
-    </div>
-    <div class="chart-wrap" style="height:200px;"><canvas id="sleepChart"></canvas></div>
-    <div id="sleepChartEmpty" class="empty" style="display:none;padding:20px 0;"><div class="ei">🌙</div><p>Pas encore de données sommeil</p></div>
-  </div>
-
-  <div class="sec-label">Selles — types fréquents</div>
-  <div class="card card-pad" id="stoolStats">
-    <div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>
-  </div>
-
-  <div class="sec-label">Symptômes fréquents</div>
-  <div class="card card-pad" id="freqSymptoms">
-    <div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>
   </div>
 </div>
 
-<!-- PAGE HISTORIQUE -->
+<!-- PAGE HISTORY -->
 <div class="page" id="page-history">
-  <div class="sec-label">Historique</div>
-  <div class="card" id="histList">
-    <div class="empty"><div class="ei">📋</div><p>Aucune entrée</p></div>
+  <div class="sec-label">Historique complet</div>
+  <div class="card" id="histContainer">
+    <div class="empty"><div class="ei">📋</div><p>Aucune entrée enregistrée</p></div>
   </div>
+</div>
 
-  <div class="sec-label">Exporter</div>
+<!-- PAGE EXPORT -->
+<div class="page" id="page-export">
+  <div class="sec-label">Export & Import</div>
   <div class="export-grid">
     <button class="export-btn" onclick="exportJSON()">
       <span class="export-icon">💾</span>
@@ -1151,805 +1036,421 @@ input[type="range"]::-webkit-slider-thumb {
       <span class="export-label">CSV</span>
       <span class="export-sub">Tableur</span>
     </button>
-    <button class="export-btn" onclick="exportText()">
+    <button class="export-btn" onclick="exportTXT()">
       <span class="export-icon">📄</span>
-      <span class="export-label">Rapport</span>
-      <span class="export-sub">Texte médecin</span>
+      <span class="export-label">TEXTE</span>
+      <span class="export-sub">Médecin</span>
     </button>
   </div>
 
-  <div class="sec-label">Importer JSON</div>
-  <div class="card card-pad">
-    <div class="import-zone" onclick="document.getElementById('fileInput').click()">
-      <div style="font-size:30px;margin-bottom:8px;">📂</div>
-      <div style="font-size:13px;font-weight:700;color:var(--text);">Charger un fichier JSON</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Restaurer une sauvegarde</div>
-    </div>
-    <input type="file" id="fileInput" accept=".json" onchange="importJSON(this)">
-    <div id="import-status" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);border-left:3px solid #c0282a;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.7;letter-spacing:0.04em;"></div>
+  <div class="sec-label" style="margin-top:18px;">Importer des données</div>
+  <div class="import-zone" onclick="document.getElementById('fileInput').click()">
+    <div style="font-size:32px;margin-bottom:8px;">📂</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.12em;color:var(--sinus);">CHARGER UN FICHIER JSON</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-top:5px;">Fusion avec données existantes</div>
   </div>
+  <input type="file" id="fileInput" accept=".json" onchange="importJSON(event)">
 
-  <div class="sec-label" style="margin-top:16px;">Danger zone</div>
-  <div class="card card-pad">
-    <button class="add-btn" style="background:#fff;color:var(--danger);border:1.5px solid #fecaca;font-size:15px;" onclick="clearAll()">
-      🗑&nbsp;&nbsp;EFFACER TOUTES LES DONNÉES
-    </button>
-  </div>
+  <div class="sec-label" style="margin-top:18px;">Danger Zone</div>
+  <button class="add-btn" style="background:#3a1a00;color:#ff4444;border:1px solid #ff4444;box-shadow:none;" onclick="clearAll()">
+    🗑 EFFACER TOUTES LES DONNÉES
+  </button>
 </div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <button class="nav-btn active" id="nav-saisie" onclick="showPage('saisie')">
-    <span class="icon">✚</span>SAISIE
+  <button class="nav-btn active" onclick="showPage('saisie',this)">
+    <span class="icon">✏️</span>SAISIE
   </button>
-  <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">
-    <span class="icon">📈</span>COURBES
+  <button class="nav-btn" onclick="showPage('stats',this)">
+    <span class="icon">📈</span>STATS
   </button>
-  <button class="nav-btn" id="nav-history" onclick="showPage('history')">
-    <span class="icon">📋</span>DOSSIER
+  <button class="nav-btn" onclick="showPage('history',this)">
+    <span class="icon">📋</span>HISTORIQUE
   </button>
-  <button class="nav-btn" id="nav-saisie2" onclick="showPage('saisie');window.scrollTo(0,0);">
-    <span class="icon">🔝</span>HAUT
+  <button class="nav-btn" onclick="showPage('export',this)">
+    <span class="icon">📤</span>EXPORT
   </button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = 'sante_v3';
-let entries = [];
-let lineChart = null;
-let sleepChart = null;
-let stoolAbsent = false;
-let selectedStoolType = null;
-let selectedStoolColor = null;
+/* ════════════════════════════════════════════════
+   CUSTOM SLIDER ENGINE — anti-sensitivity mobile
+   ════════════════════════════════════════════════ */
+(function() {
+  const DRAG_THRESHOLD = 6; // px minimum avant de déclencher le drag
 
-// ── STOOL LABELS ──
-const STOOL_TYPES = {
-  0:'Non précisé',1:'T1 – Dur grumeleux',2:'T2 – Bosselée',
-  3:'T3 – Fissurée',4:'T4 – Lisse (normal)',5:'T5 – Morceaux mous',
-  6:'T6 – Pâteuse',7:'T7 – Liquide'
-};
-const STOOL_COLORS = {
-  marron:'Marron',marron_clair:'Marron clair',jaune:'Jaune',vert:'Vert',
-  noir:'Noir (⚠)',rouge:'Rouge (⚠)',gris:'Gris/Blanc',autre:'Autre'
-};
+  function initSlider(el) {
+    const min   = parseInt(el.dataset.min)  || 0;
+    const max   = parseInt(el.dataset.max)  || 10;
+    const step  = parseInt(el.dataset.step) || 1;
+    let   val   = parseInt(el.dataset.value) || 0;
 
-const SYM = {
-  douleur_gauche:'Doul. G.',douleur_droite:'Doul. D.',douleur_bilaterale:'Bilatérale',
-  pression_faciale:'Pression',nez_bouche:'Nez bouché',
-  maux_tete:'Céphalées',yeux_lourds:'Yeux lourds',ecoulement:'Écoulement',
-  fievre:'Fièvre',odeur_perturbee:'Odorat',
-  repos:'Repos',effort:'Effort',nuit:'Nuit',oppression:'Oppression',
-  sifflement:'Sifflement',toux:'Toux',
-  haut_ventre:'Haut ventre',bas_ventre:'Bas ventre',cote_gauche:'Côté G.',
-  cote_droit:'Côté D.',crampes:'Crampes',ballonnements:'Ballonnements',
-  nausees:'Nausées',brulures:'Brûlures',apres_repas:'Après repas',a_jeun:'À jeun',flatulences:'Flatulences',
-  sang:'Sang',mucus:'Mucus',urgence:'Urgence',douleur_evacuation:'Doul. évac.',
-  incomplete:'Incomplète',frequente:'+3/jour',
-  sommeil_agite:'Agité',sommeil_insomnies:'Insomnies',sommeil_reveils:'Réveils nuit',
-  sommeil_endormissement:'Endorm. difficile',sommeil_fatigue:'Fatigué réveil',sommeil_reposant:'Reposant'
-};
+    const fill  = el.querySelector('.cs-fill');
+    const thumb = el.querySelector('.cs-thumb');
+    const targetId = el.dataset.target;
+    const storeKey = el.dataset.key;
 
-// ── PLAGES HORAIRES ──
-const PLAGES = [
-  { id:'matin',  label:'🌅 MATIN',   start: 6*60,      end: 9*60  },
-  { id:'midi',   label:'☀️ MIDI',    start: 12*60,     end: 14*60 },
-  { id:'soir',   label:'🌙 SOIR',    start: 19*60,     end: 21*60 },
-];
+    // Restore from storage
+    const stored = localStorage.getItem(storeKey);
+    if (stored !== null) val = parseInt(stored);
 
-// ── INIT ──
-(function(){
-  load();
-  const n = new Date();
-  document.getElementById('entryDate').value = n.toISOString().split('T')[0];
-  document.getElementById('entryTime').value = n.toTimeString().slice(0,5);
-  document.getElementById('topDate').textContent = n.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-  updatePlageBanner();
-  setInterval(updatePlageBanner, 60000);
-  document.getElementById('entryTime').addEventListener('change', updateFormWarning);
-  document.getElementById('entryDate').addEventListener('change', updateFormWarning);
+    function pct() { return (val - min) / (max - min); }
+
+    function render() {
+      const p = pct() * 100;
+      fill.style.width  = p + '%';
+      thumb.style.left  = p + '%';
+      thumb.textContent = val;
+      if (targetId) {
+        const t = document.getElementById(targetId);
+        if (t) t.textContent = val;
+      }
+      el.dataset.value = val;
+      if (storeKey) localStorage.setItem(storeKey, val);
+    }
+
+    function valFromX(clientX) {
+      const rect = el.getBoundingClientRect();
+      const pct  = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const raw  = min + pct * (max - min);
+      return Math.round(raw / step) * step;
+    }
+
+    // ── TOUCH ──
+    let startX = null, startVal = null, isDragging = false;
+
+    el.addEventListener('touchstart', function(e) {
+      // On prend seulement le premier touch
+      startX   = e.touches[0].clientX;
+      startVal = val;
+      isDragging = false;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', function(e) {
+      if (startX === null) return;
+      const dx = e.touches[0].clientX - startX;
+
+      if (!isDragging) {
+        if (Math.abs(dx) < DRAG_THRESHOLD) return; // seuil anti-sensitivity
+        isDragging = true;
+        el.classList.add('dragging');
+      }
+
+      e.preventDefault(); // bloque le scroll uniquement une fois le drag confirmé
+      val = valFromX(e.touches[0].clientX);
+      render();
+    }, { passive: false });
+
+    el.addEventListener('touchend', function() {
+      if (isDragging) el.classList.remove('dragging');
+      startX = null; isDragging = false;
+    });
+
+    // ── MOUSE (desktop) ──
+    let mouseDown = false;
+    el.addEventListener('mousedown', function(e) {
+      mouseDown = true;
+      el.classList.add('dragging');
+      val = valFromX(e.clientX);
+      render();
+    });
+    window.addEventListener('mousemove', function(e) {
+      if (!mouseDown) return;
+      val = valFromX(e.clientX);
+      render();
+    });
+    window.addEventListener('mouseup', function() {
+      if (mouseDown) { mouseDown = false; el.classList.remove('dragging'); }
+    });
+
+    // ── TAP (single tap = set value directly) ──
+    el.addEventListener('click', function(e) {
+      if (isDragging) return;
+      val = valFromX(e.clientX);
+      render();
+    });
+
+    render();
+  }
+
+  // Init all sliders on DOM ready
+  document.querySelectorAll('.custom-slider').forEach(initSlider);
 })();
 
-function getMinutes(h, m){ return h*60 + m; }
+/* ════════════════════════
+   APP STATE
+   ════════════════════════ */
+let entries = JSON.parse(localStorage.getItem('medEntries') || '[]');
+let chart   = null;
 
-function getCurrentPlage(hhmm){
-  // hhmm = "HH:MM" string or current time if omitted
-  let totalMin;
-  if(hhmm){
-    const [h,m] = hhmm.split(':').map(Number);
-    totalMin = getMinutes(h,m);
-  } else {
-    const n = new Date();
-    totalMin = getMinutes(n.getHours(), n.getMinutes());
-  }
-  return PLAGES.find(p => totalMin >= p.start && totalMin < p.end) || null;
-}
-
-function getNextPlage(){
-  const n = new Date();
-  const totalMin = getMinutes(n.getHours(), n.getMinutes());
-  // chercher la prochaine plage du jour
-  const next = PLAGES.find(p => p.start > totalMin);
-  return next || PLAGES[0]; // sinon matin du lendemain
-}
-
-function countEntriesToday(plageId){
-  const today = new Date().toISOString().split('T')[0];
-  const plage = PLAGES.find(p => p.id === plageId);
-  if(!plage) return 0;
-  return entries.filter(e => {
-    if(e.date !== today) return false;
-    const [h,m] = e.time.split(':').map(Number);
-    const t = getMinutes(h,m);
-    return t >= plage.start && t < plage.end;
-  }).length;
-}
-
-function updatePlageBanner(){
-  const banner = document.getElementById('plageBanner');
-  const text   = document.getElementById('plageText');
-  const count  = document.getElementById('plageCount');
+// Init date/time
+(function initDateTime() {
   const now = new Date();
-  const plage = getCurrentPlage();
+  document.getElementById('entryDate').value = now.toISOString().slice(0,10);
+  document.getElementById('entryTime').value = now.toTimeString().slice(0,5);
+  document.getElementById('topDate').textContent =
+    now.toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'}).toUpperCase();
+})();
 
-  if(plage){
-    banner.className = 'plage-banner active-plage';
-    text.textContent = plage.label + ' — PLAGE DE SAISIE OUVERTE';
-    const n = countEntriesToday(plage.id);
-    if(n === 0){
-      count.textContent = 'AUCUNE SAISIE';
-      count.className = 'plage-count ok';
-    } else if(n === 1){
-      count.textContent = '1 SAISIE ✓';
-      count.className = 'plage-count ok';
-    } else {
-      count.textContent = n+' SAISIES ⚠';
-      count.className = 'plage-count warn';
-    }
-  } else {
-    banner.className = 'plage-banner inactive-plage';
-    const next = getNextPlage();
-    const nextStart = Math.floor(next.start/60)+':'+(next.start%60).toString().padStart(2,'0');
-    // calculer si c'est demain
-    const totalMin = getMinutes(now.getHours(), now.getMinutes());
-    const demain = next.start <= totalMin;
-    text.textContent = 'Hors plage — prochaine : '+next.label+' à '+nextStart+(demain?' (demain)':'');
-    count.textContent = '';
-    count.className = 'plage-count ok';
-  }
-  updateFormWarning();
+/* ════════════════════════
+   NAVIGATION
+   ════════════════════════ */
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'stats')   { updateStats(); renderChart(); }
+  if (name === 'history') renderHistory();
 }
 
-function updateFormWarning(){
-  const warnEl = document.getElementById('plageWarnForm');
-  const btn    = document.querySelector('.add-btn');
-  const timeVal = document.getElementById('entryTime').value;
-  const dateVal = document.getElementById('entryDate').value;
-  const today = new Date().toISOString().split('T')[0];
-
-  if(!timeVal){ warnEl.classList.remove('visible'); btn.classList.remove('hors-plage'); return; }
-
-  const plage = getCurrentPlage(timeVal);
-  if(plage){
-    // Compter les entrées existantes sur cette plage pour cette date
-    const [h,m] = timeVal.split(':').map(Number);
-    const t = getMinutes(h,m);
-    let dayEntries;
-    if(dateVal === today){
-      dayEntries = entries.filter(e => {
-        if(e.date !== dateVal) return false;
-        const [eh,em] = e.time.split(':').map(Number);
-        const et = getMinutes(eh,em);
-        return et >= plage.start && et < plage.end;
-      }).length;
-    } else {
-      dayEntries = entries.filter(e => {
-        if(e.date !== dateVal) return false;
-        const [eh,em] = e.time.split(':').map(Number);
-        const et = getMinutes(eh,em);
-        return et >= plage.start && et < plage.end;
-      }).length;
-    }
-    if(dayEntries >= 1){
-      warnEl.innerHTML = '⚠ DOUBLON PLAGE ' + plage.id.toUpperCase() + ' — ' + dayEntries + ' entrée(s) déjà enregistrée(s) sur cette plage ce jour.<br>Idéalement 1 saisie / plage. Confirmez si intentionnel.';
-      warnEl.classList.add('visible');
-      btn.classList.add('hors-plage');
-    } else {
-      warnEl.classList.remove('visible');
-      btn.classList.remove('hors-plage');
-    }
-  } else {
-    warnEl.innerHTML = '⚠ HORS PLAGE DE SUIVI — L\'heure saisie ('+(timeVal)+') est en dehors des plages recommandées :<br>Matin 06h–09h · Midi 12h–14h · Soir 19h–21h';
-    warnEl.classList.add('visible');
-    btn.classList.add('hors-plage');
-  }
+/* ════════════════════════
+   CHECKBOXES
+   ════════════════════════ */
+function toggleChk(el, group) {
+  const cls = 'checked-' + group;
+  el.classList.toggle(cls);
+  const dot = el.querySelector('.chk-dot');
+  dot.textContent = el.classList.contains(cls) ? '✓' : '';
+}
+function toggleChkSingle(el, group) {
+  const cls = 'checked-' + group;
+  const siblings = el.closest('.checks-grid').querySelectorAll('.chk-item');
+  siblings.forEach(s => { s.classList.remove(cls); s.querySelector('.chk-dot').textContent = ''; });
+  el.classList.add(cls);
+  el.querySelector('.chk-dot').textContent = '✓';
 }
 
-// ── STORAGE ──
-function load(){
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    entries = raw ? JSON.parse(raw) : [];
-  } catch(e){ entries = []; }
-}
-
-function save(){
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-    flashSave();
-  } catch(e){
-    toast('⚠️ Erreur sauvegarde locale');
-  }
-}
-
-function flashSave(){
-  const el = document.getElementById('saveIndicator');
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), 1800);
-}
-
-// ── NAVIGATION ──
-function showPage(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  document.getElementById('nav-'+p).classList.add('active');
-  if(p==='stats'){renderStats();setTimeout(renderCharts,60);}
-  if(p==='history')renderHistory();
-}
-
-// ── SLIDERS ──
-function updateSlider(type, val){
-  const ids = {sinus:['sinusVal','sinusRange'],breath:['breathVal','breathRange'],belly:['bellyVal','bellyRange']};
-  const colors = {sinus:['var(--sinus)','var(--sinus-mid)'],breath:['var(--breath)','var(--breath-mid)'],belly:['var(--belly)','var(--belly-mid)']};
-  document.getElementById(ids[type][0]).textContent = val;
-  const r = document.getElementById(ids[type][1]);
-  const pct = (val/10*100)+'%';
-  const c = colors[type];
-  r.style.background = `linear-gradient(to right,${c[0]} 0%,${c[0]} ${pct},${c[1]} ${pct})`;
-}
-
-// ── CHECKBOXES ──
-function toggleChk(el, type){
-  const cls = 'checked-'+type;
-  const on = el.classList.toggle(cls);
-  el.querySelector('.chk-dot').textContent = on ? '✓' : '';
-}
-
-function getChecked(id){
-  return [...document.querySelectorAll('#'+id+' .chk-item')]
-    .filter(e=>['checked-sinus','checked-breath','checked-belly','checked-stool','checked-sleep'].some(c=>e.classList.contains(c)))
-    .map(e=>e.dataset.key);
-}
-
-// ── STOOL SPECIFIC ──
-function toggleStoolAbsent(){
+/* ════════════════════════
+   STOOL
+   ════════════════════════ */
+let stoolAbsent = false;
+function toggleStool() {
   stoolAbsent = !stoolAbsent;
-  const toggle = document.getElementById('stoolAbsentToggle');
-  const box = document.getElementById('stoolAbsentBox');
-  const detail = document.getElementById('stoolDetail');
-  toggle.classList.toggle('active', stoolAbsent);
-  box.textContent = stoolAbsent ? '✓' : '';
-  detail.classList.toggle('visible', !stoolAbsent);
+  document.getElementById('stoolToggle').classList.toggle('active', stoolAbsent);
+  document.getElementById('stoolToggleBox').textContent = stoolAbsent ? '✓' : '';
+  document.getElementById('stoolDetail').classList.toggle('visible', !stoolAbsent);
 }
-
-function selectStoolType(el){
-  document.querySelectorAll('#stoolTypeGrid .stool-type').forEach(x=>x.classList.remove('selected'));
+function selectStoolType(el) {
+  document.querySelectorAll('.stool-type').forEach(s => s.classList.remove('selected'));
   el.classList.add('selected');
-  selectedStoolType = parseInt(el.dataset.type);
 }
-
-function selectStoolColor(el){
-  document.querySelectorAll('#stoolColorGrid .color-item').forEach(x=>x.classList.remove('selected'));
+function selectColor(el) {
+  document.querySelectorAll('.color-item').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  selectedStoolColor = el.dataset.color;
 }
 
-// ── ADD ENTRY ──
-function addEntry(){
-  const btn = document.querySelector('.add-btn');
+/* ════════════════════════
+   READ VALUES
+   ════════════════════════ */
+function getSliderVal(key, fallback) {
+  const s = localStorage.getItem(key);
+  return s !== null ? parseInt(s) : fallback;
+}
+function getChecked(group) {
+  return [...document.querySelectorAll(`.chk-item[data-group="${group}"].checked-${group},
+    .chk-item[data-group="${group}"].checked-sinus,
+    .chk-item[data-group="${group}"].checked-breath,
+    .chk-item[data-group="${group}"].checked-belly,
+    .chk-item[data-group="${group}"].checked-stool,
+    .chk-item[data-group="${group}"].checked-sleep`)]
+    .map(e => e.dataset.val);
+}
+function getCheckedAny(group) {
+  return [...document.querySelectorAll(`.chk-item[data-group="${group}"][class*="checked-"]`)]
+    .map(e => e.dataset.val);
+}
 
-  // Si hors plage : secouer le bouton avant de laisser passer
-  if(btn.classList.contains('hors-plage')){
-    btn.classList.remove('shaking');
-    void btn.offsetWidth; // reflow pour relancer l'animation
-    btn.classList.add('shaking');
-    btn.addEventListener('animationend', () => btn.classList.remove('shaking'), {once:true});
-    // On laisse quand même enregistrer après la résistance visuelle
-  }
-
+/* ════════════════════════
+   SAVE
+   ════════════════════════ */
+function saveEntry() {
   const date = document.getElementById('entryDate').value;
   const time = document.getElementById('entryTime').value;
-  if(!date){toast('⚠️ Choisissez une date');return;}
+  if (!date) { showToast('⚠ DATE REQUISE'); return; }
+
+  const sinusVal  = getSliderVal('sinusVal',  5);
+  const breathVal = getSliderVal('breathVal', 5);
+  const bellyVal  = getSliderVal('bellyVal',  5);
+
+  // Stool data
+  const stoolType  = document.querySelector('.stool-type.selected')?.dataset.type || null;
+  const stoolColor = document.querySelector('.color-item.selected')?.dataset.color || null;
+  const stoolFeats = getCheckedAny('stool');
+
+  // Sleep
+  const sleepQual = document.querySelector('.chk-item[data-group="sleep"][class*="checked-"]')?.dataset.val || null;
+  const sleepDisturb = getCheckedAny('sleepd');
 
   const entry = {
-    id: Date.now(),
+    id:       Date.now(),
     date, time,
-    sinus: +document.getElementById('sinusRange').value,
-    breath: +document.getElementById('breathRange').value,
-    belly: +document.getElementById('bellyRange').value,
-    sinusSymptoms: getChecked('sinusChecks'),
-    breathSymptoms: getChecked('breathChecks'),
-    bellySymptoms: getChecked('bellyChecks'),
-    stool: {
-      absent: stoolAbsent,
-      type: stoolAbsent ? null : selectedStoolType,
-      color: stoolAbsent ? null : selectedStoolColor,
-      details: stoolAbsent ? [] : getChecked('stoolChecks')
-    },
-    sleep: {
-      bed:  document.getElementById('sleepBed').value  || null,
-      wake: document.getElementById('sleepWake').value || null,
-      details: getChecked('sleepChecks')
-    },
-    note: document.getElementById('entryNote').value.trim()
+    sinus:    sinusVal,
+    breath:   breathVal,
+    belly:    bellyVal,
+    sinusSyms:  getCheckedAny('sinus'),
+    breathSyms: getCheckedAny('breath'),
+    bellySyms:  getCheckedAny('belly'),
+    stool: stoolAbsent ? { absent: true } : { type: stoolType, color: stoolColor, feats: stoolFeats },
+    sleep: { quality: sleepQual, disturb: sleepDisturb },
+    notes: document.getElementById('notes').value.trim()
   };
 
-  entries.unshift(entry);
-  save();
-  resetForm();
-  updatePlageBanner();
-  toast('✅ Entrée enregistrée');
+  entries.push(entry);
+  localStorage.setItem('medEntries', JSON.stringify(entries));
+
+  // Flash save indicator
+  const ind = document.getElementById('saveInd');
+  ind.classList.add('show');
+  setTimeout(() => ind.classList.remove('show'), 2200);
+
+  showToast('✚ ENTRÉE ENREGISTRÉE');
 }
 
-// ── RESET FORM ──
-function resetForm(){
-  const n = new Date();
-  document.getElementById('entryDate').value = n.toISOString().split('T')[0];
-  document.getElementById('entryTime').value = n.toTimeString().slice(0,5);
-  ['sinusRange','breathRange','bellyRange'].forEach(id=>{
-    document.getElementById(id).value = 0;
-  });
-  updateSlider('sinus',0);updateSlider('breath',0);updateSlider('belly',0);
-  document.getElementById('entryNote').value = '';
-
-  document.querySelectorAll('#sinusChecks .chk-item').forEach(el=>{
-    const def = el.dataset.key==='douleur_gauche'||el.dataset.key==='pression_faciale';
-    el.querySelector('.chk-dot').textContent = def ? '✓' : '';
-    el.classList.toggle('checked-sinus', def);
-  });
-  ['breathChecks','bellyChecks','stoolChecks'].forEach(id=>{
-    document.querySelectorAll('#'+id+' .chk-item').forEach(el=>{
-      el.querySelector('.chk-dot').textContent = '';
-      el.className = 'chk-item';
-    });
-  });
-
-  // reset stool
-  stoolAbsent = false;
-  selectedStoolType = null;
-  selectedStoolColor = null;
-  document.getElementById('stoolAbsentToggle').classList.remove('active');
-  document.getElementById('stoolAbsentBox').textContent = '';
-  document.getElementById('stoolDetail').classList.remove('visible');
-  document.querySelectorAll('#stoolTypeGrid .stool-type').forEach(x=>x.classList.remove('selected'));
-  document.querySelectorAll('#stoolColorGrid .color-item').forEach(x=>x.classList.remove('selected'));
-
-  // reset sleep
-  document.getElementById('sleepBed').value = '';
-  document.getElementById('sleepWake').value = '';
-  document.querySelectorAll('#sleepChecks .chk-item').forEach(el=>{
-    el.querySelector('.chk-dot').textContent = '';
-    el.className = 'chk-item';
-  });
+/* ════════════════════════
+   STATS & CHART
+   ════════════════════════ */
+function updateStats() {
+  const seven = entries.slice(-7);
+  const avg = (key) => seven.length ? (seven.reduce((s,e)=>s+(+e[key]||0),0)/seven.length).toFixed(1) : '—';
+  document.getElementById('avgSinus').textContent  = avg('sinus');
+  document.getElementById('avgBreath').textContent = avg('breath');
+  document.getElementById('avgBelly').textContent  = avg('belly');
+  document.getElementById('totalEntries').textContent = entries.length;
 }
 
-// ── STATS ──
-function renderStats(){
-  const n = entries.length;
-  document.getElementById('totalEntries').textContent = n;
-  if(!n){
-    ['avgSinus','avgBreath','avgBelly'].forEach(id=>document.getElementById(id).textContent='—');
-    document.getElementById('freqSymptoms').innerHTML='<div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>';
-    document.getElementById('stoolStats').innerHTML='<div class="empty"><div class="ei">🚽</div><p>Pas encore de données</p></div>';
-    return;
-  }
-  document.getElementById('avgSinus').textContent = (entries.reduce((a,e)=>a+e.sinus,0)/n).toFixed(1);
-  document.getElementById('avgBreath').textContent = (entries.reduce((a,e)=>a+e.breath,0)/n).toFixed(1);
-  document.getElementById('avgBelly').textContent = (entries.reduce((a,e)=>a+(e.belly||0),0)/n).toFixed(1);
-
-  // symptom freq
-  const freq = {};
-  entries.forEach(e=>{
-    [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])]
-      .forEach(s=>{freq[s]=(freq[s]||0)+1;});
+function renderChart() {
+  const last14 = entries.slice(-14);
+  const labels = last14.map(e => e.date.slice(5));
+  const ds = (key,color) => ({
+    label: key,
+    data: last14.map(e=>e[key]||0),
+    borderColor: color, backgroundColor: color+'22',
+    tension: 0.35, pointRadius: 4, pointHoverRadius: 6, borderWidth: 2, fill: true
   });
-  const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const fEl = document.getElementById('freqSymptoms');
-  if(!sorted.length){fEl.innerHTML='<div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>';return;}
-  fEl.innerHTML = sorted.map(([k,v])=>`
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <div style="font-size:12.5px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${SYM[k]||k}</div>
-      <div style="flex:2;background:var(--surface2);border-radius:6px;height:7px;overflow:hidden;">
-        <div style="width:${Math.round(v/n*100)}%;height:100%;background:var(--sinus);border-radius:6px;"></div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);font-weight:700;width:26px;text-align:right;">${v}×</div>
-    </div>`).join('');
 
-  // stool stats
-  const stoolEntries = entries.filter(e=>e.stool&&!e.stool.absent&&e.stool.type!=null);
-  const stoolEl = document.getElementById('stoolStats');
-  if(!stoolEntries.length){stoolEl.innerHTML='<div class="empty"><div class="ei">🚽</div><p>Pas encore de données</p></div>';return;}
-  const typeCnt={};const colorCnt={};
-  stoolEntries.forEach(e=>{
-    typeCnt[e.stool.type]=(typeCnt[e.stool.type]||0)+1;
-    if(e.stool.color) colorCnt[e.stool.color]=(colorCnt[e.stool.color]||0)+1;
-  });
-  const absentCnt = entries.filter(e=>e.stool?.absent).length;
-  let html='';
-  if(absentCnt) html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">🚫 Pas de selles : <strong>${absentCnt} jour(s)</strong></div>`;
-  Object.entries(typeCnt).sort((a,b)=>b[1]-a[1]).forEach(([t,v])=>{
-    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
-      <div style="font-size:12px;font-weight:600;flex:1;">${STOOL_TYPES[t]||'T'+t}</div>
-      <div style="flex:1.5;background:var(--surface2);border-radius:6px;height:7px;overflow:hidden;">
-        <div style="width:${Math.round(v/stoolEntries.length*100)}%;height:100%;background:var(--stool);border-radius:6px;"></div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);font-weight:700;width:26px;text-align:right;">${v}×</div>
-    </div>`;
-  });
-  if(Object.keys(colorCnt).length){
-    html+='<div style="margin-top:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px;">Couleurs</div>';
-    Object.entries(colorCnt).sort((a,b)=>b[1]-a[1]).forEach(([c,v])=>{
-      html+=`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">• ${STOOL_COLORS[c]||c} : <strong style="color:var(--text)">${v}×</strong></div>`;
-    });
-  }
-  stoolEl.innerHTML = html;
-}
-
-// ── CHARTS ──
-function renderCharts(){
-  const sorted = [...entries].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
-  const last30 = sorted.filter(e=>new Date(e.date)>=cutoff);
-
-  const ctx1 = document.getElementById('lineChart').getContext('2d');
-  if(lineChart) lineChart.destroy();
-  lineChart = new Chart(ctx1,{
-    type:'line',
-    data:{
-      labels: last30.map(e=>e.date.slice(5).replace('-','/')),
-      datasets:[
-        {label:'Sinus',data:last30.map(e=>e.sinus),borderColor:'#c0282a',backgroundColor:'rgba(192,40,42,0.07)',borderWidth:2,pointBackgroundColor:'#c0282a',pointRadius:3.5,tension:0.35,fill:true},
-        {label:'Essouf.',data:last30.map(e=>e.breath),borderColor:'#1a5f8a',backgroundColor:'rgba(26,95,138,0.06)',borderWidth:2,pointBackgroundColor:'#1a5f8a',pointRadius:3.5,tension:0.35,fill:true},
-        {label:'Ventre',data:last30.map(e=>e.belly||0),borderColor:'#7a2060',backgroundColor:'rgba(122,32,96,0.06)',borderWidth:2,pointBackgroundColor:'#7a2060',pointRadius:3.5,tension:0.35,fill:true}
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        ds('sinus',  '#c0282a'),
+        ds('breath', '#1a5f8a'),
+        ds('belly',  '#7a2060')
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,titleFont:{size:10},bodyFont:{size:10}}},
-      scales:{y:{min:0,max:10,ticks:{stepSize:2,font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},
-        x:{ticks:{maxTicksLimit:6,font:{size:9},maxRotation:35},grid:{display:false}}}}
-  });
-
-  // ── SLEEP CHART ──
-  // Convertit "HH:MM" en heure décimale, avec ajustement pour coucher après minuit
-  function timeToDecimal(t, isBed){
-    if(!t) return null;
-    const [h,m] = t.split(':').map(Number);
-    let dec = h + m/60;
-    // Les heures de coucher tard (>= 18h) restent positives; avant 6h → ramener dans le contexte nuit précédente
-    if(isBed && dec < 6) dec += 24; // ex: 00:30 → 24.5
-    return dec;
-  }
-
-  const sleepEntries = last30.filter(e => e.sleep && (e.sleep.bed || e.sleep.wake));
-  const sleepEmptyEl = document.getElementById('sleepChartEmpty');
-  const sleepCanvasEl = document.getElementById('sleepChart');
-
-  if(!sleepEntries.length){
-    if(sleepEmptyEl) sleepEmptyEl.style.display = '';
-    if(sleepCanvasEl) sleepCanvasEl.style.display = 'none';
-    if(sleepChart){ sleepChart.destroy(); sleepChart = null; }
-  } else {
-    if(sleepEmptyEl) sleepEmptyEl.style.display = 'none';
-    if(sleepCanvasEl) sleepCanvasEl.style.display = '';
-
-    const sleepLabels = sleepEntries.map(e => e.date.slice(5).replace('-','/'));
-    const bedData   = sleepEntries.map(e => timeToDecimal(e.sleep?.bed, true));
-    const wakeData  = sleepEntries.map(e => timeToDecimal(e.sleep?.wake, false));
-    const durData   = sleepEntries.map(e => {
-      const b = timeToDecimal(e.sleep?.bed, true);
-      const w = timeToDecimal(e.sleep?.wake, false);
-      if(b == null || w == null) return null;
-      let dur = w - b;
-      if(dur < 0) dur += 24;
-      return Math.round(dur * 10) / 10;
-    });
-
-    // Axe Y : heures de 18 à 32 (= 8h lendemain) pour coucher/lever + axe secondaire durée
-    const ctx2 = sleepCanvasEl.getContext('2d');
-    if(sleepChart) sleepChart.destroy();
-    sleepChart = new Chart(ctx2, {
-      type: 'line',
-      data: {
-        labels: sleepLabels,
-        datasets: [
-          {
-            label: 'Coucher',
-            data: bedData,
-            borderColor: '#3a2070',
-            backgroundColor: 'rgba(58,32,112,0.06)',
-            borderWidth: 2,
-            pointBackgroundColor: '#3a2070',
-            pointRadius: 4,
-            tension: 0.3,
-            fill: false,
-            yAxisID: 'yTime'
-          },
-          {
-            label: 'Lever',
-            data: wakeData,
-            borderColor: '#a060e0',
-            backgroundColor: 'rgba(160,96,224,0.06)',
-            borderWidth: 2,
-            pointBackgroundColor: '#a060e0',
-            pointRadius: 4,
-            tension: 0.3,
-            fill: false,
-            yAxisID: 'yTime'
-          },
-          {
-            label: 'Durée (h)',
-            data: durData,
-            borderColor: '#50a0a0',
-            backgroundColor: 'rgba(80,160,160,0.07)',
-            borderWidth: 1.5,
-            borderDash: [5,3],
-            pointBackgroundColor: '#50a0a0',
-            pointRadius: 3,
-            tension: 0.3,
-            fill: false,
-            yAxisID: 'yDur'
-          }
-        ]
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 10, grid: { color: '#ddd0d033' } },
+        x: { grid: { display: false } }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            mode: 'index',
-            intersect: false,
-            titleFont: { size: 10 },
-            bodyFont: { size: 10 },
-            callbacks: {
-              label: function(ctx){
-                if(ctx.dataset.yAxisID === 'yDur') return ' Durée : ' + (ctx.raw != null ? ctx.raw + 'h' : '—');
-                const v = ctx.raw;
-                if(v == null) return ' —';
-                let h = Math.floor(v % 24);
-                let m = Math.round((v % 1) * 60);
-                return ' ' + ctx.dataset.label + ' : ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-              }
-            }
-          }
-        },
-        scales: {
-          yTime: {
-            position: 'left',
-            min: 18, max: 32,
-            ticks: {
-              stepSize: 2,
-              font: { size: 9 },
-              callback: v => {
-                const h = Math.floor(v % 24);
-                return String(h).padStart(2,'0') + 'h';
-              }
-            },
-            grid: { color: 'rgba(0,0,0,0.04)' }
-          },
-          yDur: {
-            position: 'right',
-            min: 0, max: 12,
-            ticks: {
-              stepSize: 2,
-              font: { size: 9 },
-              callback: v => v + 'h'
-            },
-            grid: { display: false }
-          },
-          x: {
-            ticks: { maxTicksLimit: 6, font: { size: 9 }, maxRotation: 35 },
-            grid: { display: false }
-          }
-        }
-      }
-    });
-  }
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } } }
+    }
+  });
 }
-function renderHistory(){
-  const el = document.getElementById('histList');
-  if(!entries.length){el.innerHTML='<div class="empty"><div class="ei">📋</div><p>Aucune entrée</p></div>';return;}
-  el.innerHTML = entries.map(e=>{
-    const stoolBadge = e.stool
-      ? (e.stool.absent
-          ? '<span class="hist-badge stool">🚫 Aucune</span>'
-          : (e.stool.type!=null
-              ? `<span class="hist-badge stool">🚽 T${e.stool.type}${e.stool.color?' · '+STOOL_COLORS[e.stool.color]:''}</span>`
-              : ''))
-      : '';
-    const sleepBed  = e.sleep?.bed  || null;
-    const sleepWake = e.sleep?.wake || null;
-    const sleepBadge = (sleepBed||sleepWake)
-      ? `<span class="hist-badge sleep">🌙 ${sleepBed||'?'} → ${sleepWake||'?'}</span>`
-      : '';
-    const allTags = [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[]),...(e.sleep?.details||[])];
-    return `
+
+/* ════════════════════════
+   HISTORY
+   ════════════════════════ */
+function renderHistory() {
+  const c = document.getElementById('histContainer');
+  if (!entries.length) {
+    c.innerHTML = '<div class="empty"><div class="ei">📋</div><p>Aucune entrée enregistrée</p></div>';
+    return;
+  }
+  c.innerHTML = [...entries].reverse().map(e => `
     <div class="hist-item">
-      <div class="hist-date">${e.date.slice(5).replace('-','/')}<br>${e.time}</div>
+      <div class="hist-date">${e.date}<br>${e.time}</div>
       <div>
         <div class="hist-scores">
-          <span class="hist-badge sinus">🫁 ${e.sinus}/10</span>
-          <span class="hist-badge breath">💨 ${e.breath}/10</span>
-          <span class="hist-badge belly">🫀 ${e.belly||0}/10</span>
-          ${stoolBadge}
-          ${sleepBadge}
+          <span class="hist-badge sinus">🩸 ${e.sinus}</span>
+          <span class="hist-badge breath">🫁 ${e.breath}</span>
+          <span class="hist-badge belly">🫃 ${e.belly}</span>
+          ${e.stool?.absent ? '<span class="hist-badge stool">🚽 —</span>'
+            : e.stool?.type ? `<span class="hist-badge stool">🚽 T${e.stool.type}</span>` : ''}
+          ${e.sleep?.quality ? `<span class="hist-badge sleep">😴 ${e.sleep.quality}</span>` : ''}
         </div>
-        <div class="hist-tags">
-          ${allTags.map(s=>`<span class="tag-pill">${SYM[s]||s}</span>`).join('')}
-          ${e.note?'<span class="tag-pill">📝</span>':''}
-        </div>
-        ${e.note?`<div style="font-size:11.5px;color:var(--muted);margin-top:4px;font-style:italic;">"${e.note.slice(0,80)}${e.note.length>80?'…':''}"</div>`:''}
+        ${e.notes ? `<div class="hist-tags"><span class="tag-pill">📝 ${e.notes.slice(0,40)}${e.notes.length>40?'…':''}</span></div>` : ''}
       </div>
-      <button class="del-btn" onclick="delEntry(${e.id})">✕</button>
-    </div>`;
-  }).join('');
+      <button class="del-btn" onclick="deleteEntry(${e.id})">✕</button>
+    </div>
+  `).join('');
 }
 
-function delEntry(id){
-  if(!confirm('Supprimer cette entrée ?'))return;
-  entries = entries.filter(e=>e.id!==id);
-  save();renderHistory();toast('🗑 Supprimé');
+function deleteEntry(id) {
+  if (!confirm('Supprimer cette entrée ?')) return;
+  entries = entries.filter(e => e.id !== id);
+  localStorage.setItem('medEntries', JSON.stringify(entries));
+  renderHistory();
+  showToast('🗑 SUPPRIMÉE');
 }
 
-function clearAll(){
-  if(!confirm('Effacer TOUTES les données ?\nAction irréversible.'))return;
-  entries = [];save();renderHistory();renderStats();toast('🗑 Données effacées');
+/* ════════════════════════
+   EXPORT / IMPORT
+   ════════════════════════ */
+function exportJSON() {
+  download(JSON.stringify(entries, null, 2), 'dossier_medical.json', 'application/json');
+  showToast('✚ JSON EXPORTÉ');
 }
-
-// ── EXPORTS ──
-function exportJSON(){
-  if(!entries.length){toast('⚠️ Aucune donnée');return;}
-  const now = new Date();
-  const pad2 = n => String(n).padStart(2,'0');
-  const exportedAt = now.toISOString();
-  const dateStr = now.getFullYear()+'-'+pad2(now.getMonth()+1)+'-'+pad2(now.getDate());
-  const timeStr = pad2(now.getHours())+pad2(now.getMinutes());
-  const data = JSON.stringify({version:'sante_v3',exportedAt,entries}, null, 2);
-  dl('suivi_sante_'+dateStr+'_'+timeStr+'.json','data:application/json;charset=utf-8,'+encodeURIComponent(data));
-  toast('💾 JSON exporté');
+function exportCSV() {
+  const h = 'date,heure,sinus,respiration,ventre,notes';
+  const rows = entries.map(e => `${e.date},${e.time},${e.sinus},${e.breath},${e.belly},"${(e.notes||'').replace(/"/g,'""')}"`);
+  download([h,...rows].join('\n'), 'dossier_medical.csv', 'text/csv');
+  showToast('✚ CSV EXPORTÉ');
 }
-
-function exportCSV(){
-  if(!entries.length){toast('⚠️ Aucune donnée');return;}
-  const hdr = ['id','date','heure','sinus','essoufflement','ventre','sinus_symptomes','breath_symptomes','belly_symptomes','selle_absente','selle_type','selle_couleur','selle_details','sommeil_coucher','sommeil_lever','sommeil_details','note'];
-  const rows = entries.map(e=>[
-    e.id,e.date,e.time,e.sinus,e.breath,e.belly||0,
-    (e.sinusSymptoms||[]).join('|'),(e.breathSymptoms||[]).join('|'),(e.bellySymptoms||[]).join('|'),
-    e.stool?.absent?'oui':'non',
-    e.stool?.type!=null?e.stool.type:'',
-    e.stool?.color||'',
-    (e.stool?.details||[]).join('|'),
-    e.sleep?.bed||'',
-    e.sleep?.wake||'',
-    (e.sleep?.details||[]).join('|'),
-    '"'+(e.note||'').replace(/"/g,'""')+'"'
-  ].join(','));
-  dl('suivi_sante.csv','data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent([hdr.join(','),...rows].join('\n')));
-  toast('📊 CSV exporté');
+function exportTXT() {
+  const txt = entries.map(e =>
+    `[${e.date} ${e.time}]\nSinus: ${e.sinus}/10  Respiration: ${e.breath}/10  Ventre: ${e.belly}/10\n${e.notes ? 'Notes: '+e.notes : ''}\n`
+  ).join('\n---\n');
+  download(txt, 'dossier_medical.txt', 'text/plain');
+  showToast('✚ TEXTE EXPORTÉ');
 }
-
-function exportText(){
-  if(!entries.length){toast('⚠️ Aucune donnée');return;}
-  const n = entries.length;
-  const avgS = (entries.reduce((a,e)=>a+e.sinus,0)/n).toFixed(1);
-  const avgB = (entries.reduce((a,e)=>a+e.breath,0)/n).toFixed(1);
-  const avgBe = (entries.reduce((a,e)=>a+(e.belly||0),0)/n).toFixed(1);
-  const stoolAbsentCount = entries.filter(e=>e.stool?.absent).length;
-  const stoolEntries = entries.filter(e=>e.stool&&!e.stool.absent&&e.stool.type!=null);
-  const typeCnt={};
-  stoolEntries.forEach(e=>{typeCnt[e.stool.type]=(typeCnt[e.stool.type]||0)+1;});
-  const topStool = Object.entries(typeCnt).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`  - ${STOOL_TYPES[t]} : ${v} fois`).join('\n');
-  const freq={};
-  entries.forEach(e=>[...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])].forEach(s=>{freq[s]=(freq[s]||0)+1;}));
-  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`  - ${SYM[k]||k} : ${v} fois`).join('\n');
-
-  let txt=`RAPPORT SUIVI SANTÉ\nExporté le : ${new Date().toLocaleDateString('fr-FR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}\n${'═'.repeat(45)}\n\nRÉSUMÉ STATISTIQUE\n  Entrées           : ${n}\n  Période           : ${entries[entries.length-1].date} → ${entries[0].date}\n  Score sinus moy.  : ${avgS}/10\n  Score essouf. moy.: ${avgB}/10\n  Score ventre moy. : ${avgBe}/10\n\nSELLES\n  Absentes : ${stoolAbsentCount} jour(s)\n  Types fréquents :\n${topStool||'  (aucun)'}\n\nTOP SYMPTÔMES\n${top||'  Aucun'}\n\n${'═'.repeat(45)}\nJOURNAL DÉTAILLÉ\n${'═'.repeat(45)}\n\n`;
-
-  [...entries].reverse().forEach(e=>{
-    txt+=`▸ ${e.date}  ${e.time}\n`;
-    txt+=`  Sinus      : ${e.sinus}/10`;
-    if(e.sinusSymptoms?.length) txt+=`  |  ${e.sinusSymptoms.map(s=>SYM[s]||s).join(', ')}`;
-    txt+=`\n  Essouf.    : ${e.breath}/10`;
-    if(e.breathSymptoms?.length) txt+=`  |  ${e.breathSymptoms.map(s=>SYM[s]||s).join(', ')}`;
-    txt+=`\n  Ventre     : ${e.belly||0}/10`;
-    if(e.bellySymptoms?.length) txt+=`  |  ${e.bellySymptoms.map(s=>SYM[s]||s).join(', ')}`;
-    txt+='\n';
-    if(e.stool){
-      if(e.stool.absent){txt+='  Selles    : Absentes\n';}
-      else{
-        txt+=`  Selles    : T${e.stool.type??'?'} – ${STOOL_TYPES[e.stool.type]||''}`;
-        if(e.stool.color) txt+=` | ${STOOL_COLORS[e.stool.color]||e.stool.color}`;
-        if(e.stool.details?.length) txt+=` | ${e.stool.details.map(s=>SYM[s]||s).join(', ')}`;
-        txt+='\n';
-      }
-    }
-    if(e.note) txt+=`  Note       : ${e.note}\n`;
-    if(e.sleep && (e.sleep.bed||e.sleep.wake)){
-      txt+=`  Sommeil    : Coucher ${e.sleep.bed||'?'} — Lever ${e.sleep.wake||'?'}`;
-      if(e.sleep.details?.length) txt+=` | ${e.sleep.details.map(s=>SYM[s]||s).join(', ')}`;
-      txt+='\n';
-    }
-    txt+='\n';
-  });
-  txt+='═'.repeat(45)+'\nFin du rapport — Suivi Santé\n';
-  dl('suivi_sante_rapport.txt','data:text/plain;charset=utf-8,'+encodeURIComponent(txt));
-  toast('📄 Rapport exporté');
-}
-
-// ── IMPORT JSON ──
-function importJSON(input){
-  const file = input.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev){
-    const statusEl = document.getElementById('import-status');
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = function(e) {
     try {
-      const data = JSON.parse(ev.target.result);
-      // Lire exportedAt
-      const exportedAt = data.exportedAt || data.exportDate || null;
-      if(exportedAt && statusEl){
-        const d = new Date(exportedAt);
-        const fmt = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})
-                  + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-        statusEl.innerHTML = '<span style="color:var(--green)">✚ JSON du '+fmt+'</span>';
-        statusEl.style.display = 'block';
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        const ids = new Set(entries.map(x=>x.id));
+        data.forEach(d => { if (!ids.has(d.id)) entries.push(d); });
+        localStorage.setItem('medEntries', JSON.stringify(entries));
+        showToast('✚ ' + data.length + ' ENTRÉES IMPORTÉES');
       }
-      let imported = [];
-      if(Array.isArray(data)) imported = data;
-      else if(data.entries && Array.isArray(data.entries)) imported = data.entries;
-      else{
-        if(statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">⚠ Format JSON invalide — clé "entries" manquante</span>';
-        toast('⚠️ Format JSON invalide');return;
-      }
-      if(!imported.length){
-        if(statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">⚠ Fichier vide — aucune entrée trouvée</span>';
-        toast('⚠️ Fichier vide');return;
-      }
-      if(!confirm(`Importer ${imported.length} entrée(s) ?\nLes données existantes seront fusionnées.`))return;
-      const existIds = new Set(entries.map(e=>e.id));
-      let added=0;
-      imported.forEach(e=>{if(!existIds.has(e.id)){entries.push(e);added++;}});
-      entries.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
-      save();renderHistory();
-      if(statusEl) statusEl.innerHTML += '<br><span style="color:var(--green)">✅ '+added+' entrée(s) importée(s) — '+imported.length+' total dans le fichier</span>';
-      toast(`✅ ${added} entrée(s) importée(s)`);
-    } catch(err){
-      if(statusEl){
-        statusEl.innerHTML = '<span style="color:var(--danger)">⚠ JSON illisible — '+err.message+'</span>';
-        statusEl.style.display = 'block';
-      }
-      toast('⚠️ Fichier JSON invalide');
-    }
-    input.value='';
+    } catch { showToast('⚠ FICHIER INVALIDE'); }
   };
-  reader.readAsText(file);
+  r.readAsText(file);
 }
-
-function dl(name, url){
+function download(content, name, type) {
   const a = document.createElement('a');
-  a.href = url; a.download = name; a.click();
+  a.href = URL.createObjectURL(new Blob([content], {type}));
+  a.download = name; a.click();
+}
+function clearAll() {
+  if (!confirm('Effacer TOUTES les données ? Action irréversible.')) return;
+  entries = [];
+  localStorage.removeItem('medEntries');
+  showToast('🗑 DONNÉES EFFACÉES');
 }
 
-function toast(msg){
+/* ════════════════════════
+   TOAST
+   ════════════════════════ */
+let toastTimer;
+function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2600);
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
 }
-
-// ── Show stool detail by default hidden ──
-document.getElementById('stoolDetail').classList.remove('visible');
 </script>
 </body>
 </html>
