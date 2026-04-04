@@ -234,6 +234,14 @@ input[type="number"].form-input::-webkit-inner-spin-button{-webkit-appearance:no
 /* Status strip */
 .status-strip{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);padding:4px 14px 8px;justify-content:flex-end;}
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* ── INLINE EDIT ── */
+.item-label-edit{font-family:inherit;font-size:13px;font-weight:500;color:var(--text);background:var(--surface2);border:1px solid var(--accent);border-radius:5px;padding:2px 6px;outline:none;width:100%;box-sizing:border-box;}
+.item-amount-edit{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--text);background:var(--surface2);border:1px solid var(--accent);border-radius:5px;padding:2px 6px;outline:none;width:72px;text-align:right;box-sizing:border-box;}
+.item-label.editable{cursor:text;}
+.item-label.editable:hover{text-decoration:underline dotted;color:var(--accent);}
+.item-amount.editable{cursor:text;}
+.item-amount.editable:hover{color:var(--accent);text-decoration:underline dotted;}
 </style>
 </head>
 <body>
@@ -293,9 +301,9 @@ input[type="number"].form-input::-webkit-inner-spin-button{-webkit-appearance:no
       <!-- TRI -->
       <div class="sort-bar">
         <span class="sort-label">Trier</span>
-        <button class="sort-btn active" id="sort-default" onclick="setSort('default')">Par défaut</button>
+        <button class="sort-btn" id="sort-default" onclick="setSort('default')">Par défaut</button>
         <button class="sort-btn" id="sort-name" onclick="setSort('name')">Nom <span class="arr" id="arr-name">↑</span></button>
-        <button class="sort-btn" id="sort-date" onclick="setSort('date')">Date <span class="arr" id="arr-date">↑</span></button>
+        <button class="sort-btn active" id="sort-date" onclick="setSort('date')">Date <span class="arr" id="arr-date">↓</span></button>
         <button class="sort-btn" id="sort-amount" onclick="setSort('amount')">Montant <span class="arr" id="arr-amount">↓</span></button>
       </div>
 
@@ -440,8 +448,8 @@ function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
 
 let STATE = loadState();
 let filterActive = 'all';
-let sortMode = 'default';   // 'default' | 'name' | 'date' | 'amount'
-let sortDir  = {};          // { name: 1, date: -1, amount: -1 }
+let sortMode = 'date';      // 'default' | 'name' | 'date' | 'amount'
+let sortDir  = { date: -1 }; // tri par date décroissant par défaut
 
 const now = new Date();
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -516,7 +524,10 @@ function setSort(mode) {
 }
 
 function sortItems(items) {
-  if (sortMode === 'default') return [...items];
+  if (sortMode === 'default') {
+    // Par défaut : insertion order (index d'origine)
+    return [...items];
+  }
   return [...items].sort((a, b) => {
     const dir = sortDir[sortMode] || 1;
     if (sortMode === 'name') {
@@ -607,7 +618,7 @@ function renderItems(items, cats) {
     html += `<div class="item-row ${rowClass}">
       <div class="check-box ${item.done?'done':''}" onclick="toggleItem(${realIdx})">${item.done?'✓':''}</div>
       <div class="item-info">
-        <div class="item-label">${escHtml(item.label)}</div>
+        <div class="item-label editable" onclick="editLabel(event,${realIdx})" title="Cliquer pour modifier">${escHtml(item.label)}</div>
         <div class="item-extras">
           ${cat?`<span class="item-tag cat-tag">${cat.icon} ${cat.name}</span>`:''}
           ${item.date?`<span class="item-tag date-tag">📅 ${item.date}</span>`:''}
@@ -615,7 +626,7 @@ function renderItems(items, cats) {
           ${item.note?`<span class="item-tag note-tag">${escHtml(item.note)}</span>`:''}
         </div>
       </div>
-      <span class="item-amount">${fmt(item.amount)}</span>
+      <span class="item-amount editable" onclick="editAmount(event,${realIdx})" title="Cliquer pour modifier">${fmt(item.amount)}</span>
       <button class="item-del" onclick="deleteItem(${realIdx})">×</button>
     </div>`;
   });
@@ -798,6 +809,62 @@ function filterCat(catId) { filterActive = catId; render(); }
 // ══════════════════════════════
 function toggleItem(idx) { const mon=ensureMonth(); mon.items[idx].done=!mon.items[idx].done; saveState(); render(); }
 function deleteItem(idx)  { const mon=ensureMonth(); mon.items.splice(idx,1); saveState(); render(); }
+
+// ── ÉDITION INLINE ──
+function editLabel(e, idx) {
+  const span = e.currentTarget;
+  if (span.querySelector('input')) return; // déjà en cours
+  const mon = ensureMonth();
+  const item = mon.items[idx];
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.className = 'item-label-edit';
+  inp.value = item.label;
+  span.innerHTML = '';
+  span.appendChild(inp);
+  inp.focus();
+  inp.select();
+  function commit() {
+    const val = inp.value.trim();
+    if (val) { mon.items[idx].label = val; saveState(); }
+    render();
+  }
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { inp.blur(); }
+    if (ev.key === 'Escape') { inp.removeEventListener('blur', commit); render(); }
+    ev.stopPropagation();
+  });
+  e.stopPropagation();
+}
+
+function editAmount(e, idx) {
+  const span = e.currentTarget;
+  if (span.querySelector('input')) return;
+  const mon = ensureMonth();
+  const item = mon.items[idx];
+  const inp = document.createElement('input');
+  inp.type = 'number';
+  inp.inputMode = 'decimal';
+  inp.className = 'item-amount-edit';
+  inp.value = item.amount || '';
+  span.innerHTML = '';
+  span.appendChild(inp);
+  inp.focus();
+  inp.select();
+  function commit() {
+    const val = parseFloat(inp.value);
+    if (!isNaN(val) && val >= 0) { mon.items[idx].amount = val; saveState(); }
+    render();
+  }
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { inp.blur(); }
+    if (ev.key === 'Escape') { inp.removeEventListener('blur', commit); render(); }
+    ev.stopPropagation();
+  });
+  e.stopPropagation();
+}
 function clearPaid() {
   const mon = ensureMonth();
   const before = mon.items.length;
