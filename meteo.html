@@ -115,6 +115,78 @@
     background: #232b1a;
   }
 
+  /* ── THÈME CLAIR BEIGE/ORANGE ── */
+  [data-theme="light"] {
+    --bg: #faf6f0;
+    --bg2: #f2ebe0;
+    --ink: #2c1f0e;
+    --ink2: #7a5c3a;
+    --ink3: #b08a60;
+    --line: #ddd0bc;
+    --accent: #d4620a;
+    --blue: #2a6fa8;
+    --snow: #5a8ab4;
+    --purple: #7a5a9a;
+    --amber: #d4880a;
+  }
+  [data-theme="light"] body {
+    background-image: none;
+  }
+  [data-theme="light"] .city-name {
+    color: var(--ink) !important;
+    letter-spacing: -0.02em;
+  }
+  [data-theme="light"] .slabel {
+    color: var(--accent);
+    letter-spacing: 0.3em;
+  }
+  [data-theme="light"] .tl-node {
+    background: #faf6f0;
+    border-color: var(--line);
+  }
+  [data-theme="light"] .tl-row.now .tl-node {
+    border-color: var(--accent);
+    box-shadow: 0 0 6px rgba(212,98,10,0.25);
+  }
+  [data-theme="light"] .range-fill {
+    background: linear-gradient(90deg, #e8a020, #d4620a) !important;
+    box-shadow: 0 0 5px 1px rgba(212,98,10,0.35) !important;
+  }
+  [data-theme="light"] .uv-track {
+    background: linear-gradient(90deg,#4a8a5c,#d4880a,#d4620a,#7a5a9a) !important;
+  }
+  [data-theme="light"] .wind-hero {
+    border-color: var(--line);
+    background: var(--bg2);
+    border-left: 2px solid var(--accent);
+  }
+  [data-theme="light"] .ac {
+    background: #faf6f0;
+    border-color: var(--line);
+  }
+  [data-theme="light"] .ac-item:hover {
+    background: var(--bg2);
+  }
+  [data-theme="light"] #haPanel {
+    border-color: var(--line);
+    background: var(--bg2);
+  }
+  [data-theme="light"] #theme-toggle {
+    border-color: #d4c4a8;
+    color: var(--accent);
+  }
+  [data-theme="light"] #theme-toggle:hover {
+    border-color: var(--accent);
+    background: var(--bg2);
+  }
+  [data-theme="light"] .tl-row.wind-warn  { background: rgba(212,136,10,0.08); }
+  [data-theme="light"] .tl-row.wind-hard  { background: rgba(212,98,10,0.10); }
+  [data-theme="light"] .tl-row.wind-danger{ background: rgba(192,40,40,0.09); }
+  [data-theme="light"] .wind-legend {
+    background: var(--bg2);
+    border-color: var(--line);
+  }
+
   /* THEME TOGGLE BUTTON */
   #theme-toggle {
     background: transparent;
@@ -882,26 +954,33 @@ function toast(msg){
   clearTimeout(tt);tt=setTimeout(()=>t.className='',2500);
 }
 
+const THEMES = ['default','military','light'];
+const THEME_LABELS = {default:'☀ Civil', military:'⚔ Militaire', light:'☼ Clair'};
+
 function toggleTheme(){
   const html = document.documentElement;
   const btn = document.getElementById('theme-toggle');
-  if(html.getAttribute('data-theme') === 'military'){
+  const cur = html.getAttribute('data-theme') || 'default';
+  const idx = THEMES.indexOf(cur);
+  const next = THEMES[(idx + 1) % THEMES.length];
+  if(next === 'default'){
     html.removeAttribute('data-theme');
-    btn.textContent = '☀ Civil';
-    localStorage.setItem('meteo_theme','default');
   } else {
-    html.setAttribute('data-theme','military');
-    btn.textContent = '⚔ Militaire';
-    localStorage.setItem('meteo_theme','military');
+    html.setAttribute('data-theme', next);
   }
+  btn.textContent = THEME_LABELS[next];
+  localStorage.setItem('meteo_theme', next);
 }
 
 window.addEventListener('load',()=>{
   // Restore theme
   const savedTheme = localStorage.getItem('meteo_theme');
-  if(savedTheme === 'military'){
-    document.documentElement.setAttribute('data-theme','military');
-    document.getElementById('theme-toggle').textContent = '⚔ Militaire';
+  const btn = document.getElementById('theme-toggle');
+  if(savedTheme && savedTheme !== 'default'){
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    btn.textContent = THEME_LABELS[savedTheme] || '☀ Civil';
+  } else {
+    btn.textContent = THEME_LABELS['default'];
   }
   document.getElementById('si').value='Bourg-lès-Valence';
   loadWX(44.9333,4.8833,'Bourg-lès-Valence','France');
