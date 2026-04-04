@@ -1110,6 +1110,17 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
   </div>
 
+  <div class="sec-label">Sommeil — coucher / lever (30 jours)</div>
+  <div class="card card-pad">
+    <div style="display:flex;gap:14px;font-size:11px;font-weight:700;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="color:#3a2070;display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#3a2070;border-radius:2px;display:inline-block;"></span>Coucher</span>
+      <span style="color:#a060e0;display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#a060e0;border-radius:2px;display:inline-block;"></span>Lever</span>
+      <span style="color:#50a0a0;display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#50a0a0;border-radius:2px;display:inline-block;border-top:2px dashed #50a0a0;height:0;"></span>Durée (h)</span>
+    </div>
+    <div class="chart-wrap" style="height:200px;"><canvas id="sleepChart"></canvas></div>
+    <div id="sleepChartEmpty" class="empty" style="display:none;padding:20px 0;"><div class="ei">🌙</div><p>Pas encore de données sommeil</p></div>
+  </div>
+
   <div class="sec-label">Selles — types fréquents</div>
   <div class="card card-pad" id="stoolStats">
     <div class="empty"><div class="ei">📊</div><p>Pas encore de données</p></div>
@@ -1188,6 +1199,7 @@ input[type="range"]::-webkit-slider-thumb {
 const STORAGE_KEY = 'sante_v3';
 let entries = [];
 let lineChart = null;
+let sleepChart = null;
 let stoolAbsent = false;
 let selectedStoolType = null;
 let selectedStoolColor = null;
@@ -1608,9 +1620,144 @@ function renderCharts(){
       scales:{y:{min:0,max:10,ticks:{stepSize:2,font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},
         x:{ticks:{maxTicksLimit:6,font:{size:9},maxRotation:35},grid:{display:false}}}}
   });
-}
 
-// ── HISTORY ──
+  // ── SLEEP CHART ──
+  // Convertit "HH:MM" en heure décimale, avec ajustement pour coucher après minuit
+  function timeToDecimal(t, isBed){
+    if(!t) return null;
+    const [h,m] = t.split(':').map(Number);
+    let dec = h + m/60;
+    // Les heures de coucher tard (>= 18h) restent positives; avant 6h → ramener dans le contexte nuit précédente
+    if(isBed && dec < 6) dec += 24; // ex: 00:30 → 24.5
+    return dec;
+  }
+
+  const sleepEntries = last30.filter(e => e.sleep && (e.sleep.bed || e.sleep.wake));
+  const sleepEmptyEl = document.getElementById('sleepChartEmpty');
+  const sleepCanvasEl = document.getElementById('sleepChart');
+
+  if(!sleepEntries.length){
+    if(sleepEmptyEl) sleepEmptyEl.style.display = '';
+    if(sleepCanvasEl) sleepCanvasEl.style.display = 'none';
+    if(sleepChart){ sleepChart.destroy(); sleepChart = null; }
+  } else {
+    if(sleepEmptyEl) sleepEmptyEl.style.display = 'none';
+    if(sleepCanvasEl) sleepCanvasEl.style.display = '';
+
+    const sleepLabels = sleepEntries.map(e => e.date.slice(5).replace('-','/'));
+    const bedData   = sleepEntries.map(e => timeToDecimal(e.sleep?.bed, true));
+    const wakeData  = sleepEntries.map(e => timeToDecimal(e.sleep?.wake, false));
+    const durData   = sleepEntries.map(e => {
+      const b = timeToDecimal(e.sleep?.bed, true);
+      const w = timeToDecimal(e.sleep?.wake, false);
+      if(b == null || w == null) return null;
+      let dur = w - b;
+      if(dur < 0) dur += 24;
+      return Math.round(dur * 10) / 10;
+    });
+
+    // Axe Y : heures de 18 à 32 (= 8h lendemain) pour coucher/lever + axe secondaire durée
+    const ctx2 = sleepCanvasEl.getContext('2d');
+    if(sleepChart) sleepChart.destroy();
+    sleepChart = new Chart(ctx2, {
+      type: 'line',
+      data: {
+        labels: sleepLabels,
+        datasets: [
+          {
+            label: 'Coucher',
+            data: bedData,
+            borderColor: '#3a2070',
+            backgroundColor: 'rgba(58,32,112,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: '#3a2070',
+            pointRadius: 4,
+            tension: 0.3,
+            fill: false,
+            yAxisID: 'yTime'
+          },
+          {
+            label: 'Lever',
+            data: wakeData,
+            borderColor: '#a060e0',
+            backgroundColor: 'rgba(160,96,224,0.06)',
+            borderWidth: 2,
+            pointBackgroundColor: '#a060e0',
+            pointRadius: 4,
+            tension: 0.3,
+            fill: false,
+            yAxisID: 'yTime'
+          },
+          {
+            label: 'Durée (h)',
+            data: durData,
+            borderColor: '#50a0a0',
+            backgroundColor: 'rgba(80,160,160,0.07)',
+            borderWidth: 1.5,
+            borderDash: [5,3],
+            pointBackgroundColor: '#50a0a0',
+            pointRadius: 3,
+            tension: 0.3,
+            fill: false,
+            yAxisID: 'yDur'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            titleFont: { size: 10 },
+            bodyFont: { size: 10 },
+            callbacks: {
+              label: function(ctx){
+                if(ctx.dataset.yAxisID === 'yDur') return ' Durée : ' + (ctx.raw != null ? ctx.raw + 'h' : '—');
+                const v = ctx.raw;
+                if(v == null) return ' —';
+                let h = Math.floor(v % 24);
+                let m = Math.round((v % 1) * 60);
+                return ' ' + ctx.dataset.label + ' : ' + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+              }
+            }
+          }
+        },
+        scales: {
+          yTime: {
+            position: 'left',
+            min: 18, max: 32,
+            ticks: {
+              stepSize: 2,
+              font: { size: 9 },
+              callback: v => {
+                const h = Math.floor(v % 24);
+                return String(h).padStart(2,'0') + 'h';
+              }
+            },
+            grid: { color: 'rgba(0,0,0,0.04)' }
+          },
+          yDur: {
+            position: 'right',
+            min: 0, max: 12,
+            ticks: {
+              stepSize: 2,
+              font: { size: 9 },
+              callback: v => v + 'h'
+            },
+            grid: { display: false }
+          },
+          x: {
+            ticks: { maxTicksLimit: 6, font: { size: 9 }, maxRotation: 35 },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+}
 function renderHistory(){
   const el = document.getElementById('histList');
   if(!entries.length){el.innerHTML='<div class="empty"><div class="ei">📋</div><p>Aucune entrée</p></div>';return;}
