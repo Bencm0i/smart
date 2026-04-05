@@ -638,7 +638,7 @@
   /* TENUE SELECTOR */
   .tenue-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     margin-top: 10px;
   }
@@ -717,6 +717,59 @@
     letter-spacing: 1.5px;
     margin-bottom: 4px;
   }
+
+  /* TENDANCE BANNER */
+  .tendance-banner {
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+  }
+  .tendance-banner.hausse { background: linear-gradient(135deg, rgba(204,63,46,0.13) 0%, rgba(204,63,46,0.04) 100%); border-color: rgba(204,63,46,0.4); }
+  .tendance-banner.baisse { background: linear-gradient(135deg, rgba(74,158,107,0.13) 0%, rgba(74,158,107,0.04) 100%); border-color: rgba(74,158,107,0.4); }
+  .tendance-banner.stable { background: linear-gradient(135deg, rgba(158,117,80,0.1) 0%, rgba(158,117,80,0.03) 100%); border-color: var(--border); }
+  .tendance-banner.vide   { background: var(--bg2); border-color: var(--border); border-style: dashed; }
+
+  .t-arrow { font-size: 52px; line-height: 1; flex-shrink: 0; }
+  .tendance-banner.hausse .t-arrow { color: var(--bad); }
+  .tendance-banner.baisse .t-arrow { color: var(--good); }
+  .tendance-banner.stable .t-arrow { color: var(--warn); }
+  .tendance-banner.vide   .t-arrow { color: var(--text3); font-size: 36px; }
+
+  .t-body { flex: 1; min-width: 0; }
+  .t-titre { font-family: var(--header-font); font-size: 20px; letter-spacing: 2px; line-height: 1; margin-bottom: 2px; }
+  .tendance-banner.hausse .t-titre { color: var(--bad); }
+  .tendance-banner.baisse .t-titre { color: var(--good); }
+  .tendance-banner.stable .t-titre { color: var(--warn); }
+  .tendance-banner.vide   .t-titre { color: var(--text3); }
+
+  .t-valeur { font-family: var(--kpi-font); font-size: 38px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+  .tendance-banner.hausse .t-valeur { color: var(--bad); }
+  .tendance-banner.baisse .t-valeur { color: var(--good); }
+  .tendance-banner.stable .t-valeur { color: var(--warn); }
+
+  .t-detail { font-size: 10px; color: var(--text3); letter-spacing: 0.5px; margin-top: 5px; line-height: 1.5; }
+
+  .t-streak {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 9px; letter-spacing: 1px; padding: 2px 8px;
+    border-radius: 4px; font-family: var(--body-font);
+  }
+  .tendance-banner.baisse .t-streak { background: rgba(74,158,107,0.2); color: var(--good); }
+  .tendance-banner.hausse .t-streak { background: rgba(204,63,46,0.2); color: var(--bad); }
+  .tendance-banner.stable .t-streak { background: rgba(232,160,32,0.15); color: var(--warn); }
+
+  @keyframes pulseArrow {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-4px); opacity: 0.7; }
+  }
+  .tendance-banner.baisse .t-arrow { animation: pulseArrow 2s ease-in-out infinite; }
 </style>
 </head>
 <body>
@@ -739,6 +792,16 @@
 
   <!-- PAGE: TABLEAU DE BORD -->
   <div class="page active" id="page-dashboard">
+
+    <!-- TENDANCE BANNER -->
+    <div class="tendance-banner vide" id="tendance-banner">
+      <div class="t-arrow" id="t-arrow">⚖</div>
+      <div class="t-body">
+        <div class="t-titre" id="t-titre">EN ATTENTE</div>
+        <div class="t-valeur" id="t-valeur" style="font-size:18px;color:var(--text3)">Ajoute des mesures</div>
+        <div class="t-detail" id="t-detail">Aucune donnée disponible</div>
+      </div>
+    </div>
 
     <p class="section-title">TABLEAU DE BORD</p>
 
@@ -1006,6 +1069,7 @@ const TENUES = [
   { id: 'leger',    icon: '🩲', label: 'Sous-vêt.',  corr: 0.1  },
   { id: 'pyjama',   icon: '🩴', label: 'Pyjama',     corr: 0.3  },
   { id: 'ete',      icon: '👕', label: 'Été',         corr: 0.5  },
+  { id: 'jeans',    icon: '👖', label: 'Jeans+Tshirt',corr: 0.8  },
   { id: 'misaison', icon: '🧥', label: 'Mi-saison',  corr: 1.0  },
   { id: 'hiver',    icon: '🧤', label: 'Hiver',      corr: 1.5  },
   { id: 'sport',    icon: '👟', label: 'Sport',      corr: 0.6  },
@@ -1246,6 +1310,87 @@ function updateAll() {
 
   updateHistory();
   refreshCharts();
+  updateTendanceBanner();
+}
+
+// ── TENDANCE BANNER ───────────────────────────────────────────────────────────
+function updateTendanceBanner() {
+  const m = data.mesures;
+  const banner  = document.getElementById('tendance-banner');
+  const arrow   = document.getElementById('t-arrow');
+  const titre   = document.getElementById('t-titre');
+  const valeur  = document.getElementById('t-valeur');
+  const detail  = document.getElementById('t-detail');
+
+  // Supprimer l'éventuel badge streak précédent
+  const oldStreak = banner.querySelector('.t-streak');
+  if (oldStreak) oldStreak.remove();
+
+  if (m.length < 2) {
+    banner.className = 'tendance-banner vide';
+    arrow.textContent = '⚖';
+    titre.textContent = 'EN ATTENTE';
+    valeur.style.fontSize = '18px';
+    valeur.style.color = 'var(--text3)';
+    valeur.textContent = 'Ajoute des mesures';
+    detail.textContent = 'La tendance apparaîtra dès la 2ème mesure';
+    return;
+  }
+
+  const last   = m[m.length - 1].poids;
+  const prev   = m[m.length - 2].poids;
+  const diff   = +(last - prev).toFixed(2);
+  const sign   = diff > 0 ? '+' : '';
+
+  // Tendance longue (régression sur les 5 dernières mesures max)
+  const window5 = m.slice(-5);
+  const n = window5.length;
+  const xMean = (n - 1) / 2;
+  const yMean = window5.reduce((s, x) => s + x.poids, 0) / n;
+  let num = 0, den = 0;
+  window5.forEach((pt, i) => { num += (i - xMean) * (pt.poids - yMean); den += (i - xMean) ** 2; });
+  const slope = den !== 0 ? num / den : 0; // kg par mesure
+
+  // Streak : combien de mesures consécutives dans la même direction
+  let streak = 1;
+  const dir = diff < 0 ? -1 : diff > 0 ? 1 : 0;
+  for (let i = m.length - 2; i > 0; i--) {
+    const d = m[i].poids - m[i-1].poids;
+    if ((d < 0 && dir === -1) || (d > 0 && dir === 1)) streak++;
+    else break;
+  }
+
+  valeur.style.fontSize = '38px';
+  valeur.style.color = '';
+
+  if (Math.abs(diff) < 0.05) {
+    // stable
+    banner.className = 'tendance-banner stable';
+    arrow.textContent = '→';
+    titre.textContent = 'STABLE';
+    valeur.textContent = `${sign}${diff} kg`;
+    detail.textContent = `Poids quasi identique à la mesure précédente\nTendance (5 pts) : ${slope >= 0 ? '+' : ''}${slope.toFixed(2)} kg/mesure`;
+  } else if (diff < 0) {
+    banner.className = 'tendance-banner baisse';
+    arrow.textContent = '↓';
+    titre.textContent = 'EN BAISSE ✓';
+    valeur.textContent = `${diff} kg`;
+    detail.innerHTML = `Vs mesure précédente &nbsp;·&nbsp; Tendance (5pts) : <b>${slope >= 0 ? '+' : ''}${slope.toFixed(2)} kg/mes.</b>`;
+  } else {
+    banner.className = 'tendance-banner hausse';
+    arrow.textContent = '↑';
+    titre.textContent = 'EN HAUSSE';
+    valeur.textContent = `+${diff} kg`;
+    detail.innerHTML = `Vs mesure précédente &nbsp;·&nbsp; Tendance (5pts) : <b>${slope >= 0 ? '+' : ''}${slope.toFixed(2)} kg/mes.</b>`;
+  }
+
+  // Badge streak
+  if (streak >= 2) {
+    const sb = document.createElement('div');
+    sb.className = 't-streak';
+    sb.textContent = `${streak}× consécutif${streak > 1 ? 's' : ''}`;
+    banner.appendChild(sb);
+  }
 }
 
 // ── HISTORIQUE UI ─────────────────────────────────────────────────────────────
