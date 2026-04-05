@@ -634,6 +634,89 @@
 
   /* TREND ARROW */
   .trend { font-size: 16px; }
+
+  /* TENUE SELECTOR */
+  .tenue-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .tenue-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 4px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg2);
+    color: var(--text3);
+    font-family: var(--body-font);
+    font-size: 8px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.18s;
+    touch-action: manipulation;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .tenue-btn .t-icon { font-size: 22px; line-height: 1; }
+  .tenue-btn .t-corr {
+    font-size: 9px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .tenue-btn.active {
+    border-color: var(--accent);
+    background: var(--bg3);
+    color: var(--text);
+  }
+
+  .tenue-btn.active .t-corr { color: var(--accent); }
+
+  .correction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 10px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .correction-badge strong {
+    color: var(--accent);
+    font-size: 13px;
+  }
+
+  .poids-nu {
+    text-align: center;
+    padding: 6px;
+    font-family: var(--kpi-font);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--good);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .poids-nu-label {
+    text-align: center;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
 </style>
 </head>
 <body>
@@ -757,12 +840,30 @@
 
     <p class="section-title">NOUVELLE MESURE</p>
     <div class="card">
-      <div class="add-weight">
-        <input type="number" id="input-poids" placeholder="75.0" step="0.1" min="20" max="300">
-        <button class="btn-add" onclick="addWeight()">+</button>
+      <div class="kpi-label" style="margin-bottom:6px">PESÉ HABILLÉ(E) ?</div>
+      <div class="tenue-grid" id="tenue-grid">
+        <!-- rempli par JS -->
       </div>
-      <div class="weight-date">
-        <input type="datetime-local" id="input-date">
+      <div class="correction-badge" id="correction-info">
+        <span>🔢 Correction :</span>
+        <strong id="corr-val">−0.0 kg</strong>
+        <span id="corr-label">Nu(e)</span>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="add-weight">
+          <input type="number" id="input-poids" placeholder="75.0" step="0.1" min="20" max="300" oninput="updatePoidsNu()">
+          <button class="btn-add" onclick="addWeight()">+</button>
+        </div>
+        <div class="weight-date">
+          <input type="datetime-local" id="input-date">
+        </div>
+      </div>
+
+      <div style="margin-top:10px; background:var(--bg2); border-radius:8px; padding:8px; border:1px dashed var(--border)">
+        <div class="poids-nu-label">POIDS NU ESTIMÉ</div>
+        <div class="poids-nu" id="poids-nu-display">—</div>
+        <div style="text-align:center;font-size:9px;color:var(--text3);margin-top:2px">= valeur enregistrée</div>
       </div>
     </div>
   </div>
@@ -841,6 +942,7 @@ function load() {
   }
   applyTheme();
   loadProfil();
+  initTenues();
   // Date par défaut
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -898,19 +1000,81 @@ function loadProfil() {
   document.getElementById('btn-f').classList.toggle('active', s === 'F');
 }
 
+// ── TENUES ────────────────────────────────────────────────────────────────────
+const TENUES = [
+  { id: 'nu',       icon: '🚿', label: 'Nu(e)',      corr: 0.0  },
+  { id: 'leger',    icon: '🩲', label: 'Sous-vêt.',  corr: 0.1  },
+  { id: 'pyjama',   icon: '🩴', label: 'Pyjama',     corr: 0.3  },
+  { id: 'ete',      icon: '👕', label: 'Été',         corr: 0.5  },
+  { id: 'misaison', icon: '🧥', label: 'Mi-saison',  corr: 1.0  },
+  { id: 'hiver',    icon: '🧤', label: 'Hiver',      corr: 1.5  },
+  { id: 'sport',    icon: '👟', label: 'Sport',      corr: 0.6  },
+  { id: 'pro',      icon: '👔', label: 'Tenue pro',  corr: 1.2  },
+];
+
+let selectedTenue = 'nu';
+
+function initTenues() {
+  const grid = document.getElementById('tenue-grid');
+  grid.innerHTML = TENUES.map(t => `
+    <button class="tenue-btn ${t.id === selectedTenue ? 'active' : ''}"
+            onclick="selectTenue('${t.id}')">
+      <span class="t-icon">${t.icon}</span>
+      <span>${t.label}</span>
+      <span class="t-corr">${t.corr === 0 ? '±0' : '−' + t.corr.toFixed(1)}</span>
+    </button>
+  `).join('');
+  updateCorrBadge();
+}
+
+function selectTenue(id) {
+  selectedTenue = id;
+  document.querySelectorAll('.tenue-btn').forEach(b => b.classList.remove('active'));
+  const btns = document.querySelectorAll('.tenue-btn');
+  const idx = TENUES.findIndex(t => t.id === id);
+  if (btns[idx]) btns[idx].classList.add('active');
+  updateCorrBadge();
+  updatePoidsNu();
+}
+
+function getCorrectionKg() {
+  return TENUES.find(t => t.id === selectedTenue)?.corr ?? 0;
+}
+
+function updateCorrBadge() {
+  const t = TENUES.find(t => t.id === selectedTenue);
+  document.getElementById('corr-val').textContent = t.corr === 0 ? '±0 kg' : `−${t.corr.toFixed(1)} kg`;
+  document.getElementById('corr-label').textContent = t.label;
+}
+
+function updatePoidsNu() {
+  const raw = parseFloat(document.getElementById('input-poids').value);
+  const corr = getCorrectionKg();
+  if (!isNaN(raw) && raw > 0) {
+    const nu = +(raw - corr).toFixed(1);
+    document.getElementById('poids-nu-display').textContent = nu + ' kg';
+  } else {
+    document.getElementById('poids-nu-display').textContent = '—';
+  }
+}
+
 // ── MESURES ───────────────────────────────────────────────────────────────────
 function addWeight() {
-  const poids = parseFloat(document.getElementById('input-poids').value);
-  if (isNaN(poids) || poids < 20 || poids > 300) {
+  const rawPoids = parseFloat(document.getElementById('input-poids').value);
+  if (isNaN(rawPoids) || rawPoids < 20 || rawPoids > 300) {
     alert('Poids invalide (20–300 kg)'); return;
   }
+  const corr = getCorrectionKg();
+  const poids = +(rawPoids - corr).toFixed(2); // poids nu enregistré
+  const tenue = selectedTenue;
   const dateVal = document.getElementById('input-date').value;
   const date = dateVal ? new Date(dateVal).toISOString() : new Date().toISOString();
 
-  data.mesures.push({ poids, date });
+  data.mesures.push({ poids, poidsHabille: rawPoids, tenue, date });
   data.mesures.sort((a, b) => new Date(a.date) - new Date(b.date));
 
   document.getElementById('input-poids').value = '';
+  document.getElementById('poids-nu-display').textContent = '—';
   save();
   updateAll();
   showPage('dashboard');
@@ -1105,11 +1269,15 @@ function updateHistory() {
     const date = new Date(entry.date);
     const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
     const timeStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    const tInfo = TENUES.find(t => t.id === entry.tenue);
+    const tenueBadge = tInfo && tInfo.id !== 'nu'
+      ? `<span style="font-size:10px;color:var(--text3)">${tInfo.icon} ${tInfo.label} <span style="color:var(--accent)">−${tInfo.corr.toFixed(1)}</span></span>`
+      : '';
     return `
       <div class="history-item">
         <div>
-          <div class="history-weight">${entry.poids} <span style="font-size:12px;font-weight:400;color:var(--text3)">kg</span></div>
-          <div class="history-date">${dateStr} ${timeStr}</div>
+          <div class="history-weight">${entry.poids} <span style="font-size:12px;font-weight:400;color:var(--text3)">kg</span>${entry.poidsHabille ? `<span style="font-size:10px;color:var(--text3);margin-left:4px">(${entry.poidsHabille} habillé)</span>` : ''}</div>
+          <div class="history-date">${dateStr} ${timeStr} ${tenueBadge}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           ${deltaHTML}
