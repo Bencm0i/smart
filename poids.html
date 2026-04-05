@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⚖ POIDS TRACKER</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* THEME BEIGE / ORANGE */
+    --bg: #f5efe6;
+    --bg2: #ede4d6;
+    --bg3: #e0d2be;
+    --card: #faf6f0;
+    --border: #d4b896;
+    --accent: #e8621a;
+    --accent2: #f59240;
+    --accent3: #c44e0e;
+    --text: #2d1f0e;
+    --text2: #6b4c2a;
+    --text3: #9e7550;
+    --good: #4a9e6b;
+    --warn: #e8a020;
+    --bad: #cc3f2e;
+    --shadow: rgba(100, 60, 20, 0.15);
+    --toggle-bg: #d4b896;
+    --header-font: 'Bebas Neue', sans-serif;
+    --body-font: 'DM Mono', monospace;
+    --kpi-font: 'Syne', sans-serif;
+    --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  [data-theme="military"] {
+    --bg: #1a1e14;
+    --bg2: #222819;
+    --bg3: #2d341f;
+    --card: #1e2416;
+    --border: #4a5e2a;
+    --accent: #7db32a;
+    --accent2: #a8d44a;
+    --accent3: #5a8a1a;
+    --text: #d4e8a0;
+    --text2: #9ab870;
+    --text3: #6a8840;
+    --good: #7db32a;
+    --warn: #c8a020;
+    --bad: #cc4444;
+    --shadow: rgba(0,0,0,0.4);
+    --toggle-bg: #3a4a20;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--body-font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    transition: background 0.4s, color 0.4s;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--noise);
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--bg2);
+    border-bottom: 2px solid var(--border);
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-title {
+    font-family: var(--header-font);
+    font-size: 28px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .header-sub {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    margin-top: 1px;
+  }
+
+  /* THEME TOGGLE */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .toggle-label {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .toggle-switch {
+    width: 44px;
+    height: 24px;
+    background: var(--toggle-bg);
+    border-radius: 12px;
+    position: relative;
+    border: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+
+  .toggle-switch::after {
+    content: attr(data-icon);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--accent);
+    border-radius: 50%;
+    transition: transform 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  [data-theme="military"] .toggle-switch::after {
+    transform: translateX(20px);
+  }
+
+  /* MAIN */
+  .main { padding: 16px; padding-bottom: 100px; }
+
+  /* PROFIL SECTION */
+  .section-title {
+    font-family: var(--header-font);
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: background 0.4s, border-color 0.4s;
+  }
+
+  /* FORM FIELDS */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field.full { grid-column: 1 / -1; }
+
+  .field label {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .field input, .field select {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 10px;
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.4s;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+  }
+
+  .sex-buttons {
+    display: flex;
+    gap: 6px;
+  }
+
+  .sex-btn {
+    flex: 1;
+    padding: 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg2);
+    color: var(--text2);
+    font-family: var(--body-font);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .sex-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* AJOUT POIDS */
+  .add-weight {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .add-weight input {
+    flex: 1;
+    background: var(--bg2);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--header-font);
+    font-size: 28px;
+    letter-spacing: 2px;
+    outline: none;
+    text-align: center;
+    -webkit-appearance: none;
+  }
+
+  .btn-add {
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: var(--header-font);
+    font-size: 28px;
+    padding: 0 20px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: background 0.2s, transform 0.1s;
+    touch-action: manipulation;
+  }
+
+  .btn-add:active { transform: scale(0.95); background: var(--accent3); }
+
+  .weight-date {
+    margin-top: 8px;
+  }
+
+  .weight-date input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 12px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .kpi-wide { grid-column: 1 / -1; }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    box-shadow: 0 2px 6px var(--shadow);
+    transition: background 0.4s, border-color 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .kpi-card.good::before { background: var(--good); }
+  .kpi-card.warn::before { background: var(--warn); }
+  .kpi-card.bad::before { background: var(--bad); }
+
+  .kpi-label {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .kpi-value {
+    font-family: var(--kpi-font);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .kpi-unit {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text3);
+    margin-left: 2px;
+  }
+
+  .kpi-sub {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 3px;
+  }
+
+  /* IMC BAR */
+  .imc-bar-wrap {
+    margin-top: 10px;
+    position: relative;
+  }
+
+  .imc-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #4fc3f7 0%, #81c784 18.5%, #aed581 25%, #fff176 30%, #ffb74d 35%, #e57373 100%);
+    position: relative;
+    overflow: visible;
+  }
+
+  .imc-cursor {
+    position: absolute;
+    top: -4px;
+    width: 16px;
+    height: 16px;
+    background: var(--text);
+    border-radius: 50%;
+    border: 2px solid var(--card);
+    transform: translateX(-50%);
+    transition: left 0.5s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .imc-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 8px;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+  }
+
+  /* CANVAS CHART */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 200px;
+  }
+
+  canvas { width: 100% !important; }
+
+  /* STATS AVANCÉES */
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--bg3);
+    font-size: 12px;
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .stat-lbl { color: var(--text3); letter-spacing: 0.5px; }
+  .stat-row .stat-val { color: var(--text); font-weight: 500; }
+
+  /* HISTORIQUE */
+  .history-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .history-date { color: var(--text3); font-size: 11px; }
+  .history-weight { font-family: var(--kpi-font); font-size: 20px; font-weight: 800; color: var(--text); }
+  .history-delta { font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+  .history-delta.up { background: rgba(204,63,46,0.15); color: var(--bad); }
+  .history-delta.down { background: rgba(74,158,107,0.15); color: var(--good); }
+  .history-delta.eq { background: var(--bg3); color: var(--text3); }
+
+  .btn-del {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    touch-action: manipulation;
+    transition: color 0.2s;
+  }
+
+  .btn-del:active { color: var(--bad); }
+
+  /* OBJECTIF */
+  .objectif-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .objectif-row input {
+    width: 80px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 14px;
+    outline: none;
+    text-align: center;
+    -webkit-appearance: none;
+  }
+
+  .objectif-row input:focus { border-color: var(--accent); }
+
+  .objectif-info {
+    flex: 1;
+    font-size: 11px;
+    color: var(--text3);
+    line-height: 1.4;
+  }
+
+  .progress-bar-wrap { margin-top: 10px; }
+  .progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .progress-fill.done { background: var(--good); }
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 3px;
+  }
+
+  /* VIDE */
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text3);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* NAV BAR */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg2);
+    border-top: 2px solid var(--border);
+    display: flex;
+    z-index: 100;
+    transition: background 0.4s, border-color 0.4s;
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-family: var(--body-font);
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    gap: 3px;
+    transition: color 0.2s;
+    touch-action: manipulation;
+  }
+
+  .nav-btn .icon { font-size: 20px; line-height: 1; }
+  .nav-btn.active { color: var(--accent); }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .page.active { animation: fadeIn 0.25s ease; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* MILITARY extras */
+  [data-theme="military"] .header-title {
+    text-shadow: 0 0 20px rgba(125,179,42,0.4);
+  }
+
+  [data-theme="military"] .kpi-value {
+    text-shadow: 0 0 12px rgba(125,179,42,0.2);
+  }
+
+  [data-theme="military"] .btn-add {
+    background: var(--accent);
+    color: #1a1e14;
+  }
+
+  [data-theme="military"] .sex-btn.active {
+    background: var(--accent);
+    color: #1a1e14;
+  }
+
+  .camo-badge {
+    display: none;
+    font-size: 8px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  [data-theme="military"] .camo-badge { display: inline-block; }
+  [data-theme="military"] .orange-badge { display: none; }
+
+  .orange-badge {
+    font-size: 8px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  /* EXPORT */
+  .btn-export {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--body-font);
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+    margin-top: 6px;
+  }
+
+  .btn-export:active { background: var(--accent); color: #fff; }
+
+  /* TREND ARROW */
+  .trend { font-size: 16px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="header-title">⚖ POIDS<span style="color:var(--text2)">TRACK</span></div>
+    <div class="header-sub">
+      <span class="orange-badge">◆ WELLNESS</span>
+      <span class="camo-badge">▲ OPS SANTÉ</span>
+    </div>
+  </div>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <span class="toggle-label" id="theme-label">CIVIL</span>
+    <div class="toggle-switch" data-icon="☀"></div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- PAGE: TABLEAU DE BORD -->
+  <div class="page active" id="page-dashboard">
+
+    <p class="section-title">TABLEAU DE BORD</p>
+
+    <!-- KPI principaux -->
+    <div class="kpi-grid" id="kpi-main">
+      <div class="kpi-card" id="kpi-poids-card">
+        <div class="kpi-label">POIDS ACTUEL</div>
+        <div class="kpi-value" id="kpi-poids">—<span class="kpi-unit">kg</span></div>
+        <div class="kpi-sub" id="kpi-trend">Aucune donnée</div>
+      </div>
+      <div class="kpi-card" id="kpi-imc-card">
+        <div class="kpi-label">IMC</div>
+        <div class="kpi-value" id="kpi-imc">—</div>
+        <div class="kpi-sub" id="kpi-imc-label">—</div>
+      </div>
+      <div class="kpi-card" id="kpi-poidssain-card">
+        <div class="kpi-label">ZONE SAINE</div>
+        <div class="kpi-value" id="kpi-poidssain" style="font-size:18px">—</div>
+        <div class="kpi-sub" id="kpi-poidssain-sub">IMC 18.5–25</div>
+      </div>
+      <div class="kpi-card" id="kpi-7j-card">
+        <div class="kpi-label">DELTA 7J</div>
+        <div class="kpi-value" id="kpi-7j">—<span class="kpi-unit">kg</span></div>
+        <div class="kpi-sub" id="kpi-7j-sub">vs semaine passée</div>
+      </div>
+      <div class="kpi-card kpi-wide" id="kpi-objectif-card">
+        <div class="kpi-label">OBJECTIF</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+          <div class="kpi-value" id="kpi-objectif-dist">—<span class="kpi-unit">kg</span></div>
+          <div id="kpi-objectif-pct" style="font-family:var(--kpi-font);font-size:18px;font-weight:800;color:var(--accent)">—%</div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+          <div class="progress-labels"><span id="prog-start">départ</span><span id="prog-end">objectif</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMC Gauge -->
+    <div class="card">
+      <div class="kpi-label" style="margin-bottom:8px">JAUGE IMC</div>
+      <div class="imc-bar-wrap">
+        <div class="imc-bar">
+          <div class="imc-cursor" id="imc-cursor" style="left:50%"></div>
+        </div>
+        <div class="imc-labels">
+          <span>Maigreur</span><span>Normal</span><span>Surpoids</span><span>Obésité</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats avancées -->
+    <div class="card">
+      <div class="kpi-label" style="margin-bottom:8px">MÉTRIQUES AVANCÉES</div>
+      <div class="stat-row"><span class="stat-lbl">Poids min (historique)</span><span class="stat-val" id="stat-min">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Poids max (historique)</span><span class="stat-val" id="stat-max">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Poids moyen (30j)</span><span class="stat-val" id="stat-moy">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Vitesse perte (kg/sem)</span><span class="stat-val" id="stat-vitesse">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Nb mesures</span><span class="stat-val" id="stat-nb">0</span></div>
+      <div class="stat-row"><span class="stat-lbl">Poids idéal Lorentz</span><span class="stat-val" id="stat-lorentz">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Masse grasse est.</span><span class="stat-val" id="stat-mgrasse">—</span></div>
+      <div class="stat-row"><span class="stat-lbl">Masse maigre est.</span><span class="stat-val" id="stat-mmaigre">—</span></div>
+    </div>
+  </div>
+
+  <!-- PAGE: AJOUTER -->
+  <div class="page" id="page-add">
+    <p class="section-title">PROFIL</p>
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label>PRÉNOM</label>
+          <input type="text" id="profil-prenom" placeholder="Ex: Jean" onchange="saveProfil()">
+        </div>
+        <div class="field">
+          <label>ÂGE</label>
+          <input type="number" id="profil-age" placeholder="Ex: 30" min="10" max="120" onchange="saveProfil()">
+        </div>
+        <div class="field">
+          <label>TAILLE (cm)</label>
+          <input type="number" id="profil-taille" placeholder="Ex: 175" min="100" max="250" onchange="saveProfil()">
+        </div>
+        <div class="field">
+          <label>SEXE</label>
+          <div class="sex-buttons">
+            <button class="sex-btn active" id="btn-h" onclick="setSexe('H')">♂ H</button>
+            <button class="sex-btn" id="btn-f" onclick="setSexe('F')">♀ F</button>
+          </div>
+        </div>
+        <div class="field full">
+          <label>OBJECTIF (kg)</label>
+          <div class="objectif-row">
+            <input type="number" id="profil-objectif" placeholder="Ex: 75" step="0.1" onchange="saveProfil()">
+            <div class="objectif-info" id="objectif-info">Renseigne ton poids cible.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-title">NOUVELLE MESURE</p>
+    <div class="card">
+      <div class="add-weight">
+        <input type="number" id="input-poids" placeholder="75.0" step="0.1" min="20" max="300">
+        <button class="btn-add" onclick="addWeight()">+</button>
+      </div>
+      <div class="weight-date">
+        <input type="datetime-local" id="input-date">
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: COURBE -->
+  <div class="page" id="page-chart">
+    <p class="section-title">ÉVOLUTION</p>
+    <div class="card">
+      <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+        <button class="btn-export" style="flex:1;padding:7px 4px;font-size:10px" onclick="setRange(30)">30J</button>
+        <button class="btn-export" style="flex:1;padding:7px 4px;font-size:10px" onclick="setRange(90)">90J</button>
+        <button class="btn-export" style="flex:1;padding:7px 4px;font-size:10px" onclick="setRange(365)">1AN</button>
+        <button class="btn-export" style="flex:1;padding:7px 4px;font-size:10px" onclick="setRange(0)">TOUT</button>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartPoids" height="200"></canvas>
+      </div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="kpi-label" style="margin-bottom:8px">COURBE IMC</div>
+      <div class="chart-wrap" style="height:140px">
+        <canvas id="chartIMC" height="140"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: HISTORIQUE -->
+  <div class="page" id="page-history">
+    <p class="section-title">HISTORIQUE</p>
+    <div id="history-list" class="history-list"></div>
+
+    <div style="margin-top:16px">
+      <p class="section-title">DONNÉES</p>
+      <div class="card">
+        <button class="btn-export" onclick="exportJSON()">⬇ EXPORTER JSON</button>
+        <button class="btn-export" onclick="importJSON()">⬆ IMPORTER JSON</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="readImport(event)">
+        <button class="btn-export" style="color:var(--bad)" onclick="clearData()">⚠ RESET DONNÉES</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard')">
+    <span class="icon">📊</span><span>TABLEAU</span>
+  </button>
+  <button class="nav-btn" id="nav-add" onclick="showPage('add')">
+    <span class="icon">➕</span><span>AJOUTER</span>
+  </button>
+  <button class="nav-btn" id="nav-chart" onclick="showPage('chart')">
+    <span class="icon">📈</span><span>COURBE</span>
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="showPage('history')">
+    <span class="icon">📋</span><span>HISTO</span>
+  </button>
+</nav>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let data = {
+  profil: { prenom: '', age: '', taille: '', sexe: 'H', objectif: '' },
+  mesures: [],
+  theme: 'light'
+};
+
+let chartRange = 90;
+let chartPoidsInst, chartIMCInst;
+
+function load() {
+  const saved = localStorage.getItem('poidstrack_v1');
+  if (saved) {
+    try { data = JSON.parse(saved); } catch(e) {}
+  }
+  applyTheme();
+  loadProfil();
+  // Date par défaut
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('input-date').value = now.toISOString().slice(0,16);
+}
+
+function save() {
+  localStorage.setItem('poidstrack_v1', JSON.stringify(data));
+}
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  data.theme = data.theme === 'light' ? 'military' : 'light';
+  applyTheme();
+  save();
+  refreshCharts();
+}
+
+function applyTheme() {
+  const body = document.body;
+  const label = document.getElementById('theme-label');
+  if (data.theme === 'military') {
+    body.setAttribute('data-theme', 'military');
+    label.textContent = 'OPEX';
+  } else {
+    body.removeAttribute('data-theme');
+    label.textContent = 'CIVIL';
+  }
+}
+
+// ── PROFIL ────────────────────────────────────────────────────────────────────
+function setSexe(s) {
+  data.profil.sexe = s;
+  document.getElementById('btn-h').classList.toggle('active', s === 'H');
+  document.getElementById('btn-f').classList.toggle('active', s === 'F');
+  saveProfil();
+}
+
+function saveProfil() {
+  data.profil.prenom = document.getElementById('profil-prenom').value;
+  data.profil.age = document.getElementById('profil-age').value;
+  data.profil.taille = document.getElementById('profil-taille').value;
+  data.profil.objectif = document.getElementById('profil-objectif').value;
+  save();
+  updateAll();
+}
+
+function loadProfil() {
+  document.getElementById('profil-prenom').value = data.profil.prenom || '';
+  document.getElementById('profil-age').value = data.profil.age || '';
+  document.getElementById('profil-taille').value = data.profil.taille || '';
+  document.getElementById('profil-objectif').value = data.profil.objectif || '';
+  const s = data.profil.sexe || 'H';
+  document.getElementById('btn-h').classList.toggle('active', s === 'H');
+  document.getElementById('btn-f').classList.toggle('active', s === 'F');
+}
+
+// ── MESURES ───────────────────────────────────────────────────────────────────
+function addWeight() {
+  const poids = parseFloat(document.getElementById('input-poids').value);
+  if (isNaN(poids) || poids < 20 || poids > 300) {
+    alert('Poids invalide (20–300 kg)'); return;
+  }
+  const dateVal = document.getElementById('input-date').value;
+  const date = dateVal ? new Date(dateVal).toISOString() : new Date().toISOString();
+
+  data.mesures.push({ poids, date });
+  data.mesures.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  document.getElementById('input-poids').value = '';
+  save();
+  updateAll();
+  showPage('dashboard');
+}
+
+function deleteWeight(idx) {
+  if (confirm('Supprimer cette mesure ?')) {
+    data.mesures.splice(idx, 1);
+    save();
+    updateAll();
+  }
+}
+
+// ── CALCULS ───────────────────────────────────────────────────────────────────
+function calcIMC(poids, taille_cm) {
+  if (!taille_cm) return null;
+  const h = taille_cm / 100;
+  return +(poids / (h * h)).toFixed(1);
+}
+
+function imcLabel(imc) {
+  if (imc < 16.5) return { label: 'Dénutrition', cls: 'bad' };
+  if (imc < 18.5) return { label: 'Maigreur', cls: 'warn' };
+  if (imc < 25)   return { label: 'Normal ✓', cls: 'good' };
+  if (imc < 30)   return { label: 'Surpoids', cls: 'warn' };
+  if (imc < 35)   return { label: 'Obésité I', cls: 'bad' };
+  if (imc < 40)   return { label: 'Obésité II', cls: 'bad' };
+  return { label: 'Obésité III', cls: 'bad' };
+}
+
+function imcToPercent(imc) {
+  // map IMC 10–45 to 0–100%
+  return Math.max(0, Math.min(100, ((imc - 10) / 35) * 100));
+}
+
+function lorentz(taille_cm, sexe) {
+  const t = taille_cm;
+  if (sexe === 'H') return +(t - 100 - (t - 150) / 4).toFixed(1);
+  return +(t - 100 - (t - 150) / 2.5).toFixed(1);
+}
+
+function masseGrasse(imc, age, sexe) {
+  // Formule Deurenberg
+  const s = sexe === 'H' ? 1 : 0;
+  const mg = (1.2 * imc) + (0.23 * age) - (10.8 * s) - 5.4;
+  return Math.max(0, +mg.toFixed(1));
+}
+
+// ── MISE À JOUR UI ────────────────────────────────────────────────────────────
+function updateAll() {
+  const m = data.mesures;
+  const p = data.profil;
+  const taille = parseFloat(p.taille);
+  const age = parseInt(p.age);
+  const hasData = m.length > 0;
+
+  // POIDS actuel
+  const current = hasData ? m[m.length - 1].poids : null;
+  document.getElementById('kpi-poids').innerHTML = hasData
+    ? `${current}<span class="kpi-unit">kg</span>` : '—';
+
+  // Trend
+  if (m.length >= 2) {
+    const prev = m[m.length - 2].poids;
+    const diff = +(current - prev).toFixed(1);
+    const arrow = diff < 0 ? '▼' : diff > 0 ? '▲' : '—';
+    const col = diff < 0 ? 'var(--good)' : diff > 0 ? 'var(--bad)' : 'var(--text3)';
+    document.getElementById('kpi-trend').innerHTML =
+      `<span style="color:${col}">${arrow} ${Math.abs(diff)} kg</span> vs mesure préc.`;
+  } else {
+    document.getElementById('kpi-trend').textContent = hasData ? 'Première mesure' : 'Aucune donnée';
+  }
+
+  // IMC
+  const imc = (hasData && taille) ? calcIMC(current, taille) : null;
+  document.getElementById('kpi-imc').innerHTML = imc
+    ? `${imc}` : '—';
+  if (imc) {
+    const info = imcLabel(imc);
+    document.getElementById('kpi-imc-label').textContent = info.label;
+    const c = document.getElementById('kpi-imc-card');
+    c.className = `kpi-card ${info.cls}`;
+    document.getElementById('imc-cursor').style.left = imcToPercent(imc) + '%';
+  } else {
+    document.getElementById('kpi-imc-label').textContent = 'Renseigne ta taille';
+    document.getElementById('imc-cursor').style.left = '50%';
+  }
+
+  // Zone saine
+  if (taille) {
+    const h = taille / 100;
+    const min = +(18.5 * h * h).toFixed(1);
+    const max = +(25 * h * h).toFixed(1);
+    document.getElementById('kpi-poidssain').innerHTML = `${min}–${max}<span class="kpi-unit">kg</span>`;
+    document.getElementById('kpi-poidssain').style.fontSize = '15px';
+  }
+
+  // Delta 7j
+  if (hasData) {
+    const nowTs = new Date(m[m.length - 1].date).getTime();
+    const seuil = nowTs - 7 * 86400000;
+    const old = m.filter(x => new Date(x.date).getTime() <= seuil);
+    if (old.length > 0) {
+      const diff7 = +(current - old[old.length - 1].poids).toFixed(1);
+      const col = diff7 < 0 ? 'var(--good)' : diff7 > 0 ? 'var(--bad)' : 'var(--text3)';
+      document.getElementById('kpi-7j').innerHTML =
+        `<span style="color:${col}">${diff7 > 0 ? '+' : ''}${diff7}</span><span class="kpi-unit">kg</span>`;
+    } else {
+      document.getElementById('kpi-7j').innerHTML = '—<span class="kpi-unit">kg</span>';
+    }
+  }
+
+  // Objectif
+  const obj = parseFloat(p.objectif);
+  if (hasData && obj) {
+    const start = m[0].poids;
+    const dist = +(current - obj).toFixed(1);
+    const total = Math.abs(start - obj);
+    const done = Math.abs(current - start);
+    const pct = total > 0 ? Math.min(100, +(done / total * 100).toFixed(0)) : 100;
+
+    document.getElementById('kpi-objectif-dist').innerHTML =
+      `<span style="color:${dist < 0 ? 'var(--good)' : 'var(--accent)'}">${dist > 0 ? '+' : ''}${dist}</span><span class="kpi-unit">kg</span>`;
+    document.getElementById('kpi-objectif-pct').textContent = pct + '%';
+    const fill = document.getElementById('prog-fill');
+    fill.style.width = pct + '%';
+    fill.className = 'progress-fill' + (pct >= 100 ? ' done' : '');
+    document.getElementById('prog-start').textContent = start + ' kg';
+    document.getElementById('prog-end').textContent = obj + ' kg';
+    document.getElementById('objectif-info').textContent =
+      dist > 0 ? `Il reste ${dist} kg à perdre.` : dist < 0 ? `Objectif dépassé ! ${Math.abs(dist)} kg en dessous.` : `Objectif atteint !`;
+  }
+
+  // Stats avancées
+  if (hasData) {
+    const weights = m.map(x => x.poids);
+    document.getElementById('stat-min').textContent = Math.min(...weights).toFixed(1) + ' kg';
+    document.getElementById('stat-max').textContent = Math.max(...weights).toFixed(1) + ' kg';
+    const now30 = Date.now() - 30 * 86400000;
+    const last30 = m.filter(x => new Date(x.date).getTime() >= now30).map(x => x.poids);
+    document.getElementById('stat-moy').textContent = last30.length
+      ? (last30.reduce((a, b) => a + b, 0) / last30.length).toFixed(1) + ' kg' : '—';
+    document.getElementById('stat-nb').textContent = m.length;
+
+    // Vitesse
+    if (m.length >= 2) {
+      const days = (new Date(m[m.length-1].date) - new Date(m[0].date)) / 86400000;
+      const dif = m[m.length-1].poids - m[0].poids;
+      const vit = days > 0 ? +((dif / days) * 7).toFixed(2) : 0;
+      const col = vit < 0 ? 'var(--good)' : vit > 0 ? 'var(--bad)' : 'var(--text3)';
+      document.getElementById('stat-vitesse').innerHTML =
+        `<span style="color:${col}">${vit > 0 ? '+' : ''}${vit}</span>`;
+    }
+
+    // Lorentz
+    if (taille && p.sexe) {
+      const lor = lorentz(taille, p.sexe);
+      document.getElementById('stat-lorentz').textContent = lor + ' kg';
+    }
+
+    // Masse grasse / maigre
+    if (imc && age && p.sexe) {
+      const mg = masseGrasse(imc, age, p.sexe);
+      document.getElementById('stat-mgrasse').textContent = mg + '%';
+      const mm = +(current * (1 - mg / 100)).toFixed(1);
+      document.getElementById('stat-mmaigre').textContent = mm + ' kg';
+    }
+  }
+
+  updateHistory();
+  refreshCharts();
+}
+
+// ── HISTORIQUE UI ─────────────────────────────────────────────────────────────
+function updateHistory() {
+  const list = document.getElementById('history-list');
+  const m = [...data.mesures].reverse();
+  if (!m.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📭</div>Aucune mesure enregistrée</div>`;
+    return;
+  }
+  list.innerHTML = m.map((entry, i) => {
+    const realIdx = data.mesures.length - 1 - i;
+    const prevEntry = realIdx > 0 ? data.mesures[realIdx - 1] : null;
+    let deltaHTML = '';
+    if (prevEntry) {
+      const d = +(entry.poids - prevEntry.poids).toFixed(1);
+      const cls = d < 0 ? 'down' : d > 0 ? 'up' : 'eq';
+      const sign = d > 0 ? '+' : '';
+      deltaHTML = `<span class="history-delta ${cls}">${sign}${d}</span>`;
+    }
+    const date = new Date(entry.date);
+    const dateStr = date.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+    const timeStr = date.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    return `
+      <div class="history-item">
+        <div>
+          <div class="history-weight">${entry.poids} <span style="font-size:12px;font-weight:400;color:var(--text3)">kg</span></div>
+          <div class="history-date">${dateStr} ${timeStr}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${deltaHTML}
+          <button class="btn-del" onclick="deleteWeight(${realIdx})">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'chart') refreshCharts();
+}
+
+// ── GRAPHIQUES ────────────────────────────────────────────────────────────────
+function setRange(days) { chartRange = days; refreshCharts(); }
+
+function getFilteredMesures() {
+  if (!chartRange) return data.mesures;
+  const cutoff = Date.now() - chartRange * 86400000;
+  return data.mesures.filter(x => new Date(x.date).getTime() >= cutoff);
+}
+
+function getComputedColor(varName) {
+  return getComputedStyle(document.body).getPropertyValue(varName).trim();
+}
+
+function refreshCharts() {
+  const m = getFilteredMesures();
+  const taille = parseFloat(data.profil.taille);
+  const labels = m.map(x => {
+    const d = new Date(x.date);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+  });
+  const weights = m.map(x => x.poids);
+  const imcs = taille ? m.map(x => calcIMC(x.poids, taille)) : [];
+  const obj = parseFloat(data.profil.objectif);
+
+  const accent = getComputedColor('--accent');
+  const accent2 = getComputedColor('--accent2');
+  const good = getComputedColor('--good');
+  const text3 = getComputedColor('--text3');
+  const bg2 = getComputedColor('--bg2');
+  const border = getComputedColor('--border');
+
+  drawChart('chartPoids', labels, weights, accent, 'Poids (kg)',
+    obj ? { label: 'Objectif', value: obj, color: good } : null);
+  if (taille) drawChart('chartIMC', labels, imcs, accent2, 'IMC',
+    { label: 'Normal', value: 22, color: good });
+}
+
+function drawChart(id, labels, values, color, yLabel, refLine) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 340;
+  const H = canvas.height || 200;
+  canvas.width = W;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { top: 12, right: 12, bottom: 28, left: 38 };
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
+
+  if (!values.length) {
+    ctx.fillStyle = getComputedColor('--text3');
+    ctx.font = '11px DM Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Aucune donnée', W/2, H/2);
+    return;
+  }
+
+  const min = Math.min(...values) - 1;
+  const max = Math.max(...values) + 1;
+  const range = max - min || 1;
+
+  const bg2 = getComputedColor('--bg2');
+  const border = getComputedColor('--border');
+  const text3 = getComputedColor('--text3');
+
+  // Grid
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (i / 4) * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    const val = max - (i / 4) * range;
+    ctx.fillStyle = text3;
+    ctx.font = '8px DM Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(1), pad.left - 4, y + 3);
+  }
+
+  // Ref line
+  if (refLine) {
+    const ry = pad.top + ((max - refLine.value) / range) * cH;
+    ctx.strokeStyle = refLine.color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(pad.left, ry); ctx.lineTo(pad.left + cW, ry); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = refLine.color;
+    ctx.font = '8px DM Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(refLine.label, pad.left + 2, ry - 2);
+  }
+
+  // Gradient fill
+  const pts = values.map((v, i) => ({
+    x: pad.left + (i / Math.max(1, values.length - 1)) * cW,
+    y: pad.top + ((max - v) / range) * cH
+  }));
+
+  if (pts.length > 1) {
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+    grad.addColorStop(0, color + '55');
+    grad.addColorStop(1, color + '05');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pad.top + cH);
+    ctx.lineTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const cp1x = (pts[i-1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(cp1x, pts[i-1].y, cp1x, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.lineTo(pts[pts.length-1].x, pad.top + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const cp1x = (pts[i-1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(cp1x, pts[i-1].y, cp1x, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  // Dots
+  pts.forEach((pt, i) => {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, i === pts.length - 1 ? 5 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = i === pts.length - 1 ? color : bg2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  // Labels X
+  const step = Math.max(1, Math.floor(labels.length / 5));
+  ctx.fillStyle = text3;
+  ctx.font = '8px DM Mono, monospace';
+  ctx.textAlign = 'center';
+  labels.forEach((lbl, i) => {
+    if (i % step === 0 || i === labels.length - 1) {
+      ctx.fillText(lbl, pts[i].x, H - 6);
+    }
+  });
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────────
+function exportJSON() {
+  const str = JSON.stringify(data, null, 2);
+  const blob = new Blob([str], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `poidstrack_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importJSON() {
+  document.getElementById('import-file').click();
+}
+
+function readImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (imported.mesures) {
+        data = imported;
+        save();
+        applyTheme();
+        loadProfil();
+        updateAll();
+        alert('Import réussi ! ' + data.mesures.length + ' mesures chargées.');
+      } else {
+        alert('Fichier invalide.');
+      }
+    } catch { alert('Erreur de lecture JSON.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function clearData() {
+  if (confirm('⚠ Supprimer TOUTES les données ?')) {
+    data.mesures = [];
+    save();
+    updateAll();
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+load();
+updateAll();
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('page-chart').classList.contains('active')) refreshCharts();
+});
+</script>
+</body>
+</html>
