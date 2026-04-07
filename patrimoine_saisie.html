@@ -101,7 +101,7 @@ body {
   z-index: 150;
   background: rgba(18,21,27,0.97);
   border-bottom: 1px solid var(--border);
-  height: 28px;
+  height: 38px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -143,9 +143,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 18px;
+  padding: 0 22px;
   font-family: 'DM Mono', monospace;
-  font-size: 10px;
+  font-size: 13px;
   border-right: 1px solid rgba(255,255,255,0.06);
 }
 .ticker-item:last-child { border-right: none; }
@@ -153,16 +153,16 @@ body {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 .t-price {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 14px;
   color: var(--text);
 }
 .t-chg {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.3px;
 }
 .t-chg.up  { color: var(--green); }
@@ -813,12 +813,9 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ HEADER ═══ -->
 <div class="header">
-  <div class="logo">SAISIE<span>·PAT</span></div>
+
   <div class="header-btns">
     <span class="save-status" id="saveStatus">✓ Copié</span>
-    <button class="hbtn" onclick="loadJSON()">📂 JSON</button>
-    <button class="hbtn" onclick="openKpiModal()" title="Export format KPI Terminal">📊 KPI</button>
-    <button class="hbtn primary" onclick="exportJSON()">💾 Export</button>
   </div>
 </div>
 
