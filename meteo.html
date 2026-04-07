@@ -31,188 +31,6 @@
       --accent: #d46848;
     }
   }
-
-  /* ── THÈME MILITAIRE ── */
-  [data-theme="military"] {
-    --bg: #1a1f14;
-    --bg2: #232b1a;
-    --ink: #c8d4a0;
-    --ink2: #8a9a6a;
-    --ink3: #5a6a48;
-    --line: #2e3a22;
-    --accent: #7aaa38;
-    --blue: #4a7a3a;
-    --snow: #6a9a58;
-    --purple: #5a7a30;
-    --amber: #a0b030;
-    font-family: 'DM Mono', monospace;
-  }
-  [data-theme="military"] body {
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(255,255,255,0.012) 2px,
-        rgba(255,255,255,0.012) 4px
-      );
-  }
-  [data-theme="military"] .city-name {
-    font-family: 'DM Mono', monospace !important;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-size: clamp(1.4rem, 5vw, 2.2rem) !important;
-    color: #7aaa38 !important;
-  }
-  [data-theme="military"] .temp-big,
-  [data-theme="military"] .wind-hero-speed,
-  [data-theme="military"] .ex-value,
-  [data-theme="military"] .day-max,
-  [data-theme="military"] .day-name,
-  [data-theme="military"] .tl-temp,
-  [data-theme="military"] .desc-italic {
-    font-family: 'DM Mono', monospace !important;
-  }
-  [data-theme="military"] .slabel {
-    color: #7aaa38;
-    letter-spacing: 0.35em;
-  }
-  [data-theme="military"] .tl-node {
-    border-color: #2e3a22;
-    background: #1a1f14;
-  }
-  [data-theme="military"] .tl-row.now .tl-node {
-    border-color: #7aaa38;
-    box-shadow: 0 0 6px #7aaa3855;
-  }
-  [data-theme="military"] .range-fill {
-    background: linear-gradient(90deg, #4a7a3a, #7aaa38) !important;
-    box-shadow: 0 0 5px 1px rgba(100,160,50,0.4) !important;
-  }
-  [data-theme="military"] .uv-track {
-    background: linear-gradient(90deg,#4a7a3a,#7aaa38,#a0b030,#c8aa30) !important;
-  }
-  [data-theme="military"] .wind-hero {
-    border-color: #2e3a22;
-    background: #232b1a;
-    border-left: 2px solid #7aaa38;
-  }
-  [data-theme="military"] .search-input {
-    color: #c8d4a0;
-  }
-  [data-theme="military"] .search-input::placeholder {
-    color: #5a6a48;
-  }
-  [data-theme="military"] #haPanel {
-    border-color: #2e3a22;
-    background: #232b1a;
-  }
-  [data-theme="military"] .ac {
-    background: #1a1f14;
-    border-color: #2e3a22;
-  }
-  [data-theme="military"] .ac-item:hover {
-    background: #232b1a;
-  }
-
-  /* ── THÈME CLAIR BEIGE/ORANGE ── */
-  [data-theme="light"] {
-    --bg: #faf6f0;
-    --bg2: #f2ebe0;
-    --ink: #2c1f0e;
-    --ink2: #7a5c3a;
-    --ink3: #b08a60;
-    --line: #ddd0bc;
-    --accent: #d4620a;
-    --blue: #2a6fa8;
-    --snow: #5a8ab4;
-    --purple: #7a5a9a;
-    --amber: #d4880a;
-  }
-  [data-theme="light"] body {
-    background-image: none;
-  }
-  [data-theme="light"] .city-name {
-    color: var(--ink) !important;
-    letter-spacing: -0.02em;
-  }
-  [data-theme="light"] .slabel {
-    color: var(--accent);
-    letter-spacing: 0.3em;
-  }
-  [data-theme="light"] .tl-node {
-    background: #faf6f0;
-    border-color: var(--line);
-  }
-  [data-theme="light"] .tl-row.now .tl-node {
-    border-color: var(--accent);
-    box-shadow: 0 0 6px rgba(212,98,10,0.25);
-  }
-  [data-theme="light"] .range-fill {
-    background: linear-gradient(90deg, #e8a020, #d4620a) !important;
-    box-shadow: 0 0 5px 1px rgba(212,98,10,0.35) !important;
-  }
-  [data-theme="light"] .uv-track {
-    background: linear-gradient(90deg,#4a8a5c,#d4880a,#d4620a,#7a5a9a) !important;
-  }
-  [data-theme="light"] .wind-hero {
-    border-color: var(--line);
-    background: var(--bg2);
-    border-left: 2px solid var(--accent);
-  }
-  [data-theme="light"] .ac {
-    background: #faf6f0;
-    border-color: var(--line);
-  }
-  [data-theme="light"] .ac-item:hover {
-    background: var(--bg2);
-  }
-  [data-theme="light"] #haPanel {
-    border-color: var(--line);
-    background: var(--bg2);
-  }
-  [data-theme="light"] #theme-toggle {
-    border-color: #d4c4a8;
-    color: var(--accent);
-  }
-  [data-theme="light"] #theme-toggle:hover {
-    border-color: var(--accent);
-    background: var(--bg2);
-  }
-  [data-theme="light"] .tl-row.wind-warn  { background: rgba(212,136,10,0.08); }
-  [data-theme="light"] .tl-row.wind-hard  { background: rgba(212,98,10,0.10); }
-  [data-theme="light"] .tl-row.wind-danger{ background: rgba(192,40,40,0.09); }
-  [data-theme="light"] .wind-legend {
-    background: var(--bg2);
-    border-color: var(--line);
-  }
-
-  /* THEME TOGGLE BUTTON */
-  #theme-toggle {
-    background: transparent;
-    border: 1px solid var(--line);
-    color: var(--ink3);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  #theme-toggle:hover {
-    border-color: var(--ink);
-    color: var(--ink);
-  }
-  [data-theme="military"] #theme-toggle {
-    border-color: #4a6a30;
-    color: #7aaa38;
-  }
-  [data-theme="military"] #theme-toggle:hover {
-    border-color: #7aaa38;
-    background: #232b1a;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; }
   #app { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
@@ -453,7 +271,6 @@
     </div>
     <button class="geo-btn" onclick="geo()" title="Ma position">◎</button>
     <button class="geo-btn" onclick="haTogglePanel()" title="Token Home Assistant" id="haBtnToggle" style="font-size:0.75rem;letter-spacing:0.05em;opacity:0.5">HA</button>
-    <button id="theme-toggle" onclick="toggleTheme()" title="Changer de thème">☀ Civil</button>
   </div>
 
   <!-- HA TOKEN PANEL -->
@@ -486,7 +303,11 @@
 <div id="toast"></div>
 <script>
 const GEO_URL='https://geocoding-api.open-meteo.com/v1/search';
-const WX_URL='https://api.open-meteo.com/v1/forecast';
+// Plusieurs endpoints Open-Meteo (CDN différents) + wttr.in en dernier recours
+const WX_ENDPOINTS=[
+  'https://api.open-meteo.com/v1/forecast',
+  'https://historical-forecast-api.open-meteo.com/v1/forecast',
+];
 const WMO={0:['☀','Ciel dégagé'],1:['🌤','Peu nuageux'],2:['⛅','Partiellement nuageux'],3:['☁','Couvert'],45:['≋','Brouillard'],48:['≋','Brouillard givrant'],51:['·','Bruine légère'],53:['·','Bruine modérée'],55:['·','Bruine dense'],61:['~','Pluie légère'],63:['~~','Pluie modérée'],65:['~~~','Pluie forte'],71:['*','Neige légère'],73:['**','Neige modérée'],75:['***','Neige forte'],77:['*','Grésil'],80:['~','Averses légères'],81:['~~','Averses modérées'],82:['~~~','Averses fortes'],85:['*','Neige (averses)'],86:['**','Neige forte (averses)'],95:['⚡','Orage'],96:['⚡','Orage (grêle)'],99:['⚡','Orage violent']};
 // Barre météo : palette verte/dorée/violette — distincte des bleus Beaufort
 const WMO_HEX={
@@ -581,18 +402,103 @@ function geo(){
   },()=>{toast('Position refusée');});
 }
 
-async function loadWX(lat,lon,city,country){
-  loading();
+async function loadWX(lat,lon,city,country,silent=false){
+  lastWxParams={lat,lon,city,country};
+  if(!silent) loading();
+
+  const params=new URLSearchParams({latitude:lat,longitude:lon,
+    current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation,uv_index,surface_pressure,visibility',
+    hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m',
+    daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset,precipitation_sum',
+    timezone:'auto',forecast_days:7,wind_speed_unit:'kmh'});
+
+  // Essai de chaque endpoint Open-Meteo dans l'ordre
+  for(const endpoint of WX_ENDPOINTS){
+    try{
+      const r=await Promise.race([
+        fetch(`${endpoint}?${params}`),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))
+      ]);
+      if(!r.ok) continue;
+      const data=await r.json();
+      if(data.current){ render(data,city,country); scheduleWxRefresh(); return; }
+    }catch(e){ /* essai suivant */ }
+  }
+
+  // Dernier recours : wttr.in
   try{
-    const p=new URLSearchParams({latitude:lat,longitude:lon,
-      current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation,uv_index,surface_pressure,visibility',
-      hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m',
-      daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset,precipitation_sum',
-      timezone:'auto',forecast_days:7,wind_speed_unit:'kmh'});
-    const r=await fetch(`${WX_URL}?${p}`);
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    render(await r.json(),city,country);
-  }catch(e){err(e.message);}
+    const cityEnc=encodeURIComponent(city);
+    const r=await Promise.race([
+      fetch(`https://wttr.in/${cityEnc}?format=j1`),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    ]);
+    if(!r.ok) throw new Error('wttr.in HTTP '+r.status);
+    const d=await r.json();
+    render(adaptWttr(d,lat,lon),city,country);
+    scheduleWxRefresh();
+    toast('Source de secours : wttr.in');
+  }catch(e){
+    err('Serveurs météo inaccessibles — vérifiez votre connexion');
+  }
+}
+
+// Adaptateur wttr.in → format Open-Meteo
+function adaptWttr(d,lat,lon){
+  const now=new Date();
+  const cc=d.current_condition?.[0]||{};
+  function wttrCode(c){
+    const n=parseInt(c);
+    if(n===113) return 0; if(n===116) return 1; if(n===119) return 2; if(n===122) return 3;
+    if([143,248,260].includes(n)) return 45;
+    if([176,293,296].includes(n)) return 61; if([299,302,305,308].includes(n)) return 63; if([311,314,317,350].includes(n)) return 65;
+    if([179,323,326].includes(n)) return 71; if([329,332,338].includes(n)) return 73; if([227,230,335].includes(n)) return 75;
+    if([200,386,389].includes(n)) return 95; return 2;
+  }
+  function to24(t){
+    if(!t) return '00:00';
+    const [time,mer]=(t||'').split(' ');
+    let [h,m]=(time||'00:00').split(':').map(Number);
+    if(mer==='PM'&&h<12) h+=12; if(mer==='AM'&&h===12) h=0;
+    return `${String(h).padStart(2,'0')}:${String(m||0).padStart(2,'0')}`;
+  }
+  const allDays=(d.weather||[]).slice(0,3);
+  const daily_time=allDays.map((_,i)=>{const dt=new Date(now);dt.setDate(dt.getDate()+i);return dt.toISOString().slice(0,10);});
+  const hourly_time=[],hourly_temp=[],hourly_pp=[],hourly_precip=[],hourly_wcode=[],hourly_wspd=[],hourly_wdir=[];
+  allDays.forEach((day,di)=>{
+    (day.hourly||[]).forEach(h=>{
+      const hh=Math.round(parseInt(h.time||'0')/100);
+      hourly_time.push(`${daily_time[di]}T${String(hh).padStart(2,'0')}:00`);
+      hourly_temp.push(parseFloat(h.tempC||0));
+      hourly_pp.push(parseInt(h.chanceofrain||0));
+      hourly_precip.push(parseFloat(h.precipMM||0));
+      hourly_wcode.push(wttrCode(h.weatherCode?.[0]?.value||'116'));
+      hourly_wspd.push(parseFloat(h.windspeedKmph||0));
+      hourly_wdir.push(parseFloat(h.winddirDegree||0));
+    });
+  });
+  return {
+    current:{
+      temperature_2m:parseFloat(cc.temp_C||0), apparent_temperature:parseFloat(cc.FeelsLikeC||0),
+      relative_humidity_2m:parseInt(cc.humidity||0), weather_code:wttrCode(cc.weatherCode?.[0]?.value||'116'),
+      wind_speed_10m:parseFloat(cc.windspeedKmph||0), wind_direction_10m:parseFloat(cc.winddirDegree||0),
+      precipitation:parseFloat(cc.precipMM||0), uv_index:parseInt(cc.uvIndex||0),
+      surface_pressure:parseFloat(cc.pressure||1013), visibility:parseFloat(cc.visibility||10)*1000
+    },
+    hourly:{time:hourly_time,temperature_2m:hourly_temp,precipitation_probability:hourly_pp,
+      precipitation:hourly_precip,weather_code:hourly_wcode,wind_speed_10m:hourly_wspd,wind_direction_10m:hourly_wdir},
+    daily:{
+      time:daily_time,
+      weather_code:allDays.map(d=>wttrCode(d.hourly?.[4]?.weatherCode?.[0]?.value||'116')),
+      temperature_2m_max:allDays.map(d=>parseFloat(d.maxtempC||0)),
+      temperature_2m_min:allDays.map(d=>parseFloat(d.mintempC||0)),
+      precipitation_probability_max:allDays.map(d=>Math.max(...(d.hourly||[]).map(h=>parseInt(h.chanceofrain||0)))),
+      wind_speed_10m_max:allDays.map(d=>Math.max(...(d.hourly||[]).map(h=>parseFloat(h.windspeedKmph||0)))),
+      uv_index_max:allDays.map(d=>parseInt(d.uvIndex||0)),
+      sunrise:allDays.map((d,i)=>`${daily_time[i]}T${to24(d.astronomy?.[0]?.sunrise||'06:00 AM')}`),
+      sunset:allDays.map((d,i)=>`${daily_time[i]}T${to24(d.astronomy?.[0]?.sunset||'20:00 PM')}`),
+      precipitation_sum:allDays.map(d=>((d.hourly||[]).reduce((s,h)=>s+parseFloat(h.precipMM||0),0)).toFixed(1))
+    }
+  };
 }
 
 function render(data,city,country){
@@ -766,7 +672,7 @@ function render(data,city,country){
     <div class="hs"><strong>${c.precipitation} mm</strong>Précip.</div>
     <div class="hs"><strong>${Math.round((c.visibility||10000)/1000)} km</strong>Visibilité</div>
   </div>
-  <div style="font-size:0.58rem;color:var(--ink3);margin-top:10px;letter-spacing:0.1em">Mis à jour à ${updAt} · <span id="ha-inline">🏠 <span id="ha-temp">--</span>°C <span id="ha-hum">--</span>%</span></div>
+  <div style="font-size:0.58rem;color:var(--ink3);margin-top:10px;letter-spacing:0.1em">Mis à jour à <span id="wx-updtime">${updAt}</span> · <span id="ha-inline">🏠 <span id="ha-temp">--</span>°C <span id="ha-hum">--</span>%</span></div>
 </div>
 
 <hr>
@@ -947,6 +853,21 @@ function err(msg){
   document.getElementById('content').innerHTML=`<div class="state"><span class="state-ico">✕</span>${esc(msg)}</div>`;
 }
 
+// ── AUTO-REFRESH ──
+let wxRefreshTimer = null;
+let lastWxParams = null; // {lat, lon, city, country}
+const WX_REFRESH_MS = 10 * 60 * 1000; // 10 minutes
+
+function scheduleWxRefresh(){
+  clearInterval(wxRefreshTimer);
+  wxRefreshTimer = setInterval(()=>{
+    if(lastWxParams){
+      const{lat,lon,city,country}=lastWxParams;
+      loadWX(lat,lon,city,country,true); // true = silent refresh (no spinner)
+    }
+  }, WX_REFRESH_MS);
+}
+
 let tt;
 function toast(msg){
   const t=document.getElementById('toast');
@@ -954,34 +875,7 @@ function toast(msg){
   clearTimeout(tt);tt=setTimeout(()=>t.className='',2500);
 }
 
-const THEMES = ['default','military','light'];
-const THEME_LABELS = {default:'☀ Civil', military:'⚔ Militaire', light:'☼ Clair'};
-
-function toggleTheme(){
-  const html = document.documentElement;
-  const btn = document.getElementById('theme-toggle');
-  const cur = html.getAttribute('data-theme') || 'default';
-  const idx = THEMES.indexOf(cur);
-  const next = THEMES[(idx + 1) % THEMES.length];
-  if(next === 'default'){
-    html.removeAttribute('data-theme');
-  } else {
-    html.setAttribute('data-theme', next);
-  }
-  btn.textContent = THEME_LABELS[next];
-  localStorage.setItem('meteo_theme', next);
-}
-
 window.addEventListener('load',()=>{
-  // Restore theme
-  const savedTheme = localStorage.getItem('meteo_theme');
-  const btn = document.getElementById('theme-toggle');
-  if(savedTheme && savedTheme !== 'default'){
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    btn.textContent = THEME_LABELS[savedTheme] || '☀ Civil';
-  } else {
-    btn.textContent = THEME_LABELS['default'];
-  }
   document.getElementById('si').value='Bourg-lès-Valence';
   loadWX(44.9333,4.8833,'Bourg-lès-Valence','France');
   initHA();
