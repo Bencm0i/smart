@@ -23,6 +23,91 @@
   --grid-color: rgba(255,255,255,0.03);
 }
 
+/* ═══ THÈME MILITAIRE ═══ */
+:root.theme-mil {
+  --bg:       #f0e8d0;
+  --surface:  #e8dfc0;
+  --surface2: #ddd4a8;
+  --border:   #b8a878;
+  --accent:   #c8601a;
+  --accent2:  #a84e10;
+  --text:     #2c2510;
+  --muted:    #7a6a42;
+  --gold:     #c8601a;
+  --green:    #4a6b28;
+  --red:      #aa2820;
+  --olive:    #5a6830;
+  --olive2:   #4a5820;
+  --grid-color: rgba(0,0,0,0.06);
+}
+:root.theme-mil body {
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+    repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(90,104,48,0.04) 18px, rgba(90,104,48,0.04) 20px),
+    repeating-linear-gradient(-45deg, transparent, transparent 18px, rgba(90,104,48,0.04) 18px, rgba(90,104,48,0.04) 20px);
+}
+:root.theme-mil .header { background: rgba(232,223,192,0.97); }
+:root.theme-mil .ticker-band { background: rgba(218,208,170,0.99); }
+:root.theme-mil .tabs-bar { background: var(--bg); }
+:root.theme-mil input[type="number"],
+:root.theme-mil input[type="text"],
+:root.theme-mil input[type="date"],
+:root.theme-mil select,
+:root.theme-mil textarea { background: var(--surface2); color: var(--text); border-color: var(--border); }
+:root.theme-mil .kpi-card { background: var(--surface); border-color: var(--border); }
+:root.theme-mil .card { background: var(--surface); border-color: var(--border); }
+:root.theme-mil .card-head { background: var(--surface2); border-bottom-color: var(--border); }
+:root.theme-mil .section { background: var(--surface); border-color: var(--border); }
+:root.theme-mil .section-head { background: var(--surface2); border-bottom-color: var(--border); }
+:root.theme-mil .logo { color: var(--accent); }
+:root.theme-mil .badge { background: var(--surface2); border-color: var(--border); color: var(--muted); }
+:root.theme-mil .badge.green { background: rgba(74,107,40,0.15); border-color: rgba(74,107,40,0.35); color: var(--green); }
+:root.theme-mil .badge.gold  { background: rgba(200,96,26,0.15); border-color: rgba(200,96,26,0.35); color: var(--accent); }
+:root.theme-mil .badge.blue  { background: rgba(200,96,26,0.12); border-color: rgba(200,96,26,0.3);  color: var(--accent); }
+:root.theme-mil .num-ctrl { background: var(--surface2); border-color: var(--border); }
+:root.theme-mil .t-price  { color: var(--text); }
+:root.theme-mil .t-sym    { color: var(--muted); }
+:root.theme-mil .bank-total-val { color: var(--accent); }
+:root.theme-mil .kpi-card-value.blue { color: var(--accent); }
+:root.theme-mil .section.accent-blue { border-top-color: var(--accent); }
+:root.theme-mil .section.accent-green { border-top-color: var(--green); }
+:root.theme-mil .section.accent-gold  { border-top-color: #c8601a; }
+:root.theme-mil .section.accent-red   { border-top-color: var(--red); }
+:root.theme-mil .hbtn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Toggle button */
+.theme-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  transition: all 0.2s;
+  min-height: 36px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+:root.theme-mil .theme-toggle { background: var(--surface2); border-color: var(--border); }
+:root.theme-mil .theme-toggle-dot { background: var(--accent); border-color: var(--accent); }
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 
 body {
@@ -813,9 +898,13 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ HEADER ═══ -->
 <div class="header">
-
+  <div class="logo">PAT<span>.</span>SAISIE</div>
   <div class="header-btns">
     <span class="save-status" id="saveStatus">✓ Copié</span>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Basculer thème">
+      <span class="theme-toggle-dot" id="themeIcon">🌙</span>
+      <span id="themeLabel">DARK</span>
+    </button>
   </div>
 </div>
 
@@ -2062,6 +2151,26 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ─── THEME TOGGLE ──────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isMil = document.documentElement.classList.toggle('theme-mil');
+  document.getElementById('themeIcon').textContent  = isMil ? '🪖' : '🌙';
+  document.getElementById('themeLabel').textContent = isMil ? 'MIL' : 'DARK';
+  try { localStorage.setItem('patrimoine_theme', isMil ? 'mil' : 'dark'); } catch(e){}
+}
+(function initTheme() {
+  try {
+    const saved = localStorage.getItem('patrimoine_theme');
+    if (saved === 'mil') {
+      document.documentElement.classList.add('theme-mil');
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon)  icon.textContent  = '🪖';
+      if (label) label.textContent = 'MIL';
+    }
+  } catch(e){}
+})();
 
 // ─── RENDER ALL ────────────────────────────────────────────────────────────
 function renderAll() {
