@@ -7,29 +7,36 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f7f4ef;
-    --bg2: #f0ece4;
-    --ink: #1a1814;
-    --ink2: #6b6558;
-    --ink3: #a09890;
-    --line: #d8d0c4;
-    --accent: #c4583c;
+  /* ── THEMES ── */
+  :root, [data-theme="beige"] {
+    --bg: #f6f0e4;
+    --bg2: #ede5d2;
+    --ink: #261e10;
+    --ink2: #7a6e56;
+    --ink3: #aa9e86;
+    --line: #d8cdb4;
+    --accent: #d96f1c;
     --blue: #3a6fa8;
     --snow: #5a8ab4;
     --purple: #7a5a9a;
     --amber: #c88c28;
+    --theme-btn-bg: #d96f1c;
+    --theme-btn-ink: #fff;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141210;
-      --bg2: #1c1916;
-      --ink: #e8e0d4;
-      --ink2: #9a9088;
-      --ink3: #6a6058;
-      --line: #2e2a24;
-      --accent: #d46848;
-    }
+  [data-theme="militaire"] {
+    --bg: #1a1e14;
+    --bg2: #222819;
+    --ink: #ccd4b8;
+    --ink2: #8a9870;
+    --ink3: #5e6a4a;
+    --line: #343d28;
+    --accent: #7ab840;
+    --blue: #5a9060;
+    --snow: #6aaa78;
+    --purple: #8aaa50;
+    --amber: #a8b840;
+    --theme-btn-bg: #7ab840;
+    --theme-btn-ink: #0e1008;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; }
@@ -259,10 +266,64 @@
   }
   #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
+  /* THEME TOGGLE */
+  .theme-btn {
+    background: var(--theme-btn-bg);
+    color: var(--theme-btn-ink);
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .theme-btn:hover { opacity: 0.85; }
+
+  /* PERGOLA ALERT */
+  #pergola-alert {
+    display: none;
+    background: #c03030;
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    border-left: 3px solid #ff6060;
+    animation: up 0.3s ease both;
+  }
+  [data-theme="militaire"] #pergola-alert {
+    background: #5a1010;
+    border-left-color: #c03030;
+  }
+  #pergola-alert .pa-title {
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  #pergola-alert .pa-close {
+    float: right;
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 1rem;
+    line-height: 1;
+    margin-left: 10px;
+  }
+  #pergola-alert .pa-close:hover { opacity: 1; }
 </style>
 </head>
 <body>
 <div id="app">
+  <div id="pergola-alert">
+    <span class="pa-close" onclick="document.getElementById('pergola-alert').style.display='none'">✕</span>
+    <div class="pa-title">⚠ Alerte rafales pergola</div>
+    <div id="pergola-msg">Rafales dépassant 60 km/h — fermez ou sécurisez la pergola.</div>
+  </div>
   <div class="search-row">
     <div class="search-wrap">
       <input class="search-input" id="si" type="text" placeholder="Rechercher une ville…"
@@ -270,6 +331,7 @@
       <div class="ac" id="ac" style="display:none"></div>
     </div>
     <button class="geo-btn" onclick="geo()" title="Ma position">◎</button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Changer le thème">🌿</button>
     <button class="geo-btn" onclick="haTogglePanel()" title="Token Home Assistant" id="haBtnToggle" style="font-size:0.75rem;letter-spacing:0.05em;opacity:0.5">HA</button>
   </div>
 
@@ -407,7 +469,7 @@ async function loadWX(lat,lon,city,country,silent=false){
   if(!silent) loading();
 
   const params=new URLSearchParams({latitude:lat,longitude:lon,
-    current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation,uv_index,surface_pressure,visibility',
+    current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,uv_index,surface_pressure,visibility',
     hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m',
     daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,uv_index_max,sunrise,sunset,precipitation_sum',
     timezone:'auto',forecast_days:7,wind_speed_unit:'kmh'});
@@ -644,7 +706,17 @@ function render(data,city,country){
   });
 
   const curWind=Math.round(c.wind_speed_10m);
+  const curGusts=Math.round(c.wind_gusts_10m||c.wind_speed_10m);
   const curWlv=windLevel(curWind);
+
+  // Pergola alert
+  const alertEl=document.getElementById('pergola-alert');
+  if(curGusts>=60){
+    document.getElementById('pergola-msg').textContent=`Rafales à ${curGusts} km/h — fermez ou sécurisez la pergola.`;
+    alertEl.style.display='block';
+  } else {
+    alertEl.style.display='none';
+  }
 
   document.getElementById('content').innerHTML=`
 <div class="header-block">
@@ -876,10 +948,25 @@ function toast(msg){
 }
 
 window.addEventListener('load',()=>{
+  // Init theme
+  const saved=localStorage.getItem('meteo_theme')||'beige';
+  applyTheme(saved);
+
   document.getElementById('si').value='Bourg-lès-Valence';
   loadWX(44.9333,4.8833,'Bourg-lès-Valence','France');
   initHA();
 });
+
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  const btn=document.getElementById('themeBtn');
+  if(btn) btn.textContent = t==='beige' ? '🌿' : '🌅';
+  localStorage.setItem('meteo_theme',t);
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'beige';
+  applyTheme(cur==='beige'?'militaire':'beige');
+}
 
 // ── HOME ASSISTANT ──
 const HA_LOCAL     = 'http://192.168.50.234:8123';
