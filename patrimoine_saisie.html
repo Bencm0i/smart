@@ -1406,15 +1406,10 @@ function renderInvPortfolio(key, containerId) {
             <input type="number" value="${r.pr||''}" step="0.01" min="0" placeholder="0.00" inputmode="decimal" autocomplete="off"
               oninput="DATA.investissements['${key}'][${i}].pr=parseFloat(this.value)||0;autoSave()">
           </div>
-          <div class="form-field">
+          <div class="form-field full">
             <label class="lbl">Cours actuel (€)</label>
             <input type="number" value="${r.coursActuel||''}" step="0.01" min="0" placeholder="0.00" inputmode="decimal" autocomplete="off"
               oninput="DATA.investissements['${key}'][${i}].coursActuel=parseFloat(this.value)||0;syncInvToBank();autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Var. jour (%)</label>
-            <input type="number" value="${r.varJour||''}" step="0.01" placeholder="0.00" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements['${key}'][${i}].varJour=parseFloat(this.value)||0;autoSave()">
           </div>
         </div>
       </div>
@@ -2182,12 +2177,21 @@ window.addEventListener('DOMContentLoaded', () => {
     // ── NOUVEAU : indépendance sans résidence principale
     const moisLiberteSansMaison = depMens > 0 ? (grandTotal - maison) / depMens : 0;
 
+    // ── GAIN VÉLO vs VOITURE ────────────────────────────────────────
+    const mob = DATA.mobilite;
+    const odoVeloLog = [...(mob?.velo?.odoLog||[])].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
+    const kmVeloCumul = odoVeloLog.length > 1 ? odoVeloLog[odoVeloLog.length-1].km - odoVeloLog[0].km : (odoVeloLog.length===1 ? odoVeloLog[0].km : 0);
+    const coutKmVoiture = mob?.carburant?.essence > 0 && mob?.carburant?.conso100km > 0 && mob?.carburant?.prixLitre > 0
+      ? mob.carburant.conso100km / 100 * mob.carburant.prixLitre : 0;
+    const gainVeloVoiture = kmVeloCumul > 0 && coutKmVoiture > 0 ? kmVeloCumul * coutKmVoiture : 0;
+
     return {
       grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
       scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
       depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
+      gainVeloVoiture, kmVeloCumul, coutKmVoiture,
     };
   }
 
@@ -2211,6 +2215,8 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:'Taux d\'épargne', value: pct(k.txEpargne), cls: k.txEpargne>=20?'green':k.txEpargne>=10?'gold':'red', sub:'% du revenu net' },
       // ── MODIFIÉ : Indépendance hors résidence principale
       { label:'Indépendance (hors immo)', value: k.moisLiberteSansMaison.toFixed(0)+' mois', cls:'gold', sub:'Patrimoine liquide ÷ dépenses' },
+      // ── GAIN VÉLO vs VOITURE
+      ...(k.gainVeloVoiture > 0 ? [{ label:'🚲 Gain vélo vs voiture', value: '+'+fmtK(k.gainVeloVoiture), cls:'green', sub: new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(k.kmVeloCumul)+' km × '+k.coutKmVoiture.toFixed(3)+' €/km' }] : []),
     ];
     const el = document.getElementById('kpi-cards');
     if (!el) return;
@@ -2442,6 +2448,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const odoVelo = m.velo?.odoLog || [];
     const sortedVelo = [...odoVelo].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
     const kmActualVelo = sortedVelo.length ? sortedVelo[sortedVelo.length-1].km : 0;
+
+    // Gain vélo : km parcourus en vélo × coût au km voiture (carburant)
+    const kmVeloTotal = kmActualVelo - (sortedVelo.length > 1 ? sortedVelo[0].km : 0);
+    const gainVelo = kmVeloTotal > 0 && coutKm > 0 ? kmVeloTotal * coutKm : 0;
     const bat = m.velo?.batterie || {};
     const mot = m.velo?.moteur || {};
     const batUsagePct = bat.cyclesMax > 0 ? Math.min(100,(bat.cyclesActuels||0)/bat.cyclesMax*100) : 0;
@@ -2471,6 +2481,7 @@ window.addEventListener('DOMContentLoaded', () => {
       ${coutTank > 0 ? mkRow('Plein de réservoir', fmt(coutTank), m.carburant.capaciteTank+' L × '+prixLitre.toFixed(3)+' €/L') : ''}
       <div style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🚲 Vélo</div>
       ${kmActualVelo > 0 ? mkRow('Kilométrage vélo actuel', fmtDec(kmActualVelo,0)+' km', 'Dernier relevé') : ''}
+      ${gainVelo > 0 ? mkRow('💚 Gain vélo vs voiture', fmt(gainVelo), fmtDec(kmVeloTotal,0)+' km × '+fmtDec(coutKm,3)+' €/km carburant', '#5aab7a') : ''}
       ${bat.cyclesActuels > 0 ? mkRow('Cycles batterie', (bat.cyclesActuels||0)+' / '+(bat.cyclesMax||'?')+' cycles', 'Usage: '+batUsagePct.toFixed(0)+'%', batColor) : ''}
       ${batKmRestants !== null ? mkRow('Km restants batterie', fmtDec(Math.max(0,batKmRestants),0)+' km estimés', 'Durée théo: '+(bat.dureeTheoKm||0)+' km', batKmRestants < 500 ? '#c05a5a' : '#5aab7a') : ''}
       ${motKmRestants !== null ? mkRow('Km restants moteur', fmtDec(Math.max(0,motKmRestants),0)+' km estimés', 'Durée théo: '+(mot.dureeTheoKm||0)+' km', motKmRestants < 1000 ? '#c05a5a' : '#5aab7a') : ''}
