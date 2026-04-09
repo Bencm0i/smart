@@ -508,31 +508,6 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .add-btn:active { transform: scale(0.98); background: #8a0a0c; }
 
-/* Hors plage : résistance orange */
-.add-btn.hors-plage {
-  background: #3a1a00;
-  color: #ff8c00;
-  border: 2px solid #ff8c00;
-  box-shadow: 0 0 0 0 rgba(255,140,0,0.5);
-  animation: resist-pulse 2s infinite;
-}
-.add-btn.hors-plage::before { content: '⚠'; opacity: 1; }
-@keyframes resist-pulse {
-  0%   { box-shadow: 0 0 0 0   rgba(255,140,0,0.55); }
-  50%  { box-shadow: 0 0 0 8px rgba(255,140,0,0); }
-  100% { box-shadow: 0 0 0 0   rgba(255,140,0,0); }
-}
-@keyframes shake {
-  0%,100%{ transform: translateX(0); }
-  15%    { transform: translateX(-6px); }
-  30%    { transform: translateX(6px); }
-  45%    { transform: translateX(-4px); }
-  60%    { transform: translateX(4px); }
-  75%    { transform: translateX(-2px); }
-  90%    { transform: translateX(2px); }
-}
-.add-btn.shaking { animation: shake 0.55s ease; }
-
 /* ── STATS ── */
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 .stat-card {
@@ -689,71 +664,6 @@ input[type="range"]::-webkit-slider-thumb {
 .stool-detail { display: none; }
 .stool-detail.visible { display: block; }
 
-/* ── PLAGE HORAIRE BANNER ── */
-.plage-banner {
-  position: sticky;
-  top: 56px;
-  z-index: 150;
-  padding: 7px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  transition: background 0.4s;
-}
-.plage-banner.active-plage {
-  background: #1a4a1a;
-  border-bottom-color: #2a7a2a;
-}
-.plage-banner.inactive-plage {
-  background: #2a1a08;
-  border-bottom-color: #5a3a10;
-}
-.plage-label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-weight: 700;
-}
-.plage-label .dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.active-plage .dot { background: #4aff4a; box-shadow: 0 0 6px #4aff4a88; animation: pulse 2s infinite; }
-.inactive-plage .dot { background: #ff8c00; }
-.active-plage .plage-label { color: #aaffaa; }
-.inactive-plage .plage-label { color: #ffcc88; }
-.plage-count {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 2px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-.plage-count.ok { background: rgba(74,255,74,0.15); color: #4aff4a; }
-.plage-count.warn { background: rgba(255,60,60,0.2); color: #ff6060; border: 1px solid rgba(255,60,60,0.4); animation: blink-warn 1.2s infinite; }
-@keyframes blink-warn { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
-
-/* ── PLAGE INLINE WARNING (form) ── */
-.plage-warn-form {
-  display: none;
-  margin-bottom: 10px;
-  padding: 10px 13px;
-  background: #2a1500;
-  border: 1px solid #ff8c00;
-  border-left: 3px solid #ff8c00;
-  border-radius: var(--rs);
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 11px;
-  color: #ffcc88;
-  letter-spacing: 0.06em;
-  line-height: 1.6;
-}
-.plage-warn-form.visible { display: block; }
 </style>
 </head>
 <body>
@@ -764,12 +674,6 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="save-indicator" id="saveIndicator">✚ SAUVEGARDÉ</div>
     <div style="font-size:12px;color:var(--muted);font-weight:600;" id="topDate"></div>
   </div>
-</div>
-
-<!-- PLAGE HORAIRE BANNER -->
-<div class="plage-banner inactive-plage" id="plageBanner">
-  <div class="plage-label"><div class="dot"></div><span id="plageText">—</span></div>
-  <div class="plage-count ok" id="plageCount"></div>
 </div>
 
 <!-- PAGE SAISIE -->
@@ -1080,7 +984,6 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
   </div>
 
-  <div class="plage-warn-form" id="plageWarnForm"></div>
   <button class="add-btn" onclick="addEntry()">ENREGISTRER L'ENTRÉE</button>
 </div>
 
@@ -1244,13 +1147,6 @@ const SYM = {
   insomnie:'Insomnie',reveils_nuit:'Réveils nuit',apnee:'Apnée',cauchemars:'Cauchemars',fatigue_reveil:'Fatigue lever',somnolence_jour:'Somnolence'
 };
 
-// ── PLAGES HORAIRES ──
-const PLAGES = [
-  { id:'matin',  label:'🌅 MATIN',   start: 6*60,      end: 9*60  },
-  { id:'midi',   label:'☀️ MIDI',    start: 12*60,     end: 14*60 },
-  { id:'soir',   label:'🌙 SOIR',    start: 19*60,     end: 21*60 },
-];
-
 // ── INIT ──
 (function(){
   load();
@@ -1258,127 +1154,37 @@ const PLAGES = [
   document.getElementById('entryDate').value = n.toISOString().split('T')[0];
   document.getElementById('entryTime').value = n.toTimeString().slice(0,5);
   document.getElementById('topDate').textContent = n.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-  updatePlageBanner();
-  setInterval(updatePlageBanner, 60000);
   // Init sleep slider display
   const sr = document.getElementById('sleepRange');
   sr.style.background = `linear-gradient(to right,var(--sleep) 0%,var(--sleep) 44%,var(--sleep-mid) 44%)`;
-  document.getElementById('entryTime').addEventListener('change', updateFormWarning);
-  document.getElementById('entryDate').addEventListener('change', updateFormWarning);
+  document.getElementById('entryDate').addEventListener('change', updateSleepVisibility);
+  updateSleepVisibility();
 })();
 
-function getMinutes(h, m){ return h*60 + m; }
-
-function getCurrentPlage(hhmm){
-  // hhmm = "HH:MM" string or current time if omitted
-  let totalMin;
-  if(hhmm){
-    const [h,m] = hhmm.split(':').map(Number);
-    totalMin = getMinutes(h,m);
-  } else {
-    const n = new Date();
-    totalMin = getMinutes(n.getHours(), n.getMinutes());
-  }
-  return PLAGES.find(p => totalMin >= p.start && totalMin < p.end) || null;
+function hasSleepTodayFor(dateVal){
+  return entries.some(e => e.date === dateVal && e.sleep && e.sleep.quality != null);
 }
 
-function getNextPlage(){
-  const n = new Date();
-  const totalMin = getMinutes(n.getHours(), n.getMinutes());
-  // chercher la prochaine plage du jour
-  const next = PLAGES.find(p => p.start > totalMin);
-  return next || PLAGES[0]; // sinon matin du lendemain
-}
-
-function countEntriesToday(plageId){
-  const today = new Date().toISOString().split('T')[0];
-  const plage = PLAGES.find(p => p.id === plageId);
-  if(!plage) return 0;
-  return entries.filter(e => {
-    if(e.date !== today) return false;
-    const [h,m] = e.time.split(':').map(Number);
-    const t = getMinutes(h,m);
-    return t >= plage.start && t < plage.end;
-  }).length;
-}
-
-function updatePlageBanner(){
-  const banner = document.getElementById('plageBanner');
-  const text   = document.getElementById('plageText');
-  const count  = document.getElementById('plageCount');
-  const now = new Date();
-  const plage = getCurrentPlage();
-
-  if(plage){
-    banner.className = 'plage-banner active-plage';
-    text.textContent = plage.label + ' — PLAGE DE SAISIE OUVERTE';
-    const n = countEntriesToday(plage.id);
-    if(n === 0){
-      count.textContent = 'AUCUNE SAISIE';
-      count.className = 'plage-count ok';
-    } else if(n === 1){
-      count.textContent = '1 SAISIE ✓';
-      count.className = 'plage-count ok';
-    } else {
-      count.textContent = n+' SAISIES ⚠';
-      count.className = 'plage-count warn';
-    }
-  } else {
-    banner.className = 'plage-banner inactive-plage';
-    const next = getNextPlage();
-    const nextStart = Math.floor(next.start/60)+':'+(next.start%60).toString().padStart(2,'0');
-    // calculer si c'est demain
-    const totalMin = getMinutes(now.getHours(), now.getMinutes());
-    const demain = next.start <= totalMin;
-    text.textContent = 'Hors plage — prochaine : '+next.label+' à '+nextStart+(demain?' (demain)':'');
-    count.textContent = '';
-    count.className = 'plage-count ok';
-  }
-  updateFormWarning();
-}
-
-function updateFormWarning(){
-  const warnEl = document.getElementById('plageWarnForm');
-  const btn    = document.querySelector('.add-btn');
-  const timeVal = document.getElementById('entryTime').value;
+function updateSleepVisibility(){
   const dateVal = document.getElementById('entryDate').value;
-  const today = new Date().toISOString().split('T')[0];
-
-  if(!timeVal){ warnEl.classList.remove('visible'); btn.classList.remove('hors-plage'); return; }
-
-  const plage = getCurrentPlage(timeVal);
-  if(plage){
-    // Compter les entrées existantes sur cette plage pour cette date
-    const [h,m] = timeVal.split(':').map(Number);
-    const t = getMinutes(h,m);
-    let dayEntries;
-    if(dateVal === today){
-      dayEntries = entries.filter(e => {
-        if(e.date !== dateVal) return false;
-        const [eh,em] = e.time.split(':').map(Number);
-        const et = getMinutes(eh,em);
-        return et >= plage.start && et < plage.end;
-      }).length;
-    } else {
-      dayEntries = entries.filter(e => {
-        if(e.date !== dateVal) return false;
-        const [eh,em] = e.time.split(':').map(Number);
-        const et = getMinutes(eh,em);
-        return et >= plage.start && et < plage.end;
-      }).length;
+  const sleepBlock = document.querySelector('.symptom-block.sleep');
+  if(!sleepBlock) return;
+  if(hasSleepTodayFor(dateVal)){
+    sleepBlock.style.display = 'none';
+    // Afficher un message si pas déjà présent
+    let msg = document.getElementById('sleepAlreadyMsg');
+    if(!msg){
+      msg = document.createElement('div');
+      msg.id = 'sleepAlreadyMsg';
+      msg.style.cssText = 'padding:10px 14px;background:var(--sleep-bg);border:1.5px solid var(--sleep-mid);border-left:4px solid var(--sleep);border-radius:6px;font-size:12px;color:var(--sleep);font-weight:600;margin-bottom:12px;letter-spacing:0.04em;';
+      msg.textContent = '😴 Qualité du sommeil déjà renseignée pour ce jour.';
+      sleepBlock.parentNode.insertBefore(msg, sleepBlock);
     }
-    if(dayEntries >= 1){
-      warnEl.innerHTML = '⚠ DOUBLON PLAGE ' + plage.id.toUpperCase() + ' — ' + dayEntries + ' entrée(s) déjà enregistrée(s) sur cette plage ce jour.<br>Idéalement 1 saisie / plage. Confirmez si intentionnel.';
-      warnEl.classList.add('visible');
-      btn.classList.add('hors-plage');
-    } else {
-      warnEl.classList.remove('visible');
-      btn.classList.remove('hors-plage');
-    }
+    msg.style.display = 'block';
   } else {
-    warnEl.innerHTML = '⚠ HORS PLAGE DE SUIVI — L\'heure saisie ('+(timeVal)+') est en dehors des plages recommandées :<br>Matin 06h–09h · Midi 12h–14h · Soir 19h–21h';
-    warnEl.classList.add('visible');
-    btn.classList.add('hors-plage');
+    sleepBlock.style.display = '';
+    const msg = document.getElementById('sleepAlreadyMsg');
+    if(msg) msg.style.display = 'none';
   }
 }
 
@@ -1464,20 +1270,17 @@ function selectStoolColor(el){
 
 // ── ADD ENTRY ──
 function addEntry(){
-  const btn = document.querySelector('.add-btn');
-
-  // Si hors plage : secouer le bouton avant de laisser passer
-  if(btn.classList.contains('hors-plage')){
-    btn.classList.remove('shaking');
-    void btn.offsetWidth; // reflow pour relancer l'animation
-    btn.classList.add('shaking');
-    btn.addEventListener('animationend', () => btn.classList.remove('shaking'), {once:true});
-    // On laisse quand même enregistrer après la résistance visuelle
-  }
-
   const date = document.getElementById('entryDate').value;
   const time = document.getElementById('entryTime').value;
   if(!date){toast('⚠️ Choisissez une date');return;}
+
+  // Sommeil : ne l'inclure que si pas déjà renseigné pour ce jour
+  const sleepData = hasSleepTodayFor(date) ? null : {
+    quality: +document.getElementById('sleepRange').value,
+    bedtime: document.getElementById('sleepBedtime').value || null,
+    wakeup: document.getElementById('sleepWakeup').value || null,
+    symptoms: getChecked('sleepChecks')
+  };
 
   const entry = {
     id: Date.now(),
@@ -1495,18 +1298,13 @@ function addEntry(){
       details: stoolAbsent ? [] : getChecked('stoolChecks')
     },
     note: document.getElementById('entryNote').value.trim(),
-    sleep: {
-      quality: +document.getElementById('sleepRange').value,
-      bedtime: document.getElementById('sleepBedtime').value || null,
-      wakeup: document.getElementById('sleepWakeup').value || null,
-      symptoms: getChecked('sleepChecks')
-    }
+    sleep: sleepData
   };
 
   entries.unshift(entry);
   save();
   resetForm();
-  updatePlageBanner();
+  updateSleepVisibility();
   toast('✅ Entrée enregistrée');
 }
 
