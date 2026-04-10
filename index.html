@@ -2,414 +2,2374 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0A0C0F">
-<title>Smart — Outils</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAUNCHER — BASE OPS</title>
+<script>document.documentElement.className=localStorage.getItem('launcher_theme')||'theme-beige';</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23060a0e'/><rect x='6' y='10' width='20' height='14' rx='1' fill='none' stroke='%2300e676' stroke-width='2'/><line x1='6' y1='16' x2='26' y2='16' stroke='%2300e676' stroke-width='1.2'/></svg>">
 <style>
-:root {
-  --bg:      #0A0C0F;
-  --surf:    #111318;
-  --surf2:   #181B22;
-  --border:  rgba(255,255,255,0.06);
-  --border2: rgba(255,255,255,0.12);
-  --text:    #E8EAF0;
-  --muted:   #565B6B;
-  --muted2:  #8890A4;
-  --accent:  #3D7FFF;
-  --acc2:    #0d1f40;
-  --green:   #2ECC8A;
-  --orange:  #FF8C42;
-  --red:     #FF4D6A;
-  --yellow:  #F5C842;
-  --pink:    #D966B0;
-  --teal:    #2EC4C4;
-  --mono: 'JetBrains Mono', monospace;
-  --sans: 'Outfit', sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:linear-gradient(rgba(61,127,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(61,127,255,0.025) 1px,transparent 1px);
-  background-size:32px 32px}
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+  :root {
+    --font-mono:'Space Mono',monospace; --font-display:'Syne',sans-serif;
+  }
+  /* ── THÈME BEIGE-ORANGE ── */
+  html.theme-beige {
+    --bg:#f0e6d0; --panel:rgba(244,236,220,0.92); --panel2:rgba(238,228,210,0.97);
+    --border:#c8a87a; --border2:#a07848;
+    --text:#2a1800; --muted:#9a6a38; --muted2:#6e4820;
+    --green:#4e7a1a; --red:#c03018; --gold:#a07010; --blue:#2855a0; --orange:#c85c0a;
+    --accent:#c85c0a;
+    --header-bg:rgba(240,232,216,0.94); --bar-bg:rgba(236,228,212,0.93);
+    --weekbar-bg:rgba(232,224,206,0.91); --ticker-bg:rgba(228,220,202,0.94);
+  }
+  /* ── THÈME MILITAIRE OPEX ── */
+  html.theme-opex {
+    --bg:#161a10; --panel:rgba(24,30,16,0.93); --panel2:rgba(34,42,22,0.97);
+    --border:#384022; --border2:#4e5c2e;
+    --text:#b8c898; --muted:#6a7850; --muted2:#8a9a60;
+    --green:#6a9a22; --red:#b84020; --gold:#b88a08; --blue:#4a7aaa; --orange:#c07820;
+    --accent:#6a9a22;
+    --header-bg:rgba(18,22,12,0.96); --bar-bg:rgba(16,20,10,0.94);
+    --weekbar-bg:rgba(14,18,9,0.93); --ticker-bg:rgba(12,16,8,0.95);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-mono);font-size:12px;min-height:100vh;overflow-x:hidden;position:relative;}
 
-.wrap{position:relative;z-index:1;padding:0 16px 48px;max-width:520px;margin:0 auto}
+  /* ── FOND SVG fixe ── */
+  #bg-svg{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;}
 
-/* Header, Status, Weather, Search, etc. */
-.header{padding:40px 0 16px;animation:slideDown .5s cubic-bezier(.22,1,.36,1) both}
-.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.logo-tag{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:2.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.logo-tag::before{content:'';width:14px;height:1px;background:var(--accent)}
-.logo-title{font-size:27px;font-weight:800;letter-spacing:-1px;line-height:1}
-.logo-title em{font-style:normal;color:var(--accent)}
-.logo-sub{font-family:var(--mono);font-size:8.5px;color:var(--muted);letter-spacing:.4px;margin-top:5px}
-.clock-block{text-align:right;flex-shrink:0}
-.clock-time{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);letter-spacing:1px;line-height:1}
-.clock-date{font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.3px}
+  /* ── HEADER ── */
+  header{border-bottom:1px solid var(--border);padding:0 24px;height:50px;display:flex;align-items:center;justify-content:space-between;background:var(--header-bg);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .hL{display:flex;align-items:center;gap:14px;}
+  .logo{font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--accent);letter-spacing:4px;}
+  .logo-sub{font-size:9px;color:var(--muted2);letter-spacing:2px;margin-top:2px;}
+  .sep{width:1px;height:28px;background:var(--border);}
+  .ff-btn{display:flex;align-items:center;gap:6px;background:rgba(255,100,0,0.08);border:1px solid rgba(255,100,0,0.25);border-radius:4px;padding:5px 11px;cursor:pointer;font-family:var(--font-mono);font-size:10px;color:#ff8c42;text-decoration:none;transition:all .2s;letter-spacing:1px;}
+  .ff-btn:hover{background:rgba(255,100,0,0.18);border-color:rgba(255,100,0,0.55);color:#ffaa66;}
+  .mega-btn{color:#d4426a;border-color:rgba(212,66,106,.25);background:rgba(212,66,106,.05);}
+  .mega-btn:hover{background:rgba(212,66,106,.18);border-color:rgba(212,66,106,.55);color:#f06090;}
+  .hR{display:flex;align-items:center;gap:8px;}
+  #clock{font-size:11px;color:var(--gold);letter-spacing:2px;min-width:72px;text-align:right;}
+  .tab-toggle{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 9px;cursor:pointer;font-family:var(--font-mono);font-size:9px;color:var(--muted2);transition:all .2s;user-select:none;letter-spacing:1px;}
+  .tab-toggle:hover{border-color:var(--accent);color:var(--accent);}
+  .tab-toggle.nt{border-color:var(--blue);color:var(--blue);}
+  .tab-toggle .dot{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:background .2s;}
+  .tab-toggle.nt .dot{background:var(--blue);}
 
-.status-bar{display:flex;align-items:center;gap:8px;margin-top:14px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.8px;animation:slideDown .5s .05s cubic-bezier(.22,1,.36,1) both}
-.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:background .3s,box-shadow .3s}
-.dot.ok{background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2.5s infinite}
-.dot.loading{background:var(--yellow);box-shadow:0 0 7px var(--yellow);animation:blink 1s infinite}
-.dot.error{background:var(--red);box-shadow:0 0 7px var(--red)}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  /* ── MAIN LAYOUT ── */
+  .main{position:relative;z-index:1;max-width:1600px;margin:0 auto;padding:20px 24px 40px;display:grid;grid-template-columns:320px 1fr 296px;gap:20px;align-items:start;transition:grid-template-columns .3s ease;}
+  .main.meteo-hidden{grid-template-columns:0px 1fr 296px;}
+  .main.meteo-hidden .meteo-col{opacity:0;pointer-events:none;width:0;overflow:hidden;padding:0;margin:0;}
 
-.wx-card{display:none;text-decoration:none;border-radius:14px;background:var(--surf);border:1px solid var(--border);overflow:hidden;margin:14px 0 0;animation:slideUp .5s .08s cubic-bezier(.22,1,.36,1) both;transition:border-color .2s,box-shadow .2s}
-.wx-card:active{transform:scale(.97)}
-.wx-bar{height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
-.wx-body{padding:12px 14px;display:flex;align-items:center;gap:12px}
-.wx-icon{font-size:28px;flex-shrink:0}
-.wx-main{flex:1;min-width:0}
-.wx-name{font-size:12px;font-weight:700;letter-spacing:-.2px;margin-bottom:2px}
-.wx-file{font-family:var(--mono);font-size:8px;color:var(--muted)}
-.wx-data{display:flex;align-items:baseline;gap:8px;margin-top:4px;flex-wrap:wrap}
-.wx-temp{font-family:var(--mono);font-size:22px;font-weight:700;color:#7AABFF;line-height:1}
-.wx-desc{font-size:10px;color:var(--muted2);font-style:italic}
-.wx-details{font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-top:3px;letter-spacing:.3px}
-.wx-tags{display:flex;gap:4px;margin-top:6px}
-.wx-tags .tag{background:rgba(61,127,255,.14);color:#7AABFF}
+  /* ── MÉTÉO COLONNE ── */
+  .meteo-col{position:sticky;top:70px;max-height:calc(100vh - 90px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;transition:opacity .3s,width .3s;will-change:opacity;}
+  .meteo-col::-webkit-scrollbar{width:4px;}
+  .meteo-col::-webkit-scrollbar-track{background:transparent;}
+  .meteo-col::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-.search-row{display:flex;gap:8px;align-items:center;margin:14px 0 6px;animation:slideUp .5s .10s cubic-bezier(.22,1,.36,1) both}
-.search-wrap{position:relative;flex:1}
-.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:13px;color:var(--muted);pointer-events:none}
-.search-input{width:100%;background:var(--surf2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:var(--mono);font-size:12px;padding:11px 36px 11px 36px;outline:none;transition:border-color .2s,box-shadow .2s}
-.search-input::placeholder{color:var(--muted)}
-.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(61,127,255,.12)}
-.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:none;border-radius:6px;color:var(--muted);font-size:10px;width:22px;height:22px;display:none;align-items:center;justify-content:center;cursor:pointer}
-.search-clear.on{display:flex}
-.layout-btn{background:transparent;border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:15px;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-.layout-btn:active{transform:scale(.9)}
+  /* ── MÉTÉO INNER (styles du widget météo, adaptés au launcher) ── */
+  .meteo-inner{background:rgba(220,224,228,0.88);border:1px solid var(--border);border-radius:5px;overflow:hidden;backdrop-filter:blur(4px);}
+  .meteo-inner *{box-sizing:border-box;}
+  .meteo-inner .mx-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .meteo-inner .mx-title{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text);}
+  .meteo-inner .mx-body{padding:12px 14px;}
 
-.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none;animation:slideUp .5s .12s cubic-bezier(.22,1,.36,1) both}
-.filter-row::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border2);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .18s;background:transparent;color:var(--muted2);white-space:nowrap}
-.chip.active{background:var(--acc2);border-color:var(--accent);color:var(--text)}
-.chip:active{transform:scale(.94)}
+  /* ── SVG FOND — adaptation thème ── */
+  html.theme-opex #bg-svg rect[fill="url(#gM)"]{fill:url(#gM-opex);}
+  html.theme-opex #bg-svg path[stroke="rgba(80,100,120,0.1)"]{stroke:rgba(60,80,30,0.12);}
+  html.theme-opex #bg-svg path[stroke="rgba(60,80,110,0.2)"]{stroke:rgba(50,70,20,0.2);}
+  html.theme-opex #bg-svg [stroke*="rgba(30,60,90"]{stroke:rgba(80,100,40,0.22);}
+  html.theme-opex #bg-svg text{fill:rgba(80,110,40,0.35)!important;}
 
-.sec-label{font-family:var(--mono);font-size:8.5px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin:6px 0 8px}
-.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
-.sec-count{color:var(--muted);font-size:8px}
+  html.theme-beige .meteo-inner{--bg:rgba(244,236,220,0.92);--bg2:rgba(238,228,210,0.97);--ink:var(--text);--ink2:var(--muted2);--ink3:var(--muted);--line:var(--border);--accent:#c85c0a;--blue:#2855a0;}
+  html.theme-opex  .meteo-inner{--bg:rgba(24,30,16,0.93);--bg2:rgba(34,42,22,0.97);--ink:var(--text);--ink2:var(--muted2);--ink3:var(--muted);--line:var(--border);--accent:#6a9a22;--blue:#4a7aaa;}
 
-.skel-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.skel{height:88px;border-radius:14px;background:linear-gradient(90deg,var(--surf) 25%,var(--surf2) 50%,var(--surf) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  /* ── BOUTON SWITCH THEME ── */
+  .theme-switch-btn{display:flex;align-items:center;gap:6px;border-radius:4px;padding:5px 11px;cursor:pointer;font-family:var(--font-mono);font-size:10px;letter-spacing:1px;transition:all .2s;border:1px solid;}
+  .theme-switch-btn:hover{filter:brightness(1.2);}
+  .meteo-inner #meteo-app{max-width:100%;padding:0;background:transparent;}
+  .meteo-inner #meteo-app .search-row{margin-bottom:14px;}
+  .meteo-inner #meteo-app .search-input{font-family:var(--font-mono);font-size:10px;color:var(--text);border-bottom-color:var(--border);}
+  .meteo-inner #meteo-app .search-input::placeholder{color:var(--muted);font-style:normal;}
+  .meteo-inner #meteo-app .geo-btn{color:var(--muted2);}
+  .meteo-inner #meteo-app .city-name{font-size:1.3rem;}
+  .meteo-inner #meteo-app .header-stats{gap:10px;}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:slideUp .5s .14s cubic-bezier(.22,1,.36,1) both}
-.grid.list{grid-template-columns:1fr}
+  /* Bouton toggle météo dans le header */
+  .meteo-toggle-btn{display:flex;align-items:center;gap:6px;background:rgba(0,122,66,0.07);border:1px solid rgba(0,122,66,0.22);border-radius:4px;padding:5px 11px;cursor:pointer;font-family:var(--font-mono);font-size:10px;color:var(--green);text-decoration:none;transition:all .2s;letter-spacing:1px;user-select:none;}
+  .meteo-toggle-btn:hover{background:rgba(0,122,66,0.18);border-color:rgba(0,122,66,0.55);}
+  .meteo-toggle-btn.off{color:var(--muted2);background:rgba(200,206,212,0.5);border-color:var(--border);}
+  .meteo-toggle-btn.off:hover{border-color:var(--green);color:var(--green);}
 
-.card{position:relative;border-radius:14px;background:var(--surf);border:1px solid var(--border);text-decoration:none;display:block;overflow:hidden;transition:transform .18s cubic-bezier(.34,1.56,.64,1),border-color .18s,box-shadow .18s;animation:cardIn .35s cubic-bezier(.22,1,.36,1) both}
-.card:hover{border-color:var(--border2);box-shadow:0 4px 24px rgba(0,0,0,.32)}
-.card:active{transform:scale(.95)}
-.card-bar{height:2px;width:100%}
-.card-body{padding:11px 12px 12px;display:flex;gap:10px;align-items:flex-start}
-.card-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.card-info{flex:1;min-width:0}
-.card-name{font-size:12px;font-weight:700;color:var(--text);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.card-file{font-family:var(--mono);font-size:8px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
-.card-tags{display:flex;gap:4px;flex-wrap:wrap}
-.tag{font-family:var(--mono);font-size:7.5px;letter-spacing:.3px;padding:2px 6px;border-radius:20px;white-space:nowrap}
+  @media(max-width:1100px){.main{grid-template-columns:260px 1fr 260px;}.main.meteo-hidden{grid-template-columns:0px 1fr 260px;}}
+  @media(max-width:820px){.main{grid-template-columns:1fr;padding:14px;}.main.meteo-hidden{grid-template-columns:1fr;}.meteo-col{position:static;max-height:none;}.apps-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}.fav-grid{grid-template-columns:1fr;}}
 
-.grid.list .card-name{font-size:13px}
-.grid.list .card-body{align-items:center}
+  /* ── AI BAR ── */
+  .ai-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .ai-link{display:flex;align-items:center;gap:7px;padding:6px 13px;border-radius:4px;text-decoration:none;font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;border:1px solid;transition:all .18s;}
+  .ai-link.claude{color:#c8a87a;border-color:rgba(200,168,122,.22);background:rgba(200,168,122,.05);}
+  .ai-link.claude:hover{background:rgba(200,168,122,.14);border-color:rgba(200,168,122,.5);}
+  .ai-link.chatgpt{color:#19c37d;border-color:rgba(25,195,125,.22);background:rgba(25,195,125,.05);}
+  .ai-link.chatgpt:hover{background:rgba(25,195,125,.14);border-color:rgba(25,195,125,.5);}
+  .ai-link.notebook{color:#7ab4f5;border-color:rgba(122,180,245,.22);background:rgba(122,180,245,.05);}
+  .ai-link.notebook:hover{background:rgba(122,180,245,.14);border-color:rgba(122,180,245,.5);}
 
-.badge-new{position:absolute;top:-1px;right:10px;font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:0 0 6px 6px;background:var(--green);color:#001a0e;text-transform:uppercase}
+  /* ── SECTION LABEL ── */
+  .slabel{font-family:var(--font-display);font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .slabel::after{content:'';flex:1;height:1px;background:var(--border);}
 
-.age-fresh{background:rgba(46,204,138,.15);color:#5EDDA8}
-.age-mid{background:rgba(245,200,66,.12);color:#FAD966}
-.age-old{background:rgba(255,140,66,.12);color:#FFAA70}
+  /* ── APPS GRID ── */
+  .apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:10px;}
+  .app-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:13px 13px 11px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;backdrop-filter:blur(4px);}
+  .app-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent);opacity:0;transition:opacity .18s;}
+  .app-card:hover{border-color:var(--border2);background:var(--panel2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+  .app-card:hover::before{opacity:1;}
+  .app-icon{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(0,0,0,0.4);border:1px solid var(--border);}
+  .app-name{font-family:var(--font-display);font-weight:600;font-size:12px;color:var(--text);}
+  .app-desc{font-size:9px;color:var(--muted2);line-height:1.5;}
+  .app-badge{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);opacity:0.5;}
+  .app-nt{position:absolute;top:7px;right:7px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);opacity:0;transition:opacity .15s;background:var(--border);border-radius:2px;cursor:pointer;}
+  .app-card:hover .app-nt{opacity:1;}
+  .app-nt:hover{color:var(--blue);background:var(--border2);}
 
-.c-blue .card-bar{background:linear-gradient(90deg,#3D7FFF,transparent)} .c-blue .card-ico{background:#0d1f40} .c-blue .tag{background:rgba(61,127,255,.14);color:#7AABFF}
-.c-green .card-bar{background:linear-gradient(90deg,#2ECC8A,transparent)} .c-green .card-ico{background:#0d2a1e} .c-green .tag{background:rgba(46,204,138,.14);color:#5EDDA8}
-.c-orange .card-bar{background:linear-gradient(90deg,#FF8C42,transparent)} .c-orange .card-ico{background:#2a1a08} .c-orange .tag{background:rgba(255,140,66,.14);color:#FFAA70}
-.c-red .card-bar{background:linear-gradient(90deg,#FF4D6A,transparent)} .c-red .card-ico{background:#2a0a10} .c-red .tag{background:rgba(255,77,106,.14);color:#FF8098}
-.c-yellow .card-bar{background:linear-gradient(90deg,#F5C842,transparent)} .c-yellow .card-ico{background:#2a2008} .c-yellow .tag{background:rgba(245,200,66,.14);color:#FAD966}
-.c-pink .card-bar{background:linear-gradient(90deg,#D966B0,transparent)} .c-pink .card-ico{background:#280820} .c-pink .tag{background:rgba(217,102,176,.14);color:#E88ACA}
-.c-teal .card-bar{background:linear-gradient(90deg,#2EC4C4,transparent)} .c-teal .card-ico{background:#08252a} .c-teal .tag{background:rgba(46,196,196,.14);color:#5EDADA}
-.c-purple .card-bar{background:linear-gradient(90deg,#8B5CF6,transparent)} .c-purple .card-ico{background:#1a0e2a} .c-purple .tag{background:rgba(139,92,246,.14);color:#B08AFB}
-.c-slate .card-bar{background:linear-gradient(90deg,#8890A4,transparent)} .c-slate .card-ico{background:#16181f} .c-slate .tag{background:rgba(136,144,164,.14);color:#AEB5C8}
+  /* ── TODO ── */
+  .todo-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;backdrop-filter:blur(4px);}
+  .todo-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .todo-title{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text);}
+  .todo-count{font-size:9px;color:var(--muted2);background:var(--border);padding:2px 6px;border-radius:2px;}
+  .todo-input-row{display:flex;border-bottom:1px solid var(--border);}
+  .todo-input{flex:1;background:transparent;border:none;outline:none;padding:9px 12px;font-family:var(--font-mono);font-size:10px;color:var(--text);}
+  .todo-input::placeholder{color:var(--muted);}
+  .todo-add-btn{background:transparent;border:none;border-left:1px solid var(--border);padding:0 13px;cursor:pointer;color:var(--muted);font-size:18px;transition:all .15s;}
+  .todo-add-btn:hover{color:var(--accent);background:rgba(0,230,118,0.05);}
+  .todo-list{max-height:400px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .todo-item{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .12s;animation:sli .15s ease;}
+  .todo-item:hover{background:rgba(255,255,255,0.02);}
+  .todo-item:last-child{border-bottom:none;}
+  @keyframes sli{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+  .todo-check{width:13px;height:13px;border:1px solid var(--border2);border-radius:2px;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;background:transparent;}
+  .todo-check:hover{border-color:var(--accent);}
+  .todo-check.done{background:var(--accent);border-color:var(--accent);}
+  .todo-check.done::after{content:'✓';font-size:8px;color:#000;font-weight:700;}
+  .todo-text{flex:1;font-size:10px;color:var(--text);line-height:1.5;word-break:break-word;cursor:text;outline:none;}
+  .todo-text.done{text-decoration:line-through;color:var(--muted);}
+  .todo-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;opacity:0;transition:all .12s;flex-shrink:0;}
+  .todo-item:hover .todo-del{opacity:1;}
+  .todo-del:hover{color:var(--red);}
+  .todo-empty{padding:20px;text-align:center;color:var(--muted);font-size:9px;letter-spacing:1px;}
+  .todo-footer{padding:7px 12px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);}
+  .todo-fi{font-size:9px;color:var(--muted);letter-spacing:1px;}
+  .todo-cd{font-size:9px;background:none;border:none;color:var(--muted);cursor:pointer;letter-spacing:1px;text-transform:uppercase;font-family:var(--font-mono);transition:color .12s;}
+  .todo-cd:hover{color:var(--red);}
 
-.empty{grid-column:1/-1;text-align:center;padding:48px 20px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;line-height:2}
-.empty b{display:block;font-size:28px;margin-bottom:10px}
+  /* ── FAVORIS ── */
+  .fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:4px;}
+  .fav-item{background:var(--panel);border:1px solid var(--border);border-radius:5px;display:flex;align-items:center;gap:0;overflow:hidden;transition:all .18s;backdrop-filter:blur(4px);}
+  .fav-item:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,0.15);}
+  .fav-go{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;border:none;border-right:1px solid var(--border);color:var(--muted2);font-size:13px;transition:all .15s;}
+  .fav-go:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .fav-fields{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .fav-label-in{background:transparent;border:none;outline:none;font-family:var(--font-display);font-weight:600;font-size:11px;color:var(--text);padding:5px 10px 2px;width:100%;cursor:text;}
+  .fav-label-in::placeholder{color:var(--muted);font-weight:400;}
+  .fav-url-in{background:transparent;border:none;outline:none;font-family:var(--font-mono);font-size:9px;color:var(--muted2);padding:2px 10px 5px;width:100%;cursor:text;}
+  .fav-url-in::placeholder{color:var(--muted);}
+  .fav-url-in:focus,.fav-label-in:focus{background:rgba(0,0,0,0.04);}
+  .fav-favicon{width:14px;height:14px;border-radius:2px;object-fit:contain;flex-shrink:0;margin-left:8px;opacity:0.7;}
 
-.footer{margin-top:28px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.5px;animation:slideUp .5s .4s cubic-bezier(.22,1,.36,1) both}
-.fdot{display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--muted);margin:0 6px;vertical-align:middle}
+  /* ── NOTES ── */
+  .notes-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;backdrop-filter:blur(4px);margin-top:14px;}
+  .notes-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .notes-title{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text);}
+  .notes-actions{display:flex;gap:6px;align-items:center;}
+  .notes-new-btn{background:transparent;border:1px solid var(--border);border-radius:2px;padding:2px 8px;font-family:var(--font-mono);font-size:9px;color:var(--muted2);cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .notes-new-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .notes-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+  .notes-tabs::-webkit-scrollbar{display:none;}
+  .notes-tab{flex-shrink:0;padding:6px 12px;font-family:var(--font-mono);font-size:9px;color:var(--muted);cursor:pointer;border-right:1px solid var(--border);border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap;max-width:110px;}
+  .notes-tab span{overflow:hidden;text-overflow:ellipsis;}
+  .notes-tab:hover{color:var(--text);background:rgba(0,0,0,0.03);}
+  .notes-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,122,66,0.04);}
+  .notes-tab .tab-del{margin-left:2px;opacity:0;font-size:11px;color:var(--muted);line-height:1;transition:opacity .12s;}
+  .notes-tab:hover .tab-del{opacity:1;}
+  .notes-tab .tab-del:hover{color:var(--red);}
+  .notes-body{display:flex;flex-direction:column;}
+  .notes-title-in{background:transparent;border:none;border-bottom:1px solid var(--border);outline:none;padding:7px 12px;font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--text);width:100%;}
+  .notes-title-in::placeholder{color:var(--muted);font-weight:400;}
+  .notes-title-in:focus{background:rgba(0,0,0,0.02);}
+  .notes-textarea{background:transparent;border:none;outline:none;resize:none;padding:10px 12px;font-family:var(--font-mono);font-size:10px;color:var(--text);line-height:1.7;width:100%;min-height:160px;max-height:340px;}
+  .notes-textarea::placeholder{color:var(--muted);}
+  .notes-footer{padding:5px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .notes-fi{font-size:8px;color:var(--muted);letter-spacing:1px;}
+  .notes-empty{padding:22px;text-align:center;color:var(--muted);font-size:9px;letter-spacing:1px;}
 
-.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.05);transform:scale(0);animation:rpl .5s linear;pointer-events:none}
-@keyframes rpl{to{transform:scale(4);opacity:0}}
-@keyframes slideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)}}
-@keyframes cardIn{from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
+  /* ── CHAMPS COPIABLES ── */
+  .clip-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;backdrop-filter:blur(4px);margin-top:14px;}
+  .clip-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .clip-title{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text);}
+  .clip-item{display:flex;align-items:stretch;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .clip-item:last-child{border-bottom:none;}
+  .clip-row{display:flex;align-items:stretch;width:100%;}
+  .clip-label-in{width:80px;flex-shrink:0;background:transparent;border:none;border-right:1px solid var(--border);outline:none;padding:7px 8px;font-family:var(--font-display);font-size:10px;font-weight:600;color:var(--muted2);cursor:text;}
+  .clip-label-in::placeholder{color:var(--border2);font-weight:400;}
+  .clip-label-in:focus{background:rgba(0,0,0,0.03);color:var(--text);}
+  .clip-val-in{flex:1;background:transparent;border:none;outline:none;padding:7px 8px;font-family:var(--font-mono);font-size:10px;color:var(--text);min-width:0;}
+  .clip-val-in::placeholder{color:var(--muted);}
+  .clip-val-in:focus{background:rgba(0,0,0,0.02);}
+  .clip-btn{flex-shrink:0;width:30px;background:transparent;border:none;border-left:1px solid var(--border);cursor:pointer;color:var(--muted2);font-size:13px;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+  .clip-btn:hover{background:var(--accent);color:#fff;}
+  .clip-btn.ok{background:rgba(0,122,66,0.12);color:var(--green);}
+  .clip-ia-row{display:flex;align-items:center;gap:4px;padding:4px 8px;border-top:1px solid var(--border);background:rgba(0,0,0,0.02);width:100%;}
+  .clip-ia-btn{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:3px;border:1px solid;font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:1px;text-decoration:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .clip-ia-btn.claude{color:#c8a87a;border-color:rgba(200,168,122,.3);background:rgba(200,168,122,.06);}
+  .clip-ia-btn.claude:hover{background:rgba(200,168,122,.2);}
+  .clip-ia-btn.chatgpt{color:#19c37d;border-color:rgba(25,195,125,.3);background:rgba(25,195,125,.06);}
+  .clip-ia-btn.chatgpt:hover{background:rgba(25,195,125,.2);}
+  .clip-ia-btn.grok{color:#9b8fd4;border-color:rgba(155,143,212,.3);background:rgba(155,143,212,.06);}
+  .clip-ia-btn.grok:hover{background:rgba(155,143,212,.2);}
+  .clip-ia-btn.gemini{color:#7ab4f5;border-color:rgba(122,180,245,.3);background:rgba(122,180,245,.06);}
+  .clip-ia-btn.gemini:hover{background:rgba(122,180,245,.2);}
+
+
+
+  /* ── WORKSPACE MODAL ── */
+  .ws-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.72);z-index:500;display:none;backdrop-filter:blur(3px);}
+  .ws-overlay.open{display:flex;align-items:stretch;}
+  .ws-panel{display:flex;flex-direction:column;width:100%;height:100%;background:#1a1c1e;position:relative;}
+  .ws-bar{display:flex;align-items:center;gap:10px;padding:0 16px;height:40px;background:#212426;border-bottom:1px solid #2e3235;flex-shrink:0;}
+  .ws-bar-title{font-family:var(--font-mono);font-size:11px;color:#8fa8c8;letter-spacing:2px;text-transform:uppercase;}
+  .ws-close{margin-left:auto;background:transparent;border:1px solid #2e3235;border-radius:3px;color:#78909c;font-family:var(--font-mono);font-size:10px;padding:3px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .ws-close:hover{border-color:#8fa8c8;color:#cfd8dc;}
+  .ws-iframe{flex:1;border:none;width:100%;display:block;}
+  .ws-btn{display:flex;align-items:center;gap:6px;background:rgba(143,168,200,0.07);border:1px solid rgba(143,168,200,0.22);border-radius:4px;padding:5px 11px;cursor:pointer;font-family:var(--font-mono);font-size:10px;color:#8fa8c8;text-decoration:none;transition:all .2s;letter-spacing:1px;}
+  .ws-btn:hover{background:rgba(143,168,200,0.18);border-color:rgba(143,168,200,0.5);color:#b4cde3;}
+
+  /* ── VELOTAF ── */
+  .velo-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;backdrop-filter:blur(4px);margin-top:14px;}
+  .velo-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .velo-title{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text);}
+  .velo-refresh{background:transparent;border:1px solid var(--border);border-radius:2px;padding:2px 8px;font-family:var(--font-mono);font-size:9px;color:var(--muted2);cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .velo-refresh:hover{border-color:var(--accent);color:var(--accent);}
+  .velo-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+  .velo-score-row{display:flex;align-items:center;gap:10px;}
+  .velo-score-circle{width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:2px solid;transition:all .4s;}
+  .velo-score-circle .sc-num{font-family:var(--font-display);font-weight:800;font-size:18px;line-height:1;}
+  .velo-score-circle .sc-lbl{font-size:7px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+  .velo-score-circle.go{background:rgba(0,122,66,0.12);border-color:var(--green);color:var(--green);}
+  .velo-score-circle.warn{background:rgba(138,106,0,0.12);border-color:var(--gold);color:var(--gold);}
+  .velo-score-circle.nogo{background:rgba(204,17,51,0.12);border-color:var(--red);color:var(--red);}
+  .velo-score-circle.loading{background:rgba(100,120,140,0.08);border-color:var(--border2);color:var(--muted);}
+  .velo-verdict{flex:1;}
+  .velo-verdict-label{font-family:var(--font-display);font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+  .velo-verdict-label.go{color:var(--green);}
+  .velo-verdict-label.warn{color:var(--gold);}
+  .velo-verdict-label.nogo{color:var(--red);}
+  .velo-verdict-sub{font-size:9px;color:var(--muted2);margin-top:2px;line-height:1.4;}
+  .velo-alerts{display:flex;flex-direction:column;gap:4px;}
+  .velo-alert{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:3px;font-size:9px;line-height:1.4;}
+  .velo-alert.ok{background:rgba(0,122,66,0.08);border:1px solid rgba(0,122,66,0.2);color:var(--green);}
+  .velo-alert.warn{background:rgba(138,106,0,0.1);border:1px solid rgba(138,106,0,0.3);color:var(--gold);}
+  .velo-alert.danger{background:rgba(204,17,51,0.1);border:1px solid rgba(204,17,51,0.3);color:var(--red);}
+  .velo-alert.info{background:rgba(26,92,204,0.08);border:1px solid rgba(26,92,204,0.2);color:var(--blue);}
+  .velo-alert-icon{font-size:12px;flex-shrink:0;line-height:1.2;}
+  .velo-meteo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .velo-meteo-cell{background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:3px;padding:6px 7px;text-align:center;}
+  .velo-meteo-val{font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);}
+  .velo-meteo-lbl{font-size:8px;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+  .velo-meteo-icon{font-size:16px;line-height:1;margin-bottom:2px;}
+  .velo-route{font-size:8px;color:var(--muted);letter-spacing:1px;text-align:center;padding-top:4px;border-top:1px solid var(--border);}
+  .velo-timestamp{font-size:8px;color:var(--muted);letter-spacing:1px;text-align:right;}
+  .velo-conseil{background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:3px;padding:7px 9px;}
+  .velo-conseil-title{font-size:8px;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+
+  /* ── CONGÉS ── */
+  .conges-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;overflow:hidden;backdrop-filter:blur(4px);}
+  .conges-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .conges-title{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text);}
+  .conges-open-btn{background:transparent;border:1px solid var(--border);border-radius:2px;padding:2px 8px;font-family:var(--font-mono);font-size:9px;color:var(--muted2);cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .conges-open-btn:hover{border-color:var(--blue);color:var(--blue);}
+  .conges-body{padding:10px 14px;display:flex;flex-direction:column;gap:7px;}
+  .conges-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+  .conges-stat{background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:3px;padding:6px 7px;text-align:center;}
+  .conges-stat-val{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);}
+  .conges-stat-lbl{font-size:8px;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+  .conges-next{background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:3px;padding:7px 9px;}
+  .conges-next-label{font-size:8px;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+  .conges-next-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .conges-next-dates{font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--text);}
+  .conges-pill{font-size:8px;letter-spacing:1px;padding:2px 7px;border-radius:2px;font-family:var(--font-mono);}
+  .conges-pill.wait{background:rgba(26,92,204,0.1);color:var(--blue);border:1px solid rgba(26,92,204,0.2);}
+  .conges-pill.ok{background:rgba(0,122,66,0.1);color:var(--green);border:1px solid rgba(0,122,66,0.2);}
+  .conges-pill.ko{background:rgba(204,17,51,0.1);color:var(--red);border:1px solid rgba(204,17,51,0.2);}
+  .conges-empty{font-size:9px;color:var(--muted);text-align:center;padding:8px 0;letter-spacing:1px;}
+  .velo-conseil-list{display:flex;flex-direction:column;gap:3px;}
+  .velo-conseil-item{font-size:9px;color:var(--text);line-height:1.4;display:flex;gap:5px;}
+  .velo-conseil-item::before{content:'›';color:var(--accent);flex-shrink:0;}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .velo-spinning{animation:spin 1s linear infinite;display:inline-block;}
+  /* ── BARRE PROGRESSION JOURNÉE TAFF ── */
+  #work-bar-wrap{position:sticky;top:50px;z-index:99;background:var(--bar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:5px 24px;display:flex;align-items:center;gap:10px;}
+  #work-bar-wrap.offday{display:none;}
+  .wb-label{font-family:var(--font-mono);font-size:9px;color:var(--muted2);letter-spacing:1.5px;white-space:nowrap;flex-shrink:0;}
+  /* Piste principale : plage 7h–18h */
+  .wb-track{flex:1;height:7px;background:var(--border);border-radius:3px;position:relative;overflow:visible;}
+  /* Segment hors-plage gauche (avant 7h30 ou après fin) */
+  .wb-seg-out{position:absolute;top:0;height:100%;background:rgba(204,17,51,0.25);border-radius:3px 0 0 3px;}
+  /* Segment plage travail (7h30–fin) */
+  .wb-seg-in{position:absolute;top:0;height:100%;background:rgba(0,122,66,0.18);border-radius:0;}
+  /* Segment hors-plage droite (après fin–18h) */
+  .wb-seg-out-r{position:absolute;top:0;height:100%;background:rgba(204,17,51,0.18);border-radius:0 3px 3px 0;}
+  /* Curseur position actuelle */
+  .wb-cursor{position:absolute;top:-3px;width:3px;height:13px;border-radius:2px;background:var(--accent);transition:left .5s ease;z-index:2;box-shadow:0 0 4px rgba(0,122,66,0.6);}
+  .wb-cursor.over{background:var(--red);box-shadow:0 0 6px rgba(204,17,51,0.8);}
+  /* Marqueur début travail */
+  .wb-mark{position:absolute;top:-2px;width:1px;height:11px;background:var(--muted2);opacity:0.5;}
+  /* Marqueur fin travail */
+  .wb-mark-end{position:absolute;top:-2px;width:2px;height:11px;background:var(--green);opacity:0.7;border-radius:1px;}
+  .wb-mark-end.over{background:var(--red);}
+  .wb-pct{font-family:var(--font-display);font-weight:700;font-size:10px;color:var(--accent);min-width:36px;text-align:right;flex-shrink:0;}
+  .wb-pct.done{color:var(--muted);}
+  .wb-pct.over{color:var(--red);}
+  .wb-remain{font-family:var(--font-mono);font-size:9px;color:var(--muted2);white-space:nowrap;flex-shrink:0;}
+  .wb-remain.over{color:var(--red);font-weight:700;}
+  .wb-velo{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;white-space:nowrap;flex-shrink:0;padding:1px 7px;border-radius:3px;border:1px solid;}
+
+  /* ── ANNOTATEUR MODAL (iframe SnapMark) ── */
+  .ann-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.78);z-index:600;display:none;backdrop-filter:blur(4px);}
+  .ann-overlay.open{display:flex;align-items:stretch;}
+  .ann-panel{display:flex;flex-direction:column;width:100%;height:100%;background:#1a1a1a;position:relative;}
+  .ann-bar{display:flex;align-items:center;gap:10px;padding:0 16px;height:40px;background:#222;border-bottom:1px solid #3a3a3a;flex-shrink:0;}
+  .ann-bar-title{font-family:var(--font-mono);font-size:11px;color:#ff7a00;letter-spacing:2px;text-transform:uppercase;}
+  .ann-close{margin-left:auto;background:transparent;border:1px solid #3a3a3a;border-radius:3px;color:#78909c;font-family:var(--font-mono);font-size:10px;padding:3px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .ann-close:hover{border-color:#8fa8c8;color:#cfd8dc;}
+  .ann-iframe{flex:1;border:none;width:100%;display:block;}
+
+  /* ── CONGÉS MODAL (iframe) ── */
+  .conges-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.78);z-index:600;display:none;backdrop-filter:blur(4px);}
+  .conges-overlay.open{display:flex;align-items:stretch;}
+  .conges-modal-panel{display:flex;flex-direction:column;width:100%;height:100%;background:#FAF8F5;position:relative;}
+  .conges-modal-bar{display:flex;align-items:center;gap:10px;padding:0 16px;height:40px;background:#F2EFE9;border-bottom:1px solid #E4DDD4;flex-shrink:0;}
+  .conges-modal-title{font-family:var(--font-mono);font-size:11px;color:#E8621A;letter-spacing:2px;text-transform:uppercase;}
+  .conges-modal-close{margin-left:auto;background:transparent;border:1px solid #E4DDD4;border-radius:3px;color:#6B6259;font-family:var(--font-mono);font-size:10px;padding:3px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .conges-modal-close:hover{border-color:#6B6259;color:#1C1814;}
+  .conges-modal-iframe{flex:1;border:none;width:100%;display:block;}
+
+  /* ── AFFAIRE TRACKER MODAL ── */
+  .affaire-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.78);z-index:600;display:none;backdrop-filter:blur(4px);}
+  .affaire-overlay.open{display:flex;align-items:stretch;}
+  .affaire-modal-panel{display:flex;flex-direction:column;width:100%;height:100%;background:#f4f1ec;}
+  .affaire-modal-bar{display:flex;align-items:center;gap:10px;padding:0 16px;height:40px;background:#ede9e1;border-bottom:1px solid #d8d2c8;flex-shrink:0;}
+  .affaire-modal-title{font-family:var(--font-mono);font-size:11px;color:#c8410a;letter-spacing:2px;text-transform:uppercase;}
+  .affaire-modal-close{margin-left:auto;background:transparent;border:1px solid #d8d2c8;border-radius:3px;color:#6b6560;font-family:var(--font-mono);font-size:10px;padding:3px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .affaire-modal-close:hover{border-color:#6b6560;color:#1a1714;}
+  .affaire-modal-iframe{flex:1;border:none;width:100%;display:block;}
+
+  /* ── DEMANDE CONGÉ PDF MODAL ── */
+  .dcpdf-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.78);z-index:600;display:none;backdrop-filter:blur(4px);}
+  .dcpdf-overlay.open{display:flex;align-items:stretch;}
+  .dcpdf-modal-panel{display:flex;flex-direction:column;width:100%;height:100%;background:#f4f6fb;}
+  .dcpdf-modal-bar{display:flex;align-items:center;gap:10px;padding:0 16px;height:40px;background:#e8ecf4;border-bottom:1px solid #d0d7e8;flex-shrink:0;}
+  .dcpdf-modal-title{font-family:var(--font-mono);font-size:11px;color:#1a2744;letter-spacing:2px;text-transform:uppercase;}
+  .dcpdf-modal-close{margin-left:auto;background:transparent;border:1px solid #d0d7e8;border-radius:3px;color:#5a6a8a;font-family:var(--font-mono);font-size:10px;padding:3px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+  .dcpdf-modal-close:hover{border-color:#1a2744;color:#1a2744;}
+  .dcpdf-modal-iframe{flex:1;border:none;width:100%;display:block;}
+  /* ── BARRE JOURS SEMAINE ── */
+  #week-bar{position:sticky;top:83px;z-index:98;background:var(--weekbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:3px 24px 3px;display:flex;align-items:center;gap:8px;}
+  #week-bar.offday{display:none;}
+  .wk-days{display:flex;align-items:center;gap:4px;flex:1;}
+  .wk-day{flex:1;text-align:center;font-family:var(--font-mono);font-size:9px;letter-spacing:2px;padding:3px 4px;border-radius:3px;border:1px solid transparent;transition:all .2s;position:relative;user-select:none;cursor:default;}
+  .wk-day.today{background:rgba(0,122,66,0.14);border-color:rgba(0,122,66,0.45);color:var(--green);font-weight:700;}
+  .wk-day.aic{background:rgba(26,92,204,0.13);border-color:rgba(26,92,204,0.4);color:var(--blue);}
+  .wk-day.aic::after{content:'AIC';font-size:7px;letter-spacing:1px;display:block;opacity:0.8;margin-top:0px;line-height:1;}
+  .wk-day.today.aic{background:rgba(138,106,0,0.16);border-color:rgba(138,106,0,0.5);color:var(--gold);}
+  .wk-day.past{color:var(--muted);opacity:0.55;}
+  .wk-day.future{color:var(--muted2);}
+  .wk-day-name{font-size:9px;letter-spacing:1.5px;}
+  .wk-aic-cfg{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+  .wk-aic-label{font-family:var(--font-mono);font-size:8px;color:var(--muted2);letter-spacing:1px;white-space:nowrap;}
+  .wk-aic-toggle{width:16px;height:16px;border-radius:2px;border:1px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s;flex-shrink:0;}
+  .wk-aic-toggle.on{background:rgba(26,92,204,0.2);border-color:rgba(26,92,204,0.5);color:var(--blue);}
+  .wk-aic-toggle:hover{border-color:var(--blue);}
+
+  /* ── BANDE DÉFILANTE ── */
+  #ticker-bar{position:sticky;top:141px;z-index:97;background:var(--ticker-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);height:34px;overflow:hidden;display:flex;align-items:center;}
+  #ticker-bar.hidden{display:none;}
+  .ticker-wrap{display:flex;align-items:center;width:100%;overflow:hidden;position:relative;}
+  .ticker-track{display:flex;align-items:center;white-space:nowrap;animation:ticker-scroll 22s linear infinite;will-change:transform;}
+  .ticker-track:hover{animation-play-state:paused;}
+  @keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .ticker-sep{color:var(--border2);margin:0 24px;opacity:0.6;font-size:13px;}
+  .ticker-item{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:12px;letter-spacing:0.5px;white-space:nowrap;}
+  .ticker-item .tk-icon{font-size:14px;flex-shrink:0;}
+  .ticker-item .tk-label{color:var(--muted2);text-transform:uppercase;letter-spacing:1px;font-size:10px;}
+  .ticker-item .tk-val{font-weight:700;font-size:13px;}
+  .ticker-item.tk-conge .tk-val{color:var(--blue);}
+  .ticker-item.tk-conge-link{cursor:pointer;text-decoration:none;}
+  .ticker-item.tk-conge-link .tk-val{color:var(--blue);text-decoration:underline;text-underline-offset:2px;}
+  .ticker-item.tk-conge-link:hover .tk-val{color:#2a7cfc;}
+  .ticker-item.tk-velo-go .tk-val{color:var(--green);}
+  .ticker-item.tk-velo-warn .tk-val{color:var(--gold);}
+  .ticker-item.tk-velo-nogo .tk-val{color:var(--red);}
+  .ticker-item.tk-btc .tk-val{color:var(--gold);}
+  .ticker-item.tk-affaire .tk-val{color:var(--orange);}
+  /* Éléments cachés pour data */
+  #congesBody{display:none;}
+  #veloBody{display:none;}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="header">
-    <div class="header-top">
-      <div>
-        <div class="logo-tag">bencm0i / smart</div>
-        <div class="logo-title">Mes <em>Outils</em></div>
-        <div class="logo-sub" id="repoSub">Connexion au dépôt…</div>
-      </div>
-      <div class="clock-block">
-        <div class="clock-time" id="clk">--:--</div>
-        <div class="clock-date" id="clkD"></div>
-      </div>
+<!-- ═══════════════════════════════════════════════════════════════
+     FOND DESSIN INDUSTRIEL — SVG
+═══════════════════════════════════════════════════════════════════ -->
+<svg id="bg-svg" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <pattern id="gm" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+    <path d="M20 0H0V20" fill="none" stroke="rgba(80,100,120,0.1)" stroke-width="0.5"/>
+  </pattern>
+  <pattern id="gM" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+    <rect width="100" height="100" fill="url(#gm)"/>
+    <path d="M100 0H0V100" fill="none" stroke="rgba(60,80,110,0.2)" stroke-width="0.8"/>
+  </pattern>
+</defs>
+<rect width="100%" height="100%" fill="url(#gM)"/>
+
+<!-- ════ CONTENEUR ISO 20' — bas gauche ═══════════════════════════ -->
+<g transform="translate(28,525)" stroke="rgba(30,60,90,0.22)" fill="none" stroke-width="0.8">
+  <!-- Face avant -->
+  <rect x="0" y="0" width="210" height="122" rx="2"/>
+  <!-- Toit iso -->
+  <path d="M0 0L32 -22L242 -22L210 0" stroke-width="0.7"/>
+  <!-- Face droite iso -->
+  <path d="M210 0L242 -22L242 100L210 122" stroke-width="0.7"/>
+  <!-- Renforts verticaux -->
+  <line x1="52" y1="0" x2="52" y2="122" stroke-width="0.6"/>
+  <line x1="105" y1="0" x2="105" y2="122" stroke-width="0.6"/>
+  <line x1="158" y1="0" x2="158" y2="122" stroke-width="0.6"/>
+  <!-- Renforts horizontaux -->
+  <line x1="0" y1="30" x2="210" y2="30" stroke-width="0.5"/>
+  <line x1="0" y1="92" x2="210" y2="92" stroke-width="0.5"/>
+  <!-- Portes -->
+  <rect x="8" y="34" width="88" height="54" rx="1" stroke-width="0.7"/>
+  <rect x="114" y="34" width="88" height="54" rx="1" stroke-width="0.7"/>
+  <!-- Poignées -->
+  <line x1="96" y1="58" x2="96" y2="65" stroke-width="1.2"/>
+  <line x1="114" y1="58" x2="114" y2="65" stroke-width="1.2"/>
+  <!-- Coins iso -->
+  <rect x="0" y="0" width="10" height="10" rx="1" stroke-width="0.6"/>
+  <rect x="200" y="0" width="10" height="10" rx="1" stroke-width="0.6"/>
+  <rect x="0" y="112" width="10" height="10" rx="1" stroke-width="0.6"/>
+  <rect x="200" y="112" width="10" height="10" rx="1" stroke-width="0.6"/>
+  <!-- Serrures -->
+  <circle cx="105" cy="32" r="3" stroke-width="0.6"/>
+  <circle cx="105" cy="92" r="3" stroke-width="0.6"/>
+  <!-- Cotes largeur -->
+  <line x1="0" y1="142" x2="210" y2="142" stroke="rgba(30,60,90,0.22)" stroke-dasharray="3 3"/>
+  <line x1="0" y1="137" x2="0" y2="147" stroke="rgba(30,60,90,0.22)"/>
+  <line x1="210" y1="137" x2="210" y2="147" stroke="rgba(30,60,90,0.22)"/>
+  <text x="105" y="157" font-family="Space Mono,monospace" font-size="8" fill="rgba(20,50,80,0.38)" text-anchor="middle">6 058 mm</text>
+  <!-- Cotes hauteur -->
+  <line x1="-20" y1="0" x2="-20" y2="122" stroke="rgba(30,60,90,0.22)" stroke-dasharray="3 3"/>
+  <line x1="-25" y1="0" x2="-15" y2="0" stroke="rgba(30,60,90,0.22)"/>
+  <line x1="-25" y1="122" x2="-15" y2="122" stroke="rgba(30,60,90,0.22)"/>
+  <text x="-36" y="68" font-family="Space Mono,monospace" font-size="8" fill="rgba(20,50,80,0.38)" text-anchor="middle" transform="rotate(-90,-36,68)">2 591 mm</text>
+  <!-- Label vue -->
+  <text x="105" y="-30" font-family="Space Mono,monospace" font-size="7.5" fill="rgba(20,50,80,0.32)" text-anchor="middle" letter-spacing="1">VUE ISO — CONTENEUR 20 PIEDS</text>
+  <text x="105" y="-20" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.2)" text-anchor="middle">NF EN ISO 668 · CL. 1C · TARE 2 230 kg</text>
+</g>
+
+<!-- ════ CONTENEUR ISO — haut droite (petit) ══════════════════════ -->
+<g id="cont-tr" stroke="rgba(30,60,90,0.14)" fill="none" stroke-width="0.6">
+  <!-- positionné par JS selon largeur viewport -->
+  <rect x="0" y="0" width="160" height="96" rx="2"/>
+  <path d="M0 0L24 -16L184 -16L160 0"/>
+  <path d="M160 0L184 -16L184 80L160 96"/>
+  <line x1="40" y1="0" x2="40" y2="96"/>
+  <line x1="80" y1="0" x2="80" y2="96"/>
+  <line x1="120" y1="0" x2="120" y2="96"/>
+  <line x1="0" y1="24" x2="160" y2="24"/>
+  <line x1="0" y1="72" x2="160" y2="72"/>
+  <rect x="6" y="28" width="62" height="40" rx="1"/>
+  <rect x="92" y="28" width="62" height="40" rx="1"/>
+  <rect x="0" y="0" width="8" height="8" rx="1"/>
+  <rect x="152" y="0" width="8" height="8" rx="1"/>
+  <rect x="0" y="88" width="8" height="8" rx="1"/>
+  <rect x="152" y="88" width="8" height="8" rx="1"/>
+</g>
+
+<!-- ════ PIED À COULISSE ══════════════════════════════════════════ -->
+<g id="pied-coulisse" stroke="rgba(30,60,90,0.28)" fill="none" stroke-width="0.7">
+  <!-- Corps règle -->
+  <rect x="0" y="14" width="190" height="17" rx="1.5"/>
+  <!-- Graduations -->
+  <g stroke="rgba(30,60,90,0.4)" stroke-width="0.5">
+    <line x1="15" y1="14" x2="15" y2="31"/><line x1="25" y1="16" x2="25" y2="29"/>
+    <line x1="35" y1="14" x2="35" y2="31"/><line x1="45" y1="16" x2="45" y2="29"/>
+    <line x1="55" y1="14" x2="55" y2="31"/><line x1="65" y1="16" x2="65" y2="29"/>
+    <line x1="75" y1="14" x2="75" y2="31"/><line x1="85" y1="16" x2="85" y2="29"/>
+    <line x1="95" y1="14" x2="95" y2="31"/><line x1="105" y1="16" x2="105" y2="29"/>
+    <line x1="115" y1="14" x2="115" y2="31"/><line x1="125" y1="16" x2="125" y2="29"/>
+    <line x1="135" y1="14" x2="135" y2="31"/><line x1="145" y1="16" x2="145" y2="29"/>
+    <line x1="155" y1="14" x2="155" y2="31"/><line x1="165" y1="16" x2="165" y2="29"/>
+    <line x1="175" y1="14" x2="175" y2="31"/>
+  </g>
+  <!-- Bec fixe gauche -->
+  <path d="M0 0L0 44L9 44L9 31L0 31"/>
+  <!-- Bec mobile -->
+  <path d="M64 0L64 44L73 44L73 31L64 31"/>
+  <!-- Vernier -->
+  <rect x="58" y="12" width="32" height="21" rx="1.5" stroke-width="1"/>
+  <!-- Vis blocage -->
+  <circle cx="74" cy="22" r="4"/>
+  <line x1="74" y1="18" x2="74" y2="26" stroke-width="0.5"/>
+  <line x1="70" y1="22" x2="78" y2="22" stroke-width="0.5"/>
+  <!-- Becs intérieurs -->
+  <rect x="0" y="-12" width="9" height="15" rx="1"/>
+  <rect x="55" y="-12" width="9" height="15" rx="1"/>
+  <!-- Tige profondeur -->
+  <line x1="4" y1="-12" x2="4" y2="-36" stroke-dasharray="4 3"/>
+  <!-- Cotes -->
+  <line x1="0" y1="-26" x2="64" y2="-26" stroke="rgba(30,60,90,0.25)" stroke-dasharray="2 2"/>
+  <line x1="0" y1="-30" x2="0" y2="-22" stroke="rgba(30,60,90,0.25)"/>
+  <line x1="64" y1="-30" x2="64" y2="-22" stroke="rgba(30,60,90,0.25)"/>
+  <text x="32" y="-32" font-family="Space Mono,monospace" font-size="8" fill="rgba(20,50,80,0.42)" text-anchor="middle">Ø 38.5 mm</text>
+  <text x="145" y="9" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.32)" text-anchor="middle">150 mm</text>
+</g>
+
+<!-- ════ MÈTRE RUBAN ════════════════════════════════════════════ -->
+<g id="metre" stroke="rgba(30,60,90,0.22)" fill="none" stroke-width="0.7">
+  <!-- Boîtier -->
+  <rect x="0" y="-26" width="52" height="44" rx="7"/>
+  <!-- Bouton lock -->
+  <rect x="8" y="-22" width="18" height="9" rx="2.5"/>
+  <text x="17" y="-15" font-family="Space Mono,monospace" font-size="5.5" fill="rgba(20,50,80,0.42)" text-anchor="middle">LOCK</text>
+  <!-- Clip boîtier -->
+  <path d="M52 -10L58 -10L58 6L52 6" stroke-width="1"/>
+  <!-- Ruban -->
+  <rect x="58" y="-6" width="150" height="16" rx="1" stroke-width="0.6"/>
+  <!-- Graduations ruban -->
+  <g stroke="rgba(30,60,90,0.4)" stroke-width="0.6">
+    <line x1="68" y1="-6" x2="68" y2="10"/><line x1="73" y1="-3" x2="73" y2="8"/>
+    <line x1="78" y1="-6" x2="78" y2="10"/><line x1="83" y1="-3" x2="83" y2="8"/>
+    <line x1="88" y1="-6" x2="88" y2="10"/><line x1="93" y1="-3" x2="93" y2="8"/>
+    <line x1="98" y1="-6" x2="98" y2="10"/><line x1="103" y1="-3" x2="103" y2="8"/>
+    <line x1="108" y1="-6" x2="108" y2="10"/><line x1="118" y1="-6" x2="118" y2="10"/>
+    <line x1="128" y1="-6" x2="128" y2="10"/><line x1="133" y1="-3" x2="133" y2="8"/>
+    <line x1="138" y1="-6" x2="138" y2="10"/><line x1="143" y1="-3" x2="143" y2="8"/>
+    <line x1="148" y1="-6" x2="148" y2="10"/><line x1="158" y1="-6" x2="158" y2="10"/>
+    <line x1="168" y1="-6" x2="168" y2="10"/><line x1="178" y1="-6" x2="178" y2="10"/>
+    <line x1="188" y1="-6" x2="188" y2="10"/><line x1="198" y1="-6" x2="198" y2="10"/>
+  </g>
+  <!-- Labels cm ruban -->
+  <text x="88" y="22" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.32)" text-anchor="middle">10</text>
+  <text x="138" y="22" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.32)" text-anchor="middle">15</text>
+  <text x="188" y="22" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.32)" text-anchor="middle">20</text>
+  <!-- Crochet extrémité -->
+  <rect x="208" y="-8" width="5" height="18" rx="1"/>
+</g>
+
+<!-- ════ SYMBOLES TECHNIQUES flottants ══════════════════════════ -->
+<!-- Rugosité surface -->
+<g id="sym-ra" stroke="rgba(30,60,90,0.16)" fill="none" stroke-width="0.6">
+  <path d="M0 22L9 0L18 22"/>
+  <line x1="9" y1="0" x2="34" y2="0"/>
+  <text x="37" y="4" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.25)">Ra 1.6</text>
+</g>
+<!-- Repère centrage -->
+<g id="sym-cc" stroke="rgba(30,60,90,0.14)" fill="none" stroke-width="0.5">
+  <circle cx="0" cy="0" r="14"/>
+  <circle cx="0" cy="0" r="3.5"/>
+  <line x1="-18" y1="0" x2="18" y2="0"/>
+  <line x1="0" y1="-18" x2="0" y2="18"/>
+</g>
+<!-- Flèche de vue -->
+<g id="sym-fv" stroke="rgba(30,60,90,0.18)" fill="rgba(30,60,90,0.08)" stroke-width="0.6">
+  <polygon points="0,-15 7,0 -7,0"/>
+  <text x="0" y="13" font-family="Space Mono,monospace" font-size="8" fill="rgba(20,50,80,0.32)" text-anchor="middle">A</text>
+</g>
+<!-- Symbole soudure -->
+<g id="sym-sw" stroke="rgba(30,60,90,0.14)" fill="none" stroke-width="0.6">
+  <circle cx="0" cy="0" r="9"/>
+  <line x1="-14" y1="0" x2="-9" y2="0"/>
+  <line x1="9" y1="0" x2="18" y2="0"/>
+  <text x="-4" y="4" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.25)">∅</text>
+  <text x="20" y="4" font-family="Space Mono,monospace" font-size="6" fill="rgba(30,60,90,0.22)">3×120°</text>
+</g>
+
+<!-- ════ CARTOUCHE ════════════════════════════════════════════════ -->
+<g id="cartouche" stroke="rgba(30,60,90,0.18)" fill="none" stroke-width="0.5">
+  <rect x="0" y="0" width="250" height="82"/>
+  <line x1="0" y1="18" x2="250" y2="18"/>
+  <line x1="0" y1="36" x2="250" y2="36"/>
+  <line x1="0" y1="54" x2="250" y2="54"/>
+  <line x1="83" y1="18" x2="83" y2="82"/>
+  <line x1="166" y1="18" x2="166" y2="82"/>
+  <text x="125" y="13" font-family="Space Mono,monospace" font-size="8" fill="rgba(20,50,80,0.55)" text-anchor="middle" font-weight="700">BASE OPS — LAUNCHER v2.0</text>
+  <text x="41" y="30" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.25)" text-anchor="middle">IND.</text>
+  <text x="124" y="30" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.25)" text-anchor="middle">DATE</text>
+  <text x="208" y="30" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.25)" text-anchor="middle">ÉCHELLE</text>
+  <text x="41" y="48" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.48)" text-anchor="middle">A</text>
+  <text id="cart-date" x="124" y="48" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.48)" text-anchor="middle">—</text>
+  <text x="208" y="48" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.48)" text-anchor="middle">1:1</text>
+  <text x="41" y="62" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.22)" text-anchor="middle">DESSINÉ</text>
+  <text x="124" y="62" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.22)" text-anchor="middle">VÉRIFIÉ</text>
+  <text x="208" y="62" font-family="Space Mono,monospace" font-size="7" fill="rgba(30,60,90,0.22)" text-anchor="middle">APPROUVÉ</text>
+  <text x="41" y="76" font-family="Space Mono,monospace" font-size="7" fill="rgba(20,50,80,0.45)" text-anchor="middle">BOB</text>
+</g>
+</svg>
+
+<!-- ════════════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="hL">
+    <div>
+      <div class="logo">⬡ LAUNCHER</div>
+      <div class="logo-sub">BASE OPS // OUTILS LOCAUX</div>
     </div>
-    <div class="status-bar">
-      <div class="dot loading" id="dot"></div>
-      <span id="statusTxt">Chargement…</span>
+    <div class="sep"></div>
+    <a class="ff-btn" href="about:home" title="Page d'accueil Firefox">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+      FIREFOX HOME
+    </a>
+    <a class="ff-btn mega-btn" href="https://mega.nz" target="_blank" rel="noopener" title="MEGA Cloud">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      MEGA
+    </a>
+    <button class="ws-btn" onclick="openAnnotateur()" title="Ouvrir Annotateur" style="color:#7ab4f5;border-color:rgba(122,180,245,.25);background:rgba(122,180,245,.06);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M3 15l5-5 4 4 3-3 6 6"/>
+      </svg>
+      ANNOTATEUR
+    </button>
+    <button class="ws-btn" onclick="openWorkspace()" title="Ouvrir Workspace">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      WORKSPACE
+    </button>
+  </div>
+  <div class="hR">
+    <button class="theme-switch-btn" id="themeSwitchBtn" onclick="switchTheme()" title="Changer de thème"></button>
+    <button class="meteo-toggle-btn" id="meteoToggleBtn" onclick="toggleMeteo()" title="Afficher/masquer la météo">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/>
+      </svg>
+      <span id="meteoToggleLabel">MÉTÉO</span>
+    </button>
+    <div id="clock">--:--:--</div>
+    <div class="tab-toggle" id="tabToggle" onclick="toggleTabMode()">
+      <div class="dot"></div>
+      <span id="tabLabel">MÊME ONGLET</span>
+    </div>
+  </div>
+</header>
+
+<!-- ════ BARRE JOURNÉE TAFF ════════════════════════════════════ -->
+<div id="work-bar-wrap">
+  <span class="wb-label" id="wb-label">JOURNÉE</span>
+  <div class="wb-track" id="wb-track">
+    <div class="wb-seg-out"   id="wb-seg-out"></div>
+    <div class="wb-seg-in"    id="wb-seg-in"></div>
+    <div class="wb-seg-out-r" id="wb-seg-out-r"></div>
+    <div class="wb-mark"      id="wb-mark-start"></div>
+    <div class="wb-mark-end"  id="wb-mark-end"></div>
+    <div class="wb-cursor"    id="wb-cursor"></div>
+  </div>
+  <span class="wb-pct"    id="wb-pct">0%</span>
+  <span class="wb-remain" id="wb-remain">—</span>
+  <span class="wb-velo"   id="wb-velo" style="display:none"></span>
+</div>
+
+<!-- ════ BARRE JOURS SEMAINE ════════════════════════════════ -->
+<div id="week-bar">
+  <div class="wk-days" id="wk-days">
+    <div class="wk-day" id="wk-1"><div class="wk-day-name">LUN</div></div>
+    <div class="wk-day" id="wk-2"><div class="wk-day-name">MAR</div></div>
+    <div class="wk-day" id="wk-3"><div class="wk-day-name">MER</div></div>
+    <div class="wk-day" id="wk-4"><div class="wk-day-name">JEU</div></div>
+    <div class="wk-day" id="wk-5"><div class="wk-day-name">VEN</div></div>
+  </div>
+  <div class="wk-aic-cfg">
+    <span class="wk-aic-label">AIC :</span>
+    <div class="wk-aic-toggle" id="wk-aic-1" title="Lundi AIC" onclick="toggleAic(1)">L</div>
+    <div class="wk-aic-toggle" id="wk-aic-2" title="Mardi AIC" onclick="toggleAic(2)">M</div>
+    <div class="wk-aic-toggle" id="wk-aic-3" title="Mercredi AIC" onclick="toggleAic(3)">M</div>
+    <div class="wk-aic-toggle" id="wk-aic-4" title="Jeudi AIC" onclick="toggleAic(4)">J</div>
+    <div class="wk-aic-toggle" id="wk-aic-5" title="Vendredi AIC" onclick="toggleAic(5)">V</div>
+  </div>
+</div>
+
+<!-- ════ BANDE DÉFILANTE ════════════════════════════════════════ -->
+<div id="ticker-bar">
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- contenu injecté par JS, dupliqué pour scroll infini -->
+    </div>
+  </div>
+</div>
+
+<!-- Éléments cachés pour data vélotaf & congés -->
+<div id="congesBody" style="display:none"></div>
+<div class="velo-panel" style="display:none"><div id="veloBody"></div></div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════════════════════ -->
+<div class="main" id="mainGrid">
+  <!-- ═══ COLONNE MÉTÉO ═══ -->
+  <div class="meteo-col" id="meteoCol">
+    <div class="meteo-inner">
+      <div class="mx-head">
+        <div class="mx-title">☁ MÉTÉO</div>
+        <button class="velo-refresh" onclick="meteoRefreshBtn()" title="Actualiser">⟳ MAJ</button>
+      </div>
+      <div class="mx-body">
+        <div id="meteo-app"></div>
+      </div>
     </div>
   </div>
 
-  <!-- MÉTÉO -->
-  <a class="wx-card" href="meteo.html" id="wxCard">
-    <div class="wx-bar"></div>
-    <div class="wx-body">
-      <div class="wx-icon" id="wxIco">🌤</div>
-      <div class="wx-main">
-        <div class="wx-name">Météo — Valence</div>
-        <div class="wx-file">meteo.html</div>
-        <div class="wx-data">
-          <span class="wx-temp" id="wxT">--°</span>
-          <span class="wx-desc" id="wxD">chargement…</span>
+  <div>
+    <!-- Liens IA -->
+    <div class="slabel">Intelligence Artificielle</div>
+    <div class="ai-bar">
+      <a class="ai-link claude" href="https://claude.ai" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01" fill="none" stroke="rgba(6,10,14,0.7)" stroke-width="2" stroke-linecap="round"/></svg>
+        CLAUDE.AI
+      </a>
+      <a class="ai-link chatgpt" href="https://chatgpt.com" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073z"/></svg>
+        CHATGPT
+      </a>
+      <a class="ai-link notebook" href="https://notebooklm.google.com" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v1H8zm0-4h8v1H8zm0 8h5v1H8z"/></svg>
+        NOTEBOOKLM
+      </a>
+    </div>
+
+    <!-- Favoris web -->
+    <div class="slabel">Favoris Web</div>
+    <div class="fav-grid" id="favGrid"></div>
+
+    <!-- Apps -->
+    <div class="slabel" style="margin-top:18px">Utilitaires</div>
+    <div class="apps-grid" id="appsGrid"></div>
+  </div>
+
+  <!-- Todo -->
+  <div>
+    <div class="slabel">Todo</div>
+    <div class="todo-panel">
+      <div class="todo-header">
+        <div class="todo-title">TÂCHES</div>
+        <div class="todo-count" id="todoCount">0</div>
+      </div>
+      <div class="todo-input-row">
+        <input class="todo-input" id="todoInput" placeholder="Nouvelle tâche…" maxlength="200">
+        <button class="todo-add-btn" onclick="addTodo()">+</button>
+      </div>
+      <div class="todo-list" id="todoList"></div>
+      <div class="todo-footer">
+        <span class="todo-fi" id="todoInfo">0 restante(s)</span>
+        <button class="todo-cd" onclick="clearDone()">Effacer terminées</button>
+      </div>
+    </div>
+
+    <!-- Champs copiables -->
+    <div class="slabel" style="margin-top:14px">Presse-papiers</div>
+    <div class="clip-panel">
+      <div class="clip-header">
+        <div class="clip-title">COPIER RAPIDE</div>
+      </div>
+      <div id="clipList"></div>
+    </div>
+
+    <!-- Notes -->
+    <div class="slabel" style="margin-top:14px">Notes</div>
+    <div class="notes-panel">
+      <div class="notes-header">
+        <div class="notes-title">NOTES</div>
+        <div class="notes-actions">
+          <button class="notes-new-btn" id="notesNewBtn">+ NOUVELLE</button>
         </div>
-        <div class="wx-details" id="wxDet"></div>
-        <div class="wx-tags"><span class="tag">7 jours</span><span class="tag">Vent</span><span class="tag">Open-Meteo</span></div>
       </div>
+      <div class="notes-tabs" id="notesTabs"></div>
+      <div class="notes-body" id="notesBody"></div>
     </div>
-  </a>
 
-  <div class="search-row">
-    <div class="search-wrap">
-      <span class="search-ico">⌕</span>
-      <input class="search-input" id="srch" type="search" placeholder="Rechercher un outil…" oninput="doSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
-      <button class="search-clear" id="srchClr" onclick="clearSrch()">✕</button>
+  </div>
+</div>
+
+<!-- ════ WORKSPACE MODAL ════════════════════════════════════════ -->
+<div class="ws-overlay" id="wsOverlay">
+  <div class="ws-panel">
+    <div class="ws-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8fa8c8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      <div class="ws-bar-title">⬡ WORKSPACE — Calculatrice · Conversions · Bloc-Notes IA</div>
+      <button class="ws-close" onclick="closeWorkspace()">✕ FERMER</button>
     </div>
-    <button class="layout-btn" id="layBtn" onclick="toggleLayout()" title="Grille / Liste">⊞</button>
+    <iframe class="ws-iframe" id="wsIframe" src="" title="Workspace"></iframe>
   </div>
+</div>
 
-  <div class="filter-row" id="chips">
-    <button class="chip active" data-cat="all" onclick="setFilter('all',this)">Tout</button>
+<!-- ════ ANNOTATEUR MODAL (SnapMark iframe) ══════════════════════ -->
+<div class="ann-overlay" id="annOverlay">
+  <div class="ann-panel">
+    <div class="ann-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff7a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M3 15l5-5 4 4 3-3 6 6"/>
+      </svg>
+      <div class="ann-bar-title">⬡ SNAPMARK — Annotateur</div>
+      <button class="ann-close" onclick="closeAnnotateur()">✕ FERMER</button>
+    </div>
+    <iframe class="ann-iframe" id="annIframe" src="" title="SnapMark Annotateur"></iframe>
   </div>
+</div>
 
-  <div class="sec-label">
-    <span>Fichiers du dépôt</span>
-    <span class="sec-count" id="cnt"></span>
+<!-- ════ CONGÉS MODAL (suivi_conges iframe) ══════════════════════ -->
+<div class="conges-overlay" id="congesOverlay">
+  <div class="conges-modal-panel">
+    <div class="conges-modal-bar">
+      <span style="font-size:14px;">🏖</span>
+      <div class="conges-modal-title">CONGÉS & ABSENCES</div>
+      <button class="conges-modal-close" onclick="closeConges()">✕ FERMER</button>
+    </div>
+    <iframe class="conges-modal-iframe" id="congesIframe" src="" title="Suivi Congés"></iframe>
   </div>
+</div>
 
-  <div class="skel-grid" id="skel">
-    <div class="skel"></div><div class="skel"></div>
-    <div class="skel"></div><div class="skel"></div>
-    <div class="skel"></div><div class="skel"></div>
+<!-- ════ AFFAIRE TRACKER MODAL ══════════════════════════════════ -->
+<div class="affaire-overlay" id="affaireOverlay">
+  <div class="affaire-modal-panel">
+    <div class="affaire-modal-bar">
+      <span style="font-size:14px;">📁</span>
+      <div class="affaire-modal-title">SUIVI AFFAIRE</div>
+      <button class="affaire-modal-close" onclick="closeAffaire()">✕ FERMER</button>
+    </div>
+    <iframe class="affaire-modal-iframe" id="affaireIframe" src="" title="Suivi Affaire"></iframe>
   </div>
+</div>
 
-  <div class="grid" id="grid" style="display:none"></div>
-
-  <div class="footer" id="ftr" style="display:none">
-    <span class="fdot"></span>
-    <span id="ftrTxt">-- OUTILS</span>
-    <span class="fdot"></span>
-    github.com/bencm0i/smart
-    <span class="fdot"></span>
+<!-- ════ DEMANDE CONGÉ PDF MODAL ═══════════════════════════════ -->
+<div class="dcpdf-overlay" id="dcpdfOverlay">
+  <div class="dcpdf-modal-panel">
+    <div class="dcpdf-modal-bar">
+      <span style="font-size:14px;">📋</span>
+      <div class="dcpdf-modal-title">DEMANDE D'ABSENCE — PDF</div>
+      <button class="dcpdf-modal-close" onclick="closeDcpdf()">✕ FERMER</button>
+    </div>
+    <iframe class="dcpdf-modal-iframe" id="dcpdfIframe" src="" title="Demande Absence PDF"></iframe>
   </div>
-
 </div>
 
 <script>
-// Métadonnées mises à jour avec ta liste exacte
-const META = {
-  'meteo.html':                    {name:'Météo Valence',           icon:'🌤',  cat:'Environnement',  tags:['Météo','Vent'],                col:'c-blue'   },
-  'calendrier_viewer_mobile.html': {name:'Calendrier Mobile',       icon:'📅',  cat:'Planning',       tags:['Agenda','Mobile'],             col:'c-purple' },
-  'cheque.html':                   {name:'Montant en Lettres',      icon:'🏦',  cat:'Finances',       tags:['Chèques'],                     col:'c-green'  },
-  'gluten_fodmap_tracker.html':    {name:'Gluten & FODMAP',         icon:'🌿',  cat:'Santé',          tags:['Nutrition','IA'],              col:'c-green'  },
-  'liste_courses_militaire.html':  {name:'Opération Courses',       icon:'🪖',  cat:'Vie quotidienne',tags:['Courses','Budget'],            col:'c-yellow' },
-  'nuisances_sonores2.html':       {name:'Nuisances Sonores',       icon:'🔊',  cat:'Vie quotidienne',tags:['Journal','Bruit'],             col:'c-orange' },
-  'patrimoine_kpi.html':           {name:'Patrimoine KPI',          icon:'📈',  cat:'Finances',       tags:['KPI','Graphiques'],            col:'c-blue'   },
-  'patrimoine_kpi_saisie.html':    {name:'KPI + Saisie',            icon:'🏦',  cat:'Finances',       tags:['Dashboard','All-in-one'],      col:'c-teal'   },
-  'patrimoine_saisie.html':        {name:'Patrimoine Saisie',       icon:'💳',  cat:'Finances',       tags:['Saisie','Comptes'],            col:'c-blue'   },
-  'smart_launcher.html':           {name:'Smart Launcher',          icon:'🚀',  cat:'Navigation',     tags:['Hub','Launcher'],              col:'c-slate'  },
-  'suivi-sante.html':              {name:'Suivi Santé',             icon:'🩺',  cat:'Santé',          tags:['Suivi','Export'],              col:'c-green'  },
-  'symptomes.html':                {name:'Suivi Symptômes',         icon:'🫁',  cat:'Santé',          tags:['Symptômes'],                   col:'c-pink'   },
-  'todo.html':                     {name:'Ma Todo',                 icon:'✅',  cat:'Vie quotidienne',tags:['Tâches'],                      col:'c-yellow' }
-};
+const FAV_KEY = 'launcher_favs';
+const FAV_COUNT = 10;
+const FAV_DEFAULTS = [
+  {label:'Google',      url:'https://www.google.com'},
+  {label:'YouTube',     url:'https://www.youtube.com'},
+  {label:'GitHub',      url:'https://github.com'},
+  {label:'Météo',       url:'https://meteo-france.fr'},
+  {label:'',            url:''},
+  {label:'',            url:''},
+  {label:'',            url:''},
+  {label:'',            url:''},
+  {label:'',            url:''},
+  {label:'',            url:''},
+];
 
-const WEATHER = 'meteo.html';
-const SKIP = new Set(['index.html']);
-
-const OWNER = 'bencm0i';
-const REPO  = 'smart';
-const API_CONTENTS = `https://api.github.com/repos/${OWNER}/${REPO}/contents/`;
-
-let files = [];
-let activeFilter = 'all';
-let listMode = false;
-let searchTerm = '';
-
-// Clock
-function tick(){
-  const n = new Date();
-  document.getElementById('clk').textContent = n.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('clkD').textContent = n.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+function loadFavs(){
+  try{ return JSON.parse(localStorage.getItem(FAV_KEY)) || FAV_DEFAULTS; }
+  catch{ return FAV_DEFAULTS; }
 }
-tick(); setInterval(tick,1000);
+function saveFavs(favs){ localStorage.setItem(FAV_KEY, JSON.stringify(favs)); }
 
-function setStatus(txt, state='ok'){
-  document.getElementById('dot').className = 'dot ' + state;
-  document.getElementById('statusTxt').textContent = txt;
+function getFavicon(url){
+  try{ const h = new URL(url).origin; return `https://www.google.com/s2/favicons?domain=${h}&sz=32`; }
+  catch{ return ''; }
 }
 
-function getMeta(fn){
-  return META[fn] ? {...META[fn]} : {name: fn.replace('.html','').replace(/[-_]/g,' '), icon:'📄', cat:'Autres', tags:[], col:'c-slate'};
+function openFav(url){
+  if(!url || !url.startsWith('http')) return;
+  if(newTab) window.open(url,'_blank'); else window.location.href = url;
 }
 
-async function fetchFiles(){
-  setStatus('Connexion à GitHub…','loading');
-  try{
-    const r = await fetch(API_CONTENTS, {headers:{Accept:'application/vnd.github+json'}});
-    if(!r.ok) throw new Error();
-    const data = await r.json();
-    files = data.filter(f => f.type==='file' && f.name.endsWith('.html') && !SKIP.has(f.name));
-    const nb = files.length;
-    document.getElementById('repoSub').textContent = `${nb} fichier${nb>1?'s':''} · github.com/${OWNER}/${REPO}`;
-    setStatus(`${nb} fichiers détectés`, 'ok');
-  }catch(e){
-    setStatus('Mode hors-ligne', 'error');
-    files = Object.keys(META).filter(k => !SKIP.has(k)).map(n => ({name:n}));
-    document.getElementById('repoSub').textContent = 'Métadonnées locales';
-  }
-}
-
-function buildChips(){
-  const cats = new Set(files.map(f => getMeta(f.name).cat).filter(c => c !== 'Autres'));
-  const row = document.getElementById('chips');
-  row.innerHTML = '<button class="chip active" data-cat="all" onclick="setFilter(\'all\',this)">Tout</button>';
-  
-  [...cats].sort().forEach(cat => {
-    const b = document.createElement('button');
-    b.className='chip';
-    b.dataset.cat=cat;
-    b.textContent=cat;
-    b.onclick = () => setFilter(cat, b);
-    row.appendChild(b);
-  });
-}
-
-function makeCard(file){
-  const fn = file.name;
-  const meta = getMeta(fn);
-  const url = `https://${OWNER}.github.io/${REPO}/${fn}`;
-
-  const a = document.createElement('a');
-  a.className = `card ${meta.col}`;
-  a.href = url; a.target='_blank'; a.rel='noopener';
-  a.dataset.fn = fn;
-  a.dataset.cat = meta.cat;
-  a.dataset.q = (meta.name + ' ' + fn + ' ' + meta.cat + ' ' + meta.tags.join(' ')).toLowerCase();
-
-  const tagsHTML = meta.tags.map(t => `<span class="tag">${t}</span>`).join('');
-
-  a.innerHTML = `
-    <div class="card-bar"></div>
-    <div class="card-body">
-      <div class="card-ico">${meta.icon}</div>
-      <div class="card-info">
-        <div class="card-name">${meta.name}</div>
-        <div class="card-file">${fn}</div>
-        <div class="card-tags">${tagsHTML}</div>
-      </div>
-    </div>`;
-  return a;
-}
-
-function render(){
-  const grid = document.getElementById('grid');
+function buildFavs(){
+  const favs = loadFavs();
+  const grid = document.getElementById('favGrid');
   grid.innerHTML = '';
-  grid.className = listMode ? 'grid list' : 'grid';
+  favs.forEach((fav, i) => {
+    const item = document.createElement('div');
+    item.className = 'fav-item';
 
-  let shown = 0;
-  const term = searchTerm.toLowerCase().trim();
+    const faviconSrc = fav.url ? getFavicon(fav.url) : '';
 
-  const sorted = [...files].filter(f => f.name !== WEATHER).sort((a,b) => {
-    const ma = getMeta(a.name), mb = getMeta(b.name);
-    if (ma.cat !== mb.cat) return ma.cat.localeCompare(mb.cat, 'fr');
-    return ma.name.localeCompare(mb.name, 'fr');
+    item.innerHTML = `
+      <button class="fav-go" title="Ouvrir">→</button>
+      ${faviconSrc ? `<img class="fav-favicon" src="${faviconSrc}" alt="" onerror="this.style.display='none'">` : '<span style="width:8px"></span>'}
+      <div class="fav-fields">
+        <input class="fav-label-in" type="text" value="${escHtml(fav.label)}" placeholder="Nom du site" maxlength="40" data-i="${i}" data-field="label">
+        <input class="fav-url-in"   type="text" value="${escHtml(fav.url)}"   placeholder="https://…"   maxlength="300" data-i="${i}" data-field="url">
+      </div>
+    `;
+
+    // Bouton ouvrir
+    item.querySelector('.fav-go').addEventListener('click', () => {
+      const url = loadFavs()[i].url;
+      openFav(url.startsWith('http') ? url : 'https://'+url);
+    });
+
+    // Double-clic sur tout l'item = ouvrir aussi
+    item.addEventListener('dblclick', e => {
+      if(e.target.tagName === 'INPUT') return;
+      const url = loadFavs()[i].url;
+      if(url) openFav(url.startsWith('http') ? url : 'https://'+url);
+    });
+
+    // Sauvegarde à chaque modif
+    item.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const favs2 = loadFavs();
+        favs2[i][inp.dataset.field] = inp.value;
+        saveFavs(favs2);
+      });
+      // Refresh favicon quand on quitte le champ URL
+      inp.addEventListener('blur', () => {
+        if(inp.dataset.field === 'url'){
+          const img = item.querySelector('.fav-favicon');
+          if(img){ const src = getFavicon(inp.value); img.src = src; img.style.display = src ? '' : 'none'; }
+        }
+      });
+      // Entrée = ouvrir
+      inp.addEventListener('keydown', e => {
+        if(e.key === 'Enter'){
+          const url = loadFavs()[i].url;
+          if(url) openFav(url.startsWith('http') ? url : 'https://'+url);
+        }
+      });
+    });
+
+    grid.appendChild(item);
   });
+}
 
-  sorted.forEach(file => {
-    const meta = getMeta(file.name);
-    const catOk = activeFilter === 'all' || meta.cat === activeFilter;
-    const srchOk = !term || (meta.name + ' ' + file.name + ' ' + meta.cat + ' ' + meta.tags.join(' ')).toLowerCase().includes(term);
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
-    if (catOk && srchOk) {
-      grid.appendChild(makeCard(file));
-      shown++;
+const APPS=[
+  {file:'annotateur.html',                  name:'Annotateur',       desc:'Annoter images · Flèches · Bulles · Export', emoji:'🖼',badge:'OUTIL', action:'annotateur'},
+  {file:'affaire_tracker.html',             name:'Suivi Affaire',    desc:'Tracker · Planning · Documents · Coûts',    emoji:'📁',badge:'TRAVAIL', action:'affaire'},
+  {file:'markets.html',                    name:'Markets',          desc:'BTC · Or · Pétrole · Indices',emoji:'📈',badge:'FINANCE'},
+  {file:'calendrier_2026_2027.html',       name:'Calendrier',       desc:'2026 – 2027',                 emoji:'📅',badge:'PLANNING'},
+  {file:'pointage_heures_par_affaire.html',name:'Pointage Heures',  desc:'Suivi heures par affaire',    emoji:'⏱',badge:'TRAVAIL'},
+  {file:'calcul_horaire.html',             name:'Calcul Horaire',   desc:'Calculateur de temps',        emoji:'🕐',badge:'TRAVAIL'},
+  {file:'aic_chrono.html',                 name:'AIC Chrono',       desc:'Chronomètre / minuteur',      emoji:'⏱',badge:'OUTIL'},
+  {file:'bulletin_salaire.html',           name:'Bulletin Salaire', desc:'Simulateur fiche de paie',    emoji:'💶',badge:'FINANCE'},
+  {file:'conversion_industrielle.html',    name:'Conversion',       desc:'Unités industrielles',        emoji:'🔧',badge:'OUTIL'},
+  {file:'tableau_blanc_v2.html',           name:'Tableau Blanc',    desc:'Canvas de dessin libre',      emoji:'🖊',badge:'OUTIL'},
+  {file:'prompts-dessinateur-indus.html',  name:'Prompts Indus',    desc:'Plans · Charpente · Tuyauterie · Méca',emoji:'📐',badge:'BUREAU'},
+  {file:'mindmap.html',                    name:'MindMap',          desc:'Carte mentale interactive',           emoji:'🗺',badge:'OUTIL'},
+  {file:'workspace.html',                  name:'Workspace',        desc:'Calculatrice · Conversions · Notes IA',emoji:'⬡',badge:'OUTIL'},
+  {file:'news_agregateur_pro.html',        name:'Actualités',       desc:'Flux FR · Tech · Science · Dev',       emoji:'📰',badge:'INFO'},
+  {file:'suivi_conges_v4.html',            name:'Suivi Congés',     desc:'Demandes · Suivi · Réponse auto',      emoji:'🏖',badge:'RH', action:'conges'},
+  {file:'demande_conge_PDF.html',          name:'Demande Absence',  desc:'Formulaire PDF · Aventech · Calibrage', emoji:'📋',badge:'RH', action:'dcpdf'},
+];
+
+let newTab=localStorage.getItem('launcher_newtab')==='1';
+function toggleTabMode(){newTab=!newTab;localStorage.setItem('launcher_newtab',newTab?'1':'0');updateToggleUI();}
+function updateToggleUI(){
+  document.getElementById('tabLabel').textContent=newTab?'NOUVEL ONGLET':'MÊME ONGLET';
+  document.getElementById('tabToggle').classList.toggle('nt',newTab);
+}
+function openApp(f){if(newTab)window.open(f,'_blank');else window.location.href=f;}
+
+function buildApps(){
+  const g=document.getElementById('appsGrid');
+  APPS.forEach(a=>{
+    const c=document.createElement('div');c.className='app-card';
+    c.innerHTML=`<div class="app-nt" title="Nouvel onglet">↗</div><div class="app-icon">${a.emoji}</div><div class="app-name">${a.name}</div><div class="app-desc">${a.desc}</div><div class="app-badge">${a.badge}</div>`;
+    c.addEventListener('click',e=>{
+      if(e.target.classList.contains('app-nt'))return;
+      if(a.action==='annotateur'){openAnnotateur();return;}
+      if(a.action==='affaire'){openAffaire();return;}
+      if(a.action==='conges'){openConges();return;}
+      if(a.action==='dcpdf'){openDcpdf();return;}
+      openApp(a.file);
+    });
+    c.querySelector('.app-nt').addEventListener('click',e=>{e.stopPropagation();window.open(a.file,'_blank');});
+    g.appendChild(c);
+  });
+}
+
+// ── CLOCK ──────────────────────────────────────────────────────
+function tick(){
+  const n=new Date(),p=v=>String(v).padStart(2,'0');
+  document.getElementById('clock').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  const ce=document.getElementById('cart-date');
+  if(ce)ce.textContent=`${p(n.getDate())}/${p(n.getMonth()+1)}/${n.getFullYear()}`;
+  updateWorkBar(n);
+}
+
+// ── BARRE JOURNÉE TAFF ─────────────────────────────────────────
+// Lun-Jeu : 7h30–15h40 | Vendredi : 7h30–14h50
+// Jauge absolue : 7h00–18h00 (660 min)
+// Zone hors-plage = rouge, zone dans plage = vert
+// Dépassement horaire = rouge
+function updateWorkBar(now) {
+  const wrap  = document.getElementById('work-bar-wrap');
+  const pctEl = document.getElementById('wb-pct');
+  const remEl = document.getElementById('wb-remain');
+  const lblEl = document.getElementById('wb-label');
+  if (!wrap) return;
+
+  const dow = now.getDay(); // 0=dim,1=lun…5=ven,6=sam
+  const isWorkDay = dow >= 1 && dow <= 5;
+  if (!isWorkDay) { wrap.classList.add('offday'); return; }
+  wrap.classList.remove('offday');
+
+  // Plages horaires
+  const GAUGE_START = 7 * 60;       // 7h00
+  const GAUGE_END   = 18 * 60;      // 18h00
+  const GAUGE_TOTAL = GAUGE_END - GAUGE_START; // 660 min
+
+  const startMins = 7 * 60 + 30;   // 7h30
+  const endMins   = (dow === 5) ? (14 * 60 + 50) : (15 * 60 + 40); // 14h50 ven / 15h40 lun-jeu
+  const totalWork = endMins - startMins;
+
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  // Positions sur la jauge (0%–100% = 7h–18h)
+  const toGaugePct = m => Math.max(0, Math.min(100, ((m - GAUGE_START) / GAUGE_TOTAL) * 100));
+  const startPct   = toGaugePct(startMins);  // position 7h30
+  const endPct     = toGaugePct(endMins);    // position fin travail
+  const nowPct     = toGaugePct(nowMins);    // position actuelle
+
+  // Segments visuels
+  const segOutL  = document.getElementById('wb-seg-out');    // avant 7h30
+  const segIn    = document.getElementById('wb-seg-in');     // 7h30 → fin
+  const segOutR  = document.getElementById('wb-seg-out-r');  // fin → 18h
+  const markS    = document.getElementById('wb-mark-start'); // trait 7h30
+  const markE    = document.getElementById('wb-mark-end');   // trait fin
+  const cursor   = document.getElementById('wb-cursor');     // position now
+
+  // Zone gauche (avant 7h30) = rouge léger
+  segOutL.style.left  = '0%';
+  segOutL.style.width = startPct + '%';
+  segOutL.style.borderRadius = '3px 0 0 3px';
+
+  // Zone travail (7h30 → fin) = vert
+  segIn.style.left  = startPct + '%';
+  segIn.style.width = (endPct - startPct) + '%';
+  segIn.style.borderRadius = '0';
+
+  // Zone droite (fin → 18h) = rouge léger
+  segOutR.style.left  = endPct + '%';
+  segOutR.style.width = (100 - endPct) + '%';
+  segOutR.style.borderRadius = '0 3px 3px 0';
+
+  // Marqueurs fixes
+  markS.style.left = startPct + '%';
+  markE.style.left = endPct + '%';
+
+  // Curseur position now
+  cursor.style.left = nowPct + '%';
+
+  // État dépassement
+  const isOver = nowMins > endMins;
+  cursor.className = 'wb-cursor' + (isOver ? ' over' : '');
+  markE.className  = 'wb-mark-end' + (isOver ? ' over' : '');
+
+  // Label jour
+  const dayNames = ['','LUN','MAR','MER','JEU','VEN'];
+  const endLabel = (dow === 5) ? '14h50' : '15h40';
+  lblEl.textContent = dayNames[dow] + ' · –' + endLabel;
+
+  // Textes pct / reste
+  if (nowMins < startMins) {
+    const wait = startMins - nowMins;
+    const wh = Math.floor(wait/60), wm = wait%60;
+    pctEl.className = 'wb-pct';
+    pctEl.textContent = '0%';
+    remEl.className = 'wb-remain';
+    remEl.textContent = `Début dans ${wh>0?wh+'h':''}${String(wm).padStart(2,'0')}min`;
+  } else if (nowMins >= endMins) {
+    const over = nowMins - endMins;
+    const oh = Math.floor(over/60), om = over%60;
+    const elapsed = nowMins - startMins;
+    const pct = Math.round((elapsed / totalWork) * 100);
+    pctEl.className = 'wb-pct over';
+    pctEl.textContent = pct + '%';
+    remEl.className = 'wb-remain over';
+    remEl.textContent = over === 0 ? 'Terminée ✓' : `+${oh>0?oh+'h':''}${String(om).padStart(2,'0')}min`;
+  } else {
+    const elapsed = nowMins - startMins;
+    const pct = Math.round((elapsed / totalWork) * 100);
+    const rem = endMins - nowMins;
+    const rh = Math.floor(rem/60), rm = rem%60;
+    pctEl.className = 'wb-pct';
+    pctEl.textContent = pct + '%';
+    remEl.className = 'wb-remain';
+    remEl.textContent = `Reste ${rh>0?rh+'h':''}${String(rm).padStart(2,'0')}min`;
+  }
+
+  // Score vélo (lu depuis le DOM du panel vélo)
+  const veloEl = document.getElementById('wb-velo');
+  if (veloEl) {
+    const scNum = document.querySelector('.velo-score-circle .sc-num');
+    const scCircle = document.querySelector('.velo-score-circle');
+    if (scNum && scCircle) {
+      const score = scNum.textContent.trim();
+      const cls   = scCircle.classList.contains('go')   ? {c:'#007a42',b:'rgba(0,122,66,0.15)',bc:'rgba(0,122,66,0.4)'}
+                  : scCircle.classList.contains('warn') ? {c:'#8a6a00',b:'rgba(138,106,0,0.15)',bc:'rgba(138,106,0,0.4)'}
+                  : scCircle.classList.contains('nogo') ? {c:'#cc1133',b:'rgba(204,17,51,0.15)',bc:'rgba(204,17,51,0.4)'}
+                  : null;
+      if (cls && score && score !== '—') {
+        veloEl.style.display = '';
+        veloEl.style.color = cls.c;
+        veloEl.style.background = cls.b;
+        veloEl.style.borderColor = cls.bc;
+        veloEl.textContent = '🚴 ' + score + '/100';
+      } else {
+        veloEl.style.display = 'none';
+      }
+    } else {
+      veloEl.style.display = 'none';
     }
+  }
+}
+setInterval(tick,1000);tick();
+
+// ── BARRE JOURS SEMAINE (AIC) ──────────────────────────────────
+const AIC_KEY = 'launcher_aic_days';
+
+function loadAicDays() {
+  try { return JSON.parse(localStorage.getItem(AIC_KEY)) || []; }
+  catch { return []; }
+}
+function saveAicDays(days) { localStorage.setItem(AIC_KEY, JSON.stringify(days)); }
+
+function toggleAic(dow) {
+  let days = loadAicDays();
+  const idx = days.indexOf(dow);
+  if (idx === -1) days.push(dow); else days.splice(idx, 1);
+  saveAicDays(days);
+  renderWeekBar();
+}
+
+function renderWeekBar() {
+  const today = new Date().getDay(); // 0=dim … 6=sam
+  const isWorkDay = today >= 1 && today <= 5;
+  const weekBar = document.getElementById('week-bar');
+  if (!weekBar) return;
+
+  // Afficher même le weekend (on montre la semaine en cours)
+  weekBar.classList.remove('offday');
+
+  const aicDays = loadAicDays();
+  const dayNums = [1, 2, 3, 4, 5];
+
+  dayNums.forEach(d => {
+    const el = document.getElementById('wk-' + d);
+    const btn = document.getElementById('wk-aic-' + d);
+    if (!el) return;
+
+    const isToday = (today === d);
+    const isAic   = aicDays.includes(d);
+    const isPast  = (today > d && isWorkDay) || (!isWorkDay && d < 6);
+    const isFuture = (today < d) || (today === 0) || (today === 6 && d > 0);
+
+    // Reset classes
+    el.className = 'wk-day';
+    if (isToday) el.classList.add('today');
+    else if (isPast && !isToday) el.classList.add('past');
+    else el.classList.add('future');
+    if (isAic) el.classList.add('aic');
+
+    // Bouton toggle
+    if (btn) btn.classList.toggle('on', isAic);
+  });
+}
+
+renderWeekBar();
+
+// ── POSITIONNEMENT SVG RESPONSIVE ─────────────────────────────
+function positionSVGElements(){
+  const W=window.innerWidth,H=window.innerHeight;
+  // Container haut droite
+  const ct=document.getElementById('cont-tr');
+  if(ct)ct.setAttribute('transform',`translate(${W-270},70)`);
+  // Pied à coulisse (milieu droit)
+  const pc=document.getElementById('pied-coulisse');
+  if(pc)pc.setAttribute('transform',`translate(${W-240},${H*0.45})`);
+  // Mètre ruban (bas centre)
+  const m=document.getElementById('metre');
+  if(m)m.setAttribute('transform',`translate(${W*0.35},${H-60})`);
+  // Symboles
+  const ra=document.getElementById('sym-ra');
+  if(ra)ra.setAttribute('transform',`translate(${W*0.6},${H*0.55})`);
+  const cc=document.getElementById('sym-cc');
+  if(cc)cc.setAttribute('transform',`translate(${W*0.75},${H*0.65})`);
+  const fv=document.getElementById('sym-fv');
+  if(fv)fv.setAttribute('transform',`translate(${W*0.35},${H*0.6})`);
+  const sw=document.getElementById('sym-sw');
+  if(sw)sw.setAttribute('transform',`translate(${W*0.22},${H*0.58})`);
+  // Cartouche bas droit
+  const cart=document.getElementById('cartouche');
+  if(cart)cart.setAttribute('transform',`translate(${W-270},${H-100})`);
+}
+positionSVGElements();
+window.addEventListener('resize',positionSVGElements);
+
+// ── TODO ───────────────────────────────────────────────────────
+let todos=[];
+function saveTodos(){localStorage.setItem('launcher_todos',JSON.stringify(todos));}
+function loadTodos(){try{todos=JSON.parse(localStorage.getItem('launcher_todos')||'[]');}catch{todos=[];}}
+function addTodo(){
+  const i=document.getElementById('todoInput'),t=i.value.trim();
+  if(!t)return;todos.push({id:Date.now(),text:t,done:false});i.value='';saveTodos();renderTodos();
+}
+function toggleTodo(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;saveTodos();renderTodos();}
+function deleteTodo(id){todos=todos.filter(t=>t.id!==id);saveTodos();renderTodos();}
+function updateTodoText(id,text){const t=todos.find(t=>t.id===id);if(t)t.text=text;saveTodos();}
+function clearDone(){todos=todos.filter(t=>!t.done);saveTodos();renderTodos();}
+function renderTodos(){
+  const list=document.getElementById('todoList');
+  const rem=todos.filter(t=>!t.done).length;
+  document.getElementById('todoCount').textContent=todos.length;
+  document.getElementById('todoInfo').textContent=`${rem} restante(s)`;
+  if(!todos.length){list.innerHTML='<div class="todo-empty">// AUCUNE TÂCHE</div>';return;}
+  const sorted=[...todos].sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  list.innerHTML='';
+  sorted.forEach(todo=>{
+    const item=document.createElement('div');item.className='todo-item';
+    const check=document.createElement('div');check.className='todo-check'+(todo.done?' done':'');
+    check.addEventListener('click',()=>toggleTodo(todo.id));
+    const textEl=document.createElement('div');textEl.className='todo-text'+(todo.done?' done':'');
+    textEl.contentEditable=true;textEl.spellcheck=false;textEl.textContent=todo.text;
+    textEl.addEventListener('blur',()=>updateTodoText(todo.id,textEl.textContent.trim()));
+    textEl.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();textEl.blur();}});
+    const del=document.createElement('button');del.className='todo-del';del.textContent='×';
+    del.addEventListener('click',()=>deleteTodo(todo.id));
+    item.appendChild(check);item.appendChild(textEl);item.appendChild(del);
+    list.appendChild(item);
+  });
+}
+document.getElementById('todoInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTodo();});
+
+// ── NOTES ──────────────────────────────────────────────────────
+const NOTES_KEY = 'launcher_notes';
+let notes = [], activeNoteId = null;
+
+function loadNotes(){
+  try{ notes = JSON.parse(localStorage.getItem(NOTES_KEY)||'[]'); }
+  catch{ notes = []; }
+  if(!notes.length) notes = [{id:Date.now(),title:'Note 1',body:''}];
+  if(!activeNoteId || !notes.find(n=>n.id===activeNoteId)) activeNoteId = notes[0].id;
+}
+function saveNotes(){ localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }
+
+function addNote(){
+  const n = {id:Date.now(), title:'Note '+(notes.length+1), body:''};
+  notes.push(n); activeNoteId = n.id; saveNotes(); renderNotes();
+  // focus title
+  setTimeout(()=>{ const t=document.getElementById('noteTitleIn'); if(t){t.focus();t.select();} },30);
+}
+
+function deleteNote(id, e){
+  e.stopPropagation();
+  if(notes.length === 1){ notes[0].title='Note 1'; notes[0].body=''; saveNotes(); renderNotes(); return; }
+  notes = notes.filter(n=>n.id!==id);
+  if(activeNoteId===id) activeNoteId = notes[notes.length-1].id;
+  saveNotes(); renderNotes();
+}
+
+function renderNotes(){
+  const tabs = document.getElementById('notesTabs');
+  const body = document.getElementById('notesBody');
+  tabs.innerHTML = '';
+  notes.forEach(n=>{
+    const tab = document.createElement('div');
+    tab.className = 'notes-tab'+(n.id===activeNoteId?' active':'');
+    tab.innerHTML = `<span>${escHtml(n.title||'Sans titre')}</span><span class="tab-del" title="Supprimer">×</span>`;
+    tab.addEventListener('click', ()=>{ activeNoteId=n.id; renderNotes(); });
+    tab.querySelector('.tab-del').addEventListener('click', e=>deleteNote(n.id,e));
+    tabs.appendChild(tab);
+  });
+  const active = notes.find(n=>n.id===activeNoteId);
+  if(!active){ body.innerHTML='<div class="notes-empty">// AUCUNE NOTE</div>'; return; }
+  body.innerHTML = '';
+  // Titre
+  const titleIn = document.createElement('input');
+  titleIn.className = 'notes-title-in'; titleIn.id = 'noteTitleIn';
+  titleIn.placeholder = 'Titre de la note…'; titleIn.maxLength = 60;
+  titleIn.value = active.title||'';
+  titleIn.addEventListener('input', ()=>{ active.title=titleIn.value; saveNotes(); renderNoteTabs(); });
+  // Textarea
+  const ta = document.createElement('textarea');
+  ta.className = 'notes-textarea';
+  ta.placeholder = '// Saisir ici…'; ta.spellcheck = false;
+  ta.value = active.body||'';
+  ta.addEventListener('input', ()=>{ active.body=ta.value; saveNotes(); updateNoteFooter(ta); });
+  // Footer
+  const footer = document.createElement('div');
+  footer.className = 'notes-footer';
+  const chars = (active.body||'').length;
+  footer.innerHTML = `<span class="notes-fi" id="notesFi">${chars} car.</span><span class="notes-fi">${notes.length} note(s)</span>`;
+  body.appendChild(titleIn); body.appendChild(ta); body.appendChild(footer);
+}
+
+function renderNoteTabs(){
+  const tabs = document.getElementById('notesTabs');
+  tabs.querySelectorAll('.notes-tab').forEach((tab,i)=>{
+    const n = notes[i]; if(!n) return;
+    tab.querySelector('span').textContent = n.title||'Sans titre';
+  });
+}
+
+function updateNoteFooter(ta){
+  const fi = document.getElementById('notesFi');
+  if(fi) fi.textContent = ta.value.length+' car.';
+}
+
+document.getElementById('notesNewBtn').addEventListener('click', addNote);
+
+// ── CHAMPS COPIABLES ───────────────────────────────────────────
+const CLIP_KEY = 'launcher_clips';
+const CLIP_COUNT = 5;
+const CLIP_DEFAULTS = Array.from({length:CLIP_COUNT}, (_,i) => ({label:'', value:''}));
+
+function loadClips(){
+  try{ return JSON.parse(localStorage.getItem(CLIP_KEY)) || CLIP_DEFAULTS; }
+  catch{ return CLIP_DEFAULTS; }
+}
+function saveClips(clips){ localStorage.setItem(CLIP_KEY, JSON.stringify(clips)); }
+
+function buildClips(){
+  const clips = loadClips();
+  const list = document.getElementById('clipList');
+  list.innerHTML = '';
+
+  const IA_LINKS = [
+    {cls:'claude', label:'CLAUDE', url:'https://claude.ai'},
+    {cls:'chatgpt',label:'CHATGPT',url:'https://chatgpt.com'},
+    {cls:'grok',   label:'GROK',   url:'https://grok.com'},
+    {cls:'gemini', label:'GEMINI', url:'https://gemini.google.com'},
+  ];
+
+  clips.forEach((clip, i) => {
+    const item = document.createElement('div');
+    item.className = 'clip-item';
+
+    // Ligne principale : label + valeur + bouton copier
+    const row = document.createElement('div');
+    row.className = 'clip-row';
+    row.innerHTML = `
+      <input class="clip-label-in" type="text" value="${escHtml(clip.label)}" placeholder="Nom…" maxlength="20">
+      <input class="clip-val-in"   type="text" value="${escHtml(clip.value)}" placeholder="Valeur à copier…" maxlength="500">
+      <button class="clip-btn" title="Copier">⎘</button>
+    `;
+
+    // Ligne IA
+    const iaRow = document.createElement('div');
+    iaRow.className = 'clip-ia-row';
+    IA_LINKS.forEach(ia => {
+      const a = document.createElement('a');
+      a.className = 'clip-ia-btn ' + ia.cls;
+      a.textContent = ia.label;
+      a.href = ia.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      // Au clic : copie d'abord la valeur, puis ouvre l'IA
+      a.addEventListener('click', e => {
+        const val = row.querySelector('.clip-val-in').value.trim();
+        if(val) navigator.clipboard.writeText(val).catch(()=>{});
+      });
+      iaRow.appendChild(a);
+    });
+
+    item.appendChild(row);
+    item.appendChild(iaRow);
+
+    const labelIn = row.querySelector('.clip-label-in');
+    const valIn   = row.querySelector('.clip-val-in');
+    const btn     = row.querySelector('.clip-btn');
+
+    labelIn.addEventListener('input', () => { const c=loadClips(); c[i].label=labelIn.value; saveClips(c); });
+    valIn.addEventListener('input',   () => { const c=loadClips(); c[i].value=valIn.value;   saveClips(c); });
+    valIn.addEventListener('keydown', e => { if(e.key==='Enter') copyClip(btn, valIn.value); });
+    btn.addEventListener('click', () => copyClip(btn, valIn.value));
+
+    list.appendChild(item);
+  });
+}
+
+function copyClip(btn, text){
+  if(!text.trim()) return;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('ok'); btn.textContent = '✓';
+    setTimeout(() => { btn.classList.remove('ok'); btn.textContent = '⎘'; }, 1800);
+  });
+}
+
+// ── WORKSPACE ──────────────────────────────────────────────────
+function openWorkspace(){
+  const overlay = document.getElementById('wsOverlay');
+  const iframe  = document.getElementById('wsIframe');
+  if(!iframe.src || iframe.src === window.location.href) iframe.src = 'workspace.html';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWorkspace(){
+  document.getElementById('wsOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('wsOverlay').addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeWorkspace();
+});
+
+// ── VELOTAF ────────────────────────────────────────────────────
+// Trajet : Valence → Bourg-lès-Valence, créneau 16h-17h30
+// Coords : Valence centre (lat 44.933, lon 4.892)
+const VELO_LAT = 44.933;
+const VELO_LON = 4.892;
+
+// WMO weather codes → { label, icon }
+function wmoInfo(code) {
+  if (code === 0)             return { label: 'Dégagé',         icon: '☀️' };
+  if (code <= 2)              return { label: 'Peu nuageux',    icon: '🌤️' };
+  if (code === 3)             return { label: 'Couvert',        icon: '☁️' };
+  if (code >= 45 && code <= 48) return { label: 'Brouillard',  icon: '🌫️' };
+  if (code >= 51 && code <= 55) return { label: 'Bruine',      icon: '🌦️' };
+  if (code >= 56 && code <= 57) return { label: 'Bruine verg.', icon: '🌧️' };
+  if (code >= 61 && code <= 65) return { label: 'Pluie',       icon: '🌧️' };
+  if (code >= 66 && code <= 67) return { label: 'Pluie verg.', icon: '🌨️' };
+  if (code >= 71 && code <= 77) return { label: 'Neige',       icon: '❄️' };
+  if (code >= 80 && code <= 82) return { label: 'Averses',     icon: '🌦️' };
+  if (code >= 85 && code <= 86) return { label: 'Averses neige',icon: '🌨️' };
+  if (code >= 95 && code <= 99) return { label: 'Orage',       icon: '⛈️' };
+  return { label: 'Variable', icon: '🌥️' };
+}
+
+function isRainCode(code) {
+  return (code >= 51 && code <= 99);
+}
+function isFogCode(code) {
+  return (code >= 45 && code <= 48);
+}
+function isStormCode(code) {
+  return (code >= 95 && code <= 99);
+}
+function isFrostCode(code) {
+  return (code >= 56 && code <= 57) || (code >= 66 && code <= 67) || (code >= 71 && code <= 77) || (code >= 85 && code <= 86);
+}
+
+function veloScore(d) {
+  // d = données agrégées pour la fenêtre 16h-17h30
+  // Renvoie {score:0-100, classe:'go'|'warn'|'nogo', verdict, sub, alerts, conseils}
+  let score = 100;
+  const alerts = [];
+  const conseils = [];
+
+  const wind = d.wind;       // km/h
+  const gusts = d.gusts;     // km/h
+  const rain = d.rain;       // mm
+  const temp = d.temp;       // °C
+  const code = d.code;       // WMO max sur la fenêtre
+  const vis = d.vis;         // km (si disponible)
+
+  // ── PLUIE ──
+  if (isRainCode(code) || rain > 0) {
+    if (rain >= 3 || isStormCode(code)) {
+      score -= 45;
+      alerts.push({ cls: 'danger', icon: '⛈️', txt: `Pluie forte / orage — ${rain.toFixed(1)} mm attendus` });
+      conseils.push('Imperméable + couvre-chaussures indispensables');
+      conseils.push('Vérifier les sous-passages (risque de ruissellement)');
+    } else if (rain >= 0.5) {
+      score -= 20;
+      alerts.push({ cls: 'warn', icon: '🌧️', txt: `Pluie légère — ${rain.toFixed(1)} mm` });
+      conseils.push('Coupe-vent imperméable conseillé');
+    } else {
+      score -= 8;
+      alerts.push({ cls: 'warn', icon: '🌦️', txt: 'Risque de bruine / averses légères' });
+    }
+  } else {
+    alerts.push({ cls: 'ok', icon: '✅', txt: 'Pas de précipitations prévues' });
+  }
+
+  // ── VENT ──
+  if (gusts > 60 || wind > 45) {
+    score -= 35;
+    alerts.push({ cls: 'danger', icon: '💨', txt: `Vent violent — rafales ${gusts} km/h (moy. ${wind} km/h)` });
+    conseils.push("Direction sud\u2192nord : vent de face possible. R\u00e9duire l\u2019allure.");
+  } else if (gusts > 40 || wind > 30) {
+    score -= 18;
+    alerts.push({ cls: 'warn', icon: '💨', txt: `Vent fort — rafales ${gusts} km/h (moy. ${wind} km/h)` });
+    conseils.push('Surveiller les rafales latérales sur les zones dégagées (Rhône)');
+  } else if (wind > 20) {
+    score -= 6;
+    alerts.push({ cls: 'warn', icon: '🍃', txt: `Vent modéré — ${wind} km/h` });
+  } else {
+    alerts.push({ cls: 'ok', icon: '✅', txt: `Vent faible — ${wind} km/h` });
+  }
+
+  // ── BROUILLARD ──
+  if (isFogCode(code)) {
+    score -= 25;
+    alerts.push({ cls: 'danger', icon: '🌫️', txt: 'Brouillard — visibilité réduite' });
+    conseils.push('Éclairage avant + arrière obligatoire (clignotants si possible)');
+    conseils.push('Veste haute visibilité ou bandes réfléchissantes');
+  }
+
+  // ── VERGLAS / NEIGE ──
+  if (isFrostCode(code)) {
+    score -= 50;
+    alerts.push({ cls: 'danger', icon: '🧊', txt: 'Risque de verglas / neige — conditions dangereuses' });
+    conseils.push('⚠️ NOGO recommandé — pneus lisses = accident assuré');
+  }
+
+  // ── TEMPÉRATURE ──
+  if (temp < 2) {
+    score -= 10;
+    alerts.push({ cls: 'warn', icon: '🥶', txt: `Température basse — ${temp.toFixed(0)}°C (risque verglas)` });
+    conseils.push("Gants, tour-de-cou, v\u00e9rifier l\u2019\u00e9tat des zones humides");
+  } else if (temp < 6) {
+    score -= 4;
+    alerts.push({ cls: 'info', icon: '🌡️', txt: `Frais — ${temp.toFixed(0)}°C` });
+    conseils.push('Gants et coupe-vent recommandés');
+  } else if (temp > 35) {
+    score -= 8;
+    alerts.push({ cls: 'warn', icon: '🌡️', txt: `Forte chaleur — ${temp.toFixed(0)}°C` });
+    conseils.push("Prévoir 1,5 L d\u2019eau minimum, partir \u00e0 l\u2019ombre si possible");
+  } else {
+    alerts.push({ cls: 'ok', icon: '🌡️', txt: `Température OK — ${temp.toFixed(0)}°C` });
+  }
+
+  // ── CONSEILS ROUTE spécifiques Valence→Bourg ──
+  if (score >= 70) {
+    conseils.push('Route Valence→Bourg-lès-Valence : trafic dense 16h-17h. Privilégier piste cyclable N7 / voie verte.');
+    conseils.push('Traversée avenue de Romans : carrefour à surveiller heure de pointe');
+  }
+
+  score = Math.max(0, Math.min(100, score));
+
+  let classe, verdict, sub;
+  if (score >= 75) {
+    classe = 'go'; verdict = '✔ GO VELOTAF'; sub = 'Conditions favorables pour le trajet';
+  } else if (score >= 45) {
+    classe = 'warn'; verdict = '⚠ MITIGÉ'; sub = 'Trajet possible avec précautions';
+  } else {
+    classe = 'nogo'; verdict = '✘ NO-GO'; sub = 'Conditions déconseillées — vérifier alternatives';
+  }
+
+  return { score, classe, verdict, sub, alerts, conseils };
+}
+
+async function veloFetch() {
+  // Fenêtre 16h-17h30 locale = UTC+2 en été, UTC+1 en hiver
+  // On demande hourly + daily pour la journée courante
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${VELO_LAT}&longitude=${VELO_LON}` +
+    `&hourly=temperature_2m,precipitation,weathercode,windspeed_10m,windgusts_10m` +
+    `&daily=weathercode,precipitation_sum,windspeed_10m_max,windgusts_10m_max,temperature_2m_max,temperature_2m_min` +
+    `&wind_speed_unit=kmh&precipitation_unit=mm&timezone=Europe%2FParis&forecast_days=1`;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return resp.json();
+}
+
+function veloAggregateWindow(data) {
+  // Extraire les heures 16 et 17 (index dans hourly.time)
+  const times = data.hourly.time; // ["2025-xx-xxT00:00", ...]
+  const targetHours = [16, 17]; // 16h et 17h couvrent 16h-17h59
+  const indices = [];
+  times.forEach((t, i) => {
+    const h = parseInt(t.slice(11, 13), 10);
+    if (targetHours.includes(h)) indices.push(i);
   });
 
-  if (shown === 0) {
-    const em = document.createElement('div');
-    em.className = 'empty';
-    em.innerHTML = '<b>🔍</b>Aucun résultat';
-    grid.appendChild(em);
+  if (indices.length === 0) {
+    // fallback daily
+    const d = data.daily;
+    return {
+      temp: (d.temperature_2m_max[0] + d.temperature_2m_min[0]) / 2,
+      rain: d.precipitation_sum[0],
+      wind: d.windspeed_10m_max[0],
+      gusts: d.windgusts_10m_max[0],
+      code: d.weathercode[0]
+    };
   }
 
-  const total = files.filter(f => f.name !== WEATHER).length;
-  document.getElementById('cnt').textContent = `(${shown}/${total})`;
-  document.getElementById('ftrTxt').textContent = `${total} FICHIERS · ${shown} AFFICHÉS`;
+  const temps  = indices.map(i => data.hourly.temperature_2m[i]);
+  const rains  = indices.map(i => data.hourly.precipitation[i]);
+  const winds  = indices.map(i => data.hourly.windspeed_10m[i]);
+  const gusts  = indices.map(i => data.hourly.windgusts_10m[i]);
+  const codes  = indices.map(i => data.hourly.weathercode[i]);
+
+  return {
+    temp:  temps.reduce((a,b)=>a+b,0) / temps.length,
+    rain:  rains.reduce((a,b)=>a+b,0),
+    wind:  Math.max(...winds),
+    gusts: Math.max(...gusts),
+    code:  Math.max(...codes)   // code le plus sévère
+  };
 }
 
-async function loadWeather(){
-  if (!files.some(f => f.name === WEATHER)) return;
-  document.getElementById('wxCard').style.display = 'block';
+function veloRender(data) {
+  const agg = veloAggregateWindow(data);
+  const res = veloScore(agg);
+  const wmo = wmoInfo(agg.code);
+  const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
 
+  // Durée estimée : 10 km, vitesse de base 20 km/h, ajustée selon vent
+  const baseSpeed = 20; // km/h
+  const windPenalty = Math.max(0, (agg.wind - 10) * 0.3); // chaque km/h au-dessus de 10 coûte 0.3 km/h
+  const estSpeed = Math.max(10, baseSpeed - windPenalty);
+  const estMin = Math.round((10 / estSpeed) * 60);
+
+  let alertsHtml = res.alerts.map(a =>
+    `<div class="velo-alert ${a.cls}"><span class="velo-alert-icon">${a.icon}</span><span>${a.txt}</span></div>`
+  ).join('');
+
+  let conseilsHtml = res.conseils.length
+    ? `<div class="velo-conseil">
+        <div class="velo-conseil-title">Conseils trajet</div>
+        <div class="velo-conseil-list">
+          ${res.conseils.map(c=>`<div class="velo-conseil-item">${c}</div>`).join('')}
+        </div>
+      </div>`
+    : '';
+
+  document.getElementById('veloBody').innerHTML = `
+    <div class="velo-score-row">
+      <div class="velo-score-circle ${res.classe}">
+        <span class="sc-num">${res.score}</span>
+        <span class="sc-lbl">/100</span>
+      </div>
+      <div class="velo-verdict">
+        <div class="velo-verdict-label ${res.classe}">${res.verdict}</div>
+        <div class="velo-verdict-sub">${res.sub}</div>
+      </div>
+    </div>
+    <div class="velo-meteo-row">
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">${wmo.icon}</div>
+        <div class="velo-meteo-val" style="font-size:10px">${wmo.label}</div>
+        <div class="velo-meteo-lbl">Ciel</div>
+      </div>
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">💧</div>
+        <div class="velo-meteo-val">${agg.rain.toFixed(1)}<span style="font-size:9px">mm</span></div>
+        <div class="velo-meteo-lbl">Pluie</div>
+      </div>
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">💨</div>
+        <div class="velo-meteo-val">${Math.round(agg.wind)}<span style="font-size:9px">km/h</span></div>
+        <div class="velo-meteo-lbl">Vent moy.</div>
+      </div>
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">🌡️</div>
+        <div class="velo-meteo-val">${Math.round(agg.temp)}<span style="font-size:9px">°C</span></div>
+        <div class="velo-meteo-lbl">Temp.</div>
+      </div>
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">💥</div>
+        <div class="velo-meteo-val">${Math.round(agg.gusts)}<span style="font-size:9px">km/h</span></div>
+        <div class="velo-meteo-lbl">Rafales</div>
+      </div>
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">🌡️</div>
+        <div class="velo-meteo-val">${Math.round(data.daily.temperature_2m_min[0])}-${Math.round(data.daily.temperature_2m_max[0])}<span style="font-size:9px">°C</span></div>
+        <div class="velo-meteo-lbl">Min-Max</div>
+      </div>
+      <div class="velo-meteo-cell">
+        <div class="velo-meteo-icon">⏱️</div>
+        <div class="velo-meteo-val">${estMin}<span style="font-size:9px">min</span></div>
+        <div class="velo-meteo-lbl">Durée est.</div>
+      </div>
+    </div>
+    <div class="velo-alerts">${alertsHtml}</div>
+    ${conseilsHtml}
+    <div class="velo-route">↑ VALENCE → BOURG-LÈS-VALENCE — ~10 km — Créneau 16h00–17h30</div>
+    <div class="velo-timestamp">Mis à jour ${now}</div>
+  `;
+  // Mettre à jour le score vélo dans la barre du haut
+  updateWorkBar(new Date());
+  // Mettre à jour le ticker
+  setTimeout(renderTicker, 200);
+}
+
+function veloError(msg) {
+  document.getElementById('veloBody').innerHTML = `
+    <div class="velo-alert danger">
+      <span class="velo-alert-icon">⚠️</span>
+      <span>Erreur météo : ${msg}.<br>Vérifier connexion ou réessayer.</span>
+    </div>
+    <div class="velo-timestamp">Échec chargement</div>
+  `;
+}
+
+async function veloRefresh() {
+  document.getElementById('veloBody').innerHTML =
+    `<div style="text-align:center;padding:16px 0;color:var(--muted);font-size:10px;letter-spacing:1px;"><span class="velo-spinning">⟳</span> Chargement météo…</div>`;
   try {
-    const p = new URLSearchParams({latitude:44.9333,longitude:4.8833,current:'temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m',timezone:'auto',wind_speed_unit:'kmh'});
-    const d = await (await fetch('https://api.open-meteo.com/v1/forecast?'+p)).json();
-    const c = d.current;
-    document.getElementById('wxIco').textContent = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',61:'🌧',71:'🌨',95:'⛈'}[c.weather_code] || '🌡';
-    document.getElementById('wxT').textContent = Math.round(c.temperature_2m)+'°';
-    document.getElementById('wxD').textContent = 'Valence';
-    document.getElementById('wxDet').textContent = `${Math.round(c.wind_speed_10m)} km/h · ${c.relative_humidity_2m}% hum.`;
+    const data = await veloFetch();
+    veloRender(data);
   } catch(e) {
-    document.getElementById('wxD').textContent = 'indisponible';
+    veloError(e.message);
   }
 }
 
-function setFilter(cat, btn){
-  activeFilter = cat;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-}
-function doSearch(q){ searchTerm = q; document.getElementById('srchClr').classList.toggle('on', q.length>0); render(); }
-function clearSrch(){ 
-  document.getElementById('srch').value = ''; 
-  searchTerm = ''; 
-  document.getElementById('srchClr').classList.remove('on'); 
-  render(); 
-}
-function toggleLayout(){
-  listMode = !listMode;
-  document.getElementById('layBtn').textContent = listMode ? '⊟' : '⊞';
-  render();
+// Auto-refresh toutes les 20 min
+veloRefresh();
+setInterval(veloRefresh, 20 * 60 * 1000);
+
+// ── CONGÉS WIDGET ──────────────────────────────────────────────
+function congesRender() {
+  const el = document.getElementById('congesBody');
+  if (!el) return;
+
+  let reqs = [];
+  try { reqs = JSON.parse(localStorage.getItem('cv3_req')) || []; } catch {}
+
+  const active   = reqs.filter(r => !r.archived);
+  const waiting  = active.filter(r => r.status === 'waiting');
+  const accepted = active.filter(r => r.status === 'ok');
+  const refused  = active.filter(r => r.status === 'ko');
+  const totalDays = accepted.reduce((a, b) => a + (b.days || 0), 0);
+
+  const fmt = d => { if (!d) return '—'; const [y, m, j] = d.split('-'); return `${j}/${m}`; };
+
+  // Prochain congé = premier en attente ou accepté dans le futur
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = active
+    .filter(r => r.e >= today && (r.status === 'ok' || r.status === 'waiting'))
+    .sort((a, b) => a.s.localeCompare(b.s))[0];
+
+  let nextHtml = '';
+  if (upcoming) {
+    const pc = upcoming.status === 'ok' ? 'ok' : upcoming.status === 'ko' ? 'ko' : 'wait';
+    const pl = upcoming.status === 'ok' ? 'ACCEPTÉ' : upcoming.status === 'ko' ? 'REFUSÉ' : 'EN ATTENTE';
+    nextHtml = `
+      <div class="conges-next">
+        <div class="conges-next-label">Prochain congé</div>
+        <div class="conges-next-row">
+          <div>
+            <div class="conges-next-dates">${fmt(upcoming.s)} → ${fmt(upcoming.e)}</div>
+            <div style="font-size:8px;color:var(--muted2);margin-top:2px;">${upcoming.type} · ${upcoming.days}j ouvré${upcoming.days > 1 ? 's' : ''}</div>
+          </div>
+          <span class="conges-pill ${pc}">${pl}</span>
+        </div>
+      </div>`;
+  }
+
+  if (!active.length) {
+    el.innerHTML = `<div class="conges-empty">Aucune demande — <span style="color:var(--blue);cursor:pointer" onclick="openConges()">créer une demande ↗</span></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="conges-stats">
+      <div class="conges-stat">
+        <div class="conges-stat-val" style="color:var(--blue)">${waiting.length}</div>
+        <div class="conges-stat-lbl">En attente</div>
+      </div>
+      <div class="conges-stat">
+        <div class="conges-stat-val" style="color:var(--green)">${accepted.length}</div>
+        <div class="conges-stat-lbl">Acceptés</div>
+      </div>
+      <div class="conges-stat">
+        <div class="conges-stat-val">${totalDays}</div>
+        <div class="conges-stat-lbl">Jours ok</div>
+      </div>
+    </div>
+    ${nextHtml}
+    ${refused.length ? `<div style="font-size:8px;color:var(--red);letter-spacing:1px;text-align:center">${refused.length} demande${refused.length>1?'s':''} refusée${refused.length>1?'s':''}</div>` : ''}
+  `;
 }
 
-async function init(){
-  await fetchFiles();
-  buildChips();
-  await loadWeather();
+// ── INIT ───────────────────────────────────────────────────────
+updateToggleUI();buildApps();buildFavs();buildClips();loadTodos();renderTodos();loadNotes();renderNotes();congesRender();
 
-  document.getElementById('skel').style.display='none';
-  document.getElementById('grid').style.display='grid';
-  document.getElementById('ftr').style.display='block';
-  render();
+// ── BANDE DÉFILANTE ────────────────────────────────────────────
+let tickerBtc = null;
+let tickerBtcTs = 0;
+
+async function fetchBtc() {
+  // Cache 2 min
+  if (tickerBtc && Date.now() - tickerBtcTs < 120000) return tickerBtc;
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true');
+    const d = await r.json();
+    tickerBtc = { price: d.bitcoin.eur, change: d.bitcoin.eur_24h_change };
+    tickerBtcTs = Date.now();
+    return tickerBtc;
+  } catch { return null; }
 }
 
-init();
+function getAffairesEnCours() {
+  // Lit les affaires depuis localStorage (clé utilisée par affaire_tracker.html)
+  let affaires = [];
+  try { affaires = JSON.parse(localStorage.getItem('affaire_tracker_data') || localStorage.getItem('affaires') || '[]'); } catch {}
+  if (!Array.isArray(affaires)) affaires = [];
+  const enCours = affaires.filter(a => a.statut && !['terminé','annulé','clôturé'].includes((a.statut||'').toLowerCase()));
+  return enCours;
+}
+
+function getCongesEnAttente() {
+  let reqs = [];
+  try { reqs = JSON.parse(localStorage.getItem('cv3_req')) || []; } catch {}
+  return reqs.filter(r => !r.archived && r.status === 'waiting');
+}
+
+function getVeloScore() {
+  const sc = document.querySelector('.velo-score-circle .sc-num');
+  const cl = document.querySelector('.velo-score-circle');
+  if (!sc || !cl) return null;
+  const score = sc.textContent.trim();
+  if (!score || score === '—') return null;
+  const cls = cl.classList.contains('go') ? 'go' : cl.classList.contains('warn') ? 'warn' : cl.classList.contains('nogo') ? 'nogo' : null;
+  const label = cl.classList.contains('go') ? 'GO' : cl.classList.contains('warn') ? 'ATTENTION' : 'DÉCONSEILLÉ';
+  return { score, cls, label };
+}
+
+function buildTickerItem(cls, icon, label, val, extra) {
+  return `<span class="ticker-item ${cls}"><span class="tk-icon">${icon}</span><span class="tk-label">${label}</span><span class="tk-val">${val}</span>${extra||''}</span>`;
+}
+
+async function renderTicker() {
+  const sep = `<span class="ticker-sep">◆</span>`;
+  let parts = [];
+
+  // 1. CONGÉS EN ATTENTE
+  const waiting = getCongesEnAttente();
+  if (waiting.length > 0) {
+    const w = waiting[0];
+    const fmt = d => { if(!d) return ''; const [y,m,j]=d.split('-'); return `${j}/${m}`; };
+    const datesStr = w.s ? ` ${fmt(w.s)}→${fmt(w.e)}` : '';
+    parts.push(
+      `<a class="ticker-item tk-conge-link" onclick="openConges()" style="cursor:pointer;text-decoration:none;">` +
+      `<span class="tk-icon">🏖</span><span class="tk-label">CONGÉ EN ATTENTE</span>` +
+      `<span class="tk-val">${waiting.length} demande${waiting.length>1?'s':''} — ${datesStr}</span>` +
+      `<span style="margin-left:8px;font-size:8px;color:var(--blue);letter-spacing:1px;border:1px solid rgba(26,92,204,0.3);padding:1px 5px;border-radius:2px;">+ NOUVEAU ↗</span>` +
+      `</a>`
+    );
+  } else {
+    parts.push(
+      `<a class="ticker-item tk-conge-link" onclick="openConges()" style="cursor:pointer;text-decoration:none;">` +
+      `<span class="tk-icon">🏖</span><span class="tk-label">CONGÉS</span>` +
+      `<span class="tk-val">Aucune demande en attente</span>` +
+      `<span style="margin-left:8px;font-size:8px;color:var(--blue);letter-spacing:1px;border:1px solid rgba(26,92,204,0.3);padding:1px 5px;border-radius:2px;">+ CRÉER ↗</span>` +
+      `</a>`
+    );
+  }
+
+  // 2. VÉLO TAFF
+  const velo = getVeloScore();
+  if (velo) {
+    parts.push(buildTickerItem(`tk-velo-${velo.cls}`, '🚴', 'VÉLO TAFF', `${velo.score}/100 — ${velo.label}`));
+  } else {
+    parts.push(buildTickerItem('tk-velo-warn', '🚴', 'VÉLO TAFF', 'Chargement…'));
+  }
+
+  // 3. BTC
+  const btc = await fetchBtc();
+  if (btc) {
+    const sign = btc.change >= 0 ? '+' : '';
+    const chgColor = btc.change >= 0 ? 'var(--green)' : 'var(--red)';
+    const fmt = n => n.toLocaleString('fr-FR', {minimumFractionDigits:0, maximumFractionDigits:0});
+    parts.push(
+      `<span class="ticker-item tk-btc"><span class="tk-icon">₿</span><span class="tk-label">BTC/EUR</span>` +
+      `<span class="tk-val">${fmt(btc.price)} €</span>` +
+      `<span style="margin-left:6px;font-size:9px;color:${chgColor};font-family:var(--font-mono);">(${sign}${btc.change.toFixed(1)}%)</span></span>`
+    );
+  } else {
+    parts.push(buildTickerItem('tk-btc', '₿', 'BTC/EUR', '—'));
+  }
+
+  // 4. TÂCHES EN COURS
+  let taches = [];
+  try { taches = JSON.parse(localStorage.getItem('launcher_todos') || '[]'); } catch {}
+  const tachesActives = taches.filter(t => !t.done);
+  if (tachesActives.length > 0) {
+    const noms = tachesActives.map(t => t.text).join('  ·  ');
+    parts.push(
+      `<span class="ticker-item" style="color:var(--text);">` +
+      `<span class="tk-icon">📋</span><span class="tk-label">TÂCHES</span>` +
+      `<span class="tk-val" style="color:var(--text);">${tachesActives.length} restante${tachesActives.length > 1 ? 's' : ''} — ${noms}</span></span>`
+    );
+  } else {
+    parts.push(
+      `<span class="ticker-item" style="color:var(--muted);">` +
+      `<span class="tk-icon">📋</span><span class="tk-label">TÂCHES</span>` +
+      `<span class="tk-val" style="color:var(--green);">Toutes les tâches terminées ✓</span></span>`
+    );
+  }
+
+  // Dupliquer pour boucle seamless
+  const content = parts.join(sep);
+  const full = content + sep + content;
+  const track = document.getElementById('tickerTrack');
+  if (track) track.innerHTML = full;
+
+  // Vitesse rapide fixe (plus le nombre est bas, plus c'est rapide)
+  if (track) track.style.animationDuration = '18s';
+}
+
+renderTicker();
+setInterval(renderTicker, 60000); // rafraîchir chaque minute
+
+// ══════════════════════════════════════════════════════════════
+// MÉTÉO WIDGET INTÉGRÉ
+// ══════════════════════════════════════════════════════════════
+
+// ── TOGGLE MASQUER/AFFICHER ────────────────────────────────────
+(function initMeteoToggle(){
+  const hidden = localStorage.getItem('launcher_meteo_hidden') === '1';
+  if(hidden) applyMeteoHidden(true);
+})();
+
+function applyMeteoHidden(hide){
+  const grid = document.getElementById('mainGrid');
+  const btn  = document.getElementById('meteoToggleBtn');
+  const lbl  = document.getElementById('meteoToggleLabel');
+  if(hide){
+    grid.classList.add('meteo-hidden');
+    btn.classList.add('off');
+    lbl.textContent = 'MÉTÉO ▸';
+  } else {
+    grid.classList.remove('meteo-hidden');
+    btn.classList.remove('off');
+    lbl.textContent = 'MÉTÉO';
+  }
+}
+
+function toggleMeteo(){
+  const hidden = document.getElementById('mainGrid').classList.contains('meteo-hidden');
+  const newState = !hidden;
+  localStorage.setItem('launcher_meteo_hidden', newState ? '1' : '0');
+  applyMeteoHidden(newState);
+}
+
+// ── MÉTÉO ENGINE ───────────────────────────────────────────────
+(function(){
+  const MX_GEO = 'https://geocoding-api.open-meteo.com/v1/search';
+  const MX_WX  = 'https://api.open-meteo.com/v1/forecast';
+  const MX_WMO = {0:['☀','Ciel dégagé'],1:['🌤','Peu nuageux'],2:['⛅','Partiellement nuageux'],3:['☁','Couvert'],45:['≋','Brouillard'],48:['≋','Brouillard givrant'],51:['·','Bruine légère'],53:['·','Bruine modérée'],55:['·','Bruine dense'],61:['~','Pluie légère'],63:['~~','Pluie modérée'],65:['~~~','Pluie forte'],71:['*','Neige légère'],73:['**','Neige modérée'],75:['***','Neige forte'],77:['*','Grésil'],80:['~','Averses légères'],81:['~~','Averses modérées'],82:['~~~','Averses fortes'],85:['*','Neige (averses)'],86:['**','Neige forte (averses)'],95:['⚡','Orage'],96:['⚡','Orage (grêle)'],99:['⚡','Orage violent']};
+  const MX_WMO_HEX = {0:'#d4952a',1:'#d4952a',2:'#8a9a6a',3:'#6a7a5a',45:'#9a9a8a',48:'#8a8a7a',51:'#5a8a7a',53:'#4a7a6a',55:'#3a6a5a',61:'#4a6a9a',63:'#3a5a8a',65:'#2a4a7a',71:'#7a8aaa',73:'#6a7a9a',75:'#5a6a8a',77:'#6a7a9a',80:'#4a6a9a',81:'#3a5a8a',82:'#2a4a7a',85:'#7a8aaa',86:'#6a7a9a',95:'#8a5a9a',96:'#7a4a8a',99:'#6a3a7a'};
+  const MX_DAYS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+  function mxWmo(c){return MX_WMO[c]||['·','Inconnu'];}
+  function mxDir(d){return['N','NE','E','SE','S','SO','O','NO'][Math.round(d/45)%8];}
+  function mxFh(iso){return new Date(iso).getHours().toString().padStart(2,'0');}
+  function mxEsc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function mxWmoHex(c){return MX_WMO_HEX[c]||'#8a8a7a';}
+  function mxWindLevel(kmh){
+    if(kmh<15) return{col:'#5aaa70',label:'Favorable'};
+    if(kmh<25) return{col:'#c8a040',label:'Attention'};
+    if(kmh<35) return{col:'#c87020',label:'Difficile'};
+    return{col:'#c03030',label:'Dangereux'};
+  }
+
+  let mxTimer;
+  const mxApp = document.getElementById('meteo-app');
+
+  function mxLoading(msg){
+    mxApp.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted);font-size:10px;letter-spacing:1px;">${msg||'Chargement…'}</div>`;
+  }
+  function mxErr(msg){
+    mxApp.innerHTML = `<div style="text-align:center;padding:16px 0;color:var(--red);font-size:10px;letter-spacing:1px;">⚠ ${mxEsc(msg)}</div>`;
+  }
+
+  // Barre de recherche dans le widget météo
+  mxApp.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:10px;position:relative;">
+      <div style="flex:1;position:relative;">
+        <input id="mx-si" type="text" placeholder="Rechercher une ville…"
+          style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:6px 0;outline:none;letter-spacing:0.5px;"
+          autocomplete="off" oninput="mxOnIn()" onkeydown="mxOnKey(event)">
+        <div id="mx-ac" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--panel2);border:1px solid var(--border);z-index:50;font-size:10px;"></div>
+      </div>
+      <button onclick="mxGeo()" title="Ma position" style="background:transparent;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:4px;flex-shrink:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted2)'">◎</button>
+    </div>
+    <div id="mx-content"><div style="text-align:center;padding:14px 0;color:var(--muted);font-size:10px;letter-spacing:1px;">Entrez une ville…</div></div>
+  `;
+
+  window.mxOnIn = function(){
+    clearTimeout(mxTimer);
+    const q = document.getElementById('mx-si').value.trim();
+    if(q.length < 2){mxHideAc();return;}
+    mxTimer = setTimeout(()=>mxFetchC(q), 300);
+  };
+  window.mxOnKey = function(e){
+    if(e.key==='Enter'){const q=document.getElementById('mx-si').value.trim();if(q)mxFetchC(q,true);}
+    if(e.key==='Escape')mxHideAc();
+  };
+  window.mxGeo = function(){
+    if(!navigator.geolocation){return;}
+    mxLoadingContent();
+    navigator.geolocation.getCurrentPosition(async p=>{
+      const{latitude:lat,longitude:lon}=p.coords;
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=fr`);
+        const d=await r.json();
+        const city=d.address?.city||d.address?.town||d.address?.village||d.address?.county||'Ma position';
+        document.getElementById('mx-si').value=city;
+        mxLoadWX(lat,lon,city,d.address?.country||'');
+      }catch{mxLoadWX(p.coords.latitude,p.coords.longitude,'Ma position','');}
+    },()=>{});
+  };
+
+  async function mxFetchC(q, auto=false){
+    try{
+      const r=await fetch(`${MX_GEO}?name=${encodeURIComponent(q)}&count=5&language=fr&format=json`);
+      const d=await r.json();
+      if(!d.results?.length){mxHideAc();return;}
+      if(auto){mxSel(d.results[0]);return;}
+      mxShowAc(d.results);
+    }catch{}
+  }
+  function mxShowAc(list){
+    const ac=document.getElementById('mx-ac');
+    ac.innerHTML='';
+    list.forEach(r=>{
+      const el=document.createElement('div');
+      el.style.cssText='padding:7px 10px;cursor:pointer;color:var(--muted2);border-bottom:1px solid var(--border);transition:background .1s;';
+      el.innerHTML=`${mxEsc(r.name)}<span style="color:var(--muted);margin-left:5px;font-size:9px">${r.admin1?mxEsc(r.admin1)+', ':''}${mxEsc(r.country||'')}</span>`;
+      el.onmouseenter=()=>el.style.background='var(--panel2)';
+      el.onmouseleave=()=>el.style.background='';
+      el.onclick=()=>mxSel(r);
+      ac.appendChild(el);
+    });
+    ac.style.display='block';
+  }
+  function mxHideAc(){const ac=document.getElementById('mx-ac');if(ac)ac.style.display='none';}
+  function mxSel(r){
+    document.getElementById('mx-si').value=r.name;
+    mxHideAc();
+    mxLoadWX(r.latitude,r.longitude,r.name,r.country||'');
+  }
+  document.addEventListener('click',e=>{if(!e.target.closest('#mx-si')&&!e.target.closest('#mx-ac'))mxHideAc();});
+
+  function mxLoadingContent(){
+    document.getElementById('mx-content').innerHTML=`<div style="text-align:center;padding:14px 0;color:var(--muted);font-size:10px;letter-spacing:1px;">Chargement…</div>`;
+  }
+
+  window.mxLoadWX = async function(lat,lon,city,country){
+    mxLoadingContent();
+    try{
+      const p=new URLSearchParams({latitude:lat,longitude:lon,
+        current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,precipitation,uv_index,surface_pressure',
+        hourly:'temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m',
+        daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset,precipitation_sum',
+        timezone:'auto',forecast_days:7,wind_speed_unit:'kmh'});
+      const r=await fetch(`${MX_WX}?${p}`);
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      mxRender(await r.json(),city,country);
+    }catch(e){
+      document.getElementById('mx-content').innerHTML=`<div style="text-align:center;padding:16px 0;color:var(--red);font-size:10px;">⚠ ${mxEsc(e.message)}</div>`;
+    }
+  };
+
+  // Sauvegarder la dernière ville
+  window.mxRefresh = function(){
+    const saved = JSON.parse(localStorage.getItem('launcher_meteo_city')||'null');
+    if(saved){
+      document.getElementById('mx-si').value = saved.name;
+      mxLoadWX(saved.lat, saved.lon, saved.name, saved.country);
+    }
+  };
+  window.meteoRefreshBtn = window.mxRefresh;
+
+  function mxRender(data, city, country){
+    const c=data.current, daily=data.daily, hourly=data.hourly;
+    const now=new Date();
+    const[icon,desc]=mxWmo(c.weather_code);
+    const nowHStr=now.toISOString().slice(0,13);
+    let hi=hourly.time.findIndex(t=>t.startsWith(nowHStr));
+    if(hi<0)hi=0;
+
+    // Slice heure par heure : pas de 1h le jour, 2h la nuit — ~24h
+    const hSlice=[];
+    let cursor=hi;
+    while(hSlice.length<20 && cursor<hourly.time.length){
+      hSlice.push(cursor);
+      const hh=new Date(hourly.time[cursor]).getHours();
+      cursor += (hh>=6 && hh<22) ? 1 : 2;
+    }
+
+    const temps=hSlice.map(i=>hourly.temperature_2m[i]);
+    const tMin=Math.min(...temps), tMax=Math.max(...temps), tRange=tMax-tMin||1;
+    const winds=hSlice.map(i=>hourly.wind_speed_10m?.[i]||0);
+    const wMax=Math.max(...winds)||1;
+
+    const allMax=daily.temperature_2m_max, allMin=daily.temperature_2m_min;
+    const gMin=Math.min(...allMin), gMax=Math.max(...allMax), gRange=gMax-gMin||1;
+
+    const updAt=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const curWind=Math.round(c.wind_speed_10m);
+    const curWlv=mxWindLevel(curWind);
+
+    // Timeline
+    let tlRows='';
+    hSlice.forEach((idx,i)=>{
+      const[hIco]=mxWmo(hourly.weather_code[idx]);
+      const temp=Math.round(hourly.temperature_2m[idx]);
+      const pp=hourly.precipitation_probability[idx]||0;
+      const col=mxWmoHex(hourly.weather_code[idx]);
+      const wspd=Math.round(hourly.wind_speed_10m?.[idx]||0);
+      const wdeg=Math.round(hourly.wind_direction_10m?.[idx]||0);
+      const wlv=mxWindLevel(wspd);
+      const windTint=wspd>=35?'rgba(192,48,48,0.09)':wspd>=25?'rgba(200,112,32,0.08)':wspd>=15?'rgba(200,160,64,0.06)':'transparent';
+      const isNow=i===0;
+      const rowDate=new Date(hourly.time[idx]);
+      const hh=rowDate.getHours();
+      const isMidnight=!isNow&&hh===0;
+      const timeLabel=isNow?mxFh(hourly.time[idx]):(isMidnight?MX_DAYS[rowDate.getDay()]+' 00':mxFh(hourly.time[idx]));
+      const tempRatio=(temp-tMin)/tRange;
+      const tempCol=tempRatio<0.25?'#5a8ab4':tempRatio<0.5?'#6aaa7a':tempRatio<0.75?'#c88c28':'#c4583c';
+      const bw=Math.round((temp-tMin)/tRange*100);
+      const filledSegs=Math.max(0,Math.min(4,Math.round(bw/25)));
+      let segs='';
+      for(let s=0;s<4;s++) segs+=`<div style="flex:1;height:5px;border-radius:1px;background:${s<filledSegs?col:'var(--border)'}"></div>`;
+      const windLabel=mxDir(wdeg)+' '+wspd;
+      // Rain bar simple
+      const rainBar=pp>0?`<div style="height:3px;background:var(--border);border-radius:1px;overflow:hidden;"><div style="width:${pp}%;height:100%;background:rgba(58,111,168,0.6);border-radius:1px;"></div></div>`:'';
+      const MARK_HOURS=[6,7,15,16,17];
+      if(!isNow&&MARK_HOURS.includes(hh)){
+        tlRows+=`<div style="height:1px;background:rgba(196,88,60,0.5);margin:1px 0 1px 44px;"></div>`;
+      }
+      tlRows+=`<div style="display:grid;grid-template-columns:26px 20px 1fr;align-items:center;gap:0 8px;padding:5px 0;background:${windTint};${isNow?'border-left:2px solid #c4583c;padding-left:4px;':''}" ${isNow?'id="mx-tl-now"':''}>
+        <div style="font-size:9px;color:${isNow?'#c4583c':'var(--muted)'};text-align:right;${isMidnight?'font-style:italic':''};">${timeLabel}</div>
+        <div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;background:transparent;border:1px solid var(--border);color:${col};">${hIco}</div>
+        <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+          <span style="font-family:var(--font-display);font-weight:700;font-size:11px;color:${tempCol};min-width:26px;flex-shrink:0;">${temp}°</span>
+          <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;">
+            <div style="display:flex;gap:1px;">${segs}</div>
+            ${rainBar}
+          </div>
+          <span style="font-size:9px;color:${wlv.col};min-width:34px;text-align:right;flex-shrink:0;">${windLabel}</span>
+        </div>
+      </div>`;
+    });
+
+    // 7 jours
+    let dayRows='';
+    daily.time.forEach((date,i)=>{
+      const isT=i===0;
+      const d=new Date(date);
+      const[dIco]=mxWmo(daily.weather_code[i]);
+      const dMax=Math.round(daily.temperature_2m_max[i]);
+      const dMin2=Math.round(daily.temperature_2m_min[i]);
+      const bl=Math.round((dMin2-gMin)/gRange*100);
+      const bw2=Math.round((dMax-dMin2)/gRange*100);
+      const pp=daily.precipitation_probability_max[i]||0;
+      const name=isT?'Auj.':MX_DAYS[d.getDay()];
+      dayRows+=`<div style="display:grid;grid-template-columns:32px 18px 1fr 32px;align-items:center;gap:0 8px;padding:7px 0;border-bottom:1px solid var(--border);${isT?'border-left:2px solid #c4583c;padding-left:4px;':''}">
+        <div style="font-size:9px;color:${isT?'#c4583c':'var(--muted2)'};font-weight:${isT?'700':'400'};white-space:nowrap;overflow:hidden;">${name}</div>
+        <div style="font-size:11px;text-align:center;">${dIco}</div>
+        <div style="display:flex;align-items:center;gap:4px;min-width:0;">
+          <span style="font-size:8px;color:var(--muted);min-width:20px;flex-shrink:0;">${dMin2}°</span>
+          <div style="flex:1;height:3px;background:var(--border);border-radius:2px;position:relative;">
+            <div style="position:absolute;left:${bl}%;width:${bw2}%;height:100%;border-radius:2px;background:linear-gradient(90deg,#3a6fa8,#c4583c);"></div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text);">${dMax}°</div>
+          ${pp>10?`<div style="font-size:8px;color:#3a6fa8;">${pp}%</div>`:''}
+        </div>
+      </div>`;
+    });
+
+    // Sauvegarder la ville
+    localStorage.setItem('launcher_meteo_city', JSON.stringify({name:city, lat:data.latitude, lon:data.longitude, country}));
+
+    document.getElementById('mx-content').innerHTML=`
+      <!-- Entête météo -->
+      <div style="margin-bottom:10px;">
+        <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--text);letter-spacing:-0.01em;">${mxEsc(city)}</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px;flex-wrap:wrap;">
+          <span style="font-family:var(--font-display);font-size:1.5rem;font-weight:800;color:var(--text);">${Math.round(c.temperature_2m)}°C</span>
+          <span style="font-size:10px;color:var(--muted2);font-style:italic;">${mxEsc(desc)}</span>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;">
+          <span style="font-size:9px;color:var(--muted);letter-spacing:0.5px;">Ressenti ${Math.round(c.apparent_temperature)}°C</span>
+          <span style="font-size:9px;color:var(--muted);letter-spacing:0.5px;">Humidité ${c.relative_humidity_2m}%</span>
+        </div>
+        <!-- Vent -->
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 10px;background:var(--panel2);border:1px solid var(--border);border-radius:3px;">
+          <div>
+            <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--text);line-height:1;">${curWind} <span style="font-size:10px;color:var(--muted2)">km/h</span></div>
+            <div style="font-size:8px;color:var(--muted);letter-spacing:0.5px;margin-top:1px;">${mxDir(c.wind_direction_10m)} · vent actuel</div>
+          </div>
+          <div style="width:1px;height:26px;background:var(--border);flex-shrink:0;"></div>
+          <span style="font-size:10px;color:${curWlv.col};letter-spacing:0.5px;font-weight:700;">${curWlv.label} — vélo</span>
+        </div>
+        <div style="font-size:8px;color:var(--muted);margin-top:6px;letter-spacing:0.5px;">Mis à jour ${updAt}</div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+
+      <!-- Timeline -->
+      <div style="font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Heure par heure</div>
+      <div style="position:relative;">
+        <div style="position:absolute;left:34px;top:0;bottom:0;width:1px;background:var(--border);pointer-events:none;z-index:0;"></div>
+        <div>${tlRows}</div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+
+      <!-- 7 jours -->
+      <div style="font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Prévisions 7 jours</div>
+      <div>${dayRows}</div>
+
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+
+      <!-- Détails -->
+      <div style="font-size:8px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Détails</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><div style="font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Pression</div><div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);">${Math.round(c.surface_pressure)}<span style="font-size:9px;font-weight:400;color:var(--muted2);"> hPa</span></div></div>
+        <div><div style="font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Lever soleil</div><div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);">${daily.sunrise[0].slice(11,16)}</div></div>
+        <div><div style="font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Coucher soleil</div><div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);">${daily.sunset[0].slice(11,16)}</div></div>
+        <div><div style="font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">Précip. auj.</div><div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);">${daily.precipitation_sum[0]}<span style="font-size:9px;font-weight:400;color:var(--muted2);"> mm</span></div></div>
+      </div>
+    `;
+
+    // Scroll vers maintenant
+    requestAnimationFrame(()=>{
+      const el=document.getElementById('mx-tl-now');
+      if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+  }
+
+  // Charger la dernière ville sauvegardée ou défaut Valence
+  (function mxInit(){
+    const saved = JSON.parse(localStorage.getItem('launcher_meteo_city')||'null');
+    if(saved){
+      document.getElementById('mx-si').value = saved.name;
+      mxLoadWX(saved.lat, saved.lon, saved.name, saved.country||'');
+    } else {
+      document.getElementById('mx-si').value = 'Valence';
+      mxLoadWX(44.9333, 4.8833, 'Valence', 'France');
+    }
+  })();
+
+})();
+
+// ══════════════════════════════════════════════════════════════════
+//  THEME SWITCH — beige-orange ↔ militaire opex
+// ══════════════════════════════════════════════════════════════════
+(function(){
+  const THEMES = {
+    'theme-beige': {
+      label:'🪖 OPEX',
+      color:'#a07848', border:'rgba(160,120,72,.38)', bg:'rgba(160,120,72,.09)'
+    },
+    'theme-opex': {
+      label:'🌅 BEIGE',
+      color:'#7aaa30', border:'rgba(106,154,34,.38)', bg:'rgba(106,154,34,.09)'
+    }
+  };
+
+  function applyTheme(t){
+    document.documentElement.className = t;
+    const btn = document.getElementById('themeSwitchBtn');
+    if(!btn) return;
+    const cfg = THEMES[t];
+    btn.textContent = cfg.label;
+    btn.style.color       = cfg.color;
+    btn.style.borderColor = cfg.border;
+    btn.style.background  = cfg.bg;
+  }
+
+  const saved = localStorage.getItem('launcher_theme') || 'theme-beige';
+  applyTheme(saved);
+
+  window.switchTheme = function(){
+    const cur = document.documentElement.className.includes('theme-opex') ? 'theme-opex' : 'theme-beige';
+    const next = cur === 'theme-opex' ? 'theme-beige' : 'theme-opex';
+    localStorage.setItem('launcher_theme', next);
+    applyTheme(next);
+  };
+})();
+
+
+window.openAffaire = function(){
+  const overlay = document.getElementById('affaireOverlay');
+  const iframe  = document.getElementById('affaireIframe');
+  if(!iframe.src || iframe.src === window.location.href) iframe.src = 'affaire_tracker.html';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+window.closeAffaire = function(){
+  document.getElementById('affaireOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('affaireOverlay').classList.contains('open')){
+    closeAffaire();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  CONGÉS — suivi_conges_v4 via iframe
+// ══════════════════════════════════════════════════════════════════
+window.openConges = function(){
+  const overlay = document.getElementById('congesOverlay');
+  const iframe  = document.getElementById('congesIframe');
+  if(!iframe.src || iframe.src === window.location.href) iframe.src = 'suivi_conges_v4.html';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+window.closeConges = function(){
+  document.getElementById('congesOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // Rafraîchir le widget congés dans le launcher
+  setTimeout(congesRender, 300);
+};
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('congesOverlay').classList.contains('open')){
+    closeConges();
+  }
+});
+window.openAnnotateur = function(){
+  const overlay = document.getElementById('annOverlay');
+  const iframe  = document.getElementById('annIframe');
+  if(!iframe.src || iframe.src === window.location.href) iframe.src = 'annotateur.html';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+window.closeAnnotateur = function(){
+  document.getElementById('annOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('annOverlay').classList.contains('open')){
+    closeAnnotateur();
+  }
+});
+
+window.openDcpdf = function(){
+  const overlay = document.getElementById('dcpdfOverlay');
+  const iframe  = document.getElementById('dcpdfIframe');
+  if(!iframe.src || iframe.src === window.location.href) iframe.src = 'demande_conge_PDF.html';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+window.closeDcpdf = function(){
+  document.getElementById('dcpdfOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('dcpdfOverlay').classList.contains('open')){
+    closeDcpdf();
+  }
+});
+
 </script>
 </body>
 </html>
