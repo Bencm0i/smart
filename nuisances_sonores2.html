@@ -234,7 +234,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .btn-submit:active{opacity:.85;}
 .btn-cancel{width:100%;padding:12px;background:none;color:var(--t2);border:none;font-size:14px;cursor:pointer;margin-top:6px;}
 
-/* ── Charts ── */
+/* ── Chips de suggestion ── */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{
+  padding:5px 10px;border-radius:20px;border:1.5px solid var(--border2);
+  background:var(--surface2);color:var(--t2);font-size:11px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif;
+}
+.chip.active{background:var(--red);border-color:var(--red);color:#fff;}
+.chip:active{opacity:.75;}
+
+
 .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
 .chart-card h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);margin-bottom:10px;}
 
@@ -412,19 +422,22 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div class="fgroup">
         <label>Type</label>
         <select id="f-type">
-          <option>Gêne pour regarder la TV</option>
-          <option>Gêne pour dormir / se reposer</option>
-          <option>Gêne pour travailler / téléphoner</option>
+          <option>Basses / subwoofer</option>
           <option>Musique forte</option>
           <option>Musique + voix</option>
-          <option>Basses / subwoofer</option>
           <option>Fête / rassemblement</option>
           <option>Autre</option>
         </select>
       </div>
       <div class="fgroup">
-        <label>Observations</label>
-        <textarea id="f-note" placeholder="Pièce affectée, impact sur activité, contexte…"></textarea>
+        <label>Observation <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--t3)">— décrivez la gêne</span></label>
+        <div class="chip-row" id="chip-row">
+          <button type="button" class="chip active" onclick="setChip(this,'Gêne pour regarder la TV')">📺 TV</button>
+          <button type="button" class="chip" onclick="setChip(this,'Gêne pour dormir / se reposer')">😴 Sommeil</button>
+          <button type="button" class="chip" onclick="setChip(this,'Gêne pour travailler / téléphoner')">💼 Travail</button>
+          <button type="button" class="chip" onclick="setChip(this,'Autre gêne…')">… Autre</button>
+        </div>
+        <textarea id="f-note" style="height:88px;margin-top:6px;"></textarea>
       </div>
       <div class="fgroup">
         <label>Démarches effectuées</label>
@@ -536,10 +549,12 @@ function openModal(){
   document.getElementById('f-date').value  = now.toISOString().slice(0,10);
   document.getElementById('f-hstart').value= now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace('h',':');
   document.getElementById('f-hend').value  = '';
-  document.getElementById('f-note').value  = '';
+  document.getElementById('f-type').selectedIndex = 0;
+  document.getElementById('f-note').value  = 'Gêne pour regarder la TV\n';
+  // reset chips
+  document.querySelectorAll('.chip').forEach((c,i)=>c.classList.toggle('active', i===0));
   document.getElementById('f-action').value= '';
   document.getElementById('f-witness').value='';
-  document.getElementById('f-type').selectedIndex = 0;
   document.getElementById('modal-now').textContent = now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}) + ' — ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   setInt(0);
   document.getElementById('modal').classList.add('open');
@@ -677,7 +692,21 @@ function generateIAText(){
   return txt;
 }
 
-// ── Intensity ──────────────────────────────────────────────────────────────
+// ── Chips observation ──────────────────────────────────────────────────────
+function setChip(el, label){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const ta = document.getElementById('f-note');
+  // Remplace la première ligne par le label chip, conserve le reste
+  const lines = ta.value.split('\n');
+  lines[0] = label;
+  ta.value = lines.join('\n');
+  ta.focus();
+  // Placer le curseur à la fin
+  ta.selectionStart = ta.selectionEnd = ta.value.length;
+}
+
+
 function setInt(v){
   selInt = v;
   document.querySelectorAll('.int-big').forEach((b,i)=>{
@@ -719,9 +748,11 @@ function saveIncident(id){
   const idx = incidents.findIndex(i=>i.id===id);
   if(idx===-1) return;
   incidents[idx].note    = document.getElementById('edit-note-'+id).value;
+  // type conservé tel quel lors d'une édition
   incidents[idx].action  = document.getElementById('edit-action-'+id).value;
   incidents[idx].witness = document.getElementById('edit-witness-'+id).value;
   localStorage.setItem('ns_incidents', JSON.stringify(incidents));
+  renderJournal();
   showToast('✓ Modifié');
 }
 
@@ -783,8 +814,8 @@ function renderJournal(){
       </div>
       <div class="inc-expand" id="exp-${inc.id}">
         <div class="inc-detail-row">
-          <div class="idr-label">📝 Obs.</div>
-          <div class="idr-val"><textarea class="edit-field" id="edit-note-${inc.id}">${esc(inc.note||'')}</textarea></div>
+          <div class="idr-label">📝 Gêne / Obs.</div>
+          <div class="idr-val"><textarea class="edit-field" id="edit-note-${inc.id}" style="height:72px;">${esc(inc.note||'')}</textarea></div>
         </div>
         <div class="inc-detail-row">
           <div class="idr-label">⚡ Démarches</div>
