@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="claire">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,15 +11,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{
-  --bg:#f5f2ed;--surface:#fff;--surface2:#eeebe4;--border:#e2ddd6;--border2:#ccc6bc;
-  --tx:#1a1612;--t2:#6b6158;--t3:#a09888;
-  --red:#c0392b;--red-l:#fdf0ee;--red-b:#f0c8c0;
-  --amber:#d4820a;--blue:#2563a8;--blue-l:#eef3fb;
+/* ══ THÈME CLAIRE (beige / orange) ══ */
+:root {
+  --bg:#f8f2e8;--surface:#fffdf8;--surface2:#f0ebe0;--border:#e4dbd0;--border2:#cfc4b4;
+  --tx:#28200c;--t2:#786858;--t3:#b0a088;
+  --red:#d46018;--red-l:#fff4ea;--red-b:#f8d0a8;
+  --amber:#c87808;--blue:#2563a8;--blue-l:#eef3fb;
   --green:#2a7a50;
   --nav-h:64px;--safe-b:env(safe-area-inset-bottom,0px);
   --radius:14px;--radius-sm:10px;--radius-lg:20px;
 }
+
+/* ══ THÈME OPEX (combat / tactique) ══ */
+[data-theme="opex"] {
+  --bg:#161c10;--surface:#1e2618;--surface2:#181e12;--border:#303820;--border2:#404a28;
+  --tx:#c8d0a8;--t2:#889068;--t3:#606840;
+  --red:#c8900a;--red-l:#28200a;--red-b:#483808;
+  --amber:#d4820a;--blue:#408888;--blue-l:#142020;
+  --green:#508040;
+}
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);}
 
@@ -31,11 +42,18 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   background:var(--surface);border-bottom:1px solid var(--border);
   padding:12px 16px 10px;padding-top:calc(12px + env(safe-area-inset-top,0px));
   display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-  position:sticky;top:0;z-index:10;
+  position:sticky;top:0;z-index:10;gap:8px;
 }
-#topbar h1{font-size:17px;font-weight:700;letter-spacing:-.01em;}
+#topbar h1{font-size:17px;font-weight:700;letter-spacing:-.01em;flex:1;}
 #topbar h1 span{color:var(--red);}
-#topbar-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--t3);}
+#topbar-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--t3);white-space:nowrap;}
+#theme-btn{
+  padding:5px 10px;border-radius:20px;border:1.5px solid var(--border2);
+  background:var(--surface2);color:var(--tx);font-size:11px;font-weight:700;
+  cursor:pointer;white-space:nowrap;letter-spacing:.04em;transition:all .2s;flex-shrink:0;
+}
+#theme-btn:active{opacity:.75;}
+[data-theme="opex"] #theme-btn{border-color:var(--red);color:var(--red);}
 
 /* ── Scroll area ── */
 #scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:12px 14px;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 80px);}
@@ -64,11 +82,11 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   width:56px;height:56px;border-radius:28px;
   background:var(--red);color:#fff;border:none;
   font-size:28px;line-height:1;cursor:pointer;
-  box-shadow:0 4px 16px rgba(192,57,43,.4);
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
   display:flex;align-items:center;justify-content:center;
   transition:transform .15s,box-shadow .15s;
 }
-#fab:active{transform:scale(.94);box-shadow:0 2px 8px rgba(192,57,43,.3);}
+#fab:active{transform:scale(.94);}
 
 /* ── Panels ── */
 .panel{display:none;}
@@ -92,7 +110,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   transition:box-shadow .15s;
   position:relative;
 }
-.inc-card:active{box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.inc-card:active{box-shadow:0 2px 8px rgba(0,0,0,.15);}
 .inc-header{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
 .inc-date-block{text-align:center;min-width:38px;}
 .inc-day{font-size:20px;font-weight:700;line-height:1;color:var(--red);}
@@ -108,13 +126,22 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .int-dot-4{background:#a01010;}
 .inc-expand{display:none;padding:0 14px 12px;border-top:1px solid var(--border);margin-top:0;}
 .inc-expand.open{display:block;}
-.inc-detail-row{display:flex;gap:6px;margin-top:8px;font-size:12px;}
-.idr-label{color:var(--t3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;min-width:72px;flex-shrink:0;}
-.idr-val{color:var(--t2);flex:1;}
-.inc-del-btn{margin-top:10px;background:var(--red-l);color:var(--red);border:1px solid var(--red-b);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;width:100%;}
+.inc-detail-row{display:flex;gap:6px;margin-top:8px;font-size:12px;align-items:flex-start;}
+.idr-label{color:var(--t3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;min-width:72px;flex-shrink:0;padding-top:6px;}
+.idr-val{flex:1;}
+.edit-field{
+  width:100%;padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:12px;background:var(--surface2);color:var(--tx);
+  outline:none;resize:none;line-height:1.4;
+}
+.edit-field:focus{border-color:var(--red);}
+textarea.edit-field{height:52px;}
+.inc-actions-row{display:flex;gap:6px;margin-top:10px;}
+.inc-save-btn{flex:1;background:var(--red);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.inc-del-btn{background:var(--red-l);color:var(--red);border:1px solid var(--red-b);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
 
 /* ── Modal (saisie) ── */
-#modal-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;}
+#modal-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}
 #modal-overlay.open{opacity:1;pointer-events:all;}
 #modal{
   position:fixed;bottom:0;left:0;right:0;z-index:51;
@@ -131,7 +158,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .modal-body{padding:14px 16px;}
 
 /* ── Import modal ── */
-#import-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;}
+#import-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}
 #import-overlay.open{opacity:1;pointer-events:all;}
 #import-modal{
   position:fixed;bottom:0;left:0;right:0;z-index:51;
@@ -150,9 +177,30 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .import-zone p{font-size:13px;color:var(--t2);}
 .import-zone .iz-ico{font-size:32px;margin-bottom:8px;}
 #import-file{display:none;}
-.import-warning{background:#fffbe6;border:1px solid #e8c020;border-radius:8px;padding:10px 12px;font-size:12px;color:#7a5e00;margin-bottom:10px;}
+.import-warning{background:var(--red-l);border:1px solid var(--red-b);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--t2);margin-bottom:10px;}
 
-/* ── Form elements (mobile-sized) ── */
+/* ── IA modal ── */
+#ia-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;}
+#ia-overlay.open{opacity:1;pointer-events:all;}
+#ia-modal{
+  position:fixed;bottom:0;left:0;right:0;z-index:51;
+  background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  padding:16px 16px calc(16px + var(--safe-b));
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-height:88vh;display:flex;flex-direction:column;gap:10px;
+}
+#ia-modal.open{transform:translateY(0);}
+#ia-text{
+  flex:1;min-height:240px;max-height:45vh;
+  width:100%;padding:12px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);
+  font-family:'DM Mono',monospace;font-size:11px;line-height:1.55;
+  background:var(--surface2);color:var(--tx);resize:none;outline:none;
+}
+.ia-title{font-size:15px;font-weight:700;}
+.ia-sub{font-size:12px;color:var(--t2);}
+.ia-btns{display:flex;gap:8px;}
+
+/* ── Form elements ── */
 .fgroup{margin-bottom:14px;}
 .fgroup label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);margin-bottom:5px;}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -197,12 +245,12 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .rep-field:last-child{margin-bottom:0;}
 .rep-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);}
 .rep-val{font-size:13px;color:var(--tx);}
-.legal-box{background:var(--blue-l);border:1px solid #c0d0e8;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;line-height:1.7;color:#1a3060;margin-bottom:10px;}
 .btn-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .btn-sm{flex:1;min-width:calc(50% - 4px);padding:10px 8px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;text-align:center;border:1px solid var(--border2);background:var(--surface);color:var(--t2);}
 .btn-sm.primary{background:var(--red);color:#fff;border-color:var(--red);}
 .btn-sm.amber{background:#d4820a;color:#fff;border-color:#d4820a;}
 .btn-sm.green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-sm.ia{background:#5a3fa0;color:#fff;border-color:#5a3fa0;}
 
 /* Dossier fields */
 .dossier-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
@@ -222,14 +270,19 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 /* PDF spinner */
 #pdf-spinner{
-  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);
   display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;
 }
 #pdf-spinner.show{display:flex;}
-.spin-box{background:#fff;border-radius:16px;padding:28px 36px;text-align:center;}
+.spin-box{background:var(--surface);border-radius:16px;padding:28px 36px;text-align:center;}
 .spin-ico{font-size:36px;animation:spin 1s linear infinite;display:inline-block;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spin-txt{font-size:14px;font-weight:600;color:var(--t2);margin-top:8px;}
+
+/* OPEX: scanline flavor */
+[data-theme="opex"] #topbar h1::before{content:'◉ ';color:var(--red);font-size:12px;}
+[data-theme="opex"] .stat-card{border-color:var(--border2);}
+[data-theme="opex"] .inc-card{border-color:var(--border2);}
 
 /* ── Print ── */
 @media print{
@@ -250,6 +303,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div id="topbar">
     <h1>Nuisances <span>sonores</span></h1>
     <div id="topbar-count"></div>
+    <button id="theme-btn" onclick="toggleTheme()">⚔ OPEX</button>
   </div>
 
   <!-- Scroll content -->
@@ -276,11 +330,11 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <button class="btn-sm green" onclick="exportJSON()">💾 JSON</button>
         <button class="btn-sm amber" onclick="openImport()">📂 Importer</button>
         <button class="btn-sm primary" onclick="exportPDF()">📄 PDF</button>
+        <button class="btn-sm ia" onclick="openIAReport()" style="min-width:100%;">🤖 Rapport texte IA</button>
       </div>
 
       <div class="rep-card" style="border:2px solid var(--tx)">
         <div style="font-size:17px;font-weight:700;margin-bottom:4px;">Dossier nuisances sonores</div>
-        <div style="font-size:11px;color:var(--t2);">Art. R.1334-31 Code de la santé publique</div>
         <div id="rep-infos" style="margin-top:12px;"></div>
       </div>
 
@@ -292,13 +346,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
       <div class="section-title">Journal détaillé</div>
       <div id="rep-list"></div>
-
-      <div class="section-title">Cadre légal</div>
-      <div class="legal-box">
-        <strong style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px;">Références</strong>
-        Art. <strong>R.1334-31 CSP</strong> : tout bruit causant une gêne anormale est interdit. Loi du <strong>31/12/1992</strong> (loi bruit). Nuisances nocturnes (22h–7h) : art. <strong>R.623-2 Code pénal</strong>.<br><br>
-        Recours possibles : mairie, bailleur/syndic, police municipale, conciliateur de justice, tribunal de proximité, huissier de justice pour constat.
-      </div>
 
       <div style="margin-top:20px;padding:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);">
         <div style="font-size:11px;color:var(--t3);margin-bottom:16px;">Fait à _____________, le ___/___/______</div>
@@ -365,16 +412,19 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
       <div class="fgroup">
         <label>Type</label>
         <select id="f-type">
+          <option>Gêne pour regarder la TV</option>
+          <option>Gêne pour dormir / se reposer</option>
+          <option>Gêne pour travailler / téléphoner</option>
           <option>Musique forte</option>
-          <option>Basses / subwoofer</option>
           <option>Musique + voix</option>
+          <option>Basses / subwoofer</option>
           <option>Fête / rassemblement</option>
           <option>Autre</option>
         </select>
       </div>
       <div class="fgroup">
         <label>Observations</label>
-        <textarea id="f-note" placeholder="Genre musical, pièce affectée, impact sommeil…"></textarea>
+        <textarea id="f-note" placeholder="Pièce affectée, impact sur activité, contexte…"></textarea>
       </div>
       <div class="fgroup">
         <label>Démarches effectuées</label>
@@ -404,6 +454,19 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <button class="btn-cancel" onclick="closeImport()">Annuler</button>
   </div>
 
+  <!-- Modal rapport IA -->
+  <div id="ia-overlay" onclick="closeIAReport()"></div>
+  <div id="ia-modal">
+    <div class="modal-handle"></div>
+    <div class="ia-title">🤖 Rapport texte pour IA</div>
+    <div class="ia-sub">Texte structuré prêt à copier dans ChatGPT, Claude, Gemini…</div>
+    <textarea id="ia-text" readonly></textarea>
+    <div class="ia-btns">
+      <button class="btn-submit" style="margin:0" onclick="copyIAReport()">📋 Copier</button>
+      <button class="btn-cancel" style="margin:0;flex:0 0 auto;padding:15px 20px;" onclick="closeIAReport()">✕</button>
+    </div>
+  </div>
+
 </div><!-- /app -->
 <div id="toast"></div>
 
@@ -422,14 +485,27 @@ let dossier   = JSON.parse(localStorage.getItem('ns_dossier')||'{}');
 let selInt = 0;
 let charts = {};
 let currentTab = 'journal';
+let currentTheme = localStorage.getItem('ns_theme') || 'claire';
 
 const INT_LABELS  = ['','Gênant','Fort','Très fort','Insupportable'];
 const INT_COLORS  = ['','#e8b820','#e8841a','#e04030','#a01010'];
-const CHART_COLOR = '#a09888';
-const CHART_GRID  = 'rgba(0,0,0,.06)';
+
+function getChartColor(){ return currentTheme==='opex'?'#889068':'#a09888'; }
+function getChartGrid(){  return currentTheme==='opex'?'rgba(200,220,150,.08)':'rgba(0,0,0,.06)'; }
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function applyTheme(t){
+  currentTheme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('ns_theme', t);
+  const btn = document.getElementById('theme-btn');
+  btn.textContent = t === 'opex' ? '☀ Claire' : '⚔ OPEX';
+}
+function toggleTheme(){ applyTheme(currentTheme === 'opex' ? 'claire' : 'opex'); }
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', ()=>{
+  applyTheme(currentTheme);
   const now = new Date();
   document.getElementById('f-date').value = now.toISOString().slice(0,10);
   document.getElementById('f-hstart').value = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}).replace('h',':');
@@ -463,6 +539,7 @@ function openModal(){
   document.getElementById('f-note').value  = '';
   document.getElementById('f-action').value= '';
   document.getElementById('f-witness').value='';
+  document.getElementById('f-type').selectedIndex = 0;
   document.getElementById('modal-now').textContent = now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}) + ' — ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
   setInt(0);
   document.getElementById('modal').classList.add('open');
@@ -494,7 +571,6 @@ function handleImport(evt){
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      // Support both formats: array of incidents, or full backup object
       if(Array.isArray(data)){
         incidents = data;
       } else if(data.incidents && Array.isArray(data.incidents)){
@@ -502,7 +578,6 @@ function handleImport(evt){
         if(data.dossier){
           dossier = data.dossier;
           localStorage.setItem('ns_dossier', JSON.stringify(dossier));
-          // Refresh dossier fields
           ['name','addr','vaddr','syndic'].forEach(k=>{
             const el = document.getElementById('d-'+k);
             if(el && dossier[k]) el.value = dossier[k];
@@ -520,9 +595,86 @@ function handleImport(evt){
     } catch(err){
       showToast('❌ Fichier JSON invalide');
     }
-    evt.target.value=''; // reset input
+    evt.target.value='';
   };
   reader.readAsText(file);
+}
+
+// ── Modal rapport IA ───────────────────────────────────────────────────────
+function openIAReport(){
+  if(!incidents.length){showToast('⚠ Aucun incident à exporter');return;}
+  document.getElementById('ia-text').value = generateIAText();
+  document.getElementById('ia-modal').classList.add('open');
+  document.getElementById('ia-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeIAReport(){
+  document.getElementById('ia-modal').classList.remove('open');
+  document.getElementById('ia-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function copyIAReport(){
+  const ta = document.getElementById('ia-text');
+  ta.select();
+  try{
+    navigator.clipboard.writeText(ta.value).then(()=>showToast('📋 Copié !'));
+  } catch(e){
+    document.execCommand('copy');
+    showToast('📋 Copié !');
+  }
+}
+
+function generateIAText(){
+  const d = dossier;
+  const total   = incidents.length;
+  const last30  = incidents.filter(i=>new Date(i.date)>new Date(Date.now()-30*864e5)).length;
+  const avgI    = (incidents.reduce((s,i)=>s+i.int,0)/total).toFixed(1);
+  const nights  = incidents.filter(i=>{const h=parseInt(i.hstart);return h>=22||h<7;}).length;
+  const first   = incidents.length ? fFull(incidents[incidents.length-1].date) : '—';
+  const last    = incidents.length ? fFull(incidents[0].date) : '—';
+  const today   = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  const sep = '─'.repeat(52);
+  let txt = '';
+  txt += 'RAPPORT NUISANCES SONORES\n';
+  txt += `Généré le ${today}\n`;
+  txt += sep + '\n\n';
+
+  txt += 'DOSSIER\n';
+  txt += `Plaignant : ${d.name||'—'}\n`;
+  txt += `Adresse   : ${d.addr||'—'}\n`;
+  txt += `Voisin    : ${d.vaddr||'—'}\n`;
+  txt += `Syndic    : ${d.syndic||'—'}\n`;
+  txt += `Période   : ${first} → ${last}\n\n`;
+
+  txt += 'SYNTHÈSE\n';
+  txt += `Total incidents        : ${total}\n`;
+  txt += `30 derniers jours      : ${last30}\n`;
+  txt += `Intensité moyenne      : ${avgI}/4\n`;
+  txt += `Incidents nocturnes    : ${nights} (entre 22h et 7h)\n\n`;
+
+  // Répartition par type
+  const byType = {};
+  incidents.forEach(i=>{ byType[i.type]=(byType[i.type]||0)+1; });
+  txt += 'RÉPARTITION PAR TYPE\n';
+  Object.entries(byType).sort((a,b)=>b[1]-a[1]).forEach(([t,n])=>{
+    txt += `  ${t.padEnd(34)} : ${n}\n`;
+  });
+  txt += '\n';
+
+  txt += 'JOURNAL DES INCIDENTS (du plus récent au plus ancien)\n';
+  txt += sep + '\n';
+  [...incidents].reverse().forEach((inc, idx)=>{
+    const timeStr = inc.hstart+(inc.hend?' → '+inc.hend:'')+(calcDur(inc.hstart,inc.hend)?' ('+calcDur(inc.hstart,inc.hend)+')':'');
+    txt += `#${idx+1} | ${fFull(inc.date)} | ${timeStr}\n`;
+    txt += `Type : ${inc.type} | Intensité : ${inc.int}/4 — ${INT_LABELS[inc.int]}\n`;
+    if(inc.note)    txt += `Observations : ${inc.note}\n`;
+    if(inc.action)  txt += `Démarches : ${inc.action}\n`;
+    if(inc.witness) txt += `Témoin : ${inc.witness}\n`;
+    txt += sep + '\n';
+  });
+
+  return txt;
 }
 
 // ── Intensity ──────────────────────────────────────────────────────────────
@@ -563,6 +715,16 @@ function deleteIncident(id){
   updateTopbar();
 }
 
+function saveIncident(id){
+  const idx = incidents.findIndex(i=>i.id===id);
+  if(idx===-1) return;
+  incidents[idx].note    = document.getElementById('edit-note-'+id).value;
+  incidents[idx].action  = document.getElementById('edit-action-'+id).value;
+  incidents[idx].witness = document.getElementById('edit-witness-'+id).value;
+  localStorage.setItem('ns_incidents', JSON.stringify(incidents));
+  showToast('✓ Modifié');
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 function calcDur(hs,he){
   if(!hs||!he)return'';
@@ -573,6 +735,7 @@ function calcDur(hs,he){
 const fDay = iso => new Date(iso+'T12:00').getDate();
 const fMon = iso => new Date(iso+'T12:00').toLocaleDateString('fr-FR',{month:'short'}).replace('.','');
 const fFull= iso => new Date(iso+'T12:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+function esc(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function updateTopbar(){
   const n = incidents.length;
@@ -610,7 +773,7 @@ function renderJournal(){
           <div class="inc-mon">${fMon(inc.date)}</div>
         </div>
         <div class="inc-main">
-          <div class="inc-type">${inc.type}</div>
+          <div class="inc-type">${esc(inc.type)}</div>
           <div class="inc-time">${inc.hstart}${inc.hend?' → '+inc.hend:''}${calcDur(inc.hstart,inc.hend)?' · '+calcDur(inc.hstart,inc.hend):''}</div>
         </div>
         <div class="inc-right">
@@ -619,10 +782,22 @@ function renderJournal(){
         </div>
       </div>
       <div class="inc-expand" id="exp-${inc.id}">
-        ${inc.note?`<div class="inc-detail-row"><div class="idr-label">📝 Obs.</div><div class="idr-val">${inc.note}</div></div>`:''}
-        ${inc.action?`<div class="inc-detail-row"><div class="idr-label">⚡ Démarches</div><div class="idr-val">${inc.action}</div></div>`:''}
-        ${inc.witness?`<div class="inc-detail-row"><div class="idr-label">👤 Témoin</div><div class="idr-val">${inc.witness}</div></div>`:''}
-        <button class="inc-del-btn" onclick="deleteIncident(${inc.id})">🗑 Supprimer cet incident</button>
+        <div class="inc-detail-row">
+          <div class="idr-label">📝 Obs.</div>
+          <div class="idr-val"><textarea class="edit-field" id="edit-note-${inc.id}">${esc(inc.note||'')}</textarea></div>
+        </div>
+        <div class="inc-detail-row">
+          <div class="idr-label">⚡ Démarches</div>
+          <div class="idr-val"><textarea class="edit-field" id="edit-action-${inc.id}">${esc(inc.action||'')}</textarea></div>
+        </div>
+        <div class="inc-detail-row">
+          <div class="idr-label">👤 Témoin</div>
+          <div class="idr-val"><input class="edit-field" type="text" id="edit-witness-${inc.id}" value="${esc(inc.witness||'')}"></div>
+        </div>
+        <div class="inc-actions-row">
+          <button class="inc-save-btn" onclick="saveIncident(${inc.id})">💾 Enregistrer</button>
+          <button class="inc-del-btn" onclick="deleteIncident(${inc.id})">🗑</button>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -636,6 +811,9 @@ function toggleCard(id){
 function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 
 function renderCharts(){
+  const CC = getChartColor();
+  const CG = getChartGrid();
+
   dc('c-timeline');
   const days=[],counts=[],ints=[];
   for(let i=29;i>=0;i--){
@@ -649,23 +827,23 @@ function renderCharts(){
     {data:counts,backgroundColor:'rgba(192,57,43,.55)',borderRadius:3,yAxisID:'y'},
     {data:ints,type:'line',borderColor:'rgba(212,130,10,.8)',backgroundColor:'rgba(212,130,10,.1)',pointRadius:2,tension:.3,yAxisID:'y2'}
   ]},options:{plugins:{legend:{display:false}},scales:{
-    y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},
-    y2:{beginAtZero:true,max:4,position:'right',ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{display:false}},
-    x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}
+    y:{beginAtZero:true,ticks:{stepSize:1,color:CC,font:{size:10}},grid:{color:CG}},
+    y2:{beginAtZero:true,max:4,position:'right',ticks:{stepSize:1,color:CC,font:{size:10}},grid:{display:false}},
+    x:{ticks:{color:CC,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}
   }}});
 
   dc('c-hours');
   const hc=Array(24).fill(0);
   incidents.forEach(i=>{if(i.hstart)hc[parseInt(i.hstart)]++;});
-  charts['c-hours']=new Chart(document.getElementById('c-hours'),{type:'bar',data:{labels:Array.from({length:24},(_,i)=>i+'h'),datasets:[{data:hc,backgroundColor:hc.map((_,i)=>(i>=22||i<7)?'rgba(192,57,43,.7)':'rgba(79,142,247,.55)'),borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:0,maxTicksLimit:8},grid:{display:false}}}}});
+  charts['c-hours']=new Chart(document.getElementById('c-hours'),{type:'bar',data:{labels:Array.from({length:24},(_,i)=>i+'h'),datasets:[{data:hc,backgroundColor:hc.map((_,i)=>(i>=22||i<7)?'rgba(192,57,43,.7)':'rgba(79,142,247,.55)'),borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CC,font:{size:10}},grid:{color:CG}},x:{ticks:{color:CC,font:{size:9},maxRotation:0,maxTicksLimit:8},grid:{display:false}}}}});
 
   dc('c-int');
   const ic=[0,0,0,0];incidents.forEach(i=>{if(i.int>=1&&i.int<=4)ic[i.int-1]++;});
-  charts['c-int']=new Chart(document.getElementById('c-int'),{type:'doughnut',data:{labels:INT_LABELS.slice(1),datasets:[{data:ic,backgroundColor:INT_COLORS.slice(1),borderWidth:2,borderColor:'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{color:CHART_COLOR,font:{size:11},padding:10}}}}});
+  charts['c-int']=new Chart(document.getElementById('c-int'),{type:'doughnut',data:{labels:INT_LABELS.slice(1),datasets:[{data:ic,backgroundColor:INT_COLORS.slice(1),borderWidth:2,borderColor:currentTheme==='opex'?'#1e2618':'#fff'}]},options:{plugins:{legend:{position:'bottom',labels:{color:CC,font:{size:11},padding:10}}}}});
 
   dc('c-week');
   const wc=Array(7).fill(0);incidents.forEach(i=>{wc[new Date(i.date+'T12:00').getDay()]++;});
-  charts['c-week']=new Chart(document.getElementById('c-week'),{type:'bar',data:{labels:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],datasets:[{data:wc,backgroundColor:'rgba(212,130,10,.65)',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:11}},grid:{display:false}}}}});
+  charts['c-week']=new Chart(document.getElementById('c-week'),{type:'bar',data:{labels:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],datasets:[{data:wc,backgroundColor:'rgba(212,130,10,.65)',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CC,font:{size:10}},grid:{color:CG}},x:{ticks:{color:CC,font:{size:11}},grid:{display:false}}}}});
 }
 
 // ── Rapport ────────────────────────────────────────────────────────────────
@@ -676,10 +854,10 @@ function renderReport(){
   const last =incidents.length?fFull(incidents[0].date):'—';
   document.getElementById('rep-infos').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
-      <div class="rep-field"><div class="rep-label">Plaignant</div><div class="rep-val">${d.name||'—'}</div></div>
-      <div class="rep-field"><div class="rep-label">Adresse</div><div class="rep-val">${d.addr||'—'}</div></div>
-      <div class="rep-field"><div class="rep-label">Voisin</div><div class="rep-val">${d.vaddr||'—'}</div></div>
-      <div class="rep-field"><div class="rep-label">Syndic</div><div class="rep-val">${d.syndic||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Plaignant</div><div class="rep-val">${esc(d.name)||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Adresse</div><div class="rep-val">${esc(d.addr)||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Voisin</div><div class="rep-val">${esc(d.vaddr)||'—'}</div></div>
+      <div class="rep-field"><div class="rep-label">Syndic</div><div class="rep-val">${esc(d.syndic)||'—'}</div></div>
       <div class="rep-field" style="grid-column:1/-1"><div class="rep-label">Période</div><div class="rep-val">${first} → ${last}</div></div>
     </div>`;
 
@@ -691,13 +869,15 @@ function renderReport(){
         <strong>#${i+1} — ${fFull(inc.date)}</strong>
         <span style="font-weight:700;color:${INT_COLORS[inc.int]}">${inc.int}/4</span>
       </div>
-      <div style="color:var(--t2)">${inc.hstart}${inc.hend?' → '+inc.hend:''}${calcDur(inc.hstart,inc.hend)?' ('+calcDur(inc.hstart,inc.hend)+')':''} · ${inc.type} · <em>${INT_LABELS[inc.int]}</em></div>
-      ${inc.note?`<div style="margin-top:4px;color:var(--t2)">Obs : ${inc.note}</div>`:''}
-      ${inc.action?`<div style="margin-top:2px;color:var(--t2)">Démarches : ${inc.action}</div>`:''}
-      ${inc.witness?`<div style="margin-top:2px;color:var(--t2)">Témoin : ${inc.witness}</div>`:''}
+      <div style="color:var(--t2)">${inc.hstart}${inc.hend?' → '+inc.hend:''}${calcDur(inc.hstart,inc.hend)?' ('+calcDur(inc.hstart,inc.hend)+')':''} · ${esc(inc.type)} · <em>${INT_LABELS[inc.int]}</em></div>
+      ${inc.note?`<div style="margin-top:4px;color:var(--t2)">Obs : ${esc(inc.note)}</div>`:''}
+      ${inc.action?`<div style="margin-top:2px;color:var(--t2)">Démarches : ${esc(inc.action)}</div>`:''}
+      ${inc.witness?`<div style="margin-top:2px;color:var(--t2)">Témoin : ${esc(inc.witness)}</div>`:''}
     </div>`).join('');
 
   setTimeout(()=>{
+    const CC = getChartColor();
+    const CG = getChartGrid();
     dc('c-rep-timeline');
     const days=[],counts=[];
     for(let i=29;i>=0;i--){
@@ -705,7 +885,7 @@ function renderReport(){
       days.push(new Date(d+'T12:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}));
       counts.push(incidents.filter(x=>x.date===d).length);
     }
-    charts['c-rep-timeline']=new Chart(document.getElementById('c-rep-timeline'),{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:'rgba(192,57,43,.55)',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CHART_COLOR,font:{size:10}},grid:{color:CHART_GRID}},x:{ticks:{color:CHART_COLOR,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}}}});
+    charts['c-rep-timeline']=new Chart(document.getElementById('c-rep-timeline'),{type:'bar',data:{labels:days,datasets:[{data:counts,backgroundColor:'rgba(192,57,43,.55)',borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:CC,font:{size:10}},grid:{color:CG}},x:{ticks:{color:CC,font:{size:9},maxRotation:45,maxTicksLimit:10},grid:{display:false}}}}});
   },80);
 }
 
@@ -719,13 +899,8 @@ function exportCSV(){
 
 // ── Export JSON ────────────────────────────────────────────────────────────
 function exportJSON(){
-  const backup = {
-    version: 1,
-    exported: new Date().toISOString(),
-    dossier: dossier,
-    incidents: incidents
-  };
-  const b = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json;charset=utf-8'});
+  const backup = { version:1, exported:new Date().toISOString(), dossier, incidents };
+  const b = new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(b);
   a.download = `nuisances_${new Date().toISOString().slice(0,10)}.json`;
@@ -737,7 +912,7 @@ function exportJSON(){
 async function exportPDF(){
   if(!incidents.length){showToast('⚠ Aucun incident à exporter');return;}
   document.getElementById('pdf-spinner').classList.add('show');
-  await new Promise(r=>setTimeout(r,80)); // let spinner render
+  await new Promise(r=>setTimeout(r,80));
 
   try {
     const {jsPDF} = window.jspdf;
@@ -747,13 +922,13 @@ async function exportPDF(){
     const CW = PW - ML - MR;
     let y = MT;
 
-    // ── Palette
     const C_RED   = [192, 57, 43];
     const C_DARK  = [26, 22, 18];
     const C_GREY  = [107, 97, 88];
     const C_LIGHT = [245, 242, 237];
     const C_BDR   = [226, 221, 214];
     const INT_C   = [[232,184,32],[232,132,26],[224,64,48],[160,16,16]];
+    const INT_PDF_LABELS = ['','Gênant','Fort','Très fort','Insupportable'];
 
     const pf = (x,y,w,h) => { doc.rect(x,y,w,h,'F'); };
     const setFont = (sz,wt='normal',col=C_DARK) => {
@@ -770,7 +945,6 @@ async function exportPDF(){
       if(y + needed > PH - 16){
         doc.addPage();
         y = 16;
-        // mini header on continuation pages
         doc.setFillColor(...C_RED);
         pf(ML, y-4, CW, 0.5);
         setFont(8,'normal',C_GREY);
@@ -779,9 +953,7 @@ async function exportPDF(){
       }
     };
 
-    // ══════════════════════════════════════════════
     // HEADER BAND
-    // ══════════════════════════════════════════════
     doc.setFillColor(...C_LIGHT);
     pf(0, 0, PW, 32);
     doc.setFillColor(...C_RED);
@@ -789,25 +961,22 @@ async function exportPDF(){
 
     setFont(18,'bold', C_DARK);
     doc.text('Dossier nuisances sonores', ML+6, 13);
-    setFont(9,'normal', C_GREY);
-    doc.text('Art. R.1334-31 Code de la sante publique  |  Loi du 31/12/1992', ML+6, 20);
 
     const today = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    setFont(9,'normal', C_GREY);
+    doc.text('Rapport confidentiel  |  Généré le '+today, ML+6, 20);
     setFont(8,'normal',C_GREY);
-    doc.text('Genere le '+today, PW-MR, 13, {align:'right'});
+    doc.text('Généré le '+today, PW-MR, 13, {align:'right'});
 
     y = 38;
 
-    // ══════════════════════════════════════════════
     // DOSSIER INFO BOX
-    // ══════════════════════════════════════════════
     const d = dossier;
     if(d.name||d.addr||d.vaddr||d.syndic){
       doc.setFillColor(...C_LIGHT);
       doc.setDrawColor(...C_BDR);
       doc.setLineWidth(0.3);
       doc.roundedRect(ML, y, CW, 26, 2, 2, 'FD');
-
       const col1x = ML+4, col2x = ML+CW/2+2;
       const fields = [
         ['Plaignant', d.name||'—', col1x, y+7],
@@ -822,7 +991,6 @@ async function exportPDF(){
         doc.text(val.substring(0,38), fx, fy+2);
       });
 
-      // période
       const first = incidents.length ? fFull(incidents[incidents.length-1].date) : '—';
       const last  = incidents.length ? fFull(incidents[0].date) : '—';
       setFont(7,'bold',C_GREY);
@@ -832,9 +1000,7 @@ async function exportPDF(){
       y += 32;
     }
 
-    // ══════════════════════════════════════════════
     // SYNTHESE KPIs
-    // ══════════════════════════════════════════════
     const total   = incidents.length;
     const last30  = incidents.filter(i=>new Date(i.date)>new Date(Date.now()-30*864e5)).length;
     const avgI    = (incidents.reduce((s,i)=>s+i.int,0)/total).toFixed(1);
@@ -859,9 +1025,6 @@ async function exportPDF(){
     });
     y += 22;
 
-    // ══════════════════════════════════════════════
-    // SECTION TITLE helper
-    // ══════════════════════════════════════════════
     const sectionTitle = (title) => {
       checkPage(12);
       doc.setFillColor(...C_RED);
@@ -872,19 +1035,15 @@ async function exportPDF(){
       y += 10;
     };
 
-    // ══════════════════════════════════════════════
     // JOURNAL DETAILLE
-    // ══════════════════════════════════════════════
     sectionTitle('Journal détaillé des incidents');
 
     const sorted = [...incidents].reverse();
     sorted.forEach((inc, idx) => {
-      // Estimate height needed
       const lines = 1 + (inc.note?1:0) + (inc.action?1:0) + (inc.witness?1:0);
       const needed = 8 + lines*5 + 4;
       checkPage(needed);
 
-      // Row background alternate
       doc.setFillColor(idx%2===0 ? 252:248, idx%2===0 ? 250:247, idx%2===0 ? 247:244);
       doc.setDrawColor(...C_BDR);
       doc.setLineWidth(0.2);
@@ -892,29 +1051,25 @@ async function exportPDF(){
       const rowH = needed - 2;
       doc.roundedRect(ML, y, CW, rowH, 1.5, 1.5, 'FD');
 
-      // Intensity badge
       const ic = INT_C[inc.int-1]||C_GREY;
       doc.setFillColor(...ic);
       doc.roundedRect(ML+2, y+3, 7, 7, 1, 1, 'F');
       setFont(9,'bold',[255,255,255]);
       doc.text(String(inc.int), ML+5.5, y+8.5, {align:'center'});
 
-      // Number + date
       setFont(8,'bold',C_DARK);
       doc.text(`#${idx+1}`, ML+11, y+6);
       setFont(8,'normal',C_GREY);
       doc.text(fFull(inc.date), ML+20, y+6);
 
-      // Time
       const timeStr = inc.hstart+(inc.hend?' → '+inc.hend:'')+(calcDur(inc.hstart,inc.hend)?' ('+calcDur(inc.hstart,inc.hend)+')':'');
       setFont(7,'normal',C_GREY);
       doc.text(timeStr, PW-MR-2, y+6, {align:'right'});
 
-      // Type + intensity label
       setFont(9,'bold',C_DARK);
       doc.text(inc.type, ML+11, y+11);
       setFont(8,'normal',[...ic]);
-      doc.text(INT_LABELS[inc.int], ML+11+doc.getTextWidth(inc.type)+2, y+11);
+      doc.text(INT_PDF_LABELS[inc.int], ML+11+doc.getTextWidth(inc.type)+2, y+11);
 
       let dy = y + 15;
       const detailLine = (label, val) => {
@@ -935,35 +1090,7 @@ async function exportPDF(){
 
     y += 4;
 
-    // ══════════════════════════════════════════════
-    // CADRE LEGAL
-    // ══════════════════════════════════════════════
-    checkPage(38);
-    sectionTitle('Cadre légal');
-
-    doc.setFillColor(238, 243, 251);
-    doc.setDrawColor(192, 208, 232);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(ML, y, CW, 30, 2, 2, 'FD');
-    doc.setFillColor(37, 99, 168);
-    pf(ML, y, 2.5, 30);
-
-    const legalLines = [
-      'Art. R.1334-31 CSP : tout bruit causant une gene anormale est interdit.',
-      'Loi du 31/12/1992 (loi bruit). Nuisances nocturnes (22h-7h) : art. R.623-2 Code penal.',
-      '',
-      'Recours possibles : mairie, bailleur/syndic, police municipale,',
-      'conciliateur de justice, tribunal de proximite, huissier de justice pour constat.',
-    ];
-    setFont(8,'normal',[26,48,96]);
-    legalLines.forEach((line,i)=>{
-      doc.text(line, ML+5, y+6+i*4.5);
-    });
-    y += 36;
-
-    // ══════════════════════════════════════════════
     // SIGNATURE BLOCK
-    // ══════════════════════════════════════════════
     checkPage(28);
     doc.setDrawColor(...C_BDR);
     doc.setLineWidth(0.25);
@@ -974,9 +1101,7 @@ async function exportPDF(){
     doc.text('Signature du plaignant', ML+4, y+22);
     y += 30;
 
-    // ══════════════════════════════════════════════
-    // FOOTER on all pages
-    // ══════════════════════════════════════════════
+    // FOOTER
     const totalPages = doc.getNumberOfPages();
     for(let p=1;p<=totalPages;p++){
       doc.setPage(p);
