@@ -2286,6 +2286,27 @@ window.addEventListener('DOMContentLoaded', () => {
     // ── NOUVEAU : indépendance sans résidence principale
     const moisLiberteSansMaison = depMens > 0 ? (grandTotal - maison) / depMens : 0;
 
+    // ── RESTE NON INVESTI : comptes courants + livrets (hors poches investissements)
+    // On identifie les lignes par label (lowercase) : celles qui ne sont PAS des poches d'investissement
+    const INVEST_LABELS_RE = /pea|cto|assurance.?vie|revolut.invest|actions|crypto|bitcoin|obligation|reit|gold|or\b|ster/i;
+    const nonInvestiLines = [];
+    ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+      (DATA[bank]||[]).forEach((r,i) => {
+        if (!r.val || r.val <= 0) return;
+        if (INVEST_LABELS_RE.test(r.label||'')) return;
+        // Exclure les lignes "auto" (gérées par investissements, ex: PEA/CTO/AV dans Boursorama)
+        if ((MANAGED[bank]||[]).includes(i)) return;
+        nonInvestiLines.push({ bank, label: r.label, val: r.val });
+      });
+    });
+    // Ajouter épargne_bloquee (livrets réglementés saisis dans Investissements)
+    (DATA.investissements?.epargne_bloquee||[]).forEach(r => {
+      if ((r.montant||0) > 0) nonInvestiLines.push({ bank: 'Épargne réglementée', label: r.nom || r.type, val: r.montant });
+    });
+    // Ajouter espèces
+    if (liquide > 0) nonInvestiLines.push({ bank: 'Divers', label: 'Espèces / Liquide', val: liquide });
+    const nonInvestiTotal = nonInvestiLines.reduce((s,r) => s + r.val, 0);
+
     // ── GAIN VÉLO vs VOITURE ────────────────────────────────────────
     const mob = DATA.mobilite;
     const odoVeloLog = [...(mob?.velo?.odoLog||[])].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
@@ -2301,6 +2322,7 @@ window.addEventListener('DOMContentLoaded', () => {
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
       depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
+      nonInvestiTotal, nonInvestiLines,
     };
   }
 
@@ -2375,7 +2397,37 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = patrimoineCard + cards.map(c => `
+    // ── CARD RESTE NON INVESTI ──────────────────────────────────────
+    const niPct = k.grandTotal > 0 ? k.nonInvestiTotal / k.grandTotal * 100 : 0;
+    const BANK_COLORS = { boursorama:'#7eb8d4', fortuneo:'#5aab7a', revolut:'#c8a96e', natixis:'#c05a5a', 'Épargne réglementée':'#8b9fba', 'Divers':'#6b7585' };
+    const niDetailHTML = k.nonInvestiLines.map(d => {
+      const c = BANK_COLORS[d.bank] || '#6b7585';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <span style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block;"></span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.label}</div>
+          <div style="font-size:9px;color:var(--muted);">${d.bank}</div>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${c};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
+      </div>`;
+    }).join('') + `<div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:2px;">
+      <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL NON INVESTI</span>
+      <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#8b9fba;">${fmt(k.nonInvestiTotal)}</span>
+    </div>`;
+    const niCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid #8b9fba;" onclick="this.querySelector('.ni-detail').style.display=this.querySelector('.ni-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Reste non investi <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+          <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${niPct.toFixed(1)}% du patrimoine</span>
+        </div>
+        <div class="kpi-card-value" style="color:#8b9fba;">${fmt(k.nonInvestiTotal)}</div>
+        <div class="kpi-card-sub">Courant · Livret A · LDDS · Livrets fiscalisés · Espèces</div>
+        <div class="ni-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${niDetailHTML}
+        </div>
+      </div>`;
+
+    el.innerHTML = patrimoineCard + niCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
