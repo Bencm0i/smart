@@ -2332,7 +2332,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const pmvHorsSCPI = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV;
     const epargne = Math.max(0, k.revenu - k.depMens);
     const cards = [
-      { label:'Banques & Liquidités', value: fmtK(k.banquesTotal), cls:'', sub:'Comptes consolidés' },
       { label:'SCPI', value: fmtK(k.scpiVal), cls:'gold', sub:'Pierre-papier' },
       { label:'Immobilier direct', value: fmtK(k.maison), cls:'', sub:'Résidence principale' },
       // ── MODIFIÉ : Épargne bloquée + Natixis PEE
@@ -2427,7 +2426,121 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = patrimoineCard + niCard + cards.map(c => `
+    // ── CARD BANQUES & LIQUIDITÉS (cliquable) ──────────────────────
+    const BANKS_DEF = [
+      { key:'boursorama', label:'Boursorama', color:'#7eb8d4', icon:'🏦' },
+      { key:'fortuneo',   label:'Fortuneo',   color:'#5aab7a', icon:'🏦' },
+      { key:'revolut',    label:'Revolut',     color:'#c8a96e', icon:'💳' },
+      { key:'natixis',    label:'Natixis',     color:'#c05a5a', icon:'🏢' },
+    ];
+    let bqDetailHTML = '';
+    BANKS_DEF.forEach(b => {
+      const rows = (DATA[b.key] || []).filter(r => (r.val||0) > 0);
+      const total = rows.reduce((s,r) => s+(r.val||0), 0);
+      if (total <= 0) return;
+      bqDetailHTML += `<div style="padding:6px 0 4px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:2px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;">${b.icon}</span>
+            <span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${b.color};">${b.label}</span>
+          </div>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${b.color};">${fmt(total)}</span>
+        </div>
+        ${rows.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0 2px 20px;">
+          <span style="font-size:10px;color:var(--muted);">${r.label||'—'}</span>
+          <span style="font-size:10px;color:var(--text);">${fmt(r.val)}</span>
+        </div>`).join('')}
+      </div>`;
+    });
+    if (k.liquide > 0) {
+      bqDetailHTML += `<div style="padding:6px 0 4px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:2px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><span>💵</span>
+            <span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7585;">Espèces</span>
+          </div>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#6b7585;">${fmt(k.liquide)}</span>
+        </div>
+      </div>`;
+    }
+    bqDetailHTML += `<div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
+      <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL</span>
+      <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">${fmt(k.banquesTotal + k.liquide)}</span>
+    </div>`;
+    const banquesCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid var(--accent);" onclick="this.querySelector('.bq-detail').style.display=this.querySelector('.bq-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Banques &amp; Liquidités <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value blue">${fmtK(k.banquesTotal)}</div>
+        <div class="kpi-card-sub">Comptes consolidés · clic pour détail</div>
+        <div class="bq-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${bqDetailHTML}
+        </div>
+      </div>`;
+
+    // ── CARD % GAIN vs PRU ──────────────────────────────────────────
+    const pruAssets = [];
+    const addPRU = (rows, source) => {
+      (rows||[]).forEach(r => {
+        if ((r.pr||0) > 0 && (r.qte||0) > 0 && (r.coursActuel||0) > 0) {
+          const gainPct = (r.coursActuel - r.pr) / r.pr * 100;
+          const gainEur = r.qte * (r.coursActuel - r.pr);
+          const valeur  = r.qte * r.coursActuel;
+          pruAssets.push({ nom: r.nom||r.ticker||'?', ticker: r.ticker||'', gainPct, gainEur, valeur, source, pr: r.pr, cours: r.coursActuel });
+        }
+      });
+    };
+    addPRU(DATA.investissements?.revolut, 'Revolut');
+    addPRU(DATA.investissements?.pea,     'PEA');
+    addPRU(DATA.investissements?.cto,     'CTO');
+    pruAssets.sort((a,b) => Math.abs(b.gainPct) - Math.abs(a.gainPct));
+
+    let pruCard = '';
+    if (pruAssets.length > 0) {
+      const totalValeur = pruAssets.reduce((s,a) => s+a.valeur, 0);
+      const totalGain   = pruAssets.reduce((s,a) => s+a.gainEur, 0);
+      const totalCost   = totalValeur - totalGain;
+      const totalPct    = totalCost > 0 ? totalGain / totalCost * 100 : 0;
+      const totalCls    = totalGain >= 0 ? '#5aab7a' : '#c05a5a';
+      pruCard = `
+        <div class="kpi-card full" style="cursor:pointer;border-top:2px solid ${totalCls};" onclick="this.querySelector('.pru-detail').style.display=this.querySelector('.pru-detail').style.display==='none'?'block':'none';">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="kpi-card-label">% Gain vs PRU <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${pruAssets.length} actifs</span>
+          </div>
+          <div class="kpi-card-value" style="color:${totalCls};">${totalGain>=0?'+':''}${fmtK(totalGain)}</div>
+          <div class="kpi-card-sub">Gain total · ${totalPct>=0?'+':''}${totalPct.toFixed(1)}% global</div>
+          <div class="pru-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+            <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:4px;">
+              <span>Actif</span><span style="text-align:right;">PRU→Cours</span><span style="text-align:right;">Gain €</span><span style="text-align:right;">Gain %</span>
+            </div>
+            ${pruAssets.map(a => {
+              const c = a.gainPct >= 0 ? '#5aab7a' : '#c05a5a';
+              const sign = a.gainPct >= 0 ? '+' : '';
+              // bar width = min(|pct|,100)/100 * 100px, capped
+              const barW = Math.min(Math.abs(a.gainPct), 100).toFixed(0);
+              return `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div>
+                  <div style="font-size:11px;color:var(--text);">${a.nom}</div>
+                  <div style="font-size:9px;color:var(--muted);">${a.source}${a.ticker?' · '+a.ticker:''}</div>
+                  <div style="margin-top:3px;height:3px;background:var(--surface2);border-radius:2px;width:100%;overflow:hidden;">
+                    <div style="height:100%;width:${barW}%;background:${c};border-radius:2px;"></div>
+                  </div>
+                </div>
+                <div style="text-align:right;font-size:9px;color:var(--muted);white-space:nowrap;">${a.pr.toFixed(2)}&nbsp;→&nbsp;${a.cours.toFixed(2)}</div>
+                <div style="text-align:right;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:${c};white-space:nowrap;">${sign}${fmtK(a.gainEur)}</div>
+                <div style="text-align:right;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${c};white-space:nowrap;">${sign}${a.gainPct.toFixed(1)}%</div>
+              </div>`;
+            }).join('')}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
+              <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL INVESTI</span>
+              <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${totalCls};">${totalGain>=0?'+':''}${fmtK(totalGain)} (${totalPct>=0?'+':''}${totalPct.toFixed(1)}%)</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    el.innerHTML = patrimoineCard + banquesCard + niCard + pruCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
