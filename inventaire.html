@@ -492,13 +492,18 @@ select { appearance: none; -webkit-appearance: none; background-image: url("data
   <!-- RAPPORT IA -->
   <div class="panel" id="tab-rapport">
     <div class="card">
-      <div class="card-title">🤖 Rapport IA</div>
+      <div class="card-title">📋 Rapport d'inventaire</div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">
-        Générez un rapport pour retrouver vos objets, ou posez une question précise.
+        Générez un rapport de votre inventaire, prêt à copier-coller.
       </p>
       <div class="form-group">
-        <label>Question ou thème</label>
-        <input type="text" id="ai-question" placeholder="ex: Où sont mes outils électriques ?" value="Génère un rapport complet pour retrouver facilement tous mes objets, classé par emplacement." autocomplete="off">
+        <label>Trier par</label>
+        <select id="report-sort">
+          <option value="loc">📍 Emplacement</option>
+          <option value="cat">🏷️ Catégorie</option>
+          <option value="name">🔤 Nom (A→Z)</option>
+          <option value="etat">✅ État</option>
+        </select>
       </div>
       <div class="btn-row" style="margin-bottom:4px;">
         <button class="btn" style="flex:1" id="ai-btn" onclick="generateReport()">⚡ Générer</button>
@@ -528,8 +533,8 @@ select { appearance: none; -webkit-appearance: none; background-image: url("data
     <span>Suggestions</span>
   </button>
   <button class="nav-item" onclick="showTab('rapport')" id="nav-rapport">
-    <span class="nav-icon">🤖</span>
-    <span>Rapport IA</span>
+    <span class="nav-icon">📋</span>
+    <span>Rapport</span>
   </button>
 </nav>
 
@@ -794,38 +799,126 @@ function resetSuggestions() {
   saveSuggestions(); renderSuggestions();
 }
 
-async function generateReport() {
+function generateReport() {
   const btn = document.getElementById('ai-btn');
   const box = document.getElementById('report-box');
-  const question = document.getElementById('ai-question').value.trim() || 'Fais un résumé complet de mon inventaire.';
-  if(!items.length) { box.textContent = 'Votre inventaire est vide. Ajoutez des objets d\'abord.'; return; }
+  if (!items.length) { box.textContent = 'Votre inventaire est vide. Ajoutez des objets d\'abord.'; return; }
 
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Génération...';
-  box.textContent = 'En cours...';
+  btn.innerHTML = '⏳ Génération...';
 
-  const inventaireText = items.map(it =>
-    `- ${it.name} [${catLabel[it.cat]}] | État: ${it.etat} | Emplacement: ${it.loc||'non défini'} | Utilité: ${it.util||'—'} | Notes: ${it.notes||'—'}`
-  ).join('\n');
+  const sort = document.getElementById('report-sort').value;
+  const now = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  const etatLabels = { bon:'✅ Bon état', moyen:'⚠️ Moyen', abime:'❌ Abîmé', perdu:'❓ Introuvable' };
+  const catLabels = { outil:'🔧 Outil', maison:'🏠 Maison', electronique:'💻 Électronique', jardinage:'🌱 Jardinage', autre:'📦 Autre' };
 
-  const prompt = `Voici l'inventaire complet de l'utilisateur :\n\n${inventaireText}\n\n---\n\nConsigne: ${question}\n\nRéponds en français. Sois pratique, clair et organisé pour aider l'utilisateur à retrouver ses objets facilement.`;
+  let sorted = [...items];
 
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        system: "Tu es un assistant personnel spécialisé dans l'organisation et la gestion d'inventaire. Tu aides l'utilisateur à retrouver ses objets. Réponds toujours en français, de façon structurée et pratique.",
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const data = await res.json();
-    box.textContent = data.content?.[0]?.text || 'Erreur dans la réponse.';
-  } catch(e) {
-    box.textContent = 'Erreur de connexion à l\'IA. Vérifiez votre connexion.';
+  if (sort === 'loc') {
+    sorted.sort((a,b) => (a.loc||'Sans emplacement').localeCompare(b.loc||'Sans emplacement','fr'));
+  } else if (sort === 'cat') {
+    sorted.sort((a,b) => a.cat.localeCompare(b.cat));
+  } else if (sort === 'name') {
+    sorted.sort((a,b) => a.name.localeCompare(b.name,'fr'));
+  } else if (sort === 'etat') {
+    const order = { bon:0, moyen:1, abime:2, perdu:3 };
+    sorted.sort((a,b) => (order[a.etat]||0) - (order[b.etat]||0));
   }
+
+  // Stats globales
+  const lieux = new Set(items.map(i => (i.loc||'').trim().toLowerCase()).filter(Boolean));
+  const perdus = items.filter(i => i.etat === 'perdu');
+  const abimes = items.filter(i => i.etat === 'abime');
+  const catCount = {};
+  items.forEach(i => { catCount[i.cat] = (catCount[i.cat]||0)+1; });
+
+  let lines = [];
+  lines.push(`═══════════════════════════════════════`);
+  lines.push(`       RAPPORT D'INVENTAIRE`);
+  lines.push(`  Généré le ${now}`);
+  lines.push(`═══════════════════════════════════════`);
+  lines.push('');
+  lines.push(`📊 RÉSUMÉ`);
+  lines.push(`───────────────────────────────────────`);
+  lines.push(`• Total objets  : ${items.length}`);
+  lines.push(`• Lieux         : ${lieux.size}`);
+  lines.push(`• Perdus        : ${perdus.length}`);
+  lines.push(`• Abîmés        : ${abimes.length}`);
+  lines.push('');
+  lines.push(`🏷️ PAR CATÉGORIE`);
+  Object.entries(catCount).forEach(([cat,n]) => {
+    lines.push(`  ${catLabels[cat]||cat} : ${n}`);
+  });
+  lines.push('');
+
+  // Regroupement selon le tri
+  if (sort === 'loc' || sort === 'cat') {
+    const groupKey = sort === 'loc'
+      ? it => it.loc ? it.loc.trim() : 'Sans emplacement'
+      : it => catLabels[it.cat] || it.cat;
+
+    const groups = {};
+    sorted.forEach(it => {
+      const k = groupKey(it);
+      if (!groups[k]) groups[k] = [];
+      groups[k].push(it);
+    });
+
+    const title = sort === 'loc' ? '📍 PAR EMPLACEMENT' : '🏷️ PAR CATÉGORIE';
+    lines.push(title);
+    lines.push(`───────────────────────────────────────`);
+
+    Object.entries(groups).forEach(([grp, list]) => {
+      lines.push('');
+      lines.push(`▸ ${grp.toUpperCase()} (${list.length} objet${list.length>1?'s':''})`);
+      list.forEach(it => {
+        let detail = `  • ${it.name}`;
+        if (sort === 'loc' && it.cat) detail += `  [${catLabels[it.cat]||it.cat}]`;
+        if (sort === 'cat' && it.loc) detail += `  📍 ${it.loc}`;
+        detail += `  — ${etatLabels[it.etat]||it.etat}`;
+        if (it.util) detail += `\n    ↳ ${it.util}`;
+        if (it.notes) detail += `\n    📝 ${it.notes}`;
+        lines.push(detail);
+      });
+    });
+
+  } else {
+    // liste simple
+    const title = sort === 'name' ? '🔤 LISTE ALPHABÉTIQUE' : '✅ PAR ÉTAT';
+    lines.push(title);
+    lines.push(`───────────────────────────────────────`);
+    sorted.forEach(it => {
+      lines.push('');
+      lines.push(`• ${it.name}  —  ${etatLabels[it.etat]||it.etat}`);
+      if (it.cat) lines.push(`  Catégorie : ${catLabels[it.cat]||it.cat}`);
+      if (it.loc) lines.push(`  📍 Emplacement : ${it.loc}`);
+      if (it.util) lines.push(`  Utilité : ${it.util}`);
+      if (it.notes) lines.push(`  📝 Notes : ${it.notes}`);
+    });
+  }
+
+  // Alertes
+  if (perdus.length || abimes.length) {
+    lines.push('');
+    lines.push('');
+    lines.push(`⚠️  ALERTES`);
+    lines.push(`───────────────────────────────────────`);
+    if (perdus.length) {
+      lines.push(`❓ Objets introuvables (${perdus.length}) :`);
+      perdus.forEach(it => lines.push(`  • ${it.name}${it.loc ? '  (dernière loc. : '+it.loc+')' : ''}`));
+    }
+    if (abimes.length) {
+      lines.push(`❌ Objets abîmés (${abimes.length}) :`);
+      abimes.forEach(it => lines.push(`  • ${it.name}${it.loc ? '  📍 '+it.loc : ''}`));
+    }
+  }
+
+  lines.push('');
+  lines.push(`═══════════════════════════════════════`);
+  lines.push(`   Fin du rapport — ${items.length} objet${items.length>1?'s':''}`);
+  lines.push(`═══════════════════════════════════════`);
+
+  box.textContent = lines.join('\n');
   btn.disabled = false;
   btn.innerHTML = '⚡ Générer';
 }
