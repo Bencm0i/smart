@@ -2540,7 +2540,61 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>`;
     }
 
-    el.innerHTML = patrimoineCard + banquesCard + niCard + pruCard + cards.map(c => `
+    // ── KPI Achat Cash ──────────────────────────────────────────────
+    const LOYER_MOIS   = 650;
+    const TF_AN        = 1100;
+    const TRAVAUX_MOIS = 100;
+    const PAR_JOUR = (LOYER_MOIS * 12 - TF_AN - TRAVAUX_MOIS * 12) / 365;
+
+    let achatDate = localStorage.getItem('achat_cash_date') || '';
+    let joursSince = 0, econTotal = 0, econLoyer = 0, coutTF = 0, coutTravaux = 0;
+    if (achatDate) {
+      const d0 = new Date(achatDate); const d1 = new Date();
+      joursSince = Math.max(0, Math.floor((d1 - d0) / 86400000));
+      econLoyer   = Math.round(joursSince * (LOYER_MOIS * 12 / 365));
+      coutTF      = Math.round(joursSince * (TF_AN / 365));
+      coutTravaux = Math.round(joursSince * (TRAVAUX_MOIS * 12 / 365));
+      econTotal   = econLoyer - coutTF - coutTravaux;
+    }
+
+    const achatCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid var(--green);"
+           onclick="this.querySelector('.cash-detail').style.display=this.querySelector('.cash-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="kpi-card-label">🏠 Achat Cash — Économies cumulées <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value green">${achatDate ? fmt(econTotal) : '— date non définie'}</div>
+        <div class="kpi-card-sub">${achatDate ? `+${PAR_JOUR.toFixed(2)} €/jour · ${joursSince} jours` : 'Renseigner la date d\'achat ci-dessous'}</div>
+        <div class="cash-detail" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Loyer évité</div>
+              <div style="font-size:15px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;">${achatDate ? fmt(econLoyer) : '—'}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px;">650 €/mois</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">TF payée</div>
+              <div style="font-size:15px;font-weight:700;color:var(--red);font-family:'DM Mono',monospace;">${achatDate ? '−'+fmt(coutTF) : '—'}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px;">1 100 €/an</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Travaux payés</div>
+              <div style="font-size:15px;font-weight:700;color:var(--red);font-family:'DM Mono',monospace;">${achatDate ? '−'+fmt(coutTravaux) : '—'}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px;">100 €/mois</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <label style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">📅 Date d'achat :</label>
+            <input type="date" id="achat-cash-date-input"
+              value="${achatDate}"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;"
+              onchange="localStorage.setItem('achat_cash_date',this.value);if(typeof renderKPIPanel==='function')renderKPIPanel();">
+            <span style="font-size:10px;color:var(--muted);">Sauvegardé automatiquement</span>
+          </div>
+        </div>
+      </div>`;
+
+    el.innerHTML = patrimoineCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
