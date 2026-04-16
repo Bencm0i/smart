@@ -134,15 +134,19 @@ html, body {
 [data-theme="milieu"] .theme-toggle .toggle-dot::after { left: 11px; background: var(--bg); }
 
 .add-btn {
-  width: 36px; height: 36px;
+  height: 36px;
   background: var(--accent);
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 1.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 300;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 0 14px;
+  white-space: nowrap;
   box-shadow: 0 2px 8px var(--accent-glow);
   transition: all var(--transition);
 }
@@ -625,6 +629,20 @@ canvas { width: 100% !important; }
   background: var(--serie-color); border-color: var(--serie-color); color: white;
 }
 
+.btn-danger {
+  flex: 1;
+  background: var(--red-bg);
+  color: var(--red);
+  border: 1.5px solid var(--red);
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-danger:active { transform: scale(0.97); opacity: 0.85; }
+
 /* ─── SCROLL BAR ─── */
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -640,7 +658,7 @@ canvas { width: 100% !important; }
     <div class="toggle-dot" id="toggleDot"></div>
     <span id="themeLabel">BEIGE</span>
   </div>
-  <button class="add-btn" onclick="openAddPanel()">＋</button>
+  <button class="add-btn" onclick="openAddPanel()">＋ Ajouter</button>
 </header>
 
 <!-- PAGES -->
@@ -763,6 +781,16 @@ canvas { width: 100% !important; }
     </div>
 
     <div class="field">
+      <label>Genre</label>
+      <select id="updateGenre">
+        <option>Action</option><option>Thriller</option><option>Comédie</option>
+        <option>Drame</option><option>SF</option><option>Horreur</option>
+        <option>Documentaire</option><option>Animation</option><option>Fantasy</option>
+        <option>Policier</option><option>Romance</option><option>Autre</option>
+      </select>
+    </div>
+
+    <div class="field">
       <label>Statut</label>
       <select id="statusSelect">
         <option value="watching">▶ En cours</option>
@@ -789,6 +817,7 @@ canvas { width: 100% !important; }
     </div>
 
     <div class="btn-row">
+      <button class="btn-danger" onclick="deleteItem()">🗑 Supprimer</button>
       <button class="btn-secondary" onclick="closeUpdatePanel()">Annuler</button>
       <button class="btn-primary" onclick="saveUpdate()">💾 Enregistrer</button>
     </div>
@@ -973,6 +1002,7 @@ function openUpdatePanel(id) {
   document.getElementById('panelTitle').textContent = item.title;
   document.getElementById('panelSub').textContent = item.type === 'serie' ? 'MISE À JOUR SÉRIE' : 'MISE À JOUR FILM';
   document.getElementById('statusSelect').value = item.status;
+  document.getElementById('updateGenre').value = item.genre || 'Autre';
   document.getElementById('noteInput').value = item.note || '';
   setRating(item.rating || 0);
 
@@ -1030,10 +1060,22 @@ function setRating(n) {
   });
 }
 
+function deleteItem() {
+  if (!editingId) return;
+  const item = data.find(d => d.id === editingId);
+  if (!item) return;
+  if (!confirm(`Supprimer "${item.title}" ?`)) return;
+  data = data.filter(d => d.id !== editingId);
+  saveData();
+  renderList();
+  document.getElementById('updatePanel').classList.remove('open');
+}
+
 function saveUpdate() {
   const item = data.find(d => d.id === editingId);
   if (!item) return;
   item.status = document.getElementById('statusSelect').value;
+  item.genre = document.getElementById('updateGenre').value;
   item.rating = currentRating;
   item.note = document.getElementById('noteInput').value;
   if (item.type === 'serie') {
