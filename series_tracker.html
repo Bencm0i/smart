@@ -4,801 +4,313 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>WatchLog — Suivi Séries & Films</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ─── VARIABLES THÈME BEIGE-ORANGE ─── */
 :root {
-  --bg: #f5ede0;
-  --bg2: #ede0cc;
-  --bg3: #e4d0b5;
-  --surface: #faf4ec;
-  --surface2: #f0e6d3;
-  --border: #d4b896;
-  --border2: #c4a47a;
-  --accent: #e8731a;
-  --accent2: #d45e0a;
-  --accent3: #f5942e;
-  --accent-glow: rgba(232,115,26,0.25);
-  --text: #2a1f0e;
-  --text2: #5c3d1e;
-  --text3: #8b6340;
-  --text4: #b8956a;
-  --green: #5a8a3c;
-  --green-bg: rgba(90,138,60,0.12);
-  --red: #c0392b;
-  --red-bg: rgba(192,57,43,0.12);
-  --yellow: #c87b00;
-  --yellow-bg: rgba(200,123,0,0.12);
-  --blue: #2e6fa3;
-  --film-color: #8b4513;
-  --serie-color: #1a5276;
-  --shadow: 0 2px 12px rgba(42,31,14,0.12);
-  --shadow-lg: 0 6px 32px rgba(42,31,14,0.18);
-  --radius: 14px;
-  --radius-sm: 8px;
-  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+  --bg:#f5ede0;--bg2:#ede0cc;--bg3:#e4d0b5;
+  --surface:#faf4ec;--border:#d4b896;--border2:#c4a47a;
+  --accent:#e8731a;--accent2:#d45e0a;--accent3:#f5942e;
+  --accent-glow:rgba(232,115,26,0.25);
+  --text:#2a1f0e;--text2:#5c3d1e;--text3:#8b6340;--text4:#b8956a;
+  --green:#5a8a3c;--green-bg:rgba(90,138,60,0.12);
+  --red:#c0392b;--red-bg:rgba(192,57,43,0.12);
+  --yellow:#c87b00;--yellow-bg:rgba(200,123,0,0.12);
+  --blue:#2e6fa3;--film-color:#8b4513;--serie-color:#1a5276;
+  --shadow:0 2px 12px rgba(42,31,14,0.12);
+  --radius:14px;--radius-sm:8px;--transition:0.25s cubic-bezier(0.4,0,0.2,1);
 }
+[data-theme="milieu"]{
+  --bg:#1a1f14;--bg2:#141810;--bg3:#0e110a;
+  --surface:#222a1a;--border:#3a4a2a;--border2:#4a5e34;
+  --accent:#6a8c3a;--accent2:#547030;--accent3:#8ab04e;
+  --accent-glow:rgba(106,140,58,0.25);
+  --text:#d4e0b8;--text2:#a8c070;--text3:#7a9454;--text4:#5a7040;
+  --green:#6a8c3a;--green-bg:rgba(106,140,58,0.15);
+  --red:#8c3a2a;--red-bg:rgba(140,58,42,0.15);
+  --yellow:#8c7030;--yellow-bg:rgba(140,112,48,0.15);
+  --blue:#3a5c7a;--film-color:#8c6040;--serie-color:#4a7054;
+  --shadow:0 2px 12px rgba(0,0,0,0.4);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;transition:background var(--transition),color var(--transition);overscroll-behavior:none;}
 
-/* ─── THÈME MILITAIRE ─── */
-[data-theme="milieu"] {
-  --bg: #1a1f14;
-  --bg2: #141810;
-  --bg3: #0e110a;
-  --surface: #222a1a;
-  --surface2: #1c2314;
-  --border: #3a4a2a;
-  --border2: #4a5e34;
-  --accent: #6a8c3a;
-  --accent2: #547030;
-  --accent3: #8ab04e;
-  --accent-glow: rgba(106,140,58,0.25);
-  --text: #d4e0b8;
-  --text2: #a8c070;
-  --text3: #7a9454;
-  --text4: #5a7040;
-  --green: #6a8c3a;
-  --green-bg: rgba(106,140,58,0.15);
-  --red: #8c3a2a;
-  --red-bg: rgba(140,58,42,0.15);
-  --yellow: #8c7030;
-  --yellow-bg: rgba(140,112,48,0.15);
-  --blue: #3a5c7a;
-  --film-color: #8c6040;
-  --serie-color: #4a7054;
-  --shadow: 0 2px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 6px 32px rgba(0,0,0,0.5);
-}
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:2px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);}
+.logo{font-size:1.1rem;font-weight:800;letter-spacing:-0.5px;color:var(--accent);display:flex;align-items:center;gap:5px;flex:1;min-width:0;}
+.logo span{color:var(--text);}
+.theme-toggle{display:flex;align-items:center;background:var(--bg2);border:1.5px solid var(--border);border-radius:20px;padding:5px 8px;cursor:pointer;transition:all var(--transition);user-select:none;flex-shrink:0;}
+.toggle-dot{width:24px;height:14px;background:var(--bg3);border-radius:7px;border:1.5px solid var(--border2);position:relative;transition:background var(--transition);}
+.toggle-dot::after{content:'';position:absolute;top:1px;left:1px;width:10px;height:10px;background:var(--text4);border-radius:50%;transition:all var(--transition);}
+[data-theme="milieu"] .toggle-dot{background:var(--accent);border-color:var(--accent2);}
+[data-theme="milieu"] .toggle-dot::after{left:11px;background:var(--bg);}
+.add-btn{height:34px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:0.75rem;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0 10px;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px var(--accent-glow);transition:all var(--transition);}
+.add-btn:active{transform:scale(0.92);}
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--surface);border-top:2px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,0.1);}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;cursor:pointer;border:none;background:transparent;color:var(--text4);font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:500;letter-spacing:0.5px;transition:all var(--transition);}
+.nav-tab.active{color:var(--accent);}
+.nav-icon{font-size:1.3rem;}
+.nav-tab.active .nav-icon{filter:drop-shadow(0 0 4px var(--accent-glow));}
 
-html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  min-height: 100vh;
-  transition: background var(--transition), color var(--transition);
-  overscroll-behavior: none;
-}
+/* MAIN */
+.main{padding:16px;padding-bottom:calc(80px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;}
+.page{display:none;}.page.active{display:block;}
+.section-title{font-size:0.7rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
 
-/* ─── HEADER ─── */
-.header {
-  position: sticky; top: 0; z-index: 100;
-  background: var(--surface);
-  border-bottom: 2px solid var(--border);
-  padding: 10px 12px;
-  display: flex; align-items: center; gap: 8px;
-  box-shadow: var(--shadow);
-}
+/* TOOLBAR */
+.search-wrap{position:relative;margin-bottom:10px;}
+.search-wrap input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px 10px 36px;color:var(--text);font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;transition:border-color var(--transition);}
+.search-wrap input:focus{border-color:var(--accent);}
+.search-wrap input::placeholder{color:var(--text4);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:0.95rem;color:var(--text4);}
+.toolbar-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;}
+.sort-select{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 8px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;outline:none;cursor:pointer;-webkit-appearance:none;}
+.toolbar-btn{height:32px;padding:0 8px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all var(--transition);flex-shrink:0;}
+.toolbar-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+.toolbar-btn:active{transform:scale(0.95);}
 
-.logo {
-  font-size: 1.15rem; font-weight: 800; letter-spacing: -0.5px;
-  color: var(--accent);
-  display: flex; align-items: center; gap: 5px;
-  flex: 1;
-  min-width: 0;
-}
-.logo span { color: var(--text); }
+/* FILTERS */
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.pill{flex-shrink:0;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:0.3px;color:var(--text3);cursor:pointer;transition:all var(--transition);white-space:nowrap;user-select:none;}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white;}
+.pill:active{transform:scale(0.95);}
 
-.theme-toggle {
-  display: flex; align-items: center;
-  background: var(--bg2);
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  padding: 5px 8px;
-  cursor: pointer;
-  transition: all var(--transition);
-  user-select: none;
-  flex-shrink: 0;
-}
-.theme-toggle:active { transform: scale(0.95); }
-.theme-toggle .toggle-dot {
-  width: 24px; height: 14px;
-  background: var(--bg3);
-  border-radius: 7px;
-  border: 1.5px solid var(--border2);
-  position: relative;
-  transition: background var(--transition);
-}
-.theme-toggle .toggle-dot::after {
-  content: '';
-  position: absolute; top: 1px; left: 1px;
-  width: 10px; height: 10px;
-  background: var(--text4);
-  border-radius: 50%;
-  transition: all var(--transition);
-}
-[data-theme="milieu"] .theme-toggle .toggle-dot { background: var(--accent); border-color: var(--accent2); }
-[data-theme="milieu"] .theme-toggle .toggle-dot::after { left: 11px; background: var(--bg); }
+/* GROUP HEADER */
+.group-hdr{font-size:0.62rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:2px;color:var(--text4);text-transform:uppercase;padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;margin-top:6px;}
 
-.add-btn {
-  height: 34px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: 'Syne', sans-serif;
-  letter-spacing: 0.3px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 0 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px var(--accent-glow);
-  transition: all var(--transition);
-}
-.add-btn:active { transform: scale(0.92); }
+/* CARDS */
+.media-list{display:flex;flex-direction:column;gap:10px;}
+.swipe-wrap{position:relative;overflow:hidden;border-radius:var(--radius);}
+.swipe-del-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:1.4rem;border-radius:0 var(--radius) var(--radius) 0;z-index:0;}
+.media-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;position:relative;z-index:1;touch-action:pan-y;transition:border-color var(--transition);}
+.media-card.pinned{border-color:var(--accent);}
+.card-header{display:flex;}
+.card-poster{width:66px;min-height:92px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.9rem;flex-shrink:0;position:relative;}
+.type-badge{position:absolute;bottom:4px;left:4px;font-family:'JetBrains Mono',monospace;font-size:0.5rem;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:0.5px;}
+.type-badge.serie{background:var(--serie-color);color:white;}
+.type-badge.film{background:var(--film-color);color:white;}
+.pin-badge{position:absolute;top:3px;right:3px;font-size:0.7rem;}
+.card-info{flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0;}
+.card-title{font-size:0.88rem;font-weight:700;line-height:1.2;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-meta{font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:var(--text3);letter-spacing:0.3px;}
+.card-row{display:flex;align-items:center;gap:6px;margin-top:2px;}
+.card-status{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.5px;}
+.status-watching{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow);}
+.status-done{background:var(--green-bg);color:var(--green);border:1px solid var(--green);}
+.status-paused{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
+.status-todo{background:var(--bg2);color:var(--text3);border:1px solid var(--border);}
+.card-rating{margin-left:auto;font-size:0.62rem;color:var(--accent3);flex-shrink:0;}
+.card-note{font-size:0.62rem;color:var(--text4);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-footer{padding:6px 10px 8px;border-top:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:8px;}
+.card-progress-wrap{flex:1;}
+.progress-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:0.56rem;color:var(--text3);margin-bottom:5px;}
+.progress-label strong{color:var(--accent);font-size:0.68rem;}
+.progress-bar{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(to right,var(--accent),var(--accent3));border-radius:3px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);}
+.progress-fill.done{background:linear-gradient(to right,var(--green),#8ab04e);}
+.quick-ep-btn{flex-shrink:0;width:30px;height:30px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px var(--accent-glow);transition:all var(--transition);}
+.quick-ep-btn:active{transform:scale(0.85);}
 
-/* ─── BOTTOM TABS ─── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: var(--surface);
-  border-top: 2px solid var(--border);
-  display: flex;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-}
-.nav-tab {
-  flex: 1;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 10px 4px;
-  cursor: pointer;
-  border: none; background: transparent; color: var(--text4);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  transition: all var(--transition);
-}
-.nav-tab.active { color: var(--accent); }
-.nav-tab .nav-icon { font-size: 1.3rem; }
-.nav-tab.active .nav-icon { filter: drop-shadow(0 0 4px var(--accent-glow)); }
+/* PANELS */
+.slide-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;backdrop-filter:blur(4px);}
+.slide-overlay.open{display:flex;}
+.slide-panel{width:100%;max-width:480px;margin:0 auto;background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;border-top:2px solid var(--border);padding:20px 18px calc(32px + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,0.25);animation:slideUp 0.3s cubic-bezier(0.4,0,0.2,1);max-height:92vh;overflow-y:auto;}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.slide-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px;}
+.slide-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.slide-sub{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--text3);margin-bottom:14px;letter-spacing:0.5px;}
 
-/* ─── MAIN CONTENT ─── */
-.main {
-  padding: 16px;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
-  max-width: 480px;
-  margin: 0 auto;
-}
+/* EP SELECTOR */
+.ep-selector{display:flex;gap:8px;margin-bottom:14px;align-items:center;}
+.ep-nav-btn{width:40px;height:40px;background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;color:var(--text);font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:all var(--transition);flex-shrink:0;}
+.ep-nav-btn:active{background:var(--accent);color:white;border-color:var(--accent);}
+.ep-display{flex:1;background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;text-align:center;}
+.ep-num{font-size:1.15rem;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.ep-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--text4);letter-spacing:1px;}
 
-/* ─── SECTION TITLE ─── */
-.section-title {
-  font-size: 0.7rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--text3);
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  display: flex; align-items: center; gap: 8px;
-}
-.section-title::after {
-  content: '';
-  flex: 1; height: 1px;
-  background: linear-gradient(to right, var(--border), transparent);
-}
+/* FORM */
+.slider-section{margin-bottom:14px;}
+.slider-head{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--text3);margin-bottom:8px;}
+.slider-head span{color:var(--accent);font-weight:700;}
+input[type="range"]{width:100%;height:6px;-webkit-appearance:none;background:var(--bg2);border-radius:3px;outline:none;cursor:pointer;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--accent);border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent);cursor:pointer;}
+.field{margin-bottom:11px;}
+.field label{display:block;font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;color:var(--text);font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;transition:border-color var(--transition);-webkit-appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field select{cursor:pointer;}
+.field option{background:var(--surface);}
+.two-col{display:flex;gap:8px;}
+.two-col .field{flex:1;}
+.three-col{display:flex;gap:6px;}
+.three-col .field{flex:1;}
+.stars-input{display:flex;gap:8px;}
+.star-btn{font-size:1.5rem;cursor:pointer;background:none;border:none;transition:transform 0.15s;}
+.star-btn:active{transform:scale(1.3);}
 
-/* ─── SEARCH ─── */
-.search-wrap {
-  position: relative; margin-bottom: 16px;
-}
-.search-wrap input {
-  width: 100%;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px 10px 38px;
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color var(--transition);
-}
-.search-wrap input:focus { border-color: var(--accent); }
-.search-wrap input::placeholder { color: var(--text4); }
-.search-wrap .search-icon {
-  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-  font-size: 1rem; color: var(--text4);
-}
+.btn-row{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap;}
+.btn-primary{flex:2;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:11px 8px;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px var(--accent-glow);transition:all var(--transition);min-width:70px;}
+.btn-primary:active{transform:scale(0.97);opacity:0.9;}
+.btn-secondary{flex:1;background:var(--bg2);color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 8px;font-family:'Syne',sans-serif;font-size:0.82rem;cursor:pointer;transition:all var(--transition);min-width:55px;}
+.btn-secondary:active{transform:scale(0.97);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red);border-radius:var(--radius-sm);padding:11px 12px;font-family:'Syne',sans-serif;font-size:0.82rem;cursor:pointer;transition:all var(--transition);}
+.btn-danger:active{transform:scale(0.97);}
+.btn-pin{background:var(--bg2);color:var(--text3);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 10px;font-family:'Syne',sans-serif;font-size:0.82rem;cursor:pointer;transition:all var(--transition);}
+.btn-pin.active{background:var(--accent-glow);color:var(--accent);border-color:var(--accent);}
+.btn-pin:active{transform:scale(0.97);}
 
-/* ─── FILTER PILLS ─── */
-.filter-row {
-  display: flex; gap: 8px; overflow-x: auto;
-  padding-bottom: 4px; margin-bottom: 16px;
-  scrollbar-width: none;
-}
-.filter-row::-webkit-scrollbar { display: none; }
-.pill {
-  flex-shrink: 0;
-  padding: 5px 12px;
-  border-radius: 20px;
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--text3);
-  cursor: pointer;
-  transition: all var(--transition);
-  white-space: nowrap;
-  user-select: none;
-}
-.pill.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-.pill:active { transform: scale(0.95); }
+/* TYPE BTNS */
+.type-select-row{display:flex;gap:8px;margin-bottom:14px;}
+.type-sel-btn{flex:1;padding:9px;background:var(--bg2);border:2px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all var(--transition);text-align:center;}
+.type-sel-btn.active.film-type{background:var(--film-color);border-color:var(--film-color);color:white;}
+.type-sel-btn.active.serie-type{background:var(--serie-color);border-color:var(--serie-color);color:white;}
 
-/* ─── CARD MEDIA ─── */
-.media-list { display: flex; flex-direction: column; gap: 12px; }
+/* STATS */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.kpi-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 14px 12px;display:flex;flex-direction:column;gap:4px;}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent);line-height:1;}
+.kpi-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:700;letter-spacing:1px;color:var(--text4);text-transform:uppercase;}
+.kpi-sub{font-size:0.7rem;color:var(--text3);margin-top:2px;}
+.chart-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.chart-title{font-family:'JetBrains Mono',monospace;font-size:0.62rem;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:12px;}
+canvas{width:100%!important;}
+.genre-list{display:flex;flex-direction:column;gap:8px;}
+.genre-row{display:flex;align-items:center;gap:10px;}
+.genre-name{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--text3);width:80px;flex-shrink:0;}
+.genre-bar-wrap{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;}
+.genre-bar{height:100%;border-radius:3px;background:linear-gradient(to right,var(--accent),var(--accent3));}
+.genre-count{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--text4);width:20px;text-align:right;}
 
-.media-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: all var(--transition);
-  cursor: pointer;
-}
-.media-card:active { transform: scale(0.98); }
-
-.card-header {
-  display: flex; gap: 0;
-}
-.card-poster {
-  width: 72px; min-height: 100px;
-  background: var(--bg2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2.2rem;
-  flex-shrink: 0;
-  position: relative;
-}
-.card-poster .type-badge {
-  position: absolute; bottom: 4px; left: 4px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 4px;
-  letter-spacing: 0.5px;
-}
-.type-badge.serie { background: var(--serie-color); color: white; }
-.type-badge.film { background: var(--film-color); color: white; }
-
-.card-info {
-  flex: 1; padding: 10px 12px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.card-title {
-  font-size: 0.95rem; font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-}
-.card-meta {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  color: var(--text3);
-  letter-spacing: 0.3px;
-}
-.card-status {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 3px 7px;
-  border-radius: 4px;
-  letter-spacing: 0.5px;
-  width: fit-content;
-  margin-top: 2px;
-}
-.status-watching { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow); }
-.status-done { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
-.status-paused { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
-.status-todo { background: var(--bg2); color: var(--text3); border: 1px solid var(--border); }
-
-.card-progress-wrap {
-  padding: 8px 12px 10px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-}
-.progress-label {
-  display: flex; justify-content: space-between; align-items: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  color: var(--text3);
-  margin-bottom: 6px;
-}
-.progress-label strong { color: var(--accent); font-size: 0.75rem; }
-.progress-bar {
-  height: 5px; background: var(--bg2);
-  border-radius: 3px; overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(to right, var(--accent), var(--accent3));
-  border-radius: 3px;
-  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-}
-.progress-fill.done { background: linear-gradient(to right, var(--green), #8ab04e); }
-
-.card-rating {
-  margin-left: auto;
-  display: flex; align-items: center; gap: 2px;
-  font-size: 0.7rem;
-  color: var(--accent3);
-}
-
-/* ─── PAGE TABS ─── */
-.page { display: none; }
-.page.active { display: block; }
-
-/* ─── SLIDE PANEL UPDATE ─── */
-.slide-overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  align-items: flex-end;
-  backdrop-filter: blur(4px);
-}
-.slide-overlay.open { display: flex; }
-.slide-panel {
-  width: 100%; max-width: 480px;
-  margin: 0 auto;
-  background: var(--surface);
-  border-radius: var(--radius) var(--radius) 0 0;
-  border-top: 2px solid var(--border);
-  padding: 20px 20px calc(32px + env(safe-area-inset-bottom));
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
-  animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
-  max-height: 90vh;
-  overflow-y: auto;
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.slide-handle {
-  width: 40px; height: 4px;
-  background: var(--border2);
-  border-radius: 2px;
-  margin: 0 auto 16px;
-}
-.slide-title {
-  font-size: 1rem; font-weight: 800;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-.slide-sub {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--text3);
-  margin-bottom: 20px;
-  letter-spacing: 0.5px;
-}
-
-/* EP/FILM NAV ─── */
-.ep-selector {
-  display: flex; gap: 8px; margin-bottom: 20px; align-items: center;
-}
-.ep-nav-btn {
-  width: 40px; height: 40px;
-  background: var(--bg2);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer; color: var(--text);
-  font-size: 1.2rem;
-  display: flex; align-items: center; justify-content: center;
-  transition: all var(--transition);
-  flex-shrink: 0;
-}
-.ep-nav-btn:active { background: var(--accent); color: white; border-color: var(--accent); }
-.ep-display {
-  flex: 1;
-  background: var(--bg2);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  text-align: center;
-}
-.ep-display .ep-num {
-  font-size: 1.2rem; font-weight: 800; color: var(--accent);
-  font-family: 'JetBrains Mono', monospace;
-}
-.ep-display .ep-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem; color: var(--text4);
-  letter-spacing: 1px;
-}
-
-/* PROGRESS SLIDER ─── */
-.slider-section { margin-bottom: 20px; }
-.slider-head {
-  display: flex; justify-content: space-between;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: var(--text3);
-  margin-bottom: 10px;
-}
-.slider-head span { color: var(--accent); font-weight: 700; }
-input[type="range"] {
-  width: 100%; height: 6px;
-  -webkit-appearance: none;
-  background: var(--bg2);
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 22px; height: 22px;
-  background: var(--accent);
-  border-radius: 50%;
-  border: 3px solid var(--surface);
-  box-shadow: 0 0 0 2px var(--accent);
-  cursor: pointer;
-}
-
-/* FORM FIELDS ─── */
-.field { margin-bottom: 14px; }
-.field label {
-  display: block;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--text3);
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.field input, .field select, .field textarea {
-  width: 100%;
-  background: var(--bg2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color var(--transition);
-  -webkit-appearance: none;
-}
-.field input:focus, .field select:focus { border-color: var(--accent); }
-.field select { cursor: pointer; }
-.field option { background: var(--surface); }
-
-.stars-input {
-  display: flex; gap: 8px;
-}
-.star-btn {
-  font-size: 1.5rem; cursor: pointer; background: none; border: none;
-  transition: transform 0.15s;
-}
-.star-btn:active { transform: scale(1.3); }
-
-.btn-row { display: flex; gap: 10px; margin-top: 20px; }
-.btn-primary {
-  flex: 2;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 13px;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 3px 12px var(--accent-glow);
-  transition: all var(--transition);
-}
-.btn-primary:active { transform: scale(0.97); opacity: 0.9; }
-.btn-secondary {
-  flex: 1;
-  background: var(--bg2);
-  color: var(--text2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 13px;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-.btn-secondary:active { transform: scale(0.97); }
-
-/* ─── STATS PAGE ─── */
-.kpi-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; margin-bottom: 20px;
-}
-.kpi-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 14px 12px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.kpi-card .kpi-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.6rem; font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
-.kpi-card .kpi-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.58rem; font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--text4);
-  text-transform: uppercase;
-}
-.kpi-card .kpi-sub {
-  font-size: 0.7rem; color: var(--text3);
-  margin-top: 2px;
-}
-
-/* CHART ─── */
-.chart-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.chart-card .chart-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--text3);
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-canvas { width: 100% !important; }
-
-/* GENRE DISTRIBUTION ─── */
-.genre-list { display: flex; flex-direction: column; gap: 8px; }
-.genre-row {
-  display: flex; align-items: center; gap: 10px;
-}
-.genre-name {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: var(--text3);
-  width: 80px; flex-shrink: 0;
-}
-.genre-bar-wrap { flex: 1; height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
-.genre-bar { height: 100%; border-radius: 3px; background: linear-gradient(to right, var(--accent), var(--accent3)); }
-.genre-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: var(--text4);
-  width: 20px; text-align: right;
-}
-
-/* ─── EMPTY STATE ─── */
-.empty-state {
-  text-align: center; padding: 48px 24px;
-  color: var(--text4);
-}
-.empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
-.empty-state p { font-size: 0.85rem; }
-
-/* ─── ADD MEDIA PANEL ─── */
-.type-select-row {
-  display: flex; gap: 8px; margin-bottom: 16px;
-}
-.type-sel-btn {
-  flex: 1; padding: 10px;
-  background: var(--bg2);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text3);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem; font-weight: 700;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all var(--transition);
-  text-align: center;
-}
-.type-sel-btn.active.film-type {
-  background: var(--film-color); border-color: var(--film-color); color: white;
-}
-.type-sel-btn.active.serie-type {
-  background: var(--serie-color); border-color: var(--serie-color); color: white;
-}
-
-.btn-danger {
-  flex: 1;
-  background: var(--red-bg);
-  color: var(--red);
-  border: 1.5px solid var(--red);
-  border-radius: var(--radius-sm);
-  padding: 13px;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-.btn-danger:active { transform: scale(0.97); opacity: 0.85; }
-
-/* ─── SCROLL BAR ─── */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* MISC */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text4);}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.empty-state p{font-size:0.85rem;}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:700;opacity:0;transition:all 0.3s;pointer-events:none;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 </style>
 </head>
 <body data-theme="beige">
 
-<!-- HEADER -->
 <header class="header">
   <div class="logo">📺<span>Watch</span>Log</div>
-  <div class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
-    <div class="toggle-dot" id="toggleDot"></div>
-  </div>
+  <div class="theme-toggle" onclick="toggleTheme()"><div class="toggle-dot"></div></div>
   <button class="add-btn" onclick="openAddPanel()">＋ Ajouter</button>
 </header>
 
-<!-- PAGES -->
 <main class="main">
-
-  <!-- PAGE: LISTE -->
+  <!-- LISTE -->
   <div class="page active" id="page-list">
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" placeholder="Rechercher..." oninput="renderList()">
     </div>
+    <div class="toolbar-row">
+      <select class="sort-select" id="sortSelect" onchange="renderList()">
+        <option value="added">↓ Récent</option>
+        <option value="title">A→Z Titre</option>
+        <option value="rating">★ Note</option>
+        <option value="year">📅 Année</option>
+        <option value="progress">% Progression</option>
+      </select>
+      <button class="toolbar-btn" id="groupBtn" onclick="toggleGroup()">⊞ Grouper</button>
+      <button class="toolbar-btn" onclick="openExportPanel()">⇅ JSON</button>
+    </div>
     <div class="filter-row">
-      <div class="pill active" data-filter="all" onclick="setFilter(this,'all')">Tout</div>
-      <div class="pill" data-filter="watching" onclick="setFilter(this,'watching')">▶ En cours</div>
-      <div class="pill" data-filter="done" onclick="setFilter(this,'done')">✓ Terminé</div>
-      <div class="pill" data-filter="paused" onclick="setFilter(this,'paused')">⏸ Pause</div>
-      <div class="pill" data-filter="todo" onclick="setFilter(this,'todo')">○ À voir</div>
-      <div class="pill" data-filter="serie" onclick="setFilter(this,'serie')">🎞 Séries</div>
-      <div class="pill" data-filter="film" onclick="setFilter(this,'film')">🎬 Films</div>
+      <div class="pill active" onclick="setFilter(this,'all')">Tout</div>
+      <div class="pill" onclick="setFilter(this,'watching')">▶ En cours</div>
+      <div class="pill" onclick="setFilter(this,'done')">✓ Terminé</div>
+      <div class="pill" onclick="setFilter(this,'paused')">⏸ Pause</div>
+      <div class="pill" onclick="setFilter(this,'todo')">○ À voir</div>
+      <div class="pill" onclick="setFilter(this,'pinned')">📌 Épinglés</div>
+      <div class="pill" onclick="setFilter(this,'serie')">🎞 Séries</div>
+      <div class="pill" onclick="setFilter(this,'film')">🎬 Films</div>
     </div>
     <div class="section-title">Catalogue</div>
     <div class="media-list" id="mediaList"></div>
   </div>
 
-  <!-- PAGE: STATS -->
+  <!-- STATS -->
   <div class="page" id="page-stats">
     <div class="section-title">KPI Globaux</div>
     <div class="kpi-grid" id="kpiGrid"></div>
     <div class="section-title">Activité mensuelle</div>
-    <div class="chart-card">
-      <div class="chart-title">Épisodes / Films vus / mois</div>
-      <canvas id="activityChart" height="160"></canvas>
-    </div>
+    <div class="chart-card"><div class="chart-title">Épisodes / Films vus / mois</div><canvas id="activityChart" height="160"></canvas></div>
     <div class="section-title">Progression des séries</div>
-    <div class="chart-card">
-      <div class="chart-title">% Complétion</div>
-      <canvas id="progressChart" height="180"></canvas>
-    </div>
+    <div class="chart-card"><div class="chart-title">% Complétion</div><canvas id="progressChart" height="180"></canvas></div>
     <div class="section-title">Genres</div>
-    <div class="chart-card">
-      <div class="chart-title">Répartition</div>
-      <div class="genre-list" id="genreList"></div>
-    </div>
+    <div class="chart-card"><div class="chart-title">Répartition</div><div class="genre-list" id="genreList"></div></div>
   </div>
-
 </main>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="nav-tab active" data-tab="list" onclick="switchTab(this,'list')">
-    <span class="nav-icon">📋</span>LISTE
-  </button>
-  <button class="nav-tab" data-tab="stats" onclick="switchTab(this,'stats')">
-    <span class="nav-icon">📊</span>STATS
-  </button>
+  <button class="nav-tab active" onclick="switchTab(this,'list')"><span class="nav-icon">📋</span>LISTE</button>
+  <button class="nav-tab" onclick="switchTab(this,'stats')"><span class="nav-icon">📊</span>STATS</button>
 </nav>
 
-<!-- SLIDE PANEL: UPDATE PROGRESS -->
+<!-- PANEL UPDATE -->
 <div class="slide-overlay" id="updatePanel" onclick="closeUpdatePanel(event)">
   <div class="slide-panel">
     <div class="slide-handle"></div>
     <div class="slide-title" id="panelTitle">Mettre à jour</div>
-    <div class="slide-sub" id="panelSub">AVANCEMENT EPISODE</div>
+    <div class="slide-sub" id="panelSub">AVANCEMENT</div>
 
-    <!-- EP SELECTOR (séries seulement) -->
+    <div class="two-col">
+      <div class="field"><label>Titre</label><input type="text" id="updateTitle"></div>
+      <div class="field"><label>Année</label><input type="number" id="updateYear" min="1900" max="2030"></div>
+    </div>
+
     <div id="epSection">
       <div class="section-title">Épisode en cours</div>
       <div class="ep-selector">
         <button class="ep-nav-btn" onclick="adjustEp(-1)">−</button>
-        <div class="ep-display">
-          <div class="ep-num" id="epNum">S01E01</div>
-          <div class="ep-label">ÉPISODE</div>
-        </div>
+        <div class="ep-display"><div class="ep-num" id="epNum">S01E01</div><div class="ep-label">ÉPISODE</div></div>
         <button class="ep-nav-btn" onclick="adjustEp(1)">＋</button>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:20px;">
-        <div style="flex:1">
-          <div class="field">
-            <label>Saison</label>
-            <input type="number" id="seasonInput" min="1" max="99" value="1" oninput="updateEpDisplay()">
-          </div>
-        </div>
-        <div style="flex:1">
-          <div class="field">
-            <label>Épisode</label>
-            <input type="number" id="episodeInput" min="1" max="999" value="1" oninput="updateEpDisplay()">
-          </div>
-        </div>
-        <div style="flex:1">
-          <div class="field">
-            <label>Total EP</label>
-            <input type="number" id="totalEpInput" min="1" max="999" value="12" oninput="updateProgress()">
-          </div>
-        </div>
+      <div class="three-col" style="margin-bottom:14px;">
+        <div class="field"><label>Saison</label><input type="number" id="seasonInput" min="1" max="99" value="1" oninput="updateEpDisplay()"></div>
+        <div class="field"><label>Épisode</label><input type="number" id="episodeInput" min="1" max="999" value="1" oninput="updateEpDisplay()"></div>
+        <div class="field"><label>Total EP</label><input type="number" id="totalEpInput" min="1" max="999" value="12" oninput="updateProgress()"></div>
       </div>
     </div>
 
-    <!-- FILM PROGRESS -->
     <div id="filmSection" style="display:none">
       <div class="section-title">Avancement film</div>
       <div class="slider-section">
-        <div class="slider-head">
-          <span>Progression</span>
-          <span id="filmPct">0%</span>
-        </div>
-        <input type="range" id="filmProgress" min="0" max="100" value="0"
-          oninput="document.getElementById('filmPct').textContent=this.value+'%'">
+        <div class="slider-head"><span>Progression</span><span id="filmPct">0%</span></div>
+        <input type="range" id="filmProgress" min="0" max="100" value="0" oninput="document.getElementById('filmPct').textContent=this.value+'%'">
       </div>
     </div>
 
-    <!-- PROGRESS BAR PREVIEW -->
     <div class="slider-section">
-      <div class="slider-head">
-        <span>% Complétion</span>
-        <span id="progressPct">8%</span>
+      <div class="slider-head"><span>% Complétion</span><span id="progressPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFillPreview" style="width:0%"></div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="field"><label>Genre</label>
+        <select id="updateGenre">
+          <option>Action</option><option>Thriller</option><option>Comédie</option><option>Drame</option>
+          <option>SF</option><option>Horreur</option><option>Documentaire</option><option>Animation</option>
+          <option>Fantasy</option><option>Policier</option><option>Romance</option><option>Autre</option>
+        </select>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFillPreview" style="width:8%"></div>
+      <div class="field"><label>Statut</label>
+        <select id="statusSelect">
+          <option value="watching">▶ En cours</option>
+          <option value="done">✓ Terminé</option>
+          <option value="paused">⏸ En pause</option>
+          <option value="todo">○ À voir</option>
+        </select>
       </div>
     </div>
 
-    <div class="field">
-      <label>Genre</label>
-      <select id="updateGenre">
-        <option>Action</option><option>Thriller</option><option>Comédie</option>
-        <option>Drame</option><option>SF</option><option>Horreur</option>
-        <option>Documentaire</option><option>Animation</option><option>Fantasy</option>
-        <option>Policier</option><option>Romance</option><option>Autre</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Statut</label>
-      <select id="statusSelect">
-        <option value="watching">▶ En cours</option>
-        <option value="done">✓ Terminé</option>
-        <option value="paused">⏸ En pause</option>
-        <option value="todo">○ À voir</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Note (/5)</label>
+    <div class="field"><label>Note (/5)</label>
       <div class="stars-input" id="starsInput">
         <button class="star-btn" onclick="setRating(1)">☆</button>
         <button class="star-btn" onclick="setRating(2)">☆</button>
@@ -807,54 +319,39 @@ canvas { width: 100% !important; }
         <button class="star-btn" onclick="setRating(5)">☆</button>
       </div>
     </div>
-
-    <div class="field">
-      <label>Note / Commentaire</label>
-      <textarea id="noteInput" rows="2" placeholder="Remarques..."></textarea>
-    </div>
+    <div class="field"><label>Commentaire</label><textarea id="noteInput" rows="2" placeholder="Remarques..."></textarea></div>
 
     <div class="btn-row">
-      <button class="btn-danger" onclick="deleteItem()">🗑 Supprimer</button>
+      <button class="btn-danger" onclick="deleteItem()">🗑</button>
+      <button class="btn-pin" id="pinBtn" onclick="togglePin()">📌</button>
       <button class="btn-secondary" onclick="closeUpdatePanel()">Annuler</button>
       <button class="btn-primary" onclick="saveUpdate()">💾 Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- SLIDE PANEL: ADD MEDIA -->
+<!-- PANEL ADD -->
 <div class="slide-overlay" id="addPanel" onclick="closeAddPanel(event)">
   <div class="slide-panel">
     <div class="slide-handle"></div>
     <div class="slide-title">Ajouter</div>
     <div class="slide-sub">NOUVELLE ENTRÉE</div>
-
     <div class="type-select-row">
       <button class="type-sel-btn serie-type active" id="addTypeSerie" onclick="selectAddType('serie')">🎞 SÉRIE</button>
       <button class="type-sel-btn film-type" id="addTypeFilm" onclick="selectAddType('film')">🎬 FILM</button>
     </div>
-
-    <div class="field">
-      <label>Titre</label>
-      <input type="text" id="addTitle" placeholder="Ex: Breaking Bad">
+    <div class="field"><label>Titre</label><input type="text" id="addTitle" placeholder="Ex: Breaking Bad"></div>
+    <div class="two-col">
+      <div class="field"><label>Genre</label>
+        <select id="addGenre">
+          <option>Action</option><option>Thriller</option><option>Comédie</option><option>Drame</option>
+          <option>SF</option><option>Horreur</option><option>Documentaire</option><option>Animation</option>
+          <option>Fantasy</option><option>Policier</option><option>Romance</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="field"><label>Année</label><input type="number" id="addYear" value="2024" min="1900" max="2030"></div>
     </div>
-    <div class="field">
-      <label>Genre</label>
-      <select id="addGenre">
-        <option>Action</option><option>Thriller</option><option>Comédie</option>
-        <option>Drame</option><option>SF</option><option>Horreur</option>
-        <option>Documentaire</option><option>Animation</option><option>Fantasy</option>
-        <option>Policier</option><option>Romance</option><option>Autre</option>
-      </select>
-    </div>
-    <div class="field" id="addYearField">
-      <label>Année</label>
-      <input type="number" id="addYear" placeholder="2024" value="2024" min="1900" max="2030">
-    </div>
-    <div class="field" id="addEpisodesField">
-      <label>Nb épisodes (total estimé)</label>
-      <input type="number" id="addEpisodes" placeholder="24" value="12" min="1">
-    </div>
-
+    <div class="field" id="addEpisodesField"><label>Nb épisodes total</label><input type="number" id="addEpisodes" value="12" min="1"></div>
     <div class="btn-row">
       <button class="btn-secondary" onclick="closeAddPanel()">Annuler</button>
       <button class="btn-primary" onclick="saveAdd()">＋ Ajouter</button>
@@ -862,464 +359,428 @@ canvas { width: 100% !important; }
   </div>
 </div>
 
+<!-- PANEL EXPORT/IMPORT -->
+<div class="slide-overlay" id="exportPanel" onclick="closeExportPanel(event)">
+  <div class="slide-panel">
+    <div class="slide-handle"></div>
+    <div class="slide-title">Export / Import</div>
+    <div class="slide-sub">SAUVEGARDE JSON</div>
+    <div class="field">
+      <label>Données JSON</label>
+      <textarea id="exportTextarea" rows="7" placeholder="Vos données..." style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;resize:none;"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="doExport()">📤 Exporter</button>
+      <button class="btn-primary" onclick="doImport()">📥 Importer</button>
+    </div>
+    <div class="btn-row" style="margin-top:6px;">
+      <button class="btn-secondary" onclick="closeExportPanel()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-// ──────────────────────────────────────────────
-// DATA
-// ──────────────────────────────────────────────
 const EMOJIS = {
-  serie: ['🎞','📺','🎭','🕵️','⚔️','🚀','🧟','💊','👑','🎪'],
-  film:  ['🎬','🎥','🍿','🎦','🎞','🌌','🦸','🔫','💀','🧨']
+  serie:['🎞','📺','🎭','🕵️','⚔️','🚀','🧟','💊','👑','🎪'],
+  film:['🎬','🎥','🍿','🎦','🎞','🌌','🦸','🔫','💀','🧨']
 };
 
-let data = JSON.parse(localStorage.getItem('watchlog_data') || 'null') || [
-  { id: 1, type:'serie', title:'Breaking Bad', genre:'Thriller', year:2008, emoji:'💊', status:'done', season:5, episode:16, totalEp:62, rating:5, note:'Chef-d\'œuvre absolu', addedDate:'2024-01' },
-  { id: 2, type:'serie', title:'Severance', genre:'SF', year:2022, emoji:'🧠', status:'watching', season:2, episode:3, totalEp:18, rating:4, note:'Très tendu', addedDate:'2024-03' },
-  { id: 3, type:'film',  title:'Dune Part 2', genre:'SF', year:2024, emoji:'🌌', status:'done', filmProgress:100, rating:5, note:'Visuel époustouflant', addedDate:'2024-03' },
-  { id: 4, type:'serie', title:'The Bear', genre:'Drame', year:2022, emoji:'🍳', status:'watching', season:1, episode:5, totalEp:18, rating:4, note:'', addedDate:'2024-02' },
-  { id: 5, type:'film',  title:'Oppenheimer', genre:'Drame', year:2023, emoji:'☢️', status:'paused', filmProgress:65, rating:4, note:'Très long mais intense', addedDate:'2023-12' },
-  { id: 6, type:'serie', title:'Dark', genre:'SF', year:2017, emoji:'🕰️', status:'done', season:3, episode:8, totalEp:26, rating:5, note:'Complexe mais brillant', addedDate:'2023-11' },
-  { id: 7, type:'film',  title:'Past Lives', genre:'Romance', year:2023, emoji:'💔', status:'todo', filmProgress:0, rating:0, note:'', addedDate:'2024-04' },
+let data = JSON.parse(localStorage.getItem('watchlog_data')||'null') || [
+  {id:1,type:'serie',title:'Breaking Bad',genre:'Thriller',year:2008,emoji:'💊',status:'done',season:5,episode:16,totalEp:62,rating:5,note:"Chef-d'œuvre absolu",addedDate:'2024-01',pinned:false},
+  {id:2,type:'serie',title:'Severance',genre:'SF',year:2022,emoji:'🧠',status:'watching',season:2,episode:3,totalEp:18,rating:4,note:'Très tendu',addedDate:'2024-03',pinned:true},
+  {id:3,type:'film',title:'Dune Part 2',genre:'SF',year:2024,emoji:'🌌',status:'done',filmProgress:100,rating:5,note:'Visuel époustouflant',addedDate:'2024-03',pinned:false},
+  {id:4,type:'serie',title:'The Bear',genre:'Drame',year:2022,emoji:'🍳',status:'watching',season:1,episode:5,totalEp:18,rating:4,note:'',addedDate:'2024-02',pinned:false},
+  {id:5,type:'film',title:'Oppenheimer',genre:'Drame',year:2023,emoji:'☢️',status:'paused',filmProgress:65,rating:4,note:'Très long mais intense',addedDate:'2023-12',pinned:false},
+  {id:6,type:'serie',title:'Dark',genre:'SF',year:2017,emoji:'🕰️',status:'done',season:3,episode:8,totalEp:26,rating:5,note:'Complexe mais brillant',addedDate:'2023-11',pinned:false},
+  {id:7,type:'film',title:'Past Lives',genre:'Romance',year:2023,emoji:'💔',status:'todo',filmProgress:0,rating:0,note:'',addedDate:'2024-04',pinned:false},
 ];
 
-let currentFilter = 'all';
-let currentRating = 0;
-let editingId = null;
-let addType = 'serie';
+let currentFilter='all', currentRating=0, editingId=null, addType='serie', groupMode=false;
+function saveData(){localStorage.setItem('watchlog_data',JSON.stringify(data));}
 
-function saveData() { localStorage.setItem('watchlog_data', JSON.stringify(data)); }
+// TOAST
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
 
-// ──────────────────────────────────────────────
 // THEME
-// ──────────────────────────────────────────────
-let currentTheme = localStorage.getItem('watchlog_theme') || 'beige';
-document.body.setAttribute('data-theme', currentTheme);
-updateThemeUI();
-
-function toggleTheme() {
-  currentTheme = currentTheme === 'beige' ? 'milieu' : 'beige';
-  document.body.setAttribute('data-theme', currentTheme);
-  localStorage.setItem('watchlog_theme', currentTheme);
-  updateThemeUI();
-  if (document.getElementById('page-stats').classList.contains('active')) renderCharts();
-}
-function updateThemeUI() {}
-
-// ──────────────────────────────────────────────
-// NAV & TABS
-// ──────────────────────────────────────────────
-function switchTab(el, tab) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('page-' + tab).classList.add('active');
-  if (tab === 'stats') { renderKPIs(); renderCharts(); }
+let currentTheme=localStorage.getItem('watchlog_theme')||'beige';
+document.body.setAttribute('data-theme',currentTheme);
+function toggleTheme(){
+  currentTheme=currentTheme==='beige'?'milieu':'beige';
+  document.body.setAttribute('data-theme',currentTheme);
+  localStorage.setItem('watchlog_theme',currentTheme);
+  if(document.getElementById('page-stats').classList.contains('active')) renderCharts();
 }
 
-function setFilter(el, f) {
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+// NAV
+function switchTab(el,tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
-  currentFilter = f;
+  document.getElementById('page-'+tab).classList.add('active');
+  if(tab==='stats'){renderKPIs();renderCharts();}
+}
+function setFilter(el,f){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter=f; renderList();
+}
+function toggleGroup(){
+  groupMode=!groupMode;
+  document.getElementById('groupBtn').classList.toggle('active',groupMode);
   renderList();
 }
 
-// ──────────────────────────────────────────────
-// PROGRESS HELPERS
-// ──────────────────────────────────────────────
-function getProgress(item) {
-  if (item.type === 'film') return item.filmProgress || 0;
-  if (!item.totalEp) return 0;
-  const ep = (item.season - 1) * 12 + item.episode;
-  return Math.min(100, Math.round((ep / item.totalEp) * 100));
+// HELPERS
+function getProgress(item){
+  if(item.type==='film') return item.filmProgress||0;
+  if(!item.totalEp) return 0;
+  return Math.min(100,Math.round(((item.season-1)*12+item.episode)/item.totalEp*100));
 }
+function getStatusLabel(s){return{watching:'▶ En cours',done:'✓ Terminé',paused:'⏸ Pause',todo:'○ À voir'}[s]||s;}
+function getStatusOrder(s){return{watching:0,paused:1,todo:2,done:3}[s]??4;}
 
-function getStatusLabel(s) {
-  return { watching: '▶ En cours', done: '✓ Terminé', paused: '⏸ Pause', todo: '○ À voir' }[s] || s;
-}
-
-// ──────────────────────────────────────────────
-// RENDER LIST
-// ──────────────────────────────────────────────
-function renderList() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  let filtered = data.filter(item => {
-    if (q && !item.title.toLowerCase().includes(q)) return false;
-    if (currentFilter === 'all') return true;
-    if (currentFilter === 'serie' || currentFilter === 'film') return item.type === currentFilter;
-    return item.status === currentFilter;
+// RENDER
+function renderList(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const sortBy=document.getElementById('sortSelect').value;
+  let filtered=data.filter(item=>{
+    if(q && !item.title.toLowerCase().includes(q)) return false;
+    if(currentFilter==='all') return true;
+    if(currentFilter==='pinned') return item.pinned;
+    if(currentFilter==='serie'||currentFilter==='film') return item.type===currentFilter;
+    return item.status===currentFilter;
   });
-
-  const list = document.getElementById('mediaList');
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🎬</div><p>Aucun résultat</p></div>`;
+  filtered.sort((a,b)=>{
+    if(a.pinned&&!b.pinned) return -1;
+    if(!a.pinned&&b.pinned) return 1;
+    if(sortBy==='title') return a.title.localeCompare(b.title);
+    if(sortBy==='rating') return (b.rating||0)-(a.rating||0);
+    if(sortBy==='year') return (b.year||0)-(a.year||0);
+    if(sortBy==='progress') return getProgress(b)-getProgress(a);
+    return b.id-a.id;
+  });
+  const list=document.getElementById('mediaList');
+  if(!filtered.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">🎬</div><p>Aucun résultat</p></div>`;
     return;
   }
+  if(groupMode){
+    const gKey=currentFilter==='serie'||currentFilter==='film'?'genre':'status';
+    const groups={};
+    filtered.forEach(item=>{const k=gKey==='genre'?item.genre:item.status;if(!groups[k])groups[k]=[];groups[k].push(item);});
+    const keys=Object.keys(groups).sort((a,b)=>gKey==='status'?getStatusOrder(a)-getStatusOrder(b):a.localeCompare(b));
+    list.innerHTML=keys.map(k=>`<div class="group-hdr">${gKey==='status'?getStatusLabel(k):k} <span style="color:var(--text4);font-weight:400;">(${groups[k].length})</span></div>`+groups[k].map(renderCard).join('')).join('');
+  } else {
+    list.innerHTML=filtered.map(renderCard).join('');
+  }
+  // events
+  document.querySelectorAll('.swipe-wrap').forEach(wrap=>{
+    initSwipe(wrap,wrap.querySelector('.media-card'),parseInt(wrap.dataset.id));
+  });
+  document.querySelectorAll('.quick-ep-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();quickNextEp(parseInt(btn.dataset.id));});
+  });
+}
 
-  list.innerHTML = filtered.map(item => {
-    const pct = getProgress(item);
-    const stars = item.rating ? '★'.repeat(item.rating) + '☆'.repeat(5-item.rating) : '—';
-    const epInfo = item.type === 'serie'
-      ? `S${String(item.season).padStart(2,'0')}E${String(item.episode).padStart(2,'0')} · ${item.totalEp} EP`
-      : `${item.filmProgress || 0}% vu`;
-    return `
-    <div class="media-card" onclick="openUpdatePanel(${item.id})">
+function renderCard(item){
+  const pct=getProgress(item);
+  const stars=item.rating?'★'.repeat(item.rating)+'☆'.repeat(5-item.rating):'';
+  const epInfo=item.type==='serie'?`S${String(item.season).padStart(2,'0')}E${String(item.episode).padStart(2,'0')} · ${item.totalEp} EP`:`${item.filmProgress||0}% vu`;
+  const showQuick=item.type==='serie'&&item.status!=='done';
+  return `
+  <div class="swipe-wrap" data-id="${item.id}">
+    <div class="swipe-del-bg">🗑️</div>
+    <div class="media-card${item.pinned?' pinned':''}" onclick="openUpdatePanel(${item.id})">
       <div class="card-header">
         <div class="card-poster">
-          ${item.emoji || (item.type==='serie'?'🎞':'🎬')}
-          <span class="type-badge ${item.type}">${item.type === 'serie' ? 'SÉRIE' : 'FILM'}</span>
+          ${item.emoji||(item.type==='serie'?'🎞':'🎬')}
+          <span class="type-badge ${item.type}">${item.type==='serie'?'SÉRIE':'FILM'}</span>
+          ${item.pinned?'<span class="pin-badge">📌</span>':''}
         </div>
         <div class="card-info">
           <div class="card-title">${item.title}</div>
           <div class="card-meta">${item.genre} · ${item.year} · ${epInfo}</div>
-          <div class="card-status status-${item.status}">${getStatusLabel(item.status)}</div>
-          <div class="card-rating">${stars}</div>
+          <div class="card-row">
+            <span class="card-status status-${item.status}">${getStatusLabel(item.status)}</span>
+            ${stars?`<span class="card-rating">${stars}</span>`:''}
+          </div>
+          ${item.note?`<div class="card-note">${item.note}</div>`:''}
         </div>
       </div>
-      <div class="card-progress-wrap">
-        <div class="progress-label">
-          <span>${item.type==='serie' ? 'Épisodes' : 'Film'}</span>
-          <strong>${pct}%</strong>
+      <div class="card-footer">
+        <div class="card-progress-wrap">
+          <div class="progress-label"><span>${item.type==='serie'?'Progression':'Film'}</span><strong>${pct}%</strong></div>
+          <div class="progress-bar"><div class="progress-fill${item.status==='done'?' done':''}" style="width:${pct}%"></div></div>
         </div>
-        <div class="progress-bar">
-          <div class="progress-fill ${item.status==='done'?'done':''}" style="width:${pct}%"></div>
-        </div>
+        ${showQuick?`<button class="quick-ep-btn" data-id="${item.id}" title="+1 épisode">＋</button>`:''}
       </div>
-    </div>`;
-  }).join('');
+    </div>
+  </div>`;
 }
 
-// ──────────────────────────────────────────────
-// UPDATE PANEL
-// ──────────────────────────────────────────────
-function openUpdatePanel(id) {
-  editingId = id;
-  const item = data.find(d => d.id === id);
-  if (!item) return;
-  document.getElementById('panelTitle').textContent = item.title;
-  document.getElementById('panelSub').textContent = item.type === 'serie' ? 'MISE À JOUR SÉRIE' : 'MISE À JOUR FILM';
-  document.getElementById('statusSelect').value = item.status;
-  document.getElementById('updateGenre').value = item.genre || 'Autre';
-  document.getElementById('noteInput').value = item.note || '';
-  setRating(item.rating || 0);
+// SWIPE
+function initSwipe(wrap,card,id){
+  let sx=0,cx=0,going=false;
+  card.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;going=true;},{passive:true});
+  card.addEventListener('touchmove',e=>{
+    if(!going) return;
+    cx=e.touches[0].clientX-sx;
+    if(cx<0){card.style.transform=`translateX(${Math.max(cx,-88)}px)`;card.style.transition='none';}
+  },{passive:true});
+  card.addEventListener('touchend',()=>{
+    going=false; card.style.transition='';
+    if(cx<-70){
+      card.style.transform='translateX(-88px)';
+      setTimeout(()=>{
+        if(confirm('Supprimer ?')){data=data.filter(d=>d.id!==id);saveData();renderList();}
+        else card.style.transform='';
+      },100);
+    } else card.style.transform='';
+    cx=0;
+  });
+}
 
-  if (item.type === 'serie') {
-    document.getElementById('epSection').style.display = '';
-    document.getElementById('filmSection').style.display = 'none';
-    document.getElementById('seasonInput').value = item.season || 1;
-    document.getElementById('episodeInput').value = item.episode || 1;
-    document.getElementById('totalEpInput').value = item.totalEp || 12;
+// QUICK +1
+function quickNextEp(id){
+  const item=data.find(d=>d.id===id);
+  if(!item||item.type!=='serie') return;
+  item.episode=(item.episode||1)+1;
+  if(item.status==='todo') item.status='watching';
+  if((item.season-1)*12+item.episode>=item.totalEp) item.status='done';
+  item.lastUpdate=new Date().toISOString().slice(0,7);
+  saveData(); renderList();
+  showToast(`${item.title} → S${String(item.season).padStart(2,'0')}E${String(item.episode).padStart(2,'0')}`);
+}
+
+// UPDATE PANEL
+function openUpdatePanel(id){
+  editingId=id;
+  const item=data.find(d=>d.id===id);
+  if(!item) return;
+  document.getElementById('panelTitle').textContent=item.title;
+  document.getElementById('panelSub').textContent=item.type==='serie'?'MISE À JOUR SÉRIE':'MISE À JOUR FILM';
+  document.getElementById('updateTitle').value=item.title;
+  document.getElementById('updateYear').value=item.year||'';
+  document.getElementById('statusSelect').value=item.status;
+  document.getElementById('updateGenre').value=item.genre||'Autre';
+  document.getElementById('noteInput').value=item.note||'';
+  setRating(item.rating||0);
+  const pb=document.getElementById('pinBtn');
+  pb.textContent=item.pinned?'📌 Épinglé':'📌 Épingler';
+  pb.classList.toggle('active',!!item.pinned);
+  if(item.type==='serie'){
+    document.getElementById('epSection').style.display='';
+    document.getElementById('filmSection').style.display='none';
+    document.getElementById('seasonInput').value=item.season||1;
+    document.getElementById('episodeInput').value=item.episode||1;
+    document.getElementById('totalEpInput').value=item.totalEp||12;
     updateEpDisplay();
   } else {
-    document.getElementById('epSection').style.display = 'none';
-    document.getElementById('filmSection').style.display = '';
-    const fp = item.filmProgress || 0;
-    document.getElementById('filmProgress').value = fp;
-    document.getElementById('filmPct').textContent = fp + '%';
-    document.getElementById('progressPct').textContent = fp + '%';
-    document.getElementById('progressFillPreview').style.width = fp + '%';
+    document.getElementById('epSection').style.display='none';
+    document.getElementById('filmSection').style.display='';
+    const fp=item.filmProgress||0;
+    document.getElementById('filmProgress').value=fp;
+    document.getElementById('filmPct').textContent=fp+'%';
+    document.getElementById('progressPct').textContent=fp+'%';
+    document.getElementById('progressFillPreview').style.width=fp+'%';
   }
   document.getElementById('updatePanel').classList.add('open');
 }
-
-function closeUpdatePanel(e) {
-  if (!e || e.target === document.getElementById('updatePanel'))
-    document.getElementById('updatePanel').classList.remove('open');
-}
-
-function adjustEp(delta) {
-  const ep = document.getElementById('episodeInput');
-  ep.value = Math.max(1, parseInt(ep.value) + delta);
-  updateEpDisplay();
-}
-
-function updateEpDisplay() {
-  const s = parseInt(document.getElementById('seasonInput').value) || 1;
-  const e = parseInt(document.getElementById('episodeInput').value) || 1;
-  document.getElementById('epNum').textContent = `S${String(s).padStart(2,'0')}E${String(e).padStart(2,'0')}`;
+function closeUpdatePanel(e){if(!e||e.target===document.getElementById('updatePanel'))document.getElementById('updatePanel').classList.remove('open');}
+function adjustEp(d){const ep=document.getElementById('episodeInput');ep.value=Math.max(1,parseInt(ep.value)+d);updateEpDisplay();}
+function updateEpDisplay(){
+  const s=parseInt(document.getElementById('seasonInput').value)||1;
+  const e=parseInt(document.getElementById('episodeInput').value)||1;
+  document.getElementById('epNum').textContent=`S${String(s).padStart(2,'0')}E${String(e).padStart(2,'0')}`;
   updateProgress();
 }
-
-function updateProgress() {
-  const s = parseInt(document.getElementById('seasonInput').value) || 1;
-  const e = parseInt(document.getElementById('episodeInput').value) || 1;
-  const total = parseInt(document.getElementById('totalEpInput').value) || 12;
-  const ep = (s - 1) * 12 + e;
-  const pct = Math.min(100, Math.round((ep / total) * 100));
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('progressFillPreview').style.width = pct + '%';
+function updateProgress(){
+  const s=parseInt(document.getElementById('seasonInput').value)||1;
+  const e=parseInt(document.getElementById('episodeInput').value)||1;
+  const t=parseInt(document.getElementById('totalEpInput').value)||12;
+  const pct=Math.min(100,Math.round(((s-1)*12+e)/t*100));
+  document.getElementById('progressPct').textContent=pct+'%';
+  document.getElementById('progressFillPreview').style.width=pct+'%';
 }
-
-function setRating(n) {
-  currentRating = n;
-  document.querySelectorAll('#starsInput .star-btn').forEach((btn, i) => {
-    btn.textContent = i < n ? '★' : '☆';
-  });
+function setRating(n){
+  currentRating=n;
+  document.querySelectorAll('#starsInput .star-btn').forEach((b,i)=>b.textContent=i<n?'★':'☆');
 }
-
-function deleteItem() {
-  if (!editingId) return;
-  const item = data.find(d => d.id === editingId);
-  if (!item) return;
-  if (!confirm(`Supprimer "${item.title}" ?`)) return;
-  data = data.filter(d => d.id !== editingId);
-  saveData();
-  renderList();
+function togglePin(){
+  const item=data.find(d=>d.id===editingId);if(!item) return;
+  item.pinned=!item.pinned;
+  const pb=document.getElementById('pinBtn');
+  pb.textContent=item.pinned?'📌 Épinglé':'📌 Épingler';
+  pb.classList.toggle('active',item.pinned);
+}
+function deleteItem(){
+  const item=data.find(d=>d.id===editingId);
+  if(!item||!confirm(`Supprimer "${item.title}" ?`)) return;
+  data=data.filter(d=>d.id!==editingId);
+  saveData();renderList();
   document.getElementById('updatePanel').classList.remove('open');
+  showToast('Supprimé ✓');
 }
-
-function saveUpdate() {
-  const item = data.find(d => d.id === editingId);
-  if (!item) return;
-  item.status = document.getElementById('statusSelect').value;
-  item.genre = document.getElementById('updateGenre').value;
-  item.rating = currentRating;
-  item.note = document.getElementById('noteInput').value;
-  if (item.type === 'serie') {
-    item.season = parseInt(document.getElementById('seasonInput').value);
-    item.episode = parseInt(document.getElementById('episodeInput').value);
-    item.totalEp = parseInt(document.getElementById('totalEpInput').value);
-    // Auto-marquer terminé
-    const ep = (item.season - 1) * 12 + item.episode;
-    if (ep >= item.totalEp && item.status === 'watching') item.status = 'done';
+function saveUpdate(){
+  const item=data.find(d=>d.id===editingId);if(!item) return;
+  const newTitle=document.getElementById('updateTitle').value.trim();
+  if(newTitle) item.title=newTitle;
+  item.year=parseInt(document.getElementById('updateYear').value)||item.year;
+  item.status=document.getElementById('statusSelect').value;
+  item.genre=document.getElementById('updateGenre').value;
+  item.rating=currentRating;
+  item.note=document.getElementById('noteInput').value;
+  if(item.type==='serie'){
+    item.season=parseInt(document.getElementById('seasonInput').value);
+    item.episode=parseInt(document.getElementById('episodeInput').value);
+    item.totalEp=parseInt(document.getElementById('totalEpInput').value);
+    if((item.season-1)*12+item.episode>=item.totalEp&&item.status==='watching') item.status='done';
   } else {
-    item.filmProgress = parseInt(document.getElementById('filmProgress').value);
-    if (item.filmProgress >= 100 && item.status === 'watching') item.status = 'done';
+    item.filmProgress=parseInt(document.getElementById('filmProgress').value);
+    if(item.filmProgress>=100&&item.status==='watching') item.status='done';
   }
-  item.lastUpdate = new Date().toISOString().slice(0,7);
-  saveData();
-  renderList();
+  item.lastUpdate=new Date().toISOString().slice(0,7);
+  saveData();renderList();
   document.getElementById('updatePanel').classList.remove('open');
+  showToast('Enregistré ✓');
 }
 
-// ──────────────────────────────────────────────
 // ADD PANEL
-// ──────────────────────────────────────────────
-function openAddPanel() { document.getElementById('addPanel').classList.add('open'); }
-function closeAddPanel(e) {
-  if (!e || e.target === document.getElementById('addPanel'))
-    document.getElementById('addPanel').classList.remove('open');
+function openAddPanel(){document.getElementById('addPanel').classList.add('open');}
+function closeAddPanel(e){if(!e||e.target===document.getElementById('addPanel'))document.getElementById('addPanel').classList.remove('open');}
+function selectAddType(t){
+  addType=t;
+  document.getElementById('addTypeSerie').classList.toggle('active',t==='serie');
+  document.getElementById('addTypeFilm').classList.toggle('active',t==='film');
+  document.getElementById('addEpisodesField').style.display=t==='serie'?'':'none';
 }
-function selectAddType(t) {
-  addType = t;
-  document.getElementById('addTypeSerie').classList.toggle('active', t==='serie');
-  document.getElementById('addTypeFilm').classList.toggle('active', t==='film');
-  document.getElementById('addEpisodesField').style.display = t==='serie' ? '' : 'none';
-}
-
-function saveAdd() {
-  const title = document.getElementById('addTitle').value.trim();
-  if (!title) { document.getElementById('addTitle').focus(); return; }
-  const emojis = EMOJIS[addType];
-  const item = {
-    id: Date.now(),
-    type: addType,
-    title,
-    genre: document.getElementById('addGenre').value,
-    year: parseInt(document.getElementById('addYear').value),
-    emoji: emojis[Math.floor(Math.random() * emojis.length)],
-    status: 'todo',
-    season: 1, episode: 1,
-    totalEp: addType === 'serie' ? (parseInt(document.getElementById('addEpisodes').value) || 12) : 1,
-    filmProgress: 0,
-    rating: 0, note: '',
-    addedDate: new Date().toISOString().slice(0,7)
-  };
-  data.unshift(item);
-  saveData();
-  renderList();
-  document.getElementById('addTitle').value = '';
+function saveAdd(){
+  const title=document.getElementById('addTitle').value.trim();
+  if(!title){document.getElementById('addTitle').focus();return;}
+  const emojis=EMOJIS[addType];
+  data.unshift({
+    id:Date.now(),type:addType,title,
+    genre:document.getElementById('addGenre').value,
+    year:parseInt(document.getElementById('addYear').value),
+    emoji:emojis[Math.floor(Math.random()*emojis.length)],
+    status:'todo',season:1,episode:1,
+    totalEp:addType==='serie'?(parseInt(document.getElementById('addEpisodes').value)||12):1,
+    filmProgress:0,rating:0,note:'',pinned:false,
+    addedDate:new Date().toISOString().slice(0,7)
+  });
+  saveData();renderList();
+  document.getElementById('addTitle').value='';
   document.getElementById('addPanel').classList.remove('open');
+  showToast(`"${title}" ajouté ✓`);
 }
 
-// ──────────────────────────────────────────────
+// EXPORT/IMPORT
+function openExportPanel(){document.getElementById('exportTextarea').value=JSON.stringify(data,null,2);document.getElementById('exportPanel').classList.add('open');}
+function closeExportPanel(e){if(!e||e.target===document.getElementById('exportPanel'))document.getElementById('exportPanel').classList.remove('open');}
+function doExport(){
+  document.getElementById('exportTextarea').value=JSON.stringify(data,null,2);
+  try{navigator.clipboard.writeText(JSON.stringify(data));showToast('Copié ✓');}
+  catch(e){showToast('Copiez le texte manuellement');}
+}
+function doImport(){
+  try{
+    const parsed=JSON.parse(document.getElementById('exportTextarea').value);
+    if(!Array.isArray(parsed)) throw new Error();
+    data=parsed;saveData();renderList();
+    document.getElementById('exportPanel').classList.remove('open');
+    showToast(`${data.length} entrées importées ✓`);
+  } catch(e){showToast('❌ JSON invalide');}
+}
+
 // KPIs
-// ──────────────────────────────────────────────
-function renderKPIs() {
-  const done = data.filter(d => d.status === 'done').length;
-  const watching = data.filter(d => d.status === 'watching').length;
-  const series = data.filter(d => d.type === 'serie').length;
-  const films = data.filter(d => d.type === 'film').length;
-  const avgRating = (data.filter(d=>d.rating>0).reduce((s,d)=>s+d.rating,0) / (data.filter(d=>d.rating>0).length || 1)).toFixed(1);
-  const totalEp = data.filter(d=>d.type==='serie').reduce((s,d)=>{
-    return s + (d.season-1)*12 + d.episode;
-  }, 0);
-
-  document.getElementById('kpiGrid').innerHTML = `
-    <div class="kpi-card">
-      <div class="kpi-val">${data.length}</div>
-      <div class="kpi-label">Total</div>
-      <div class="kpi-sub">${series} séries · ${films} films</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-val">${done}</div>
-      <div class="kpi-label">Terminés</div>
-      <div class="kpi-sub">${watching} en cours</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-val">${avgRating}★</div>
-      <div class="kpi-label">Note moy.</div>
-      <div class="kpi-sub">sur /5</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-val">${totalEp}</div>
-      <div class="kpi-label">EP vus</div>
-      <div class="kpi-sub">toutes séries</div>
-    </div>`;
+function renderKPIs(){
+  const done=data.filter(d=>d.status==='done').length;
+  const watching=data.filter(d=>d.status==='watching').length;
+  const series=data.filter(d=>d.type==='serie').length;
+  const films=data.filter(d=>d.type==='film').length;
+  const rated=data.filter(d=>d.rating>0);
+  const avg=rated.length?(rated.reduce((s,d)=>s+d.rating,0)/rated.length).toFixed(1):'—';
+  const totalEp=data.filter(d=>d.type==='serie').reduce((s,d)=>s+(d.season-1)*12+d.episode,0);
+  document.getElementById('kpiGrid').innerHTML=`
+    <div class="kpi-card"><div class="kpi-val">${data.length}</div><div class="kpi-label">Total</div><div class="kpi-sub">${series} séries · ${films} films</div></div>
+    <div class="kpi-card"><div class="kpi-val">${done}</div><div class="kpi-label">Terminés</div><div class="kpi-sub">${watching} en cours</div></div>
+    <div class="kpi-card"><div class="kpi-val">${avg}${rated.length?'★':''}</div><div class="kpi-label">Note moy.</div><div class="kpi-sub">sur /5</div></div>
+    <div class="kpi-card"><div class="kpi-val">${totalEp}</div><div class="kpi-label">EP vus</div><div class="kpi-sub">toutes séries</div></div>`;
 }
 
-// ──────────────────────────────────────────────
-// CHARTS (vanilla canvas)
-// ──────────────────────────────────────────────
-function getCssVar(v) {
-  return getComputedStyle(document.body).getPropertyValue(v).trim();
-}
-
-function renderCharts() {
-  renderActivityChart();
-  renderProgressChart();
-  renderGenreList();
-}
-
-function renderActivityChart() {
-  const canvas = document.getElementById('activityChart');
-  const ctx = canvas.getContext('2d');
-  canvas.width = canvas.offsetWidth * window.devicePixelRatio || 600;
-  canvas.height = 160 * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  const W = canvas.offsetWidth || 300;
-  const H = 160;
+// CHARTS
+function getCssVar(v){return getComputedStyle(document.body).getPropertyValue(v).trim();}
+function renderCharts(){renderActivityChart();renderProgressChart();renderGenreList();}
+function renderActivityChart(){
+  const canvas=document.getElementById('activityChart');
+  const ctx=canvas.getContext('2d');
+  canvas.width=(canvas.offsetWidth||300)*window.devicePixelRatio;
+  canvas.height=160*window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  const W=canvas.offsetWidth||300,H=160;
   ctx.clearRect(0,0,W,H);
-
-  // Fake monthly data (démonstratif)
-  const months = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
-  const valsSeries = [3,5,8,4,6,7,5,9];
-  const valsFilms  = [1,2,1,3,2,1,2,3];
-
-  const accent = getCssVar('--accent');
-  const blue = getCssVar('--blue');
-  const textColor = getCssVar('--text4');
-  const gridColor = getCssVar('--border');
-  const maxVal = Math.max(...valsSeries.map((v,i) => v + valsFilms[i]));
-  const barW = (W - 40) / months.length;
-  const innerH = H - 30;
-
-  // Grid lines
-  ctx.strokeStyle = gridColor;
-  ctx.lineWidth = 0.5;
-  for (let i = 0; i <= 4; i++) {
-    const y = 10 + (innerH - 10) * (1 - i/4);
-    ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W, y); ctx.stroke();
-    ctx.fillStyle = textColor;
-    ctx.font = `9px JetBrains Mono, monospace`;
-    ctx.fillText(Math.round(maxVal * i/4), 2, y + 3);
-  }
-
-  // Bars
-  months.forEach((m, i) => {
-    const x = 32 + i * barW;
-    const bw = barW * 0.7;
-    const s = valsSeries[i], f = valsFilms[i];
-    const h1 = (s / maxVal) * (innerH - 10);
-    const h2 = (f / maxVal) * (innerH - 10);
-
-    // Series bar
-    ctx.fillStyle = accent;
-    ctx.beginPath();
-    ctx.roundRect(x + barW*0.05, innerH - h1 + 8, bw * 0.55, h1, [3,3,0,0]);
-    ctx.fill();
-
-    // Film bar
-    ctx.fillStyle = blue;
-    ctx.beginPath();
-    ctx.roundRect(x + barW*0.05 + bw*0.58, innerH - h2 + 8, bw * 0.37, h2, [3,3,0,0]);
-    ctx.fill();
-
-    // Label
-    ctx.fillStyle = textColor;
-    ctx.font = `8px JetBrains Mono, monospace`;
-    ctx.textAlign = 'center';
-    ctx.fillText(m, x + bw/2, H - 4);
+  const months=['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+  const vs=[3,5,8,4,6,7,5,9],vf=[1,2,1,3,2,1,2,3];
+  const accent=getCssVar('--accent'),blue=getCssVar('--blue');
+  const tc=getCssVar('--text4'),gc=getCssVar('--border');
+  const maxV=Math.max(...vs.map((v,i)=>v+vf[i]));
+  const bw=(W-40)/months.length,ih=H-30;
+  ctx.strokeStyle=gc;ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=10+(ih-10)*(1-i/4);ctx.beginPath();ctx.moveTo(30,y);ctx.lineTo(W,y);ctx.stroke();ctx.fillStyle=tc;ctx.font='9px JetBrains Mono,monospace';ctx.fillText(Math.round(maxV*i/4),2,y+3);}
+  months.forEach((m,i)=>{
+    const x=32+i*bw,b=bw*0.7;
+    const h1=(vs[i]/maxV)*(ih-10),h2=(vf[i]/maxV)*(ih-10);
+    ctx.fillStyle=accent;ctx.beginPath();ctx.roundRect(x+bw*0.05,ih-h1+8,b*0.55,h1,[3,3,0,0]);ctx.fill();
+    ctx.fillStyle=blue;ctx.beginPath();ctx.roundRect(x+bw*0.05+b*0.58,ih-h2+8,b*0.37,h2,[3,3,0,0]);ctx.fill();
+    ctx.fillStyle=tc;ctx.font='8px JetBrains Mono,monospace';ctx.textAlign='center';ctx.fillText(m,x+b/2,H-4);
   });
-
-  // Legend
-  ctx.textAlign = 'left';
-  ctx.fillStyle = accent;
-  ctx.fillRect(W - 120, 8, 10, 10);
-  ctx.fillStyle = textColor; ctx.fillText('Séries', W - 107, 17);
-  ctx.fillStyle = blue;
-  ctx.fillRect(W - 60, 8, 10, 10);
-  ctx.fillStyle = textColor; ctx.fillText('Films', W - 47, 17);
+  ctx.textAlign='left';ctx.fillStyle=accent;ctx.fillRect(W-120,8,10,10);ctx.fillStyle=tc;ctx.fillText('Séries',W-107,17);
+  ctx.fillStyle=blue;ctx.fillRect(W-60,8,10,10);ctx.fillStyle=tc;ctx.fillText('Films',W-47,17);
 }
-
-function renderProgressChart() {
-  const canvas = document.getElementById('progressChart');
-  const ctx = canvas.getContext('2d');
-  canvas.width = (canvas.offsetWidth || 300) * window.devicePixelRatio;
-  canvas.height = 180 * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  const W = canvas.offsetWidth || 300;
-  const H = 180;
+function renderProgressChart(){
+  const canvas=document.getElementById('progressChart');
+  const ctx=canvas.getContext('2d');
+  canvas.width=(canvas.offsetWidth||300)*window.devicePixelRatio;
+  canvas.height=180*window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  const W=canvas.offsetWidth||300,H=180;
   ctx.clearRect(0,0,W,H);
-
-  const series = data.filter(d => d.type === 'serie').slice(0, 6);
-  const accent = getCssVar('--accent');
-  const accent3 = getCssVar('--accent3');
-  const textColor = getCssVar('--text4');
-  const text2 = getCssVar('--text3');
-  const gridColor = getCssVar('--border');
-  const rowH = H / (series.length + 1);
-
-  series.forEach((item, i) => {
-    const pct = getProgress(item);
-    const y = 10 + i * rowH;
-    const maxW = W - 100;
-    const barH = 8;
-    const bY = y + rowH / 2 - barH / 2;
-
-    // Label
-    ctx.fillStyle = text2;
-    ctx.font = `10px Syne, sans-serif`;
-    ctx.textAlign = 'left';
-    const label = item.title.length > 14 ? item.title.slice(0, 12) + '…' : item.title;
-    ctx.fillText(label, 0, bY + barH - 1);
-
-    // Bar BG
-    ctx.fillStyle = gridColor;
-    ctx.beginPath(); ctx.roundRect(0, bY + 14, maxW, barH, 4); ctx.fill();
-
-    // Bar fill
-    const grad = ctx.createLinearGradient(0, bY, maxW, bY);
-    grad.addColorStop(0, accent); grad.addColorStop(1, accent3);
-    ctx.fillStyle = pct === 100 ? getCssVar('--green') : grad;
-    ctx.beginPath(); ctx.roundRect(0, bY + 14, maxW * pct / 100, barH, 4); ctx.fill();
-
-    // Pct
-    ctx.fillStyle = textColor;
-    ctx.font = `bold 10px JetBrains Mono, monospace`;
-    ctx.textAlign = 'right';
-    ctx.fillText(pct + '%', W, bY + 22);
+  const series=data.filter(d=>d.type==='serie').slice(0,6);
+  const ac=getCssVar('--accent'),ac3=getCssVar('--accent3');
+  const tc=getCssVar('--text4'),t2=getCssVar('--text3'),gc=getCssVar('--border');
+  const rowH=H/(series.length+1);
+  series.forEach((item,i)=>{
+    const pct=getProgress(item),y=10+i*rowH,mW=W-50,bH=8,bY=y+rowH/2-bH/2;
+    ctx.fillStyle=t2;ctx.font='10px Syne,sans-serif';ctx.textAlign='left';
+    ctx.fillText(item.title.length>16?item.title.slice(0,14)+'…':item.title,0,bY+bH-1);
+    ctx.fillStyle=gc;ctx.beginPath();ctx.roundRect(0,bY+14,mW,bH,4);ctx.fill();
+    const g=ctx.createLinearGradient(0,bY,mW,bY);g.addColorStop(0,ac);g.addColorStop(1,ac3);
+    ctx.fillStyle=pct===100?getCssVar('--green'):g;
+    ctx.beginPath();ctx.roundRect(0,bY+14,mW*pct/100,bH,4);ctx.fill();
+    ctx.fillStyle=tc;ctx.font='bold 10px JetBrains Mono,monospace';ctx.textAlign='right';ctx.fillText(pct+'%',W,bY+22);
   });
 }
-
-function renderGenreList() {
-  const counts = {};
-  data.forEach(d => { counts[d.genre] = (counts[d.genre] || 0) + 1; });
-  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
-  const max = sorted[0]?.[1] || 1;
-  document.getElementById('genreList').innerHTML = sorted.map(([g, c]) => `
+function renderGenreList(){
+  const counts={};
+  data.forEach(d=>{counts[d.genre]=(counts[d.genre]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('genreList').innerHTML=sorted.map(([g,c])=>`
     <div class="genre-row">
       <span class="genre-name">${g}</span>
-      <div class="genre-bar-wrap"><div class="genre-bar" style="width:${(c/max*100)}%"></div></div>
+      <div class="genre-bar-wrap"><div class="genre-bar" style="width:${c/max*100}%"></div></div>
       <span class="genre-count">${c}</span>
     </div>`).join('');
 }
 
-// ──────────────────────────────────────────────
-// INIT
-// ──────────────────────────────────────────────
 renderList();
-window.addEventListener('resize', () => {
-  if (document.getElementById('page-stats').classList.contains('active')) renderCharts();
-});
+window.addEventListener('resize',()=>{if(document.getElementById('page-stats').classList.contains('active'))renderCharts();});
 </script>
 </body>
 </html>
