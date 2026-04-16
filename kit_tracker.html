@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kit de Survie — Suivi Périodique</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5ead8;
+    --bg2: #ede0c8;
+    --bg3: #e0cba8;
+    --panel: #fdf6ec;
+    --border: #c8a86b;
+    --border2: #b8944a;
+    --text: #3a2a0f;
+    --text2: #6b4c1e;
+    --text3: #9a6f35;
+    --accent: #d4682a;
+    --accent2: #b8501a;
+    --accent-glow: rgba(212,104,42,0.15);
+    --ok: #5a8a4a;
+    --ok-bg: #e8f4e4;
+    --warn: #c8820a;
+    --warn-bg: #fef3dc;
+    --alert: #c0392b;
+    --alert-bg: #fde8e6;
+    --check: #e67e22;
+    --check-bg: #fef0e4;
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --shadow: 0 4px 20px rgba(160,100,30,0.12);
+    --pattern: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c8a86b' fill-opacity='0.08'%3E%3Cpath d='M0 20 L20 0 L40 20 L20 40Z'/%3E%3C/g%3E%3C/svg%3E");
+    --header-h: 60px;
+    --nav-h: 56px;
+  }
+
+  [data-theme="military"] {
+    --bg: #1e2415;
+    --bg2: #252c1a;
+    --bg3: #2e3820;
+    --panel: #1a2010;
+    --border: #4a5e30;
+    --border2: #6a8040;
+    --text: #c8d4a0;
+    --text2: #a0b070;
+    --text3: #7a9050;
+    --accent: #8ab840;
+    --accent2: #6a9020;
+    --accent-glow: rgba(138,184,64,0.1);
+    --ok: #6ab040;
+    --ok-bg: #1e2e12;
+    --warn: #d4a020;
+    --warn-bg: #2a2010;
+    --alert: #e04030;
+    --alert-bg: #2a1010;
+    --check: #d08030;
+    --check-bg: #281c08;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+    --pattern: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%234a5e30' fill-opacity='0.15'%3E%3Crect x='0' y='0' width='20' height='20'/%3E%3Crect x='20' y='20' width='20' height='20'/%3E%3Crect x='40' y='0' width='20' height='20'/%3E%3Crect x='0' y='40' width='20' height='20'/%3E%3Crect x='40' y='40' width='20' height='20'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html { font-size: 16px; }
+
+  body {
+    background-color: var(--bg);
+    background-image: var(--pattern);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 3px solid var(--border);
+    height: var(--header-h);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: var(--shadow);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+  .kit-icon { font-size: 24px; line-height: 1; flex-shrink: 0; }
+
+  .header-titles { min-width: 0; }
+
+  header h1 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  [data-theme="military"] header h1 {
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+  }
+
+  .header-sub {
+    font-size: 0.65rem;
+    color: var(--text3);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    background: var(--bg3);
+    border: 2px solid var(--border);
+    border-radius: 24px;
+    padding: 5px 10px;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text2);
+    transition: all 0.2s;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .theme-toggle:hover, .theme-toggle:active { border-color: var(--accent); color: var(--accent); }
+
+  .toggle-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* ── ALERT BANNER ── */
+  .alert-banner {
+    margin: 10px 12px 0;
+    padding: 10px 14px;
+    background: var(--alert-bg);
+    border: 2px solid var(--alert);
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--alert);
+    font-size: 0.88rem;
+    animation: pulse-border 2s infinite;
+    line-height: 1.4;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.2); }
+    50% { box-shadow: 0 0 0 6px rgba(192,57,43,0); }
+  }
+
+  [data-theme="military"] .alert-banner {
+    animation: pulse-border-mil 2s infinite;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  @keyframes pulse-border-mil {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(224,64,48,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(224,64,48,0); }
+  }
+
+  .alert-banner.hidden { display: none; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    background: var(--bg2);
+    border-top: 2px solid var(--border);
+    display: flex;
+    z-index: 200;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: none;
+    background: transparent;
+    padding: 6px 4px;
+    transition: color 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .nav-item.active { color: var(--accent); }
+  .nav-item:active { opacity: 0.7; }
+
+  .nav-icon { font-size: 20px; line-height: 1; }
+
+  /* ── MAIN ── */
+  main {
+    padding: 12px 12px calc(var(--nav-h) + 12px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* ── VIEWS ── */
+  .view { display: none; flex-direction: column; gap: 14px; }
+  .view.active { display: flex; }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .stat-card:active { transform: scale(0.96); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--stat-color, var(--accent));
+  }
+
+  .stat-num {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--stat-color, var(--accent));
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+    line-height: 1.2;
+  }
+
+  .stat-card.ok { --stat-color: var(--ok); border-color: var(--ok); }
+  .stat-card.warn { --stat-color: var(--warn); border-color: var(--warn); }
+  .stat-card.alert { --stat-color: var(--alert); border-color: var(--alert); }
+  .stat-card.check { --stat-color: var(--check); border-color: var(--check); }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .panel-title-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title-left::before {
+    content: '';
+    display: inline-block;
+    width: 10px; height: 10px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    flex-shrink: 0;
+  }
+
+  [data-theme="military"] .panel-title-left::before {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+
+  /* ── FILTER PILLS ── */
+  .filter-scroll {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .filter-scroll::-webkit-scrollbar { display: none; }
+
+  .filter-btn {
+    padding: 5px 12px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filter-btn.active, .filter-btn:active { background: var(--accent); border-color: var(--accent); color: white; }
+  .filter-btn.ok.active { background: var(--ok); border-color: var(--ok); }
+  .filter-btn.warn.active { background: var(--warn); border-color: var(--warn); }
+  .filter-btn.alert.active { background: var(--alert); border-color: var(--alert); }
+
+  /* ── ITEM CARDS (mobile list) ── */
+  .items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item-card {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: border-color 0.15s;
+  }
+
+  .item-card[data-status="alert"] { border-left: 4px solid var(--alert); }
+  .item-card[data-status="warn"]  { border-left: 4px solid var(--warn); }
+  .item-card[data-status="ok"]    { border-left: 4px solid var(--ok); }
+  .item-card[data-status="check"] { border-left: 4px solid var(--check); }
+
+  .item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+
+  .item-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .item-detail {
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-top: 2px;
+    font-family: var(--font-mono);
+  }
+
+  .item-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .date-label {
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+
+  .date-input {
+    flex: 1;
+    min-width: 120px;
+    max-width: 160px;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .date-input:focus { outline: none; border-color: var(--accent); }
+
+  .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+
+  .next-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+
+  .reset-btn {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    font-family: var(--font-mono);
+    margin-left: auto;
+  }
+
+  .reset-btn:active { color: var(--alert); border-color: var(--alert); }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge.ok { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); }
+  .badge.alert { background: var(--alert-bg); color: var(--alert); border: 1px solid var(--alert); }
+  .badge.check { background: var(--check-bg); color: var(--check); border: 1px solid var(--check); }
+
+  /* ── CHARTS VIEW ── */
+  .charts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ── LEGEND ── */
+  .legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text2);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── JSON / EXPORT VIEW ── */
+  .json-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    width: 100%;
+  }
+
+  .action-btn:active { transform: scale(0.97); }
+
+  .action-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent2);
+    color: white;
+  }
+
+  .action-btn.danger {
+    border-color: var(--alert);
+    color: var(--alert);
+  }
+
+  .action-btn.success {
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+
+  .json-preview {
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text2);
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  .json-meta {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text3);
+    padding: 8px 12px;
+    background: var(--bg3);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    opacity: 0.5;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: calc(var(--nav-h) + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 9px 18px;
+    border-radius: 20px;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── LAST UPDATED ── */
+  .last-updated {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text3);
+    text-align: center;
+    padding-bottom: 4px;
+    opacity: 0.75;
+  }
+
+  /* ── TABLET+ ── */
+  @media (min-width: 600px) {
+    main { padding: 16px 20px calc(var(--nav-h) + 16px); }
+    header { padding: 0 24px; }
+    header h1 { font-size: 1.25rem; }
+    .stat-num { font-size: 2rem; }
+    .stat-label { font-size: 0.65rem; }
+    .item-bottom { flex-wrap: nowrap; }
+    .charts-grid { flex-direction: row; }
+    .charts-grid > .panel { flex: 1; }
+  }
+
+  @media (min-width: 768px) {
+    :root { --nav-h: 0px; }
+    .bottom-nav { display: none; }
+    main { padding: 20px 24px 24px; }
+
+    /* Show desktop layout */
+    .view { display: flex !important; }
+    .view.dashboard-view { flex-direction: row; flex-wrap: wrap; gap: 16px; }
+
+    .desktop-sidebar {
+      flex: 0 0 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .desktop-main { flex: 1; min-width: 0; }
+
+    .bottom-nav-desktop {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0;
+    }
+  }
+
+  /* ── SECTION HEADERS (mobile nav labels) ── */
+  .section-header {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--accent);
+    padding: 4px 0 2px;
+  }
+
+  [data-theme="military"] .section-header {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <div class="kit-icon" id="kitIcon">🎒</div>
+    <div class="header-titles">
+      <h1 id="pageTitle">Kit de Survie</h1>
+      <div class="header-sub" id="headerSub">Suivi Périodique</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <div class="toggle-dot" id="toggleDot">🌿</div>
+      <span id="themeLabel" class="hide-xs">Mode Mil.</span>
+    </button>
+  </div>
+</header>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner hidden" id="alertBanner">
+  ⚠️ <span id="alertText"></span>
+</div>
+
+<main>
+
+  <!-- VIEW: TABLEAU DE BORD -->
+  <div class="view active" id="view-dash">
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card ok" onclick="switchView('items'); filterItems('ok', null)">
+        <div class="stat-num" id="statOk">0</div>
+        <div class="stat-label">✓ OK</div>
+      </div>
+      <div class="stat-card warn" onclick="switchView('items'); filterItems('warn', null)">
+        <div class="stat-num" id="statWarn">0</div>
+        <div class="stat-label">⚡ Bientôt</div>
+      </div>
+      <div class="stat-card alert" onclick="switchView('items'); filterItems('alert', null)">
+        <div class="stat-num" id="statAlert">0</div>
+        <div class="stat-label">🔴 Urgent</div>
+      </div>
+      <div class="stat-card check" onclick="switchView('items'); filterItems('check', null)">
+        <div class="stat-num" id="statCheck">0</div>
+        <div class="stat-label">🔧 Vérif.</div>
+      </div>
+      <div class="stat-card" style="--stat-color: var(--text3)" onclick="switchView('items'); filterItems('all', null)">
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="panel">
+        <div class="panel-title"><span class="panel-title-left">État du Kit</span></div>
+        <canvas id="statusChart" height="200"></canvas>
+        <div class="legend-grid" id="legendGrid"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="panel-title-left">Par Priorité</span></div>
+        <canvas id="prioChart" height="160"></canvas>
+      </div>
+    </div>
+
+    <div class="last-updated" id="lastUpdated"></div>
+  </div>
+
+  <!-- VIEW: ARTICLES -->
+  <div class="view" id="view-items">
+    <div class="filter-scroll" id="filterScroll">
+      <button class="filter-btn active" onclick="filterItems('all', this)">Tous</button>
+      <button class="filter-btn alert" onclick="filterItems('alert', this)">🔴 Urgents</button>
+      <button class="filter-btn warn" onclick="filterItems('warn', this)">⚡ Bientôt</button>
+      <button class="filter-btn ok" onclick="filterItems('ok', this)">✓ OK</button>
+      <button class="filter-btn" onclick="filterItems('check', this)">🔧 Vérifier</button>
+    </div>
+
+    <div class="items-list" id="itemsList"></div>
+    <div class="last-updated" id="lastUpdated2"></div>
+  </div>
+
+  <!-- VIEW: SAUVEGARDES JSON -->
+  <div class="view" id="view-json">
+    <div class="section-header">💾 Sauvegarde</div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="panel-title-left">Exporter</span></div>
+      <div class="json-section">
+        <div class="json-meta" id="jsonMeta">Chargement…</div>
+        <button class="action-btn primary" onclick="exportJSON()">⬇ Télécharger JSON</button>
+        <button class="action-btn success" onclick="copyJSON()">📋 Copier dans le presse-papier</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="panel-title-left">Importer</span></div>
+      <div class="json-section">
+        <input type="file" id="fileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="action-btn" onclick="document.getElementById('fileInput').click()">📂 Charger un fichier JSON</button>
+        <div class="json-preview" id="jsonPreview">Aucune donnée à afficher</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="panel-title-left">Réinitialiser</span></div>
+      <div class="json-section">
+        <button class="action-btn danger" onclick="resetAll()">🗑 Effacer toutes les dates</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-dash" onclick="switchView('dash')">
+    <span class="nav-icon">📊</span>Tableau
+  </button>
+  <button class="nav-item" id="nav-items" onclick="switchView('items')">
+    <span class="nav-icon">📋</span>Articles
+  </button>
+  <button class="nav-item" id="nav-json" onclick="switchView('json')">
+    <span class="nav-icon">💾</span>JSON
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const items = [
+  { id: 'premiers_secours', name: 'Trousse 1ers secours', desc: 'Pansements, compresses, sparadrap', cat: 'Santé', prio: 'haute', periodDays: 365, type: 'date', icon: '🩹' },
+  { id: 'masque', name: 'Masque médical', desc: '1–3 ans selon modèle', cat: 'Santé', prio: 'moyenne', periodDays: 730, type: 'date', icon: '😷' },
+  { id: 'lingettes', name: 'Lingettes / serviettes', desc: '2–3 ans', cat: 'Santé', prio: 'moyenne', periodDays: 730, type: 'date', icon: '🧴' },
+  { id: 'gel_hydro', name: 'Gel hydroalcoolique', desc: '2–3 ans', cat: 'Santé', prio: 'haute', periodDays: 730, type: 'date', icon: '🧼' },
+  { id: 'micropure', name: 'Micropure (pastilles)', desc: '~5 ans selon marque', cat: 'Santé', prio: 'haute', periodDays: 1825, type: 'date', icon: '💧' },
+  { id: 'biscuits', name: 'Biscuits TUC', desc: '~6–12 mois', cat: 'Alim.', prio: 'haute', periodDays: 270, type: 'date', icon: '🍪' },
+  { id: 'repas_emballe', name: 'Repas emballé', desc: '~2–5 ans', cat: 'Alim.', prio: 'haute', periodDays: 1095, type: 'date', icon: '🥫' },
+  { id: 'briquet', name: 'Briquet', desc: 'Vérif. fonctionnement', cat: 'Outils', prio: 'haute', periodDays: 180, type: 'check', icon: '🔥' },
+  { id: 'lampe', name: 'Lampe frontale', desc: 'Vérif. pile', cat: 'Outils', prio: 'haute', periodDays: 180, type: 'check', icon: '🔦' },
+  { id: 'batteries', name: 'Batteries (2× AA)', desc: '~5 ans (péremption)', cat: 'Électro.', prio: 'haute', periodDays: 1825, type: 'date', icon: '🔋' },
+  { id: 'powerbank', name: 'Powerbank', desc: 'Vérif. capacité / charge', cat: 'Électro.', prio: 'haute', periodDays: 90, type: 'check', icon: '⚡' },
+  { id: 'cle_voiture', name: 'Clé de voiture', desc: 'Vérif. pile télécommande', cat: 'Électro.', prio: 'haute', periodDays: 365, type: 'check', icon: '🔑' },
+  { id: 'stylo', name: 'Stylo', desc: 'Vérif. encre', cat: 'Navi.', prio: 'moyenne', periodDays: 365, type: 'check', icon: '🖊️' },
+  { id: 'elastiques', name: 'Élastiques', desc: 'Vérif. élasticité', cat: 'Divers', prio: 'basse', periodDays: 365, type: 'check', icon: '🔗' },
+  { id: 'ruban', name: 'Ruban adhésif (gaffer)', desc: 'Vérif. adhérence', cat: 'Divers', prio: 'moyenne', periodDays: 365, type: 'check', icon: '🩹' },
+];
+
+const STORAGE_KEY = 'kit_survival_dates_v1';
+let currentFilter = 'all';
+let isMilitary = false;
+let currentView = 'dash';
+let chartStatus = null, chartPrio = null;
+
+// ─── STORAGE ──────────────────────────────────────────────────────────────────
+function loadDates() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveDates(dates) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(dates)); } catch {}
+}
+
+// ─── STATUS ───────────────────────────────────────────────────────────────────
+function getStatus(item, lastCheckStr) {
+  if (!lastCheckStr) return { status: 'check', label: 'Non vérifié', daysLeft: null, nextDate: null };
+  const last = new Date(lastCheckStr);
+  const now = new Date();
+  const next = new Date(last.getTime() + item.periodDays * 86400000);
+  const daysLeft = Math.round((next - now) / 86400000);
+  if (daysLeft < 0) return { status: 'alert', label: `En retard (${Math.abs(daysLeft)}j)`, daysLeft, nextDate: next };
+  if (daysLeft < 60) return { status: 'warn', label: `Dans ${daysLeft}j`, daysLeft, nextDate: next };
+  return { status: 'ok', label: `OK (${daysLeft}j)`, daysLeft, nextDate: next };
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatDateISO(d) {
+  if (!d) return '—';
+  return d.toISOString().split('T')[0];
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  const dates = loadDates();
+  const now = new Date();
+  let counts = { ok: 0, warn: 0, alert: 0, check: 0 };
+  let prioCount = { haute: 0, moyenne: 0, basse: 0 };
+  let urgentItems = [];
+
+  // Build card list
+  const list = document.getElementById('itemsList');
+  list.innerHTML = '';
+
+  items.forEach(item => {
+    const lastCheck = dates[item.id] || '';
+    const { status, label, daysLeft, nextDate } = getStatus(item, lastCheck);
+    counts[status]++;
+    prioCount[item.prio]++;
+    if (status === 'alert') urgentItems.push(item.name);
+    if (currentFilter !== 'all' && currentFilter !== status) return;
+
+    const badgeMap = {
+      ok:    `<span class="badge ok">✓ OK</span>`,
+      warn:  `<span class="badge warn">⚡ Bientôt</span>`,
+      alert: `<span class="badge alert">🔴 Urgent</span>`,
+      check: `<span class="badge check">🔧 Vérifier</span>`,
+    };
+
+    const periodLabel = item.periodDays >= 365
+      ? `${Math.round(item.periodDays / 365)}an${item.periodDays >= 730 ? 's' : ''}`
+      : `${item.periodDays}j`;
+
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.dataset.status = status;
+    card.innerHTML = `
+      <div class="item-top">
+        <div class="item-info">
+          <div class="item-name">${item.icon} ${item.name}</div>
+          <div class="item-detail">${item.cat} · /${periodLabel} · ${item.type === 'date' ? 'Péremption' : 'Vérification'}</div>
+        </div>
+        ${badgeMap[status]}
+      </div>
+      <div class="item-bottom">
+        <span class="date-label">Dernière vérif. :</span>
+        <input type="date"
+          class="date-input"
+          id="date_${item.id}"
+          value="${lastCheck}"
+          max="${now.toISOString().split('T')[0]}"
+          onchange="onDateChange('${item.id}', this.value)"
+        >
+        <button class="reset-btn" onclick="resetItem('${item.id}')" title="Réinitialiser">✕</button>
+      </div>
+      <div class="item-meta">
+        <span class="next-label">Prochain contrôle : ${nextDate ? formatDate(nextDate) : '—'}</span>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // Stats
+  document.getElementById('statOk').textContent = counts.ok;
+  document.getElementById('statWarn').textContent = counts.warn;
+  document.getElementById('statAlert').textContent = counts.alert;
+  document.getElementById('statCheck').textContent = counts.check;
+  document.getElementById('statTotal').textContent = items.length;
+
+  // Alert banner
+  const banner = document.getElementById('alertBanner');
+  if (urgentItems.length > 0) {
+    banner.classList.remove('hidden');
+    document.getElementById('alertText').textContent =
+      `${urgentItems.length} article(s) en retard : ${urgentItems.slice(0, 3).join(', ')}${urgentItems.length > 3 ? '…' : ''}`;
+  } else {
+    banner.classList.add('hidden');
+  }
+
+  const ts = `Mis à jour le ${formatDate(now)} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+  document.getElementById('lastUpdated').textContent = ts;
+  document.getElementById('lastUpdated2').textContent = ts;
+
+  updateCharts(counts, prioCount);
+  refreshJsonMeta(dates);
+}
+
+function onDateChange(id, val) {
+  const dates = loadDates();
+  if (val) dates[id] = val; else delete dates[id];
+  saveDates(dates);
+  render();
+}
+
+function resetItem(id) {
+  const dates = loadDates();
+  delete dates[id];
+  saveDates(dates);
+  render();
+}
+
+function filterItems(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const btns = document.querySelectorAll('.filter-btn');
+    if (filter === 'all') btns[0].classList.add('active');
+  }
+  render();
+}
+
+// ─── CHARTS ───────────────────────────────────────────────────────────────────
+function getThemeColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    ok: s.getPropertyValue('--ok').trim(),
+    warn: s.getPropertyValue('--warn').trim(),
+    alert: s.getPropertyValue('--alert').trim(),
+    check: s.getPropertyValue('--check').trim(),
+    text: s.getPropertyValue('--text').trim(),
+    text3: s.getPropertyValue('--text3').trim(),
+    bg2: s.getPropertyValue('--bg2').trim(),
+    panel: s.getPropertyValue('--panel').trim(),
+  };
+}
+
+function updateCharts(counts, prioCount) {
+  const c = getThemeColors();
+
+  if (chartStatus) chartStatus.destroy();
+  const ctx1 = document.getElementById('statusChart').getContext('2d');
+  chartStatus = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['OK', 'Bientôt', 'Urgent', 'À vérifier'],
+      datasets: [{
+        data: [counts.ok, counts.warn, counts.alert, counts.check],
+        backgroundColor: [c.ok, c.warn, c.alert, c.check],
+        borderWidth: 2,
+        borderColor: c.panel,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } }
+      },
+      cutout: '65%',
+    }
+  });
+
+  const lg = document.getElementById('legendGrid');
+  const labels = [
+    { label: 'OK', color: c.ok, count: counts.ok },
+    { label: 'Bientôt', color: c.warn, count: counts.warn },
+    { label: 'Urgent', color: c.alert, count: counts.alert },
+    { label: 'Non vérifié', color: c.check, count: counts.check },
+  ];
+  lg.innerHTML = labels.map(l => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${l.color}"></div>
+      <span>${l.label}: <strong>${l.count}</strong></span>
+    </div>`).join('');
+
+  if (chartPrio) chartPrio.destroy();
+  const ctx2 = document.getElementById('prioChart').getContext('2d');
+  chartPrio = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Haute', 'Moyenne', 'Basse'],
+      datasets: [{
+        data: [prioCount.haute, prioCount.moyenne, prioCount.basse],
+        backgroundColor: [c.alert, c.warn, c.ok],
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: c.text3, font: { family: 'Share Tech Mono', size: 11 } },
+          grid: { display: false },
+          border: { color: c.text3 }
+        },
+        y: {
+          ticks: { color: c.text3, font: { family: 'Share Tech Mono', size: 11 }, stepSize: 1 },
+          grid: { color: c.bg2 },
+          border: { color: 'transparent' }
+        }
+      }
+    }
+  });
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  const navEl = document.getElementById('nav-' + view);
+  if (navEl) navEl.classList.add('active');
+}
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  isMilitary = !isMilitary;
+  if (isMilitary) {
+    document.documentElement.setAttribute('data-theme', 'military');
+    document.getElementById('themeLabel').textContent = 'Mode Civil';
+    document.getElementById('toggleDot').textContent = '🪖';
+    document.getElementById('kitIcon').textContent = '🎖️';
+    document.getElementById('pageTitle').textContent = 'KIT SURVIE';
+    document.getElementById('headerSub').textContent = 'CTRL_PÉRIODIQUE';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.getElementById('themeLabel').textContent = 'Mode Mil.';
+    document.getElementById('toggleDot').textContent = '🌿';
+    document.getElementById('kitIcon').textContent = '🎒';
+    document.getElementById('pageTitle').textContent = 'Kit de Survie';
+    document.getElementById('headerSub').textContent = 'Suivi Périodique';
+  }
+  setTimeout(render, 50);
+}
+
+// ─── JSON EXPORT / IMPORT ─────────────────────────────────────────────────────
+function buildExportData() {
+  const dates = loadDates();
+  const now = new Date();
+  return {
+    exportedAt: now.toISOString(),
+    exportedAtFr: formatDate(now),
+    version: 'v1',
+    items: items.map(item => {
+      const lastCheck = dates[item.id] || null;
+      const { status, label, nextDate } = getStatus(item, lastCheck);
+      return {
+        id: item.id,
+        name: item.name,
+        category: item.cat,
+        priority: item.prio,
+        periodDays: item.periodDays,
+        lastCheck: lastCheck || null,
+        nextCheck: nextDate ? formatDateISO(nextDate) : null,
+        status,
+        statusLabel: label,
+      };
+    })
+  };
+}
+
+function refreshJsonMeta(dates) {
+  const filled = Object.keys(dates).length;
+  const total = items.length;
+  const now = new Date();
+  const el = document.getElementById('jsonMeta');
+  if (!el) return;
+  el.innerHTML = `
+    <span>📦 ${total} articles · ${filled} dates renseignées</span>
+    <span>🕒 ${formatDate(now)} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+    <span>🔑 Clé stockage : ${STORAGE_KEY}</span>
+  `;
+  // Update preview
+  const preview = document.getElementById('jsonPreview');
+  if (preview) {
+    const data = buildExportData();
+    preview.textContent = JSON.stringify(data, null, 2).slice(0, 800) + (JSON.stringify(data).length > 800 ? '\n…' : '');
+  }
+}
+
+function exportJSON() {
+  const data = buildExportData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `kit_survie_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ JSON téléchargé !');
+}
+
+function copyJSON() {
+  const data = buildExportData();
+  const text = JSON.stringify(data, null, 2);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Copié dans le presse-papier !'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('📋 Copié !');
+  }
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Accept both formats: raw dates object OR our export format
+      let dates = {};
+      if (data.items && Array.isArray(data.items)) {
+        // Our export format
+        data.items.forEach(it => {
+          if (it.id && it.lastCheck) dates[it.id] = it.lastCheck;
+        });
+      } else {
+        // Assume raw key/value date map
+        Object.entries(data).forEach(([k, v]) => {
+          if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) dates[k] = v;
+        });
+      }
+      saveDates(dates);
+      render();
+      showToast(`✅ ${Object.keys(dates).length} dates importées`);
+      document.getElementById('jsonPreview').textContent = JSON.stringify(buildExportData(), null, 2).slice(0, 800);
+    } catch (err) {
+      showToast('❌ Fichier JSON invalide');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function resetAll() {
+  if (!confirm('Effacer toutes les dates de vérification ?')) return;
+  saveDates({});
+  render();
+  showToast('🗑 Données réinitialisées');
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('visible'), 2500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
