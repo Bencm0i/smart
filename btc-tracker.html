@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BTC Wallet Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F1E8;--bg2:#EDE5D4;--bg3:#E2D5BF;
+  --acc:#D97706;--acc2:#B45309;--acc3:#FDE68A;
+  --txt:#2C1A0E;--txt2:#6B4A2A;--txt3:#9A7355;
+  --card:#FFFAF3;--border:#C9A97A;
+  --ok:#16A34A;--warn:#D97706;--err:#DC2626;
+  --radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.12);
+}
+body.military{
+  --bg:#1C2010;--bg2:#252B18;--bg3:#2E3620;
+  --acc:#6B8F3A;--acc2:#4A6628;--acc3:#A3B87A;
+  --txt:#D4D9C5;--txt2:#9AA882;--txt3:#6B7A58;
+  --card:#202616;--border:#3D4E28;
+  --ok:#4ADE80;--warn:#FBBF24;--err:#F87171;
+  --shadow:0 2px 8px rgba(0,0,0,0.4);
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:var(--bg);color:var(--txt);
+  min-height:100vh;padding-bottom:2rem;
+  transition:background 0.3s,color 0.3s;
+}
+header{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:1rem;position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+}
+h1{font-size:1.1rem;font-weight:600;display:flex;align-items:center;gap:8px}
+.btc-icon{width:28px;height:28px;border-radius:50%;background:var(--acc);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:700;font-size:14px}
+.toggle-wrap{display:flex;align-items:center;gap:8px}
+.toggle-label{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
+.toggle{position:relative;width:52px;height:28px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.slider{
+  position:absolute;inset:0;background:var(--bg3);
+  border-radius:28px;border:1px solid var(--border);
+  transition:.3s;
+}
+.slider:before{
+  content:'';position:absolute;width:22px;height:22px;
+  left:3px;top:2px;background:var(--acc);border-radius:50%;transition:.3s;
+}
+input:checked+.slider:before{transform:translateX(24px)}
+.price-bar{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:.6rem 1rem;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:.5rem;
+}
+.price-pill{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:.3rem .8rem;font-size:.8rem;
+  display:flex;align-items:center;gap:6px;
+}
+.price-val{font-weight:600;color:var(--acc)}
+.fees-bar{
+  background:var(--bg3);padding:.6rem 1rem;
+  display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;
+  border-bottom:1px solid var(--border);font-size:.78rem;
+}
+.fee-chip{
+  display:flex;flex-direction:column;align-items:center;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:.3rem .6rem;min-width:68px;
+}
+.fee-chip .fc-label{font-size:.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px}
+.fee-chip .fc-val{font-weight:600;font-size:.85rem}
+.fee-chip.slow .fc-val{color:var(--ok)}
+.fee-chip.mid .fc-val{color:var(--warn)}
+.fee-chip.fast .fc-val{color:var(--err)}
+.section{padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+.wallet-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.wallet-head{
+  padding:.75rem 1rem;display:flex;
+  align-items:center;gap:.5rem;background:var(--bg2);
+  border-bottom:1px solid var(--border);
+}
+.wallet-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--acc);color:white;
+  font-size:.75rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.wallet-head input{
+  flex:1;background:transparent;border:none;outline:none;
+  font-size:.78rem;color:var(--txt);font-family:monospace;
+  min-width:0;
+}
+.wallet-head input::placeholder{color:var(--txt3);font-family:inherit}
+.wallet-head .btn-scan{
+  background:var(--acc);color:white;border:none;
+  border-radius:8px;padding:.3rem .6rem;font-size:.75rem;
+  cursor:pointer;flex-shrink:0;font-weight:600;
+  transition:opacity .2s;
+}
+.wallet-head .btn-scan:hover{opacity:.85}
+.wallet-body{padding:.75rem 1rem}
+.wallet-empty{color:var(--txt3);font-size:.82rem;text-align:center;padding:.5rem 0}
+.wallet-data{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.stat-box{
+  background:var(--bg2);border-radius:8px;
+  padding:.5rem .75rem;border:1px solid var(--border);
+}
+.stat-box .sb-label{font-size:.65rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:.2rem}
+.stat-box .sb-val{font-size:.9rem;font-weight:600}
+.movement-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:.6rem;padding:.4rem .6rem;
+  border-radius:8px;border:1px solid var(--border);
+  font-size:.78rem;background:var(--bg2);
+}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.dot.green{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.dot.gray{background:var(--txt3)}
+.dot.pulse{animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tx-badge{
+  font-size:.7rem;padding:.15rem .45rem;border-radius:12px;
+  font-weight:600;
+}
+.tx-badge.in{background:rgba(22,163,74,.15);color:var(--ok)}
+.tx-badge.out{background:rgba(220,38,38,.15);color:var(--err)}
+.tx-badge.none{background:var(--bg3);color:var(--txt3)}
+.last-tx{font-size:.7rem;color:var(--txt3);margin-top:.3rem;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.err-msg{color:var(--err);font-size:.75rem;padding:.3rem 0}
+.add-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--bg2);border:1.5px dashed var(--border);
+  border-radius:var(--radius);padding:.9rem;cursor:pointer;
+  color:var(--txt2);font-size:.85rem;font-weight:500;
+  transition:all .2s;
+}
+.add-btn:hover{background:var(--bg3);border-color:var(--acc);color:var(--acc)}
+.refresh-btn{
+  background:var(--acc);color:white;border:none;
+  border-radius:8px;padding:.35rem .7rem;font-size:.75rem;
+  cursor:pointer;font-weight:600;display:flex;align-items:center;gap:4px;
+}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--txt3)}
+footer{text-align:center;padding:.75rem;font-size:.7rem;color:var(--txt3);border-top:1px solid var(--border)}
+.full-w{grid-column:1/-1}
+.addr-short{font-size:.7rem;color:var(--txt3);font-family:monospace;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.io-btn{
+  flex:1;text-align:center;background:var(--bg2);
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:.7rem;font-size:.82rem;font-weight:500;color:var(--txt2);
+  cursor:pointer;transition:all .2s;
+}
+.io-btn:hover{background:var(--bg3);color:var(--acc)}
+.btn-remove{
+  background:none;border:none;color:var(--txt3);cursor:pointer;
+  font-size:1rem;line-height:1;padding:0 2px;
+  transition:color .2s;margin-left:auto;
+}
+.btn-remove:hover{color:var(--err)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>
+    <span class="btc-icon">₿</span>
+    BTC Tracker
+  </h1>
+  <div class="toggle-wrap">
+    <span class="toggle-label" id="theme-label">Beige</span>
+    <label class="toggle">
+      <input type="checkbox" id="theme-toggle" onchange="switchTheme()">
+      <span class="slider"></span>
+    </label>
+    <span class="toggle-label">Mili</span>
+  </div>
+</header>
+
+<div class="price-bar">
+  <div class="price-pill">
+    <span>BTC/USD</span>
+    <span class="price-val" id="price-usd">–</span>
+  </div>
+  <div class="price-pill">
+    <span>BTC/EUR</span>
+    <span class="price-val" id="price-eur">–</span>
+  </div>
+  <button class="refresh-btn" onclick="loadAll()">
+    <span id="refresh-icon">↻</span> Refresh
+  </button>
+</div>
+
+<div class="fees-bar">
+  <span style="font-size:.7rem;color:var(--txt3);margin-right:2px">Frais (sat/vB)</span>
+  <div class="fee-chip slow">
+    <span class="fc-label">Lent</span>
+    <span class="fc-val" id="fee-slow">–</span>
+  </div>
+  <div class="fee-chip mid">
+    <span class="fc-label">Normal</span>
+    <span class="fc-val" id="fee-mid">–</span>
+  </div>
+  <div class="fee-chip fast">
+    <span class="fc-label">Rapide</span>
+    <span class="fc-val" id="fee-fast">–</span>
+  </div>
+  <div id="fee-loader" class="loader">
+    <span class="spin">↻</span> chargement
+  </div>
+</div>
+
+<div class="section" id="wallets-container"></div>
+
+<div class="section" style="padding-top:0;gap:.5rem">
+  <div class="add-btn" onclick="addWallet()">
+    <span style="font-size:1.2rem;font-weight:300">+</span> Ajouter un portefeuille
+  </div>
+  <div style="display:flex;gap:.5rem">
+    <button class="io-btn" onclick="exportJSON()">↓ Export JSON</button>
+    <label class="io-btn" style="cursor:pointer">
+      ↑ Import JSON
+      <input type="file" accept=".json" style="display:none" onchange="importJSON(event)">
+    </label>
+  </div>
+</div>
+
+<footer>Données : Blockchain.info · mempool.space · CoinGecko &nbsp;|&nbsp; Adresses publiques uniquement</footer>
+
+<script>
+const WALLETS_KEY = 'btc_wallets_v2';
+let btcUsd = null, btcEur = null;
+let wallets = JSON.parse(localStorage.getItem(WALLETS_KEY) || 'null');
+
+if (!wallets || !Array.isArray(wallets)) {
+  wallets = [{addr:'',data:null},{addr:'',data:null},{addr:'',data:null},{addr:'',data:null},{addr:'',data:null}];
+}
+
+function saveWallets(){
+  localStorage.setItem(WALLETS_KEY, JSON.stringify(wallets.map(w=>({addr:w.addr,data:null}))));
+}
+
+function switchTheme(){
+  const on = document.getElementById('theme-toggle').checked;
+  document.body.classList.toggle('military', on);
+}
+
+function fmt(n){
+  return Number(n).toLocaleString('fr-FR', {maximumFractionDigits:0});
+}
+
+function satToBtc(sat){
+  return (sat/1e8).toFixed(8).replace(/\.?0+$/,'') || '0';
+}
+
+function shortAddr(a){
+  if(!a||a.length<16) return a;
+  return a.slice(0,8)+'…'+a.slice(-6);
+}
+
+function renderWallets(){
+  const c = document.getElementById('wallets-container');
+  c.innerHTML='';
+  wallets.forEach((w,i) => {
+    const card = document.createElement('div');
+    card.className='wallet-card';
+    card.id='wcard-'+i;
+
+    const head = document.createElement('div');
+    head.className='wallet-head';
+    head.innerHTML=`
+      <div class="wallet-num">${i+1}</div>
+      <input type="text" placeholder="Adresse BTC ou xPub…" value="${w.addr||''}"
+        id="addr-${i}" onblur="onAddrChange(${i})" onkeydown="if(event.key==='Enter')onAddrChange(${i})">
+      <button class="btn-scan" onclick="scanWallet(${i})">Scan</button>
+      ${wallets.length>1?`<button class="btn-remove" onclick="removeWallet(${i})" title="Supprimer">✕</button>`:''}
+    `;
+    card.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className='wallet-body';
+    body.id='wbody-'+i;
+    body.innerHTML = renderBody(w,i);
+    card.appendChild(body);
+    c.appendChild(card);
+  });
+}
+
+function renderBody(w, i){
+  if(!w.addr) return `<div class="wallet-empty">Saisissez une adresse BTC</div>`;
+  if(w.loading) return `<div class="loader"><span class="spin">↻</span> Chargement…</div>`;
+  if(w.error) return `<div class="err-msg">Erreur : ${w.error}</div>`;
+  if(!w.data) return `<div class="wallet-empty">Appuyez sur Scan</div>`;
+
+  const d = w.data;
+  const balBtc = satToBtc(d.final_balance);
+  const valUsd = btcUsd ? fmt(d.final_balance/1e8*btcUsd) : '–';
+  const valEur = btcEur ? fmt(d.final_balance/1e8*btcEur) : '–';
+
+  const lastTx = d.txs && d.txs[0];
+  let mvDir='none', mvLabel='Aucun mouvement récent';
+  if(lastTx){
+    const myOut = (lastTx.out||[]).filter(o=>o.addr===w.addr);
+    const myIn = (lastTx.inputs||[]).filter(inp=>inp.prev_out&&inp.prev_out.addr===w.addr);
+    if(myOut.length>0) mvDir='in';
+    else if(myIn.length>0) mvDir='out';
+    else mvDir='in';
+    const ts = lastTx.time ? new Date(lastTx.time*1000).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    mvLabel = ts ? `Dernière tx : ${ts}` : 'Dernière tx : inconnue';
+  }
+
+  const dotClass = d.final_balance>0 ? 'green' : 'gray';
+  const badgeClass = mvDir==='in'?'in':mvDir==='out'?'out':'none';
+  const badgeText = mvDir==='in'?'↓ Entrant':mvDir==='out'?'↑ Sortant':'Aucun tx';
+
+  return `
+    <div style="margin-bottom:.3rem">
+      <div class="addr-short">${shortAddr(w.addr)}</div>
+    </div>
+    <div class="wallet-data">
+      <div class="stat-box">
+        <div class="sb-label">Solde BTC</div>
+        <div class="sb-val">${balBtc}</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-label">Nb tx</div>
+        <div class="sb-val">${d.n_tx||0}</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-label">Valeur USD</div>
+        <div class="sb-val">$${valUsd}</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-label">Valeur EUR</div>
+        <div class="sb-val">€${valEur}</div>
+      </div>
+    </div>
+    <div class="movement-row">
+      <span><span class="dot ${dotClass}${d.final_balance>0?' pulse':''}"></span>Mouvement</span>
+      <span class="tx-badge ${badgeClass}">${badgeText}</span>
+    </div>
+    <div class="last-tx">${mvLabel}</div>
+  `;
+}
+
+function onAddrChange(i){
+  const val = document.getElementById('addr-'+i).value.trim();
+  wallets[i].addr = val;
+  wallets[i].data = null;
+  wallets[i].error = null;
+  saveWallets();
+  document.getElementById('wbody-'+i).innerHTML = renderBody(wallets[i], i);
+}
+
+async function scanWallet(i){
+  const addr = document.getElementById('addr-'+i).value.trim();
+  if(!addr){alert('Entrez une adresse BTC');return;}
+  wallets[i].addr = addr;
+  wallets[i].loading = true;
+  wallets[i].error = null;
+  wallets[i].data = null;
+  saveWallets();
+  document.getElementById('wbody-'+i).innerHTML = renderBody(wallets[i], i);
+
+  try {
+    const r = await fetch(`https://blockchain.info/balance?active=${encodeURIComponent(addr)}&cors=true`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const json = await r.json();
+    const addrData = json[addr];
+    if(!addrData) throw new Error('Adresse inconnue');
+
+    const txR = await fetch(`https://blockchain.info/rawaddr/${encodeURIComponent(addr)}?limit=1&cors=true`);
+    let txs = [];
+    if(txR.ok){
+      const txJ = await txR.json();
+      txs = txJ.txs||[];
+    }
+
+    wallets[i].data = {...addrData, txs};
+    wallets[i].loading = false;
+  } catch(e){
+    wallets[i].loading = false;
+    wallets[i].error = e.message;
+  }
+  document.getElementById('wbody-'+i).innerHTML = renderBody(wallets[i], i);
+}
+
+function addWallet(){
+  wallets.push({addr:'',data:null});
+  saveWallets();
+  renderWallets();
+  setTimeout(()=>{
+    const inp = document.getElementById('addr-'+(wallets.length-1));
+    if(inp) inp.focus();
+  },50);
+}
+
+function removeWallet(i){
+  if(wallets.length<=1) return;
+  wallets.splice(i,1);
+  saveWallets();
+  renderWallets();
+}
+
+async function loadPrice(){
+  try{
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
+    const j = await r.json();
+    btcUsd = j.bitcoin.usd;
+    btcEur = j.bitcoin.eur;
+    document.getElementById('price-usd').textContent = '$'+fmt(btcUsd);
+    document.getElementById('price-eur').textContent = '€'+fmt(btcEur);
+  }catch(e){
+    document.getElementById('price-usd').textContent='erreur';
+  }
+}
+
+async function loadFees(){
+  document.getElementById('fee-loader').style.display='flex';
+  try{
+    const r = await fetch('https://mempool.space/api/v1/fees/recommended');
+    const j = await r.json();
+    document.getElementById('fee-slow').textContent = j.hourFee+' sat';
+    document.getElementById('fee-mid').textContent = j.halfHourFee+' sat';
+    document.getElementById('fee-fast').textContent = j.fastestFee+' sat';
+  }catch(e){}
+  document.getElementById('fee-loader').style.display='none';
+}
+
+async function loadAll(){
+  const ico = document.getElementById('refresh-icon');
+  ico.classList.add('spin');
+  await Promise.all([loadPrice(), loadFees()]);
+  ico.classList.remove('spin');
+  wallets.forEach((_,i)=>{
+    if(wallets[i].data){
+      document.getElementById('wbody-'+i).innerHTML = renderBody(wallets[i],i);
+    }
+  });
+}
+
+function exportJSON(){
+  const data={version:1,exported:new Date().toISOString(),wallets:wallets.map(w=>({addr:w.addr}))};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='btc-wallets-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      const list=data.wallets||data;
+      if(!Array.isArray(list))throw new Error('Format invalide');
+      wallets=list.map(w=>({addr:(w.addr||w||'').trim(),data:null}));
+      if(wallets.length===0)wallets=[{addr:'',data:null}];
+      saveWallets();renderWallets();
+      alert(wallets.length+' portefeuille(s) importé(s).');
+    }catch(err){alert('Erreur : '+err.message);}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+renderWallets();
+loadAll();
+</script>
+</body>
+</html>
