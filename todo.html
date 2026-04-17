@@ -2161,7 +2161,7 @@ function render() {
   } else {
     // Split priority / normal / someday
     const prio    = display.filter(i => i.priority && !i.someday && !i.done);
-    const urgent  = display.filter(i => !i.priority && !i.someday);
+    const urgent  = display.filter(i => (!i.priority || i.done) && !i.someday);
     const someday = display.filter(i => i.someday);
 
     function buildGroups(arr) {
