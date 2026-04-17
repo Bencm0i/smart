@@ -1071,8 +1071,7 @@ select.field-input option { background: var(--bg2); }
 
 .item-row.someday {
   border-left-color: #7a5fa0;
-  background: rgba(80,40,120,0.07);
-  opacity: 0.75;
+  background: #141020;
 }
 .item-row.someday .item-name { color: #9080b8; }
 .item-row.someday .item-check { border-color: #7a5fa0; }
@@ -1127,6 +1126,34 @@ select.field-input option { background: var(--bg2); }
   background: #7a5fa0;
   border-color: #b090e0;
   box-shadow: 0 0 6px rgba(176,144,224,0.5);
+}
+
+/* EDIT MODAL */
+#edit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 40;
+  display: none;
+  align-items: flex-end;
+}
+#edit-overlay.open { display: flex; }
+#edit-sheet {
+  width: 100%;
+  background: var(--bg2);
+  border-top: 2px solid #7a5fa0;
+  padding-bottom: calc(var(--safe-bot) + 12px);
+  animation: slideUp 0.28s cubic-bezier(0.34,1.2,0.64,1);
+  max-height: 92dvh;
+  overflow-y: auto;
+  position: relative;
+}
+#edit-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(122,95,160,0.02) 20px, rgba(122,95,160,0.02) 40px);
+  pointer-events: none;
 }
 
 /* TOAST */
@@ -1325,6 +1352,44 @@ select.field-input option { background: var(--bg2); }
   </div>
 </div>
 
+<div id="edit-overlay" onclick="closeEditModal(event)">
+  <div id="edit-sheet">
+    <div class="sheet-top-bar">
+      <div>
+        <div class="sheet-codename">◈ MODIFIER LA TÂCHE ◈</div>
+        <div class="sheet-title">ÉDITION</div>
+      </div>
+      <button class="sheet-close" onclick="closeEditDirect()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="field-group">
+        <label class="field-label">Nom de la tâche</label>
+        <input type="text" id="edit-name" class="field-input" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Note (optionnel)</label>
+        <input type="text" id="edit-note" class="field-input" autocomplete="off">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Prix estimé (€)</label>
+        <input type="number" id="edit-price" class="field-input" step="0.01" min="0">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Catégorie</label>
+        <div class="cat-grid" id="edit-cat-grid"></div>
+      </div>
+      <button type="button" class="someday-toggle" id="edit-someday-toggle" onclick="toggleEditSomeday()">
+        <span class="st-icon">☽</span>
+        <span>À faire un jour — pas urgent</span>
+        <span class="st-dot"></span>
+      </button>
+      <button class="btn-deploy" onclick="saveEdit()" style="margin-bottom:8px">◈ ENREGISTRER</button>
+      <button class="btn-deploy" id="edit-done-btn" onclick="saveEditAndToggle()" style="border-color:var(--green-ok2);color:var(--green-ok2);margin-bottom:8px">✓ MARQUER TERMINÉE</button>
+      <button class="btn-deploy" onclick="saveEditAndDelete()" style="border-color:var(--danger);color:var(--danger2)">✕ SUPPRIMER</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1477,6 +1542,102 @@ function filterCat(cat, btn) {
   render();
 }
 
+let editingId = null;
+let editSomeday = false;
+let editCat = 'maison';
+
+function openEditModal(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  editingId = id;
+  editSomeday = !!it.someday;
+  editCat = it.cat;
+
+  document.getElementById('edit-name').value  = it.name;
+  document.getElementById('edit-note').value  = it.note || '';
+  document.getElementById('edit-price').value = it.price || '';
+  document.getElementById('edit-someday-toggle').classList.toggle('on', editSomeday);
+
+  // done button label
+  const doneBtn = document.getElementById('edit-done-btn');
+  doneBtn.textContent = it.done ? '↩ MARQUER NON TERMINÉE' : '✓ MARQUER TERMINÉE';
+  doneBtn.style.borderColor = it.done ? 'var(--text-mid)' : 'var(--green-ok2)';
+  doneBtn.style.color       = it.done ? 'var(--text-mid)' : 'var(--green-ok2)';
+
+  buildEditCatGrid();
+  document.getElementById('edit-overlay').classList.add('open');
+}
+
+function closeEditModal(e) {
+  if (e && e.target !== document.getElementById('edit-overlay')) return;
+  closeEditDirect();
+}
+
+function closeEditDirect() {
+  document.getElementById('edit-overlay').classList.remove('open');
+  editingId = null;
+}
+
+function toggleEditSomeday() {
+  editSomeday = !editSomeday;
+  document.getElementById('edit-someday-toggle').classList.toggle('on', editSomeday);
+}
+
+function buildEditCatGrid() {
+  const grid = document.getElementById('edit-cat-grid');
+  grid.innerHTML = Object.entries(CATS).map(([k, v]) =>
+    `<div class="cat-chip${k===editCat?' selected':''}" onclick="selectEditCat('${k}',this)">
+      <span class="ce">${v.emoji}</span>${v.label}
+    </div>`
+  ).join('');
+}
+
+function selectEditCat(k, el) {
+  editCat = k;
+  document.querySelectorAll('#edit-cat-grid .cat-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function saveEdit() {
+  if (!editingId) return;
+  const it = items.find(i => i.id === editingId);
+  if (!it) return;
+  const n = document.getElementById('edit-name').value.trim();
+  if (!n) { toast('⚠ NOM REQUIS'); return; }
+  it.name    = n;
+  it.note    = document.getElementById('edit-note').value.trim();
+  it.price   = parseFloat(document.getElementById('edit-price').value) || 0;
+  it.cat     = editCat;
+  it.someday = editSomeday;
+  save(); render();
+  closeEditDirect();
+  toast('◈ TÂCHE MODIFIÉE');
+}
+
+function saveEditAndToggle() {
+  if (!editingId) return;
+  const it = items.find(i => i.id === editingId);
+  if (!it) return;
+  const n = document.getElementById('edit-name').value.trim();
+  if (!n) { toast('⚠ NOM REQUIS'); return; }
+  it.name    = n;
+  it.note    = document.getElementById('edit-note').value.trim();
+  it.price   = parseFloat(document.getElementById('edit-price').value) || 0;
+  it.cat     = editCat;
+  it.someday = editSomeday;
+  it.done    = !it.done;
+  save(); render();
+  closeEditDirect();
+  toast(it.done ? '✓ TÂCHE TERMINÉE : ' + it.name.toUpperCase() : '↩ TÂCHE RÉOUVERTE');
+}
+
+function saveEditAndDelete() {
+  if (!editingId) return;
+  const id = editingId;
+  closeEditDirect();
+  deleteItem(id);
+}
+
 function toggleItem(id) {
   const it = items.find(i => i.id === id);
   if (it) {
@@ -1558,7 +1719,7 @@ function renderItemRow(it, c) {
   return `
     <div class="item-wrap" id="wrap-${it.id}">
       <div class="item-del-bg">✕ SUPPRIMER</div>
-      <div class="item-row${it.done?' done':''}${it.someday?' someday':''}" id="row-${it.id}" onclick="toggleItem(${it.id})">
+      <div class="item-row${it.done?' done':''}${it.someday?' someday':''}" id="row-${it.id}" onclick="openEditModal(${it.id})">
         <div class="item-check">${it.done?'✓':''}</div>
         <span class="item-emoji">${c.emoji}</span>
         <div class="item-info">
