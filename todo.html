@@ -1049,6 +1049,86 @@ select.field-input option { background: var(--bg2); }
 }
 .act-section-title::after { content:''; flex:1; height:1px; background:var(--border2); }
 
+/* ── SOMEDAY ── */
+.someday-section-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #7a5fa0;
+  padding: 14px 14px 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.someday-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, #4a3068, transparent);
+}
+
+.item-row.someday {
+  border-left-color: #7a5fa0;
+  background: rgba(80,40,120,0.07);
+  opacity: 0.75;
+}
+.item-row.someday .item-name { color: #9080b8; }
+.item-row.someday .item-check { border-color: #7a5fa0; }
+
+.someday-badge {
+  font-size: 0.52rem;
+  color: #7a5fa0;
+  background: rgba(122,95,160,0.15);
+  border: 1px solid rgba(122,95,160,0.3);
+  padding: 1px 6px;
+  border-radius: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.1em;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+/* someday toggle in modal */
+.someday-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border2);
+  border-radius: 1px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.15s;
+  width: 100%;
+  text-align: left;
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+.someday-toggle.on {
+  border-color: #7a5fa0;
+  background: rgba(122,95,160,0.15);
+  color: #b090e0;
+}
+.someday-toggle .st-icon { font-size: 1rem; }
+.someday-toggle .st-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.someday-toggle.on .st-dot {
+  background: #7a5fa0;
+  border-color: #b090e0;
+  box-shadow: 0 0 6px rgba(176,144,224,0.5);
+}
+
 /* TOAST */
 #toast {
   position: fixed;
@@ -1112,6 +1192,7 @@ select.field-input option { background: var(--bg2); }
         <button class="cf-btn" onclick="filterCat('impression3d',this)">🖨️ IMPRESSION 3D</button>
         <button class="cf-btn" onclick="filterCat('vehicule',this)">🚲 VÉHICULE</button>
         <button class="cf-btn" onclick="filterCat('divers',this)">📦 DIVERS</button>
+        <button class="cf-btn" onclick="filterCat('someday',this)" style="border-color:#4a3068;color:#7a5fa0">☽ UN JOUR</button>
       </div>
       <div id="items-list"></div>
     </div>
@@ -1224,6 +1305,11 @@ select.field-input option { background: var(--bg2); }
         <label class="field-label">Catégorie</label>
         <div class="cat-grid" id="cat-grid-sel"></div>
       </div>
+      <button type="button" class="someday-toggle" id="someday-toggle" onclick="toggleSomeday()">
+        <span class="st-icon">☽</span>
+        <span>À faire un jour — pas urgent</span>
+        <span class="st-dot"></span>
+      </button>
       <button class="btn-deploy" onclick="addItem()">◈ AJOUTER LA TÂCHE</button>
     </div>
 
@@ -1289,7 +1375,13 @@ const SUGGS = [
 let items = JSON.parse(localStorage.getItem('todo_maison_v3') || '[]');
 let currentFilter = 'all';
 let selectedCat = 'maison';
+let selectedSomeday = false;
 let modalOpen = false;
+
+function toggleSomeday() {
+  selectedSomeday = !selectedSomeday;
+  document.getElementById('someday-toggle').classList.toggle('on', selectedSomeday);
+}
 
 function goPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
@@ -1316,6 +1408,8 @@ function closeModal(e) {
 
 function closeModalDirect() {
   modalOpen = false;
+  selectedSomeday = false;
+  document.getElementById('someday-toggle').classList.remove('on');
   document.getElementById('modal-overlay').classList.remove('open');
   document.getElementById('fab').classList.remove('rotated');
 }
@@ -1345,13 +1439,14 @@ function selectCat(k, el) {
   el.classList.add('selected');
 }
 
-function addItem(name, cat, note, price) {
+function addItem(name, cat, note, price, someday) {
   const n = name || document.getElementById('item-name').value.trim();
   if (!n) { toast('⚠ ENTREZ LE NOM DE LA TÂCHE'); return; }
   const c = cat || selectedCat;
   const nt = note !== undefined ? note : document.getElementById('item-note').value.trim();
   const p = parseFloat(price ?? document.getElementById('item-price').value) || 0;
-  items.push({id:Date.now(), name:n, cat:c, note:nt, price:p, done:false});
+  const sd = (someday !== undefined) ? someday : selectedSomeday;
+  items.push({id:Date.now(), name:n, cat:c, note:nt, price:p, done:false, someday:sd});
   if (!name) {
     document.getElementById('item-name').value = '';
     document.getElementById('item-note').value = '';
@@ -1400,6 +1495,28 @@ function deleteItem(id) {
 function render() {
   const list = document.getElementById('items-list');
   const sorted = [...items].sort((a,b) => a.done === b.done ? 0 : a.done ? 1 : -1);
+
+  // someday filter: show only someday items
+  if (currentFilter === 'someday') {
+    const display = sorted.filter(i => i.someday);
+    if (!display.length) {
+      list.innerHTML = `<div class="empty-state"><span class="es-icon">☽</span><div class="es-title">AUCUNE TÂCHE "UN JOUR"</div><div class="es-sub">ACTIVEZ "À FAIRE UN JOUR"\nLORS DE L'AJOUT D'UNE TÂCHE</div></div>`;
+    } else {
+      const groups = {};
+      display.forEach(it => { if (!groups[it.cat]) groups[it.cat]=[]; groups[it.cat].push(it); });
+      list.innerHTML = Object.entries(groups).map(([cat, its]) => {
+        const c = CATS[cat] || CATS.divers;
+        return `<div>
+          <div class="cat-group-label">${c.emoji} ${c.full.toUpperCase()}</div>
+          ${its.map(it => renderItemRow(it, c)).join('')}
+        </div>`;
+      }).join('');
+      document.querySelectorAll('.item-row').forEach(row => initSwipe(row));
+    }
+    updateStats();
+    return;
+  }
+
   const display = currentFilter === 'all' ? sorted : sorted.filter(i => i.cat === currentFilter);
 
   if (!display.length) {
@@ -1410,30 +1527,51 @@ function render() {
         <div class="es-sub">${currentFilter==='all'?'APPUYEZ SUR + POUR AJOUTER\nUNE NOUVELLE TÂCHE':'AUCUNE TÂCHE DANS CETTE CATÉGORIE'}</div>
       </div>`;
   } else {
-    const groups = {};
-    display.forEach(it => { if (!groups[it.cat]) groups[it.cat]=[]; groups[it.cat].push(it); });
-    list.innerHTML = Object.entries(groups).map(([cat, its]) => {
-      const c = CATS[cat] || CATS.divers;
-      return `<div>
-        <div class="cat-group-label">${c.emoji} ${c.full.toUpperCase()}</div>
-        ${its.map(it => `
-          <div class="item-wrap" id="wrap-${it.id}">
-            <div class="item-del-bg">✕ SUPPRIMER</div>
-            <div class="item-row${it.done?' done':''}" id="row-${it.id}" onclick="toggleItem(${it.id})">
-              <div class="item-check">${it.done?'✓':''}</div>
-              <span class="item-emoji">${c.emoji}</span>
-              <div class="item-info">
-                <div class="item-name">${it.name.toUpperCase()}</div>
-                ${it.note?`<div class="item-meta">${it.note}</div>`:''}
-              </div>
-              ${it.price?`<span class="item-price-badge">${it.price.toFixed(2)} €</span>`:''}
-            </div>
-          </div>`).join('')}
-      </div>`;
-    }).join('');
+    // Split urgent vs someday
+    const urgent  = display.filter(i => !i.someday);
+    const someday = display.filter(i => i.someday);
+
+    function buildGroups(arr) {
+      const groups = {};
+      arr.forEach(it => { if (!groups[it.cat]) groups[it.cat]=[]; groups[it.cat].push(it); });
+      return Object.entries(groups).map(([cat, its]) => {
+        const c = CATS[cat] || CATS.divers;
+        return `<div>
+          <div class="cat-group-label">${c.emoji} ${c.full.toUpperCase()}</div>
+          ${its.map(it => renderItemRow(it, c)).join('')}
+        </div>`;
+      }).join('');
+    }
+
+    let html = buildGroups(urgent);
+    if (someday.length) {
+      html += `<div class="someday-section-label">☽ UN JOUR — À FAIRE UN JOUR</div>`;
+      html += buildGroups(someday);
+    }
+    list.innerHTML = html;
     document.querySelectorAll('.item-row').forEach(row => initSwipe(row));
   }
+  updateStats();
+}
 
+function renderItemRow(it, c) {
+  return `
+    <div class="item-wrap" id="wrap-${it.id}">
+      <div class="item-del-bg">✕ SUPPRIMER</div>
+      <div class="item-row${it.done?' done':''}${it.someday?' someday':''}" id="row-${it.id}" onclick="toggleItem(${it.id})">
+        <div class="item-check">${it.done?'✓':''}</div>
+        <span class="item-emoji">${c.emoji}</span>
+        <div class="item-info">
+          <div class="item-name">${it.name.toUpperCase()}</div>
+          ${it.note?`<div class="item-meta">${it.note}</div>`:''}
+        </div>
+        ${it.someday?`<span class="someday-badge">☽ UN JOUR</span>`:''}
+        ${it.price?`<span class="item-price-badge">${it.price.toFixed(2)} €</span>`:''}
+      </div>
+    </div>`;
+}
+
+function updateStats() {
   const total = items.length;
   const done  = items.filter(i=>i.done).length;
   const totalPrice = items.reduce((s,i)=>s+i.price, 0);
