@@ -1127,11 +1127,11 @@ select.field-input option { background: var(--bg2); }
 }
 
 .item-row.done {
-  opacity: 0.4;
   border-left-color: var(--green-ok);
-  background: rgba(42,120,80,0.08);
+  background: var(--surface);
 }
 .item-row.done .item-name { text-decoration: line-through; color: var(--text-mid); }
+.item-wrap:has(.item-row.done) { opacity: 0.45; }
 .item-row.swiping { transition: none; }
 
 /* item check */
