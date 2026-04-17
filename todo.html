@@ -1897,7 +1897,7 @@ function renderItemRow(it, c) {
     <div class="item-wrap" id="wrap-${it.id}">
       <div class="item-del-bg">✕ SUPPRIMER</div>
       <div class="item-row${it.done?' done':''}${it.someday?' someday':''}" id="row-${it.id}" onclick="openEditModal(${it.id})">
-        <div class="item-check">${it.done?'✓':''}</div>
+        <div class="item-check" onclick="event.stopPropagation();toggleItem(${it.id})">${it.done?'✓':''}</div>
         <span class="item-emoji">${c.emoji}</span>
         <div class="item-info">
           <div class="item-name">${it.name.toUpperCase()}</div>
