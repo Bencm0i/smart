@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,12 +26,17 @@
   --ok:   #5a8a4a;
   --warn: #c8820a;
   --crit: #c0392b;
-  --safe: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
   --font-display: 'Playfair Display', serif;
   --font-body: 'Rajdhani', sans-serif;
   --font-mono: 'Share Tech Mono', monospace;
   --shadow: 0 4px 20px rgba(160,100,30,0.13);
   --pattern: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23c8a86b' fill-opacity='0.08'%3E%3Cpath d='M0 20 L20 0 L40 20 L20 40Z'/%3E%3C/g%3E%3C/svg%3E");
+  /* OnePlus 9: 6.55" 1080×2400 — barre nav ~56px en bas */
+  --nav-h: 56px;
+  --header-h: 56px;
+  --tab-bar-h: 52px;
 }
 
 [data-theme="military"] {
@@ -54,7 +59,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
 
 body {
   background-color: var(--bg);
@@ -63,125 +68,169 @@ body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.4;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
   transition: background-color .3s, color .3s;
   -webkit-font-smoothing: antialiased;
 }
 
 /* ── HEADER ── */
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex-shrink: 0;
   background: var(--bg2);
-  border-bottom: 3px solid var(--border);
+  border-bottom: 2px solid var(--border);
   box-shadow: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  height: 60px;
-  padding-top: env(safe-area-inset-top, 0px);
+  padding: 0 14px;
+  height: calc(var(--header-h) + var(--safe-top));
+  padding-top: var(--safe-top);
   transition: background .3s;
+  z-index: 100;
 }
 
-.header-left { display: flex; align-items: center; gap: 10px; }
-
-.header-icon { font-size: 22px; line-height: 1; }
+.header-left { display: flex; align-items: center; gap: 8px; }
+.header-icon { font-size: 20px; line-height: 1; }
 
 .title {
   font-family: var(--font-display);
-  font-size: 1.08rem;
+  font-size: 1rem;
   color: var(--accent);
-  letter-spacing: 0;
   font-weight: 700;
 }
 
 [data-theme="military"] .title {
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .subtitle {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: var(--muted);
   letter-spacing: 0.08em;
-  margin-top: 1px;
 }
 
-/* pill toggle button */
 .toggle-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
   background: var(--bg3);
   border: 2px solid var(--border);
-  border-radius: 24px;
-  padding: 5px 10px;
+  border-radius: 20px;
+  padding: 4px 9px;
   font-family: var(--font-body);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--txt2);
   transition: all .2s;
   user-select: none;
   white-space: nowrap;
-  min-height: 36px;
+  min-height: 34px;
 }
-.toggle-btn:hover, .toggle-btn:active { border-color: var(--accent); color: var(--accent); }
+.toggle-btn:active { border-color: var(--accent); color: var(--accent); }
 
 .toggle-dot {
-  width: 20px; height: 20px;
+  width: 18px; height: 18px;
   border-radius: 50%;
   background: var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px;
+  font-size: 10px;
   flex-shrink: 0;
 }
 
-/* ── LAYOUT ── */
-.app {
-  padding: 0 0 calc(16px + var(--safe));
-  max-width: 520px;
-  margin: 0 auto;
+/* ── TAB BAR (bottom nav) ── */
+.tab-bar {
+  flex-shrink: 0;
+  display: flex;
+  background: var(--bg2);
+  border-top: 2px solid var(--border);
+  height: calc(var(--tab-bar-h) + var(--safe-bot));
+  padding-bottom: var(--safe-bot);
+  z-index: 100;
 }
 
-.section { padding: 16px 14px 0; }
-.section + .section { padding-top: 6px; }
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color .2s;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
 
+.tab-item.active { color: var(--accent); }
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 2px 2px;
+}
+
+.tab-icon { font-size: 18px; line-height: 1; }
+
+/* ── MAIN SCROLL AREA ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ── PAGES ── */
+.page { display: none; padding: 14px 12px; padding-bottom: 10px; }
+.page.active { display: block; }
+
+/* ── SECTION TITLES ── */
 .sec-title {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--muted);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   margin-bottom: 10px;
-  padding-left: 10px;
+  padding-left: 8px;
   border-left: 3px solid var(--accent);
 }
 
 .divider {
-  height: 2px;
+  height: 1px;
   background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
-  margin: 16px 14px 0;
-  opacity: .6;
-  border-radius: 1px;
+  margin: 12px 0;
+  opacity: .5;
 }
 
 /* ── GRIDS ── */
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
 
 /* ── INPUT BLOCKS ── */
 .iblock {
   background: var(--panel);
   border: 2px solid var(--border);
   border-radius: 8px;
-  padding: 12px 14px;
-  transition: border-color .2s, box-shadow .2s;
+  padding: 10px 12px;
+  transition: border-color .2s;
   position: relative;
   overflow: hidden;
 }
@@ -194,16 +243,16 @@ body {
   opacity: 0.4;
 }
 .iblock.full { grid-column: 1 / -1; }
-.iblock.highlight { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(212,104,42,0.12); }
+.iblock.highlight { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,104,42,0.12); }
 .iblock.highlight::before { background: var(--accent); opacity: 1; }
 
 .iblock label {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   color: var(--muted);
   display: block;
-  margin-bottom: 6px;
-  letter-spacing: 0.1em;
+  margin-bottom: 5px;
+  letter-spacing: 0.09em;
 }
 
 .iblock input {
@@ -212,45 +261,98 @@ body {
   border: none;
   border-bottom: 1.5px solid var(--border);
   color: var(--txt);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-family: var(--font-mono);
   font-weight: 500;
-  padding: 4px 0 6px;
+  padding: 3px 0 5px;
   outline: none;
   -webkit-appearance: none;
   appearance: none;
   transition: border-color .2s;
 }
 .iblock input:focus { border-bottom-color: var(--accent); }
-.iblock input[type=date] { font-size: 0.95rem; font-family: var(--font-mono); }
+.iblock input[type=date] { font-size: 0.88rem; }
 .iblock input::placeholder { color: var(--muted); opacity: .6; }
 
-.iunit { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); margin-top: 4px; }
+.iunit { font-family: var(--font-mono); font-size: 0.55rem; color: var(--muted); margin-top: 3px; }
 
 .computed-badge {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   background: var(--accent);
   color: #fff;
-  border-radius: 4px;
-  padding: 2px 6px;
-  margin-top: 4px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-top: 3px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-/* ── KPI GRID ── */
+/* ── KM AUTO ── */
+.km-auto-display { display: flex; flex-direction: column; gap: 2px; }
+.km-auto-val {
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.km-auto-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3px;
+}
+
+/* ── KPI ONGLETS ── */
+.kpi-tabs {
+  display: flex;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.kpi-tab {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  background: var(--panel);
+  border: none;
+  border-right: 1px solid var(--border);
+  transition: background .2s, color .2s;
+  line-height: 1.3;
+  -webkit-tap-highlight-color: transparent;
+}
+.kpi-tab:last-child { border-right: none; }
+.kpi-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+.kpi-tab-icon { font-size: 15px; display: block; margin-bottom: 2px; }
+
+/* ── KPI PANELS ── */
+.kpi-panel { display: none; }
+.kpi-panel.active { display: block; }
+
+/* ── KPI CARDS ── */
 .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 .kpi {
   background: var(--panel);
   border: 2px solid var(--border);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 11px 12px;
   position: relative;
   overflow: hidden;
-  transition: transform .15s;
 }
 .kpi::before {
   content: '';
@@ -260,27 +362,31 @@ body {
   background: var(--border2);
   opacity: 0.35;
 }
-.kpi.accent { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(212,104,42,0.1); }
+.kpi.accent { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,104,42,0.1); }
 .kpi.accent::before { background: var(--accent); opacity: 1; }
 .kpi.full { grid-column: 1 / -1; }
+.kpi.ok::before { background: var(--ok); opacity: 1; }
+.kpi.warn-kpi::before { background: var(--warn); opacity: 1; }
 
-.kpi-lbl { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.kpi-lbl { font-family: var(--font-mono); font-size: 0.57rem; color: var(--muted); letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 5px; }
 .kpi-val {
   font-family: var(--font-mono);
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   font-weight: 500;
   color: var(--accent);
   line-height: 1;
 }
-.kpi-val.lg { font-size: 2rem; }
-.kpi-u { font-family: var(--font-mono); font-size: 0.58rem; color: var(--muted); margin-top: 5px; }
+.kpi-val.lg { font-size: 1.9rem; }
+.kpi-val.ok-col { color: var(--ok); }
+.kpi-val.warn-col { color: var(--warn); }
+.kpi-u { font-family: var(--font-mono); font-size: 0.55rem; color: var(--muted); margin-top: 4px; }
 
 /* ── GAUGE ── */
 .gauge-wrap {
   background: var(--panel);
   border: 2px solid var(--border);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
   position: relative;
   overflow: hidden;
 }
@@ -290,16 +396,16 @@ body {
   background: var(--border2); opacity: 0.4;
 }
 .gauge-bar {
-  height: 18px;
+  height: 16px;
   background: var(--bg2);
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
   border: 1.5px solid var(--border);
-  margin: 8px 0 8px;
+  margin: 8px 0;
 }
 .gauge-fill {
   height: 100%;
-  border-radius: 6px;
+  border-radius: 5px;
   background: linear-gradient(90deg, var(--accent2), var(--accent));
   transition: width .5s ease;
 }
@@ -309,7 +415,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--muted);
 }
 
@@ -320,14 +426,13 @@ body {
   gap: 8px;
   border: 2px solid var(--accent);
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   font-family: var(--font-body);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: var(--accent);
   margin-top: 10px;
   background: rgba(212,104,42,0.08);
-  line-height: 1.4;
   animation: pulse-border 2.5s infinite;
 }
 .alert.warn {
@@ -338,15 +443,11 @@ body {
 }
 @keyframes pulse-border {
   0%,100% { box-shadow: 0 0 0 0 rgba(212,104,42,0.2); }
-  50%      { box-shadow: 0 0 0 6px rgba(212,104,42,0); }
+  50%      { box-shadow: 0 0 0 5px rgba(212,104,42,0); }
 }
 @keyframes pulse-border-warn {
   0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.25); }
-  50%      { box-shadow: 0 0 0 7px rgba(192,57,43,0); }
-}
-[data-theme="military"] .alert {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
+  50%      { box-shadow: 0 0 0 6px rgba(192,57,43,0); }
 }
 
 /* ── CHARTS ── */
@@ -354,7 +455,7 @@ body {
   background: var(--panel);
   border: 2px solid var(--border);
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px;
   margin-bottom: 8px;
   position: relative;
   overflow: hidden;
@@ -366,105 +467,87 @@ body {
 }
 .chart-lbl {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.57rem;
   color: var(--muted);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .chart-container {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 160px;
 }
 
 /* ── EMPTY STATE ── */
 .nodata {
   text-align: center;
-  padding: 44px 20px;
+  padding: 50px 20px;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   letter-spacing: 0.12em;
-  line-height: 2.2;
+  line-height: 2.5;
   text-transform: uppercase;
 }
-
-/* ── KM AUTO DISPLAY ── */
-.km-auto-display {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.km-auto-val {
-  font-family: var(--font-mono);
-  font-size: 1.55rem;
-  font-weight: 500;
-  color: var(--accent);
-  line-height: 1.1;
-}
-.km-auto-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 360px) {
-  .kpi-val { font-size: 1.4rem; }
-  .kpi-val.lg { font-size: 1.65rem; }
-  .iblock input { font-size: 1rem; }
-}
+.nodata-icon { font-size: 36px; display: block; margin-bottom: 12px; opacity: .5; }
 
 /* ── FOCUS ── */
 .toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Prevent scroll on iOS when keyboard appears ── */
+@supports (-webkit-touch-callout: none) {
+  .main { padding-bottom: 0; }
+}
 </style>
 </head>
 <body>
-<div id="app">
 
-  <div class="header">
-    <div class="header-left">
-      <span class="header-icon" id="headerIcon">🚗</span>
-      <div>
-        <div class="title" id="pageTitle">Yaris Hybrid</div>
-        <div class="subtitle" id="headerSub">CARBURANT &amp; KILOMÉTRAGE</div>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <span class="header-icon" id="headerIcon">🚗</span>
+    <div>
+      <div class="title" id="pageTitle">Yaris Hybrid</div>
+      <div class="subtitle" id="headerSub">CARBURANT &amp; KILOMÉTRAGE</div>
+    </div>
+  </div>
+  <button class="toggle-btn" onclick="toggleTheme()">
+    <span class="toggle-dot" id="toggleDot">🌿</span>
+    <span id="themeLabel">Mode Mil.</span>
+  </button>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="mainScroll">
+
+  <!-- PAGE 1 : SAISIE -->
+  <div class="page active" id="page-saisie">
+
+    <div class="sec-title">// HISTORIQUE KILOMÉTRAGE</div>
+    <div class="grid2">
+      <div class="iblock">
+        <label>KM DÉPART</label>
+        <input type="number" inputmode="numeric" id="kmStart" placeholder="40000" oninput="compute()">
+        <div class="iunit">km au compteur</div>
+      </div>
+      <div class="iblock">
+        <label>DATE DÉPART</label>
+        <input type="date" id="dateStart" oninput="compute()">
+      </div>
+      <div class="iblock highlight">
+        <label>KM ACTUEL</label>
+        <input type="number" inputmode="numeric" id="kmNow" placeholder="45200" oninput="compute()">
+        <div class="iunit">km au compteur</div>
+      </div>
+      <div class="iblock">
+        <label>DATE ACTUELLE</label>
+        <input type="date" id="dateNow" oninput="compute()">
       </div>
     </div>
-    <button class="toggle-btn" onclick="toggleTheme()" id="themeBtn">
-      <span class="toggle-dot" id="toggleDot">🌿</span>
-      <span id="themeLabel">Mode Mil.</span>
-    </button>
-  </div>
 
-  <div class="app">
-
-    <!-- SECTION KM -->
-    <div class="section">
-      <div class="sec-title">// HISTORIQUE KILOMÉTRAGE</div>
-      <div class="grid2">
-        <div class="iblock">
-          <label>KM DÉPART</label>
-          <input type="number" inputmode="numeric" id="kmStart" placeholder="40000" oninput="compute()">
-          <div class="iunit">km au compteur</div>
-        </div>
-        <div class="iblock">
-          <label>DATE DÉPART</label>
-          <input type="date" id="dateStart" oninput="compute()">
-        </div>
-        <div class="iblock highlight">
-          <label>KM ACTUEL</label>
-          <input type="number" inputmode="numeric" id="kmNow" placeholder="45200" oninput="compute()">
-          <div class="iunit">km au compteur</div>
-        </div>
-        <div class="iblock">
-          <label>DATE ACTUELLE</label>
-          <input type="date" id="dateNow" oninput="compute()">
-        </div>
-      </div>
-
-      <div class="iblock full" id="kmMonthBlock" style="margin-top:8px;">
+    <div style="margin-top:8px;">
+      <div class="iblock full" id="kmMonthBlock">
         <label>KM/MOIS CALCULÉ AUTO</label>
         <div class="km-auto-display">
           <div class="km-auto-val" id="kmMonthAuto">—</div>
@@ -474,8 +557,10 @@ body {
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="iblock full" style="margin-top:8px;">
+    <div style="margin-top:8px;">
+      <div class="iblock full">
         <label>KM/MOIS MANUEL (écrase le calcul)</label>
         <input type="number" inputmode="numeric" id="kmMonthManual" placeholder="laisse vide pour auto" oninput="compute()">
       </div>
@@ -483,38 +568,61 @@ body {
 
     <div class="divider"></div>
 
-    <!-- SECTION CARBURANT -->
-    <div class="section">
-      <div class="sec-title">// CARBURANT &amp; PARAMÈTRES</div>
-      <div class="grid2">
-        <div class="iblock">
-          <label>CARBURANT RESTANT</label>
-          <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="compute()">
-          <div class="iunit">% du réservoir</div>
-        </div>
-        <div class="iblock">
-          <label>CAPACITÉ RÉSERVOIR</label>
-          <input type="number" inputmode="decimal" id="tank" placeholder="43" oninput="compute()">
-          <div class="iunit">litres</div>
-        </div>
-        <div class="iblock">
-          <label>CONSO L/100km</label>
-          <input type="number" inputmode="decimal" id="conso" placeholder="4.5" step="0.1" oninput="compute()">
-        </div>
-        <div class="iblock">
-          <label>PRIX LITRE (€)</label>
-          <input type="number" inputmode="decimal" id="price" placeholder="1.79" step="0.01" oninput="compute()">
-        </div>
+    <div class="sec-title">// CARBURANT &amp; PARAMÈTRES</div>
+    <div class="grid2">
+      <div class="iblock">
+        <label>CARBURANT RESTANT</label>
+        <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="compute()">
+        <div class="iunit">% du réservoir</div>
+      </div>
+      <div class="iblock">
+        <label>CAPACITÉ RÉSERVOIR</label>
+        <input type="number" inputmode="decimal" id="tank" placeholder="43" oninput="compute()">
+        <div class="iunit">litres</div>
+      </div>
+      <div class="iblock">
+        <label>CONSO L/100km</label>
+        <input type="number" inputmode="decimal" id="conso" placeholder="4.5" step="0.1" oninput="compute()">
+      </div>
+      <div class="iblock">
+        <label>PRIX LITRE (€)</label>
+        <input type="number" inputmode="decimal" id="price" placeholder="1.79" step="0.01" oninput="compute()">
       </div>
     </div>
 
-    <!-- KPI + CHARTS -->
+    <!-- hint quand pas de données -->
+    <div id="noData2" class="nodata" style="padding:24px 10px;">
+      <span class="nodata-icon">📊</span>
+      Remplis les champs pour<br>activer les KPI
+    </div>
+
+  </div><!-- /page-saisie -->
+
+  <!-- PAGE 2 : KPI -->
+  <div class="page" id="page-kpi">
+
+    <div id="noData" class="nodata">
+      <span class="nodata-icon">⚙️</span>
+      // RENSEIGNE D'ABORD<br>LES DONNÉES //
+    </div>
+
     <div id="kpiSection" style="display:none">
 
-      <div class="divider"></div>
+      <!-- ONGLETS KPI -->
+      <div class="kpi-tabs">
+        <button class="kpi-tab active" onclick="switchKpiTab('route')" id="ktab-route">
+          <span class="kpi-tab-icon">🗺️</span>Route
+        </button>
+        <button class="kpi-tab" onclick="switchKpiTab('carbu')" id="ktab-carbu">
+          <span class="kpi-tab-icon">⛽</span>Carbu.
+        </button>
+        <button class="kpi-tab" onclick="switchKpiTab('cout')" id="ktab-cout">
+          <span class="kpi-tab-icon">💶</span>Coûts
+        </button>
+      </div>
 
-      <div class="section">
-        <div class="sec-title">// KPI PRINCIPAUX</div>
+      <!-- ONGLET ROUTE -->
+      <div class="kpi-panel active" id="kpanel-route">
         <div class="kpi-grid">
           <div class="kpi accent full">
             <div class="kpi-lbl">KM FIN D'ANNÉE</div>
@@ -527,14 +635,51 @@ body {
             <div class="kpi-u">km à parcourir</div>
           </div>
           <div class="kpi">
-            <div class="kpi-lbl">AUTONOMIE</div>
-            <div class="kpi-val" id="autoKm">—</div>
+            <div class="kpi-lbl">JOURS AUTONOMIE</div>
+            <div class="kpi-val" id="autoDays">—</div>
+            <div class="kpi-u">jours avec carbu actuel</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ONGLET CARBURANT -->
+      <div class="kpi-panel" id="kpanel-carbu">
+        <div class="kpi-grid">
+          <div class="kpi accent full">
+            <div class="kpi-lbl">AUTONOMIE RESTANTE</div>
+            <div class="kpi-val lg" id="autoKm">—</div>
             <div class="kpi-u">km avec carburant actuel</div>
           </div>
+        </div>
+
+        <div style="margin-top:8px;">
+          <div class="gauge-wrap">
+            <div class="gauge-row">
+              <span style="font-size:10px;letter-spacing:1px;color:var(--muted)">RÉSERVOIR</span>
+              <span id="fuelPct" style="font-size:11px;color:var(--muted)">—</span>
+            </div>
+            <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill" style="width:0%"></div></div>
+            <div class="gauge-row">
+              <span id="fuelL" style="font-size:12px;">— L</span>
+              <span id="fuelKmLeft" style="font-size:12px;">— km restants</span>
+            </div>
+          </div>
+          <div id="fuelAlert"></div>
+        </div>
+      </div>
+
+      <!-- ONGLET COÛTS -->
+      <div class="kpi-panel" id="kpanel-cout">
+        <div class="kpi-grid">
+          <div class="kpi accent full">
+            <div class="kpi-lbl">COÛT ANNUEL EST.</div>
+            <div class="kpi-val lg" id="costYear">—</div>
+            <div class="kpi-u">€/an</div>
+          </div>
           <div class="kpi">
-            <div class="kpi-lbl">JOURS D'AUTONOMIE</div>
-            <div class="kpi-val" id="autoDays">—</div>
-            <div class="kpi-u">jours</div>
+            <div class="kpi-lbl">COÛT MENSUEL</div>
+            <div class="kpi-val" id="costMonth">—</div>
+            <div class="kpi-u">€/mois</div>
           </div>
           <div class="kpi">
             <div class="kpi-lbl">COÛT PLEIN</div>
@@ -546,90 +691,101 @@ body {
             <div class="kpi-val" id="costPer100">—</div>
             <div class="kpi-u">€</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-lbl">COÛT MENSUEL EST.</div>
-            <div class="kpi-val" id="costMonth">—</div>
-            <div class="kpi-u">€/mois</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi-lbl">COÛT ANNUEL EST.</div>
-            <div class="kpi-val" id="costYear">—</div>
-            <div class="kpi-u">€/an</div>
-          </div>
         </div>
       </div>
 
-      <div class="divider"></div>
+    </div>
+  </div><!-- /page-kpi -->
 
-      <div class="section">
-        <div class="sec-title">// NIVEAU CARBURANT</div>
-        <div class="gauge-wrap">
-          <div class="gauge-row">
-            <span style="font-size:11px;letter-spacing:1px;color:var(--muted)">RÉSERVOIR</span>
-            <span id="fuelPct" style="font-size:11px;color:var(--muted)">—</span>
-          </div>
-          <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill" style="width:0%"></div></div>
-          <div class="gauge-row">
-            <span id="fuelL" style="font-size:13px;">— L</span>
-            <span id="fuelKmLeft" style="font-size:13px;">— km restants</span>
-          </div>
-        </div>
-        <div id="fuelAlert"></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="section">
-        <div class="sec-title">// COURBES</div>
-        <div class="chart-wrap">
-          <div class="chart-lbl">PROJECTION KM CUMULÉ — ANNÉE</div>
-          <div class="chart-container">
-            <canvas id="chartKm" role="img" aria-label="Projection kilométrique mensuelle"></canvas>
-          </div>
-        </div>
-        <div class="chart-wrap">
-          <div class="chart-lbl">COÛT CARBURANT MENSUEL (€)</div>
-          <div class="chart-container">
-            <canvas id="chartCost" role="img" aria-label="Coût carburant mensuel estimé"></canvas>
-          </div>
-        </div>
-        <div class="chart-wrap">
-          <div class="chart-lbl">KM PARCOURUS vs PROJECTION</div>
-          <div class="chart-container">
-            <canvas id="chartProg" role="img" aria-label="Km parcourus vs projection"></canvas>
-          </div>
+  <!-- PAGE 3 : COURBES -->
+  <div class="page" id="page-courbes">
+    <div id="noDataChart" class="nodata">
+      <span class="nodata-icon">📈</span>
+      // RENSEIGNE D'ABORD<br>LES DONNÉES //
+    </div>
+    <div id="chartSection" style="display:none">
+      <div class="chart-wrap">
+        <div class="chart-lbl">PROJECTION KM CUMULÉ — ANNÉE</div>
+        <div class="chart-container">
+          <canvas id="chartKm" role="img" aria-label="Projection kilométrique mensuelle"></canvas>
         </div>
       </div>
+      <div class="chart-wrap">
+        <div class="chart-lbl">COÛT CARBURANT MENSUEL (€)</div>
+        <div class="chart-container">
+          <canvas id="chartCost" role="img" aria-label="Coût carburant mensuel estimé"></canvas>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-lbl">KM PARCOURUS vs PROJECTION</div>
+        <div class="chart-container">
+          <canvas id="chartProg" role="img" aria-label="Km parcourus vs projection"></canvas>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-courbes -->
 
-    </div><!-- /kpiSection -->
+</div><!-- /main -->
 
-    <div id="noData" class="nodata">// RENSEIGNEZ LES CHAMPS CI-DESSUS<br>POUR ACTIVER LES KPI //</div>
-
-  </div><!-- /app -->
-</div><!-- /#app -->
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-item active" id="nav-saisie" onclick="switchPage('saisie')">
+    <span class="tab-icon">✏️</span>Saisie
+  </button>
+  <button class="tab-item" id="nav-kpi" onclick="switchPage('kpi')">
+    <span class="tab-icon">📊</span>KPI
+  </button>
+  <button class="tab-item" id="nav-courbes" onclick="switchPage('courbes')">
+    <span class="tab-icon">📈</span>Courbes
+  </button>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 let isMil = false;
 let cKm = null, cCost = null, cProg = null;
+let currentKpiTab = 'route';
 
+/* ── PAGE NAVIGATION ── */
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  document.getElementById('mainScroll').scrollTop = 0;
+  if (name === 'courbes') {
+    // redraw charts for correct sizing
+    setTimeout(() => { if (cKm) { cKm.resize(); cCost.resize(); cProg.resize(); } }, 50);
+  }
+}
+
+/* ── KPI SUB-TABS ── */
+function switchKpiTab(name) {
+  currentKpiTab = name;
+  document.querySelectorAll('.kpi-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.kpi-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ktab-' + name).classList.add('active');
+  document.getElementById('kpanel-' + name).classList.add('active');
+}
+
+/* ── THEME ── */
 function toggleTheme() {
   isMil = !isMil;
   if (isMil) {
     document.documentElement.setAttribute('data-theme', 'military');
-    document.getElementById('themeLabel').textContent = 'Mode Civil';
-    document.getElementById('toggleDot').textContent  = '🪖';
-    document.getElementById('headerIcon').textContent = '🎖️';
-    document.getElementById('pageTitle').textContent  = 'YARIS HYBRID';
-    document.getElementById('headerSub').textContent  = 'CTRL_CARBURANT';
+    document.getElementById('themeLabel').textContent  = 'Mode Civil';
+    document.getElementById('toggleDot').textContent   = '🪖';
+    document.getElementById('headerIcon').textContent  = '🎖️';
+    document.getElementById('pageTitle').textContent   = 'YARIS HYBRID';
+    document.getElementById('headerSub').textContent   = 'CTRL_CARBURANT';
     document.querySelector('meta[name="theme-color"]').setAttribute('content', '#1e2415');
   } else {
     document.documentElement.removeAttribute('data-theme');
-    document.getElementById('themeLabel').textContent = 'Mode Mil.';
-    document.getElementById('toggleDot').textContent  = '🌿';
-    document.getElementById('headerIcon').textContent = '🚗';
-    document.getElementById('pageTitle').textContent  = 'Yaris Hybrid';
-    document.getElementById('headerSub').textContent  = 'CARBURANT & KILOMÉTRAGE';
+    document.getElementById('themeLabel').textContent  = 'Mode Mil.';
+    document.getElementById('toggleDot').textContent   = '🌿';
+    document.getElementById('headerIcon').textContent  = '🚗';
+    document.getElementById('pageTitle').textContent   = 'Yaris Hybrid';
+    document.getElementById('headerSub').textContent   = 'CARBURANT & KILOMÉTRAGE';
     document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f5ead8');
   }
   compute();
@@ -646,14 +802,14 @@ function fd(id) { const v = document.getElementById(id).value; return v ? new Da
 function monthsBetween(d1, d2) { return (d2 - d1) / (1000 * 60 * 60 * 24 * 30.4375); }
 
 function compute() {
-  const kmStart     = fv('kmStart');
-  const kmNow       = fv('kmNow');
-  const dateStart   = fd('dateStart');
-  const dateNow     = fd('dateNow');
-  const fuel        = fv('fuel');
-  const tank        = fv('tank')  || 43;
-  const conso       = fv('conso') || 4.5;
-  const price       = fv('price') || 1.79;
+  const kmStart       = fv('kmStart');
+  const kmNow         = fv('kmNow');
+  const dateStart     = fd('dateStart');
+  const dateNow       = fd('dateNow');
+  const fuel          = fv('fuel');
+  const tank          = fv('tank')  || 43;
+  const conso         = fv('conso') || 4.5;
+  const price         = fv('price') || 1.79;
   const kmMonthManual = fv('kmMonthManual');
 
   let kmMonth = null, kmMonthSource = '';
@@ -684,52 +840,57 @@ function compute() {
     badgeEl.style.display = 'none';
   }
 
-  const currentKm = kmNow || kmStart;
+  const hasData = !!(fv('kmNow') || fv('kmStart')) && fv('fuel') !== null && kmMonth;
 
-  if (!currentKm || !fuel || !kmMonth) {
-    document.getElementById('kpiSection').style.display = 'none';
-    document.getElementById('noData').style.display     = 'block';
-    return;
-  }
+  // Saisie page hint
+  document.getElementById('noData2').style.display = hasData ? 'none' : 'block';
 
-  document.getElementById('kpiSection').style.display = 'block';
-  document.getElementById('noData').style.display     = 'none';
+  // KPI page
+  document.getElementById('kpiSection').style.display  = hasData ? 'block' : 'none';
+  document.getElementById('noData').style.display      = hasData ? 'none'  : 'block';
 
-  const today    = dateNow || new Date();
-  const endYear  = new Date(today.getFullYear(), 11, 31);
-  const daysLeft = Math.max(0, (endYear - today) / 86400000);
-  const kmPerDay = kmMonth / 30.4375;
+  // Charts page
+  document.getElementById('chartSection').style.display  = hasData ? 'block' : 'none';
+  document.getElementById('noDataChart').style.display   = hasData ? 'none'  : 'block';
 
-  const kmLeftYear = Math.round(kmPerDay * daysLeft);
-  const kmEY       = Math.round(currentKm + kmLeftYear);
-  const fuelL      = (fuel / 100) * tank;
-  const autoKm     = Math.round((fuelL / conso) * 100);
-  const autoDays   = Math.round(autoKm / kmPerDay);
-  const costPer100 = (conso * price).toFixed(2);
-  const costFull   = (tank * price).toFixed(2);
-  const costMonth  = Math.round((kmMonth / 100) * conso * price);
-  const costYear   = costMonth * 12;
+  if (!hasData) return;
 
-  document.getElementById('kmEndYear').textContent  = kmEY.toLocaleString('fr-FR');
-  document.getElementById('kmRemYear').textContent  = kmLeftYear.toLocaleString('fr-FR');
-  document.getElementById('autoKm').textContent     = autoKm.toLocaleString('fr-FR');
-  document.getElementById('autoDays').textContent   = autoDays;
-  document.getElementById('costFull').textContent   = costFull;
-  document.getElementById('costPer100').textContent = costPer100;
-  document.getElementById('costMonth').textContent  = costMonth;
-  document.getElementById('costYear').textContent   = costYear.toLocaleString('fr-FR');
+  const currentKm = fv('kmNow') || fv('kmStart');
+  const today     = dateNow || new Date();
+  const endYear   = new Date(today.getFullYear(), 11, 31);
+  const daysLeft  = Math.max(0, (endYear - today) / 86400000);
+  const kmPerDay  = kmMonth / 30.4375;
+
+  const kmLeftYear  = Math.round(kmPerDay * daysLeft);
+  const kmEY        = Math.round(currentKm + kmLeftYear);
+  const fuelL       = (fuel / 100) * tank;
+  const autoKm      = Math.round((fuelL / conso) * 100);
+  const autoDays    = Math.round(autoKm / kmPerDay);
+  const costPer100  = (conso * price).toFixed(2);
+  const costFull    = (tank * price).toFixed(2);
+  const costMonth   = Math.round((kmMonth / 100) * conso * price);
+  const costYear    = costMonth * 12;
+
+  document.getElementById('kmEndYear').textContent   = kmEY.toLocaleString('fr-FR');
+  document.getElementById('kmRemYear').textContent   = kmLeftYear.toLocaleString('fr-FR');
+  document.getElementById('autoKm').textContent      = autoKm.toLocaleString('fr-FR');
+  document.getElementById('autoDays').textContent    = autoDays;
+  document.getElementById('costFull').textContent    = costFull;
+  document.getElementById('costPer100').textContent  = costPer100;
+  document.getElementById('costMonth').textContent   = costMonth;
+  document.getElementById('costYear').textContent    = costYear.toLocaleString('fr-FR');
 
   const gFill = document.getElementById('gaugeFill');
   gFill.style.width  = fuel + '%';
   gFill.className    = 'gauge-fill' + (fuel < 15 ? ' low' : fuel < 30 ? ' med' : '');
-  document.getElementById('fuelL').textContent      = fuelL.toFixed(1) + ' L';
-  document.getElementById('fuelPct').textContent    = fuel + '%';
-  document.getElementById('fuelKmLeft').textContent = autoKm + ' km restants';
+  document.getElementById('fuelL').textContent       = fuelL.toFixed(1) + ' L';
+  document.getElementById('fuelPct').textContent     = fuel + '%';
+  document.getElementById('fuelKmLeft').textContent  = autoKm + ' km restants';
 
   const alertEl = document.getElementById('fuelAlert');
-  if (fuel < 15) alertEl.innerHTML = '<div class="alert warn">⚠ CARBURANT CRITIQUE — Faire le plein immédiatement</div>';
+  if (fuel < 15)      alertEl.innerHTML = '<div class="alert warn">⚠ CARBURANT CRITIQUE — Faire le plein immédiatement</div>';
   else if (fuel < 30) alertEl.innerHTML = '<div class="alert">▲ Niveau bas — Plein conseillé bientôt</div>';
-  else alertEl.innerHTML = '';
+  else                alertEl.innerHTML = '';
 
   drawCharts(currentKm, kmMonth, kmPerDay, conso, price, today, kmStart, dateStart, dateNow);
 }
@@ -740,11 +901,11 @@ function drawCharts(currentKm, kmMonth, kmPerDay, conso, price, today, kmStart, 
   const curM   = today.getMonth();
 
   const commonScales = {
-    x: { ticks: { color: c.muted, font: { family: "'Share Tech Mono',monospace", size: 9 }, maxRotation: 0 }, grid: { color: c.grid } },
-    y: { ticks: { color: c.muted, font: { family: "'Share Tech Mono',monospace", size: 9 } }, grid: { color: c.grid }, border: { color: c.grid } }
+    x: { ticks: { color: c.muted, font: { family: "'Share Tech Mono',monospace", size: 8 }, maxRotation: 0 }, grid: { color: c.grid } },
+    y: { ticks: { color: c.muted, font: { family: "'Share Tech Mono',monospace", size: 8 } }, grid: { color: c.grid }, border: { color: c.grid } }
   };
 
-  const kmCum   = months.map((_, i) => Math.round(currentKm + (i - curM) * kmMonth));
+  const kmCum    = months.map((_, i) => Math.round(currentKm + (i - curM) * kmMonth));
   const costData = months.map(() => Math.round((kmMonth / 100) * conso * price));
 
   const progReal = months.map((_, i) => {
@@ -773,7 +934,7 @@ function drawCharts(currentKm, kmMonth, kmPerDay, conso, price, today, kmStart, 
         fill: true,
         tension: 0.3,
         pointBackgroundColor: months.map((_, i) => i === curM ? c.accent : c.accent + '66'),
-        pointRadius: months.map((_, i) => i === curM ? 6 : 3),
+        pointRadius: months.map((_, i) => i === curM ? 5 : 2),
         segment: {
           borderDash: ctx => ctx.p0DataIndex >= curM ? [5, 4] : [],
           borderColor: ctx => ctx.p0DataIndex >= curM ? c.accent + '77' : c.accent,
@@ -797,7 +958,7 @@ function drawCharts(currentKm, kmMonth, kmPerDay, conso, price, today, kmStart, 
       datasets: [{
         data: costData,
         backgroundColor: months.map((_, i) => i <= curM ? c.accent + 'CC' : c.accent + '44'),
-        borderRadius: 4
+        borderRadius: 3
       }]
     },
     options: {
@@ -821,7 +982,7 @@ function drawCharts(currentKm, kmMonth, kmPerDay, conso, price, today, kmStart, 
           borderColor: c.accent,
           backgroundColor: 'transparent',
           tension: 0.3,
-          pointRadius: 4,
+          pointRadius: 3,
           spanGaps: false
         },
         {
@@ -853,6 +1014,7 @@ const mm    = String(today.getMonth() + 1).padStart(2, '0');
 const dd    = String(today.getDate()).padStart(2, '0');
 document.getElementById('dateNow').value   = `${yyyy}-${mm}-${dd}`;
 document.getElementById('dateStart').value = `${yyyy}-01-01`;
+compute();
 </script>
 </body>
 </html>
