@@ -221,8 +221,9 @@ body {
 }
 
 /* ── GRIDS ── */
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+.grid2 { display: flex; flex-direction: column; gap: 8px; }
+.grid3 { display: flex; flex-direction: column; gap: 7px; }
+.iblock.full { width: 100%; }
 
 /* ── INPUT BLOCKS ── */
 .iblock {
@@ -344,7 +345,8 @@ body {
 .kpi-panel.active { display: block; }
 
 /* ── KPI CARDS ── */
-.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kpi-grid { display: flex; flex-direction: column; gap: 8px; }
+.kpi.full { width: 100%; }
 
 .kpi {
   background: var(--panel);
@@ -499,6 +501,67 @@ body {
 @supports (-webkit-touch-callout: none) {
   .main { padding-bottom: 0; }
 }
+
+/* ── SAVE / LOAD ── */
+.save-bar {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 6px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--panel);
+  color: var(--txt2);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.96); }
+.btn.primary { border-color: var(--accent); color: var(--accent); background: rgba(212,104,42,0.07); }
+.btn.danger  { border-color: var(--crit);  color: var(--crit);   background: rgba(192,57,43,0.06); }
+.btn-icon { font-size: 15px; }
+
+.save-status {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--ok);
+  text-align: center;
+  margin-top: 6px;
+  min-height: 14px;
+  letter-spacing: 0.08em;
+  transition: opacity .3s;
+}
+
+.save-info {
+  background: var(--panel);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+.save-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  padding: 3px 0;
+}
+.save-info-row + .save-info-row { border-top: 1px solid var(--border); margin-top: 3px; padding-top: 6px; }
+.save-info-val { color: var(--txt2); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -590,8 +653,49 @@ body {
       </div>
     </div>
 
+    <div class="divider"></div>
+
+    <!-- SAUVEGARDE -->
+    <div class="sec-title">// SAUVEGARDE</div>
+
+    <div class="save-info" id="saveInfo">
+      <div class="save-info-row">
+        <span>Dernière sauvegarde</span>
+        <span class="save-info-val" id="saveDate">—</span>
+      </div>
+      <div class="save-info-row">
+        <span>Données sauvegardées</span>
+        <span class="save-info-val" id="saveFields">—</span>
+      </div>
+    </div>
+
+    <div class="save-bar" style="margin-top:10px;">
+      <button class="btn primary" onclick="saveData()">
+        <span class="btn-icon">💾</span>Sauvegarder
+      </button>
+      <button class="btn" onclick="loadData()">
+        <span class="btn-icon">📂</span>Charger
+      </button>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn" onclick="exportJSON()">
+        <span class="btn-icon">⬇️</span>Export JSON
+      </button>
+      <button class="btn" onclick="triggerImport()">
+        <span class="btn-icon">⬆️</span>Import JSON
+      </button>
+      <button class="btn danger" onclick="clearData()">
+        <span class="btn-icon">🗑️</span>Reset
+      </button>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+
+    <div class="save-status" id="saveStatus"></div>
+
     <!-- hint quand pas de données -->
-    <div id="noData2" class="nodata" style="padding:24px 10px;">
+    <div id="noData2" class="nodata" style="padding:20px 10px;">
       <span class="nodata-icon">📊</span>
       Remplis les champs pour<br>activer les KPI
     </div>
@@ -1014,7 +1118,166 @@ const mm    = String(today.getMonth() + 1).padStart(2, '0');
 const dd    = String(today.getDate()).padStart(2, '0');
 document.getElementById('dateNow').value   = `${yyyy}-${mm}-${dd}`;
 document.getElementById('dateStart').value = `${yyyy}-01-01`;
-compute();
+
+/* ── STORAGE KEY ── */
+const STORAGE_KEY = 'yaris_data';
+
+/* ── CHAMPS À SAUVEGARDER ── */
+const FIELDS = ['kmStart','kmNow','dateStart','dateNow','fuel','tank','conso','price','kmMonthManual'];
+
+function getFormData() {
+  const d = {};
+  FIELDS.forEach(id => { d[id] = document.getElementById(id).value; });
+  d._savedAt = new Date().toISOString();
+  d._theme   = isMil ? 'military' : 'civil';
+  return d;
+}
+
+function applyFormData(d) {
+  FIELDS.forEach(id => {
+    if (d[id] !== undefined && d[id] !== '') {
+      document.getElementById(id).value = d[id];
+    }
+  });
+  if (d._theme === 'military' && !isMil) toggleTheme();
+}
+
+function updateSaveInfo(d) {
+  if (!d || !d._savedAt) {
+    document.getElementById('saveDate').textContent   = '—';
+    document.getElementById('saveFields').textContent = '—';
+    return;
+  }
+  const dt = new Date(d._savedAt);
+  document.getElementById('saveDate').textContent = dt.toLocaleString('fr-FR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+  const filled = FIELDS.filter(id => d[id] && d[id] !== '').length;
+  document.getElementById('saveFields').textContent = filled + ' / ' + FIELDS.length + ' champs';
+}
+
+function showStatus(msg, isError) {
+  const el = document.getElementById('saveStatus');
+  el.style.color   = isError ? 'var(--crit)' : 'var(--ok)';
+  el.textContent   = msg;
+  el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; }, 3000);
+}
+
+/* ── SAVE ── */
+function saveData() {
+  try {
+    const d = getFormData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(d, null, 2));
+    updateSaveInfo(d);
+    showStatus('✓ Sauvegardé localement');
+  } catch(e) {
+    showStatus('✗ Erreur sauvegarde', true);
+  }
+}
+
+/* ── LOAD ── */
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { showStatus('✗ Aucune sauvegarde trouvée', true); return; }
+    const d = JSON.parse(raw);
+    applyFormData(d);
+    updateSaveInfo(d);
+    compute();
+    showStatus('✓ Données chargées');
+  } catch(e) {
+    showStatus('✗ Erreur chargement', true);
+  }
+}
+
+/* ── CLEAR ── */
+function clearData() {
+  if (!confirm('Effacer toutes les données sauvegardées ?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  FIELDS.forEach(id => { document.getElementById(id).value = ''; });
+  // reset dates
+  document.getElementById('dateNow').value   = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('dateStart').value = `${yyyy}-01-01`;
+  updateSaveInfo(null);
+  compute();
+  showStatus('✓ Données effacées');
+}
+
+/* ── EXPORT JSON ── */
+function exportJSON() {
+  try {
+    const d    = getFormData();
+    const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const ts   = new Date().toISOString().slice(0,10);
+    a.href     = url;
+    a.download = `yaris_${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showStatus('✓ Fichier JSON exporté');
+  } catch(e) {
+    showStatus('✗ Export impossible', true);
+  }
+}
+
+/* ── IMPORT JSON ── */
+function triggerImport() {
+  document.getElementById('importFile').value = '';
+  document.getElementById('importFile').click();
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const d = JSON.parse(e.target.result);
+      applyFormData(d);
+      updateSaveInfo(d);
+      // auto-save après import
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...d, _savedAt: new Date().toISOString() }, null, 2));
+      compute();
+      showStatus('✓ Import réussi + sauvegardé');
+    } catch(err) {
+      showStatus('✗ Fichier JSON invalide', true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ── AUTO-SAVE à chaque frappe ── */
+let autoSaveTimer = null;
+document.querySelectorAll('#page-saisie input').forEach(inp => {
+  inp.addEventListener('input', () => {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+      try {
+        const d = getFormData();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(d, null, 2));
+        updateSaveInfo(d);
+      } catch(e) {}
+    }, 800);
+  });
+});
+
+/* ── INIT : charger auto si sauvegarde existante ── */
+(function initLoad() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { updateSaveInfo(null); compute(); return; }
+    const d = JSON.parse(raw);
+    applyFormData(d);
+    updateSaveInfo(d);
+    compute();
+    showStatus('✓ Données restaurées');
+  } catch(e) {
+    compute();
+  }
+})();
 </script>
 </body>
 </html>
