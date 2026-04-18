@@ -601,6 +601,10 @@ body {
       <div class="iblock highlight">
         <label>KM ACTUEL</label>
         <input type="number" inputmode="numeric" id="kmNow" placeholder="45200" oninput="compute()">
+        <div style="display:flex;gap:6px;margin-top:7px;">
+          <button class="btn" style="flex:1;padding:6px 4px;font-size:0.68rem;" onclick="adjustKm(-20)">−20 km</button>
+          <button class="btn primary" style="flex:1;padding:6px 4px;font-size:0.68rem;" onclick="adjustKm(20)">+20 km</button>
+        </div>
         <div class="iunit">km au compteur</div>
       </div>
       <div class="iblock">
@@ -635,7 +639,10 @@ body {
     <div class="grid2">
       <div class="iblock">
         <label>CARBURANT RESTANT</label>
-        <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="compute()">
+        <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()">
+        <input type="range" id="fuelSlider" min="0" max="100" step="1" value="50"
+          oninput="syncFuelInput()"
+          style="width:100%;margin-top:8px;accent-color:var(--accent);cursor:pointer;">
         <div class="iunit">% du réservoir</div>
       </div>
       <div class="iblock">
@@ -948,6 +955,24 @@ function fv(id) { const v = parseFloat(document.getElementById(id).value); retur
 function fd(id) { const v = document.getElementById(id).value; return v ? new Date(v) : null; }
 function monthsBetween(d1, d2) { return (d2 - d1) / (1000 * 60 * 60 * 24 * 30.4375); }
 
+function adjustKm(delta) {
+  const inp = document.getElementById('kmNow');
+  const val = parseFloat(inp.value) || 0;
+  inp.value = val + delta;
+  compute();
+}
+
+function syncFuelSlider() {
+  const v = document.getElementById('fuel').value;
+  if (v !== '') document.getElementById('fuelSlider').value = v;
+}
+
+function syncFuelInput() {
+  const v = document.getElementById('fuelSlider').value;
+  document.getElementById('fuel').value = v;
+  compute();
+}
+
 function compute() {
   const kmStart       = fv('kmStart');
   const kmNow         = fv('kmNow');
@@ -1211,6 +1236,7 @@ function applyFormData(d) {
     }
   });
   if (d._theme === 'military' && !isMil) toggleTheme();
+  syncFuelSlider();
 }
 
 function updateSaveInfo(d) {
