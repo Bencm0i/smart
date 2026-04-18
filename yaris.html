@@ -743,6 +743,25 @@ body {
             <div class="kpi-val" id="autoDays">—</div>
             <div class="kpi-u">jours avec carbu actuel</div>
           </div>
+          <div class="kpi full">
+            <div class="kpi-lbl">KM / AN</div>
+            <div class="kpi-val" id="kmPerYear">—</div>
+            <div class="kpi-u">km/an estimés</div>
+          </div>
+          <!-- RÉSERVOIR avec code couleur -->
+          <div class="kpi full" id="kpiTankCard">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+              <span class="kpi-lbl" style="margin-bottom:0;">RÉSERVOIR</span>
+              <span id="routeFuelPct" style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;color:var(--muted)">—</span>
+            </div>
+            <div class="gauge-bar" style="margin:4px 0 6px;">
+              <div class="gauge-fill" id="routeGaugeFill" style="width:0%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.65rem;color:var(--muted);">
+              <span id="routeFuelL">— L</span>
+              <span id="routeFuelKm">— km restants</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -983,6 +1002,28 @@ function compute() {
   document.getElementById('costPer100').textContent  = costPer100;
   document.getElementById('costMonth').textContent   = costMonth;
   document.getElementById('costYear').textContent    = costYear.toLocaleString('fr-FR');
+
+  // km/an
+  const kmYear = kmMonth * 12;
+  document.getElementById('kmPerYear').textContent = kmYear.toLocaleString('fr-FR');
+
+  // Réservoir dans onglet Route
+  const rFill = document.getElementById('routeGaugeFill');
+  rFill.style.width = fuel + '%';
+  rFill.className   = 'gauge-fill' + (fuel < 15 ? ' low' : fuel < 30 ? ' med' : '');
+  const pctEl = document.getElementById('routeFuelPct');
+  pctEl.textContent = fuel + '%';
+  pctEl.style.color = fuel < 15 ? 'var(--crit)' : fuel < 30 ? 'var(--warn)' : 'var(--ok)';
+  document.getElementById('routeFuelL').textContent  = fuelL.toFixed(1) + ' L';
+  document.getElementById('routeFuelKm').textContent = autoKm + ' km restants';
+  // Couleur bordure top de la carte réservoir
+  const tankCard = document.getElementById('kpiTankCard');
+  tankCard.classList.remove('ok','warn-kpi');
+  tankCard.style.borderColor = '';
+  tankCard.style.boxShadow   = '';
+  if (fuel >= 30) { tankCard.classList.add('ok'); }
+  else if (fuel >= 15) { tankCard.classList.add('warn-kpi'); }
+  else { tankCard.style.borderColor = 'var(--crit)'; tankCard.style.boxShadow = '0 0 0 2px rgba(192,57,43,0.15)'; }
 
   const gFill = document.getElementById('gaugeFill');
   gFill.style.width  = fuel + '%';
