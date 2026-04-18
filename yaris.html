@@ -780,6 +780,11 @@ body {
             <div class="kpi-val" id="autoDays">—</div>
             <div class="kpi-u">jours avec carbu actuel</div>
           </div>
+          <div class="kpi full">
+            <div class="kpi-lbl">KM / AN</div>
+            <div class="kpi-val" id="kmPerYear">—</div>
+            <div class="kpi-u">km/an estimés (×12)</div>
+          </div>
 
         </div>
       </div>
@@ -1048,6 +1053,7 @@ function compute() {
   document.getElementById('costPer100').textContent  = costPer100;
   document.getElementById('costMonth').textContent   = costMonth;
   document.getElementById('costYear').textContent    = costYear.toLocaleString('fr-FR');
+  document.getElementById('kmPerYear').textContent   = (kmMonth * 12).toLocaleString('fr-FR');
 
   const gFill = document.getElementById('gaugeFill');
   gFill.style.width  = fuel + '%';
