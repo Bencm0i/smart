@@ -88,7 +88,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;m
 .media-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;position:relative;z-index:1;touch-action:pan-y;transition:border-color var(--transition);}
 .media-card.pinned{border-color:var(--accent);}
 .card-header{display:flex;}
-.card-poster{width:66px;min-height:92px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.9rem;flex-shrink:0;position:relative;}
+.card-poster{width:66px;min-height:92px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.9rem;flex-shrink:0;position:relative;overflow:hidden;}
+.card-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.card-poster.has-poster{font-size:0;}
 .type-badge{position:absolute;bottom:4px;left:4px;font-family:'JetBrains Mono',monospace;font-size:0.5rem;font-weight:700;padding:2px 4px;border-radius:4px;letter-spacing:0.5px;}
 .type-badge.serie{background:var(--serie-color);color:white;}
 .type-badge.film{background:var(--film-color);color:white;}
@@ -388,13 +390,13 @@ const EMOJIS = {
 };
 
 let data = JSON.parse(localStorage.getItem('watchlog_data')||'null') || [
-  {id:1,type:'serie',title:'Breaking Bad',genre:'Thriller',year:2008,emoji:'💊',status:'done',season:5,episode:16,totalEp:62,rating:5,note:"Chef-d'œuvre absolu",addedDate:'2024-01',pinned:false},
-  {id:2,type:'serie',title:'Severance',genre:'SF',year:2022,emoji:'🧠',status:'watching',season:2,episode:3,totalEp:18,rating:4,note:'Très tendu',addedDate:'2024-03',pinned:true},
-  {id:3,type:'film',title:'Dune Part 2',genre:'SF',year:2024,emoji:'🌌',status:'done',filmProgress:100,rating:5,note:'Visuel époustouflant',addedDate:'2024-03',pinned:false},
-  {id:4,type:'serie',title:'The Bear',genre:'Drame',year:2022,emoji:'🍳',status:'watching',season:1,episode:5,totalEp:18,rating:4,note:'',addedDate:'2024-02',pinned:false},
-  {id:5,type:'film',title:'Oppenheimer',genre:'Drame',year:2023,emoji:'☢️',status:'paused',filmProgress:65,rating:4,note:'Très long mais intense',addedDate:'2023-12',pinned:false},
-  {id:6,type:'serie',title:'Dark',genre:'SF',year:2017,emoji:'🕰️',status:'done',season:3,episode:8,totalEp:26,rating:5,note:'Complexe mais brillant',addedDate:'2023-11',pinned:false},
-  {id:7,type:'film',title:'Past Lives',genre:'Romance',year:2023,emoji:'💔',status:'todo',filmProgress:0,rating:0,note:'',addedDate:'2024-04',pinned:false},
+  {id:1,type:'serie',title:'Breaking Bad',genre:'Thriller',year:2008,emoji:'💊',status:'done',season:5,episode:16,totalEp:62,rating:5,note:"Chef-d'œuvre absolu",addedDate:'2024-01',pinned:false,posterUrl:'https://m.media-amazon.com/images/M/MV5BYmQ4YWMxYjUtNjZmYi00MDdmLWJjOTUtYjc3NjAxMjZhZWMxXkEyXkFqcGdeQXVyMTMzNDExODE5._V1_SX300.jpg'},
+  {id:2,type:'serie',title:'Severance',genre:'SF',year:2022,emoji:'🧠',status:'watching',season:2,episode:3,totalEp:18,rating:4,note:'Très tendu',addedDate:'2024-03',pinned:true,posterUrl:'https://m.media-amazon.com/images/M/MV5BMjUxNzg5NTMwNV5BMl5BanBnXkFtZTgwNTM4NjYzMTI@._V1_SX300.jpg'},
+  {id:3,type:'film',title:'Dune Part 2',genre:'SF',year:2024,emoji:'🌌',status:'done',filmProgress:100,rating:5,note:'Visuel époustouflant',addedDate:'2024-03',pinned:false,posterUrl:'https://m.media-amazon.com/images/M/MV5BN2QyZGU4ZDctOWMzMy00NTc5LThlOGQtODhmNDI1NmM0YzBhXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_SX300.jpg'},
+  {id:4,type:'serie',title:'The Bear',genre:'Drame',year:2022,emoji:'🍳',status:'watching',season:1,episode:5,totalEp:18,rating:4,note:'',addedDate:'2024-02',pinned:false,posterUrl:'https://m.media-amazon.com/images/M/MV5BZjYxOWE5NjgtYjVlNS00MDM3LThlOTctM2M0NTc2ZWMxY2EzXkEyXkFqcGdeQXVyMTEyMjM2NDc2._V1_SX300.jpg'},
+  {id:5,type:'film',title:'Oppenheimer',genre:'Drame',year:2023,emoji:'☢️',status:'paused',filmProgress:65,rating:4,note:'Très long mais intense',addedDate:'2023-12',pinned:false,posterUrl:'https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_SX300.jpg'},
+  {id:6,type:'serie',title:'Dark',genre:'SF',year:2017,emoji:'🕰️',status:'done',season:3,episode:8,totalEp:26,rating:5,note:'Complexe mais brillant',addedDate:'2023-11',pinned:false,posterUrl:'https://m.media-amazon.com/images/M/MV5BOTk2NzUyMTctZTdkMS00NjE2LWJlOTItMDBiOWZiNjRkMWM3XkEyXkFqcGdeQXVyMjkwOTAyMDU@._V1_SX300.jpg'},
+  {id:7,type:'film',title:'Past Lives',genre:'Romance',year:2023,emoji:'💔',status:'todo',filmProgress:0,rating:0,note:'',addedDate:'2024-04',pinned:false,posterUrl:'https://m.media-amazon.com/images/M/MV5BYWFlMDI1MjgtYzFmNi00ZDVjLWI2YTgtNTE5YTFjYmFlOThmXkEyXkFqcGdeQXVyMTUzMTg2ODkz._V1_SX300.jpg'},
 ];
 
 let currentFilter='all', currentRating=0, editingId=null, addType='serie', groupMode=false;
@@ -498,7 +500,8 @@ function renderCard(item){
     <div class="swipe-del-bg">🗑️</div>
     <div class="media-card${item.pinned?' pinned':''}" onclick="openUpdatePanel(${item.id})">
       <div class="card-header">
-        <div class="card-poster">
+        <div class="card-poster${item.posterUrl?' has-poster':''}">
+          ${item.posterUrl?`<img src="${item.posterUrl}" alt="${item.title}" loading="lazy" onerror="this.parentElement.classList.remove('has-poster');this.remove()">`:''}
           ${item.emoji||(item.type==='serie'?'🎞':'🎬')}
           <span class="type-badge ${item.type}">${item.type==='serie'?'SÉRIE':'FILM'}</span>
           ${item.pinned?'<span class="pin-badge">📌</span>':''}
@@ -660,11 +663,23 @@ function selectAddType(t){
   document.getElementById('addTypeFilm').classList.toggle('active',t==='film');
   document.getElementById('addEpisodesField').style.display=t==='serie'?'':'none';
 }
-function saveAdd(){
+// POSTER FETCH (OMDb API, clé gratuite)
+const OMDB_KEY = '9b1d0b8e';
+async function fetchPoster(title, type) {
+  try {
+    const t = type === 'film' ? 'movie' : 'series';
+    const res = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}&type=${t}&apikey=${OMDB_KEY}`);
+    const d = await res.json();
+    if (d.Poster && d.Poster !== 'N/A') return d.Poster;
+  } catch(e) {}
+  return null;
+}
+
+async function saveAdd(){
   const title=document.getElementById('addTitle').value.trim();
   if(!title){document.getElementById('addTitle').focus();return;}
   const emojis=EMOJIS[addType];
-  data.unshift({
+  const item={
     id:Date.now(),type:addType,title,
     genre:document.getElementById('addGenre').value,
     year:parseInt(document.getElementById('addYear').value),
@@ -673,11 +688,15 @@ function saveAdd(){
     totalEp:addType==='serie'?(parseInt(document.getElementById('addEpisodes').value)||12):1,
     filmProgress:0,rating:0,note:'',pinned:false,
     addedDate:new Date().toISOString().slice(0,7)
-  });
+  };
+  data.unshift(item);
   saveData();renderList();
   document.getElementById('addTitle').value='';
   document.getElementById('addPanel').classList.remove('open');
   showToast(`"${title}" ajouté ✓`);
+  // fetch poster en arrière-plan
+  const poster = await fetchPoster(title, addType);
+  if(poster){ item.posterUrl = poster; saveData(); renderList(); }
 }
 
 // EXPORT/IMPORT
