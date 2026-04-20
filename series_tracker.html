@@ -104,6 +104,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;m
 .status-done{background:var(--green-bg);color:var(--green);border:1px solid var(--green);}
 .status-paused{background:var(--red-bg);color:var(--red);border:1px solid var(--red);}
 .status-todo{background:var(--bg2);color:var(--text3);border:1px solid var(--border);}
+.status-rewatch{background:rgba(46,111,163,0.12);color:var(--blue);border:1px solid var(--blue);}
 .card-rating{margin-left:auto;font-size:0.62rem;color:var(--accent3);flex-shrink:0;}
 .card-note{font-size:0.62rem;color:var(--text4);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-footer{padding:6px 10px 8px;border-top:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:8px;}
@@ -238,6 +239,7 @@ canvas{width:100%!important;}
       <div class="pill" onclick="setFilter(this,'done')">✓ Terminé</div>
       <div class="pill" onclick="setFilter(this,'paused')">⏸ Pause</div>
       <div class="pill" onclick="setFilter(this,'todo')">○ À voir</div>
+      <div class="pill" onclick="setFilter(this,'rewatch')">🔁 À revoir</div>
       <div class="pill" onclick="setFilter(this,'pinned')">📌 Épinglés</div>
       <div class="pill" onclick="setFilter(this,'serie')">🎞 Séries</div>
       <div class="pill" onclick="setFilter(this,'film')">🎬 Films</div>
@@ -317,6 +319,7 @@ canvas{width:100%!important;}
           <option value="done">✓ Terminé</option>
           <option value="paused">⏸ En pause</option>
           <option value="todo">○ À voir</option>
+          <option value="rewatch">🔁 À revoir</option>
         </select>
       </div>
     </div>
@@ -486,8 +489,8 @@ function getProgress(item){
   if(!item.totalEp) return 0;
   return Math.min(100,Math.round(((item.season-1)*12+item.episode)/item.totalEp*100));
 }
-function getStatusLabel(s){return{watching:'▶ En cours',done:'✓ Terminé',paused:'⏸ Pause',todo:'○ À voir'}[s]||s;}
-function getStatusOrder(s){return{watching:0,paused:1,todo:2,done:3}[s]??4;}
+function getStatusLabel(s){return{watching:'▶ En cours',done:'✓ Terminé',paused:'⏸ Pause',todo:'○ À voir',rewatch:'🔁 À revoir'}[s]||s;}
+function getStatusOrder(s){return{watching:0,paused:1,todo:2,rewatch:3,done:4}[s]??5;}
 
 // RENDER
 function renderList(){
