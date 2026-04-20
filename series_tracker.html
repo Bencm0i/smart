@@ -573,6 +573,7 @@ function renderCard(item){
 }
 
 // SWIPE
+let _undoItem=null, _undoTimer=null;
 function initSwipe(wrap,card,id){
   let sx=0,cx=0,going=false;
   card.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;going=true;},{passive:true});
@@ -584,14 +585,30 @@ function initSwipe(wrap,card,id){
   card.addEventListener('touchend',()=>{
     going=false; card.style.transition='';
     if(cx<-70){
-      card.style.transform='translateX(-88px)';
-      setTimeout(()=>{
-        if(confirm('Supprimer ?')){data=data.filter(d=>d.id!==id);saveData();renderList();}
-        else card.style.transform='';
-      },100);
+      const item=data.find(d=>d.id===id);
+      if(!item){cx=0;return;}
+      _undoItem={item:{...item},index:data.findIndex(d=>d.id===id)};
+      data=data.filter(d=>d.id!==id);
+      saveData();renderList();
+      if(_undoTimer) clearTimeout(_undoTimer);
+      showToastUndo(`"${item.title}" supprimé`);
     } else card.style.transform='';
     cx=0;
   });
+}
+function showToastUndo(msg){
+  const t=document.getElementById('toast');
+  t.innerHTML=`${msg} <span onclick="undoDelete()" style="text-decoration:underline;cursor:pointer;margin-left:8px;">Annuler</span>`;
+  t.classList.add('show');
+  _undoTimer=setTimeout(()=>{t.classList.remove('show');_undoItem=null;},3500);
+}
+function undoDelete(){
+  if(!_undoItem) return;
+  clearTimeout(_undoTimer);
+  data.splice(_undoItem.index,0,_undoItem.item);
+  _undoItem=null;
+  saveData();renderList();
+  showToast('Restauré ✓');
 }
 
 // QUICK +1
@@ -854,7 +871,7 @@ function renderKPIs(){
   const films=data.filter(d=>d.type==='film').length;
   const rated=data.filter(d=>d.rating>0);
   const avg=rated.length?(rated.reduce((s,d)=>s+d.rating,0)/rated.length).toFixed(1):'—';
-  const totalEp=data.filter(d=>d.type==='serie').reduce((s,d)=>s+(d.season-1)*12+d.episode,0);
+  const totalEp=data.filter(d=>d.type==='serie').reduce((s,d)=>s+(d.episode||0),0);
   document.getElementById('kpiGrid').innerHTML=`
     <div class="kpi-card"><div class="kpi-val">${data.length}</div><div class="kpi-label">Total</div><div class="kpi-sub">${series} séries · ${films} films</div></div>
     <div class="kpi-card"><div class="kpi-val">${done}</div><div class="kpi-label">Terminés</div><div class="kpi-sub">${watching} en cours</div></div>
@@ -873,11 +890,18 @@ function renderActivityChart(){
   ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
   const W=canvas.offsetWidth||300,H=160;
   ctx.clearRect(0,0,W,H);
-  const months=['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
-  const vs=[3,5,8,4,6,7,5,9],vf=[1,2,1,3,2,1,2,3];
+  // Build last 8 months from real data
+  const now=new Date();
+  const months=[];
+  for(let i=7;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    months.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,label:d.toLocaleString('fr',{month:'short'})});
+  }
+  const vs=months.map(m=>data.filter(d=>d.type==='serie'&&(d.addedDate||'').startsWith(m.key)).length);
+  const vf=months.map(m=>data.filter(d=>d.type==='film'&&(d.addedDate||'').startsWith(m.key)).length);
   const accent=getCssVar('--accent'),blue=getCssVar('--blue');
   const tc=getCssVar('--text4'),gc=getCssVar('--border');
-  const maxV=Math.max(...vs.map((v,i)=>v+vf[i]));
+  const maxV=Math.max(...vs.map((v,i)=>v+vf[i]),1);
   const bw=(W-40)/months.length,ih=H-30;
   ctx.strokeStyle=gc;ctx.lineWidth=0.5;
   for(let i=0;i<=4;i++){const y=10+(ih-10)*(1-i/4);ctx.beginPath();ctx.moveTo(30,y);ctx.lineTo(W,y);ctx.stroke();ctx.fillStyle=tc;ctx.font='9px JetBrains Mono,monospace';ctx.fillText(Math.round(maxV*i/4),2,y+3);}
@@ -886,7 +910,7 @@ function renderActivityChart(){
     const h1=(vs[i]/maxV)*(ih-10),h2=(vf[i]/maxV)*(ih-10);
     ctx.fillStyle=accent;ctx.beginPath();ctx.roundRect(x+bw*0.05,ih-h1+8,b*0.55,h1,[3,3,0,0]);ctx.fill();
     ctx.fillStyle=blue;ctx.beginPath();ctx.roundRect(x+bw*0.05+b*0.58,ih-h2+8,b*0.37,h2,[3,3,0,0]);ctx.fill();
-    ctx.fillStyle=tc;ctx.font='8px JetBrains Mono,monospace';ctx.textAlign='center';ctx.fillText(m,x+b/2,H-4);
+    ctx.fillStyle=tc;ctx.font='8px JetBrains Mono,monospace';ctx.textAlign='center';ctx.fillText(m.label,x+b/2,H-4);
   });
   ctx.textAlign='left';ctx.fillStyle=accent;ctx.fillRect(W-120,8,10,10);ctx.fillStyle=tc;ctx.fillText('Séries',W-107,17);
   ctx.fillStyle=blue;ctx.fillRect(W-60,8,10,10);ctx.fillStyle=tc;ctx.fillText('Films',W-47,17);
