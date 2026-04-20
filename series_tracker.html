@@ -266,7 +266,7 @@ canvas{width:100%!important;}
 
 <!-- PANEL UPDATE -->
 <div class="slide-overlay" id="updatePanel" onclick="closeUpdatePanel(event)">
-  <div class="slide-panel">
+  <div class="slide-panel" onclick="event.stopPropagation()">
     <div class="slide-handle"></div>
     <div class="slide-title" id="panelTitle">Mettre à jour</div>
     <div class="slide-sub" id="panelSub">AVANCEMENT</div>
@@ -354,8 +354,12 @@ canvas{width:100%!important;}
       <button class="btn-secondary" onclick="closeUpdatePanel()">Annuler</button>
       <button class="btn-primary" onclick="saveUpdate()">💾 Enregistrer</button>
     </div>
+  </div>
+</div>
+
+<!-- PANEL ADD -->
 <div class="slide-overlay" id="addPanel" onclick="closeAddPanel(event)">
-  <div class="slide-panel">
+  <div class="slide-panel" onclick="event.stopPropagation()">
     <div class="slide-handle"></div>
     <div class="slide-title">Ajouter</div>
     <div class="slide-sub">NOUVELLE ENTRÉE</div>
@@ -398,7 +402,7 @@ canvas{width:100%!important;}
 
 <!-- PANEL EXPORT/IMPORT -->
 <div class="slide-overlay" id="exportPanel" onclick="closeExportPanel(event)">
-  <div class="slide-panel">
+  <div class="slide-panel" onclick="event.stopPropagation()">
     <div class="slide-handle"></div>
     <div class="slide-title">Export / Import</div>
     <div class="slide-sub">SAUVEGARDE JSON</div>
@@ -633,6 +637,7 @@ function openUpdatePanel(id){
   }
   document.getElementById('updatePanel').classList.add('open');
   updatePanelPosterUI(item.posterUrl || null);
+}
 function closeUpdatePanel(e){if(!e||e.target===document.getElementById('updatePanel'))document.getElementById('updatePanel').classList.remove('open');}
 function adjustEp(d){const ep=document.getElementById('episodeInput');ep.value=Math.max(1,parseInt(ep.value)+d);updateEpDisplay();}
 function updateEpDisplay(){
