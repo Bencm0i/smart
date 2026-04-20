@@ -186,6 +186,15 @@ canvas{width:100%!important;}
 .genre-bar{height:100%;border-radius:3px;background:linear-gradient(to right,var(--accent),var(--accent3));}
 .genre-count{font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--text4);width:20px;text-align:right;}
 
+/* POSTER EDIT */
+.poster-edit-wrap{display:flex;align-items:center;gap:10px;margin-top:2px;}
+.poster-thumb{width:54px;height:78px;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:var(--text4);overflow:hidden;flex-shrink:0;font-family:'JetBrains Mono',monospace;text-align:center;line-height:1.4;}
+.poster-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.poster-edit-btns{display:flex;flex-direction:column;gap:5px;flex:1;}
+.poster-edit-btns button{width:100%;padding:6px 8px;font-size:0.6rem;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:0.5px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text3);cursor:pointer;transition:all var(--transition);text-align:left;}
+.poster-edit-btns button:active{transform:scale(0.96);}
+.poster-edit-btns button.omdb-btn{border-color:var(--accent);color:var(--accent);}
+
 /* MISC */
 .empty-state{text-align:center;padding:48px 24px;color:var(--text4);}
 .empty-icon{font-size:3rem;margin-bottom:12px;}
@@ -323,16 +332,28 @@ canvas{width:100%!important;}
     </div>
     <div class="field"><label>Commentaire</label><textarea id="noteInput" rows="2" placeholder="Remarques..."></textarea></div>
 
+    <div class="field">
+      <label>Affiche</label>
+      <div class="poster-edit-wrap">
+        <div class="poster-thumb" id="panelPosterThumb">
+          <img id="panelPosterImg" src="" alt="" style="display:none">
+          <span id="panelPosterEmpty">Aucune<br>affiche</span>
+        </div>
+        <div class="poster-edit-btns">
+          <button class="omdb-btn" id="retryOmdbBtn" onclick="retryOmdbUpdate()">🔍 Chercher OMDb</button>
+          <button onclick="document.getElementById('localPosterUpdate').click()">📁 Image locale</button>
+          <button onclick="removePosterUpdate()" style="color:var(--red);border-color:var(--red);">✕ Supprimer</button>
+        </div>
+        <input type="file" id="localPosterUpdate" accept="image/*" style="display:none" onchange="handleLocalPosterUpdate(this)">
+      </div>
+    </div>
+
     <div class="btn-row">
       <button class="btn-danger" onclick="deleteItem()">🗑</button>
       <button class="btn-pin" id="pinBtn" onclick="togglePin()">📌</button>
       <button class="btn-secondary" onclick="closeUpdatePanel()">Annuler</button>
       <button class="btn-primary" onclick="saveUpdate()">💾 Enregistrer</button>
     </div>
-  </div>
-</div>
-
-<!-- PANEL ADD -->
 <div class="slide-overlay" id="addPanel" onclick="closeAddPanel(event)">
   <div class="slide-panel">
     <div class="slide-handle"></div>
@@ -343,6 +364,20 @@ canvas{width:100%!important;}
       <button class="type-sel-btn film-type" id="addTypeFilm" onclick="selectAddType('film')">🎬 FILM</button>
     </div>
     <div class="field"><label>Titre</label><input type="text" id="addTitle" placeholder="Ex: Breaking Bad"></div>
+    <div class="field">
+      <label>Affiche <span style="font-weight:400;color:var(--text4)">(auto OMDb, ou choisir)</span></label>
+      <div class="poster-edit-wrap">
+        <div class="poster-thumb" id="addPosterThumb">
+          <img id="addPosterImg" src="" alt="" style="display:none">
+          <span id="addPosterEmpty">Auto<br>OMDb</span>
+        </div>
+        <div class="poster-edit-btns">
+          <button onclick="document.getElementById('localPosterAdd').click()">📁 Image locale</button>
+          <button onclick="clearAddPoster()" style="color:var(--red);border-color:var(--red);">✕ Réinitialiser</button>
+        </div>
+        <input type="file" id="localPosterAdd" accept="image/*" style="display:none" onchange="handleLocalPosterAdd(this)">
+      </div>
+    </div>
     <div class="two-col">
       <div class="field"><label>Genre</label>
         <select id="addGenre">
@@ -403,10 +438,13 @@ let currentFilter='all', currentRating=0, editingId=null, addType='serie', group
 function saveData(){localStorage.setItem('watchlog_data',JSON.stringify(data));}
 
 // TOAST
-function showToast(msg){
+function showToast(msg, warn=false){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2000);
+  t.textContent=msg;
+  t.style.background=warn?'var(--red)':'';
+  t.style.color=warn?'white':'';
+  t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');t.style.background='';t.style.color='';},warn?4000:2000);
 }
 
 // THEME
@@ -594,7 +632,7 @@ function openUpdatePanel(id){
     document.getElementById('progressFillPreview').style.width=fp+'%';
   }
   document.getElementById('updatePanel').classList.add('open');
-}
+  updatePanelPosterUI(item.posterUrl || null);
 function closeUpdatePanel(e){if(!e||e.target===document.getElementById('updatePanel'))document.getElementById('updatePanel').classList.remove('open');}
 function adjustEp(d){const ep=document.getElementById('episodeInput');ep.value=Math.max(1,parseInt(ep.value)+d);updateEpDisplay();}
 function updateEpDisplay(){
@@ -663,6 +701,84 @@ function selectAddType(t){
   document.getElementById('addTypeFilm').classList.toggle('active',t==='film');
   document.getElementById('addEpisodesField').style.display=t==='serie'?'':'none';
 }
+// POSTER HELPERS
+async function resizeImageToBase64(file) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let w=img.width, h=img.height;
+      const maxW=300, maxH=450;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+      const c=document.createElement('canvas');
+      c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg',0.85));
+    };
+    img.src=url;
+  });
+}
+
+let pendingAddPoster = null;
+
+async function handleLocalPosterAdd(input) {
+  const file=input.files[0]; if(!file) return;
+  const b64=await resizeImageToBase64(file);
+  pendingAddPoster=b64;
+  const img=document.getElementById('addPosterImg');
+  img.src=b64; img.style.display='';
+  document.getElementById('addPosterEmpty').style.display='none';
+}
+
+function clearAddPoster() {
+  pendingAddPoster=null;
+  document.getElementById('addPosterImg').style.display='none';
+  document.getElementById('addPosterEmpty').style.display='';
+  document.getElementById('localPosterAdd').value='';
+}
+
+function updatePanelPosterUI(url) {
+  const img=document.getElementById('panelPosterImg');
+  const empty=document.getElementById('panelPosterEmpty');
+  if(url){img.src=url;img.style.display='';empty.style.display='none';}
+  else{img.style.display='none';empty.style.display='';}
+}
+
+async function handleLocalPosterUpdate(input) {
+  const file=input.files[0]; if(!file) return;
+  const b64=await resizeImageToBase64(file);
+  const item=data.find(d=>d.id===editingId); if(!item) return;
+  item.posterUrl=b64;
+  saveData(); renderList();
+  updatePanelPosterUI(b64);
+  showToast('Affiche mise à jour ✓');
+}
+
+function removePosterUpdate() {
+  const item=data.find(d=>d.id===editingId); if(!item) return;
+  delete item.posterUrl;
+  saveData(); renderList();
+  updatePanelPosterUI(null);
+  showToast('Affiche supprimée');
+}
+
+async function retryOmdbUpdate() {
+  const item=data.find(d=>d.id===editingId); if(!item) return;
+  const btn=document.getElementById('retryOmdbBtn');
+  btn.textContent='⏳ Recherche...'; btn.disabled=true;
+  const poster=await fetchPoster(item.title, item.type);
+  btn.textContent='🔍 Chercher OMDb'; btn.disabled=false;
+  if(poster){
+    item.posterUrl=poster; saveData(); renderList();
+    updatePanelPosterUI(poster);
+    showToast('Affiche trouvée ✓');
+  } else {
+    showToast('❌ Introuvable sur OMDb — essayez une image locale', true);
+  }
+}
+
 // POSTER FETCH (OMDb API, clé gratuite)
 const OMDB_KEY = '9b1d0b8e';
 async function fetchPoster(title, type) {
@@ -689,14 +805,19 @@ async function saveAdd(){
     filmProgress:0,rating:0,note:'',pinned:false,
     addedDate:new Date().toISOString().slice(0,7)
   };
+  if(pendingAddPoster) item.posterUrl=pendingAddPoster;
   data.unshift(item);
   saveData();renderList();
   document.getElementById('addTitle').value='';
   document.getElementById('addPanel').classList.remove('open');
+  clearAddPoster();
   showToast(`"${title}" ajouté ✓`);
-  // fetch poster en arrière-plan
-  const poster = await fetchPoster(title, addType);
-  if(poster){ item.posterUrl = poster; saveData(); renderList(); }
+  // fetch poster en arrière-plan seulement si pas d'image locale
+  if(!item.posterUrl){
+    const poster=await fetchPoster(title, addType);
+    if(poster){ item.posterUrl=poster; saveData(); renderList(); }
+    else{ showToast('❌ Affiche introuvable sur OMDb — ajoutez-la via 📁 dans la fiche', true); }
+  }
 }
 
 // EXPORT/IMPORT
