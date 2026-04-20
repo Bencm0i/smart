@@ -494,7 +494,54 @@ body {
 }
 .nodata-icon { font-size: 36px; display: block; margin-bottom: 12px; opacity: .5; }
 
-/* ── FOCUS ── */
+/* ── FUEL SLIDER THUMB ── */
+#fuelSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  outline: none;
+  margin-top: 10px;
+  cursor: pointer;
+  --fuel-color: var(--ok);
+}
+#fuelSlider:disabled { cursor: not-allowed; }
+
+#fuelSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(
+    to bottom,
+    var(--panel) calc(50% - 2.5px),
+    var(--fuel-color) calc(50% - 2.5px),
+    var(--fuel-color) calc(50% + 2.5px),
+    var(--panel) calc(50% + 2.5px)
+  );
+  border: 2.5px solid var(--fuel-color);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.18);
+  transition: border-color .3s;
+}
+#fuelSlider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(
+    to bottom,
+    var(--panel) calc(50% - 2.5px),
+    var(--fuel-color) calc(50% - 2.5px),
+    var(--fuel-color) calc(50% + 2.5px),
+    var(--panel) calc(50% + 2.5px)
+  );
+  border: 2.5px solid var(--fuel-color);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.18);
+  transition: border-color .3s;
+}
+
 .toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ── Prevent scroll on iOS when keyboard appears ── */
@@ -638,11 +685,18 @@ body {
     <div class="sec-title">// CARBURANT &amp; PARAMÈTRES</div>
     <div class="grid2">
       <div class="iblock">
-        <label>CARBURANT RESTANT</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+          <label style="margin-bottom:0;">CARBURANT RESTANT</label>
+          <button id="sliderLockBtn" onclick="toggleSliderLock()"
+            style="display:flex;align-items:center;gap:3px;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:2px 7px;font-family:var(--font-mono);font-size:0.55rem;color:var(--muted);cursor:pointer;letter-spacing:0.06em;transition:all .2s;-webkit-tap-highlight-color:transparent;">
+            <span id="sliderLockIcon">🔓</span>
+            <span id="sliderLockLabel">LIBRE</span>
+          </button>
+        </div>
         <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()">
         <input type="range" id="fuelSlider" min="0" max="100" step="1" value="50"
           oninput="syncFuelInput()"
-          style="width:100%;margin-top:8px;accent-color:var(--accent);cursor:pointer;">
+          style="width:100%;margin-top:8px;cursor:pointer;">
         <div class="iunit">% du réservoir</div>
       </div>
       <div class="iblock">
@@ -962,14 +1016,24 @@ function adjustKm(delta) {
   compute();
 }
 
+function updateSliderColor() {
+  const v = parseInt(document.getElementById('fuelSlider').value) || 0;
+  const color = v >= 50 ? 'var(--ok)' : v >= 25 ? 'var(--warn)' : 'var(--crit)';
+  document.getElementById('fuelSlider').style.setProperty('--fuel-color', color);
+  document.getElementById('fuelSlider').style.background =
+    `linear-gradient(to right, ${v>=50?'var(--ok)':v>=25?'var(--warn)':'var(--crit)'} 0%, ${v>=50?'var(--ok)':v>=25?'var(--warn)':'var(--crit)'} ${v}%, var(--bg3) ${v}%, var(--bg3) 100%)`;
+}
+
 function syncFuelSlider() {
   const v = document.getElementById('fuel').value;
   if (v !== '') document.getElementById('fuelSlider').value = v;
+  updateSliderColor();
 }
 
 function syncFuelInput() {
   const v = document.getElementById('fuelSlider').value;
   document.getElementById('fuel').value = v;
+  updateSliderColor();
   compute();
 }
 
@@ -1206,6 +1270,37 @@ function drawCharts(currentKm, kmMonth, kmPerDay, conso, price, today, kmStart, 
     }
   });
 }
+
+/* ── SLIDER LOCK ── */
+let sliderLocked = false;
+function toggleSliderLock() {
+  sliderLocked = !sliderLocked;
+  const slider = document.getElementById('fuelSlider');
+  const btn    = document.getElementById('sliderLockBtn');
+  const icon   = document.getElementById('sliderLockIcon');
+  const lbl    = document.getElementById('sliderLockLabel');
+  if (sliderLocked) {
+    slider.disabled = true;
+    slider.style.opacity = '0.4';
+    slider.style.cursor  = 'not-allowed';
+    btn.style.borderColor = 'var(--crit)';
+    btn.style.color       = 'var(--crit)';
+    icon.textContent = '🔒';
+    lbl.textContent  = 'BLOQUÉ';
+  } else {
+    slider.disabled = false;
+    slider.style.opacity = '1';
+    slider.style.cursor  = 'pointer';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color       = 'var(--muted)';
+    icon.textContent = '🔓';
+    lbl.textContent  = 'LIBRE';
+  }
+}
+
+/* ── INIT SLIDER LOCK (verrouillé par défaut) ── */
+toggleSliderLock();
+updateSliderColor();
 
 // Init dates
 const today = new Date();
