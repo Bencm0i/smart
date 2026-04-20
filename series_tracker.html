@@ -414,8 +414,11 @@ canvas{width:100%!important;}
       <textarea id="exportTextarea" rows="7" placeholder="Vos données..." style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;resize:none;"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn-secondary" onclick="doExport()">📤 Exporter</button>
+      <button class="btn-secondary" onclick="doExport()">📤 Copier</button>
       <button class="btn-primary" onclick="doImport()">📥 Importer</button>
+    </div>
+    <div class="btn-row" style="margin-top:6px;">
+      <button class="btn-primary" onclick="downloadJSON()" style="background:var(--green);box-shadow:0 3px 12px rgba(90,138,60,0.3);">⬇ Télécharger .json</button>
     </div>
     <div class="btn-row" style="margin-top:6px;">
       <button class="btn-secondary" onclick="closeExportPanel()">Fermer</button>
@@ -861,6 +864,17 @@ function doImport(){
     document.getElementById('exportPanel').classList.remove('open');
     showToast(`${data.length} entrées importées ✓`);
   } catch(e){showToast('❌ JSON invalide');}
+}
+function downloadJSON(){
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`watchlog_${date}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('Fichier téléchargé ✓');
 }
 
 // KPIs
