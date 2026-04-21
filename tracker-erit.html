@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Registre d'Actions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Courier+Prime:wght@400;700&family=Oswald:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5ede0;--bg2:#ede0cc;--card:#fdf6ee;--border:#d4a96a;
+  --accent:#e07b2a;--accent2:#c45e12;--text:#3a2a14;--text2:#7a5c35;--text3:#a07840;
+  --tag:#f0c080;--tag-text:#7a4a10;--shadow:rgba(180,110,40,0.18);
+  --input-bg:#fff8f0;--header-bg:#e07b2a;--header-text:#fff8f0;
+  --btn:#e07b2a;--btn-hover:#c45e12;--danger:#c0392b;--success:#5a8a3a;
+  --font-title:'Playfair Display',serif;--font-body:'Courier Prime',monospace;--font-ui:'Oswald',sans-serif;
+  --col-demande:#b8780a;--col-accord:#5a8a3a;--col-resultat:#2a7ab5;--col-preuve:#8a3a8a;
+}
+[data-theme="military"]{
+  --bg:#1a1f15;--bg2:#141810;--card:#1f261a;--border:#4a5c2a;
+  --accent:#6a8c30;--accent2:#4f6e1e;--text:#c8d4a0;--text2:#8a9e60;--text3:#6a7e40;
+  --tag:#2a3820;--tag-text:#a0c050;--shadow:rgba(0,0,0,0.5);
+  --input-bg:#161c12;--header-bg:#1f2a10;--header-text:#a0c050;
+  --btn:#4a6a20;--btn-hover:#6a8c30;--danger:#a03020;--success:#4a8a2a;
+  --font-title:'Oswald',sans-serif;--font-body:'Courier Prime',monospace;--font-ui:'Oswald',sans-serif;
+  --col-demande:#8aaa40;--col-accord:#4a8a2a;--col-resultat:#2a6a9a;--col-preuve:#7a5aaa;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;transition:background 0.4s,color 0.4s}
+[data-theme="military"] body::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,0,0.012) 2px,rgba(0,255,0,0.012) 4px);z-index:9999}
+
+header{background:var(--header-bg);padding:13px 16px 10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px var(--shadow);display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-icon{font-size:22px;transition:all 0.3s}
+header h1{font-family:var(--font-title);font-size:1.1rem;color:var(--header-text);letter-spacing:0.04em;line-height:1.1}
+.header-sub{font-family:var(--font-ui);font-size:0.56rem;color:var(--header-text);opacity:0.7;letter-spacing:0.18em;text-transform:uppercase;margin-top:2px}
+[data-theme="military"] header::after{content:'SYSTÈME OPÉRATIONNEL — REGISTRE CLASSIFIÉ';display:block;font-family:'Courier Prime',monospace;font-size:0.46rem;letter-spacing:0.16em;color:var(--accent);opacity:0.55;text-align:center;padding-top:2px;text-transform:uppercase;position:absolute;bottom:2px;left:0;right:0}
+
+.theme-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.toggle-label{font-family:var(--font-ui);font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--header-text);opacity:0.8}
+.toggle-switch{position:relative;width:46px;height:24px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;border-radius:24px;background:rgba(0,0,0,0.25);border:1.5px solid rgba(255,255,255,0.2);transition:0.3s;cursor:pointer}
+.slider:before{content:'☀️';position:absolute;width:18px;height:18px;left:2px;top:1px;border-radius:50%;background:rgba(255,255,255,0.9);transition:0.3s;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:18px;text-align:center}
+input:checked + .slider{background:rgba(0,0,0,0.4)}
+input:checked + .slider:before{transform:translateX(22px);content:'🪖'}
+
+.stats-bar{background:var(--bg2);padding:9px 16px;display:flex;gap:12px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat{display:flex;flex-direction:column;align-items:center;min-width:50px}
+.stat-num{font-family:var(--font-ui);font-size:1.25rem;font-weight:700;color:var(--accent);line-height:1}
+.stat-label{font-family:var(--font-ui);font-size:0.5rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-top:2px;white-space:nowrap}
+.stat-divider{width:1px;background:var(--border);opacity:0.4;align-self:stretch}
+
+main{padding:14px 14px 110px;max-width:640px;margin:0 auto}
+
+.section-title{font-family:var(--font-ui);font-size:0.63rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--text3);margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);opacity:0.4}
+
+.form-card{background:var(--card);border:1.5px solid var(--border);border-radius:13px;padding:16px;box-shadow:0 2px 18px var(--shadow);margin-bottom:20px;position:relative;overflow:hidden}
+.form-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+[data-theme="military"] .form-card::before{background:repeating-linear-gradient(90deg,var(--accent) 0,var(--accent) 8px,transparent 8px,transparent 16px)}
+
+label{display:block;font-family:var(--font-ui);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+
+.field-group{margin-bottom:12px}
+.field-label-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.fdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.field-label-row span{font-family:var(--font-ui);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3)}
+
+input[type="text"],input[type="date"],input[type="time"],textarea,select{
+  width:100%;background:var(--input-bg);border:1.5px solid var(--border);border-radius:7px;
+  padding:9px 11px;font-family:var(--font-body);font-size:0.88rem;color:var(--text);
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none;margin-bottom:0
+}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(224,123,42,0.13)}
+[data-theme="military"] input:focus,[data-theme="military"] textarea:focus{box-shadow:0 0 0 3px rgba(106,140,48,0.18)}
+textarea{resize:vertical;min-height:64px;line-height:1.5}
+
+.form-row{display:flex;gap:10px;margin-bottom:12px}
+.form-row>*{flex:1}
+
+.cat-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cat-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:var(--font-ui);font-size:0.66rem;letter-spacing:0.07em;color:var(--text2);cursor:pointer;transition:all 0.2s;text-transform:uppercase}
+.cat-btn.active,.cat-btn:hover{background:var(--accent);border-color:var(--accent);color:white}
+
+.fsec{border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:10px}
+.fsec-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg2);cursor:pointer;user-select:none}
+.fsec-hd>span:first-child{font-family:var(--font-ui);font-size:0.66rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text2);display:flex;align-items:center;gap:7px}
+.chev{transition:transform 0.2s;font-size:10px;color:var(--text3)}
+.fsec.open .chev{transform:rotate(180deg)}
+.fsec-bd{padding:12px 14px;display:none}
+.fsec.open .fsec-bd{display:block}
+
+.btn-primary{width:100%;padding:13px;background:var(--btn);color:white;border:none;border-radius:9px;font-family:var(--font-ui);font-size:0.85rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:background 0.2s,transform 0.1s;margin-top:6px}
+.btn-primary:active{transform:scale(0.98);background:var(--btn-hover)}
+.btn-secondary{flex:1;padding:10px;background:transparent;color:var(--text2);border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-ui);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+
+.filter-bar{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:4px 0 8px}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-family:var(--font-ui);font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);cursor:pointer;transition:all 0.2s}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:white}
+
+.search-wrap{position:relative;margin-bottom:10px}
+.search-wrap input{padding-left:36px}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+
+/* ── ACTION CARD ── */
+.action-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;margin-bottom:14px;box-shadow:0 2px 12px var(--shadow);overflow:hidden;animation:sli 0.28s ease}
+@keyframes sli{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.card-top{padding:12px 13px 10px 16px;border-left:4px solid var(--_pc,var(--accent))}
+.card-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-title{font-family:var(--font-title);font-size:0.98rem;font-weight:700;color:var(--text);line-height:1.3;flex:1}
+[data-theme="military"] .card-title{font-family:var(--font-ui);font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase}
+.card-btns{display:flex;gap:4px;flex-shrink:0}
+.ib{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:transparent;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;color:var(--text2)}
+.ib:hover{background:var(--bg2)}
+.ib.del:hover{background:var(--danger);color:white;border-color:var(--danger)}
+.card-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;align-items:center}
+.badge{font-family:var(--font-ui);font-size:0.56rem;letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+.bd{background:var(--tag);color:var(--tag-text)}
+.bc{color:white}
+.bp{border:1px solid currentColor}
+.sp{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-family:var(--font-ui);font-size:0.56rem;letter-spacing:0.08em;text-transform:uppercase;border:1px solid currentColor}
+.s-ec{color:var(--accent)}
+.s-ac{color:var(--success)}
+.s-rf{color:var(--danger)}
+.s-at{color:var(--col-resultat)}
+
+.card-fields{display:grid;grid-template-columns:1fr 1fr}
+.cf{padding:9px 11px;border-top:1px solid var(--border);border-right:1px solid var(--border);position:relative}
+.cf:nth-child(even){border-right:none}
+.cf:last-child:nth-child(odd){grid-column:1/-1;border-right:none}
+.fn{display:flex;align-items:center;gap:5px;font-family:var(--font-ui);font-size:0.54rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.fds{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.fv{font-family:var(--font-body);font-size:0.82rem;color:var(--text);line-height:1.45;word-break:break-word}
+.fv.mt{color:var(--text3);font-style:italic;opacity:0.45;font-size:0.74rem}
+.cf-preuve{background:rgba(138,58,138,0.07)}
+[data-theme="military"] .cf-preuve{background:rgba(122,90,170,0.09)}
+
+.card-foot{display:flex;justify-content:space-between;align-items:center;padding:7px 13px;background:var(--bg2);border-top:1px solid var(--border)}
+.cid{font-family:var(--font-ui);font-size:0.52rem;letter-spacing:0.16em;color:var(--text3);text-transform:uppercase;opacity:0.7}
+.cts{font-family:var(--font-body);font-size:0.57rem;color:var(--text3);opacity:0.7}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-state .ei{font-size:2.6rem;margin-bottom:12px;opacity:0.35}
+.empty-state p{font-family:var(--font-ui);font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;opacity:0.5}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.62);z-index:200;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:500px;max-height:86vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.4);animation:pi 0.22s ease}
+@keyframes pi{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
+.mt2{font-family:var(--font-title);font-size:1.15rem;color:var(--accent);margin-bottom:3px}
+[data-theme="military"] .mt2{font-family:var(--font-ui);font-size:1rem;letter-spacing:0.2em;text-transform:uppercase}
+.ms{font-family:var(--font-ui);font-size:0.57rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:14px}
+.rc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--font-body);font-size:0.78rem;line-height:1.75;color:var(--text);white-space:pre-wrap;max-height:320px;overflow-y:auto;margin-bottom:13px}
+[data-theme="military"] .rc{border-left:3px solid var(--accent);font-size:0.73rem}
+
+.fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:white;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px var(--shadow);display:flex;align-items:center;justify-content:center;transition:all 0.2s;z-index:50}
+.fab:active{transform:scale(0.93);background:var(--btn-hover)}
+.fab2{position:fixed;bottom:24px;left:20px;padding:0 16px;height:44px;border-radius:22px;background:var(--bg2);color:var(--text2);border:1.5px solid var(--border);font-family:var(--font-ui);font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;box-shadow:0 2px 12px var(--shadow);display:flex;align-items:center;gap:7px;transition:all 0.2s;z-index:50}
+.fab2:active{transform:scale(0.97)}
+.sup{position:fixed;bottom:88px;right:20px;width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-size:14px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow);z-index:49}
+.sup.v{display:flex}
+.cb{background:var(--accent);color:white;font-size:0.57rem;font-family:var(--font-ui);padding:2px 7px;border-radius:10px;margin-left:6px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body id="body">
+
+<header>
+  <div class="header-left">
+    <span class="header-icon" id="hIcon">📋</span>
+    <div>
+      <h1 id="hTitle">Registre d'Actions</h1>
+      <div class="header-sub" id="hSub">Date · Action · Demande · Accord · Résultat · Preuve</div>
+    </div>
+  </div>
+  <label class="theme-toggle">
+    <span class="toggle-label" id="tLabel">Civil</span>
+    <div class="toggle-switch">
+      <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+      <span class="slider"></span>
+    </div>
+  </label>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="sTotal">0</div><div class="stat-label">Total</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat"><div class="stat-num" id="sAuj">0</div><div class="stat-label">Auj.</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat"><div class="stat-num" id="sAcc">0</div><div class="stat-label">Accordés</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat"><div class="stat-num" id="sRef">0</div><div class="stat-label">Refusés</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat"><div class="stat-num" id="sPrv">0</div><div class="stat-label">Preuves</div></div>
+</div>
+
+<main>
+  <div class="section-title">✍️ Nouvelle entrée</div>
+  <div class="form-card" id="formCard">
+
+    <div class="form-row">
+      <div><label>📅 Date</label><input type="date" id="iDate"></div>
+      <div><label>⏱ Heure</label><input type="time" id="iTime"></div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label-row"><div class="fdot" style="background:var(--accent)"></div><span>Action</span></div>
+      <input type="text" id="iAction" placeholder="Intitulé de l'action réalisée ou à mener…" maxlength="120" style="margin-bottom:0">
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="fsec open" id="s-demande">
+        <div class="fsec-hd" onclick="tSec('s-demande')">
+          <span><div class="fdot" style="background:var(--col-demande)"></div>Demande initiale</span>
+          <span class="chev">▼</span>
+        </div>
+        <div class="fsec-bd">
+          <textarea id="iDemande" placeholder="Quelle était la demande de départ ? Qui l'a formulée, dans quel contexte…"></textarea>
+        </div>
+      </div>
+
+      <div class="fsec" id="s-accord">
+        <div class="fsec-hd" onclick="tSec('s-accord')">
+          <span><div class="fdot" style="background:var(--col-accord)"></div>Accord obtenu</span>
+          <span class="chev">▼</span>
+        </div>
+        <div class="fsec-bd">
+          <label style="margin-bottom:6px">Statut</label>
+          <div class="cat-grid" id="statusCats">
+            <button class="cat-btn active" data-s="en-cours" onclick="selSt(this)">⏳ En cours</button>
+            <button class="cat-btn" data-s="accord" onclick="selSt(this)">✅ Accordé</button>
+            <button class="cat-btn" data-s="refuse" onclick="selSt(this)">❌ Refusé</button>
+            <button class="cat-btn" data-s="attente" onclick="selSt(this)">🕐 En attente</button>
+          </div>
+          <textarea id="iAccord" placeholder="Détails de l'accord, conditions, qui a décidé…" style="min-height:56px"></textarea>
+        </div>
+      </div>
+
+      <div class="fsec" id="s-resultat">
+        <div class="fsec-hd" onclick="tSec('s-resultat')">
+          <span><div class="fdot" style="background:var(--col-resultat)"></div>Résultat / Suivi</span>
+          <span class="chev">▼</span>
+        </div>
+        <div class="fsec-bd">
+          <textarea id="iResultat" placeholder="Qu'est-il résulté de cette action ? Impact, suite à donner…"></textarea>
+        </div>
+      </div>
+
+      <div class="fsec" id="s-preuve">
+        <div class="fsec-hd" onclick="tSec('s-preuve')">
+          <span><div class="fdot" style="background:var(--col-preuve)"></div>Preuve / Référence</span>
+          <span class="chev">▼</span>
+        </div>
+        <div class="fsec-bd">
+          <textarea id="iPreuve" placeholder="N° document, e-mail, témoin, capture, lien, référence…" style="min-height:56px"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Catégorie</label>
+      <div class="cat-grid" id="catCats">
+        <button class="cat-btn active" data-c="général" onclick="selCat(this)">Général</button>
+        <button class="cat-btn" data-c="terrain" onclick="selCat(this)">Terrain</button>
+        <button class="cat-btn" data-c="admin" onclick="selCat(this)">Admin</button>
+        <button class="cat-btn" data-c="RH" onclick="selCat(this)">RH</button>
+        <button class="cat-btn" data-c="juridique" onclick="selCat(this)">Juridique</button>
+        <button class="cat-btn" data-c="logistique" onclick="selCat(this)">Logistique</button>
+        <button class="cat-btn" data-c="autre" onclick="selCat(this)">Autre</button>
+      </div>
+      <label>Priorité</label>
+      <div class="cat-grid" id="prioCats">
+        <button class="cat-btn" data-p="haute" onclick="selPrio(this)">🔴 Haute</button>
+        <button class="cat-btn active" data-p="moyenne" onclick="selPrio(this)">🟠 Moyenne</button>
+        <button class="cat-btn" data-p="basse" onclick="selPrio(this)">🟢 Basse</button>
+        <button class="cat-btn" data-p="info" onclick="selPrio(this)">🔵 Info</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="submitBtn" onclick="addEntry()">+ ENREGISTRER L'ENTRÉE</button>
+  </div>
+
+  <div class="section-title">📂 Entrées enregistrées <span class="cb" id="lCount">0</span></div>
+
+  <div class="search-wrap">
+    <span class="si">🔍</span>
+    <input type="text" id="sInput" placeholder="Rechercher…" oninput="renderList()" style="padding-left:36px;margin-bottom:0">
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-chip active" data-f="tous" onclick="setF('tous',this)">Tous</button>
+    <button class="filter-chip" data-f="accord" onclick="setF('accord',this)">✅ Accordés</button>
+    <button class="filter-chip" data-f="refuse" onclick="setF('refuse',this)">❌ Refusés</button>
+    <button class="filter-chip" data-f="en-cours" onclick="setF('en-cours',this)">⏳ En cours</button>
+    <button class="filter-chip" data-f="attente" onclick="setF('attente',this)">🕐 Attente</button>
+    <button class="filter-chip" data-f="preuve" onclick="setF('preuve',this)">🔒 Avec preuve</button>
+    <button class="filter-chip" data-f="auj" onclick="setF('auj',this)">📅 Aujourd'hui</button>
+  </div>
+
+  <div id="aList"></div>
+</main>
+
+<button class="fab" onclick="goForm()" title="Nouvelle entrée">+</button>
+<button class="fab2" onclick="openModal()">📄 Rapport</button>
+<button class="sup" id="sup" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<div class="modal-overlay" id="mOv" onclick="mClose2(event)">
+  <div class="modal">
+    <div class="mt2" id="mTitle">📄 Rapport d'Activité</div>
+    <div class="ms" id="mSub">Généré le <span id="rDate"></span></div>
+    <div id="rContent" class="rc"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="copyR()">📋 Copier</button>
+      <button class="btn-secondary" onclick="expJSON()">💾 JSON</button>
+      <button class="btn-secondary" onclick="impJSON()">📥 Import</button>
+      <input type="file" id="fImp" accept=".json" onchange="loadJ(event)" style="display:none">
+    </div>
+    <button class="btn-primary" onclick="mClose()" style="margin-top:10px">FERMER</button>
+  </div>
+</div>
+
+<script>
+let entries = JSON.parse(localStorage.getItem('reg_v3')||'[]');
+let curF='tous', selPr='moyenne', selCatV='général', selStV='en-cours', editId=null;
+
+const PC={haute:'#c0392b',moyenne:'#e07b2a',basse:'#5a8a3a',info:'#2a7ab5'};
+const PL={haute:'🔴 Haute',moyenne:'🟠 Moy.',basse:'🟢 Basse',info:'🔵 Info'};
+const SL={'en-cours':'⏳ En cours',accord:'✅ Accordé',refuse:'❌ Refusé',attente:'🕐 Attente'};
+const SC={'en-cours':'s-ec',accord:'s-ac',refuse:'s-rf',attente:'s-at'};
+
+function init(){
+  const n=new Date();
+  document.getElementById('iDate').value=n.toISOString().split('T')[0];
+  document.getElementById('iTime').value=n.toTimeString().slice(0,5);
+  renderList(); updateStats();
+  window.addEventListener('scroll',()=>document.getElementById('sup').classList.toggle('v',window.scrollY>300));
+}
+
+function toggleTheme(){
+  const m=document.getElementById('themeToggle').checked;
+  document.getElementById('body').setAttribute('data-theme',m?'military':'');
+  document.getElementById('tLabel').textContent=m?'OPEX':'Civil';
+  document.getElementById('hIcon').textContent=m?'🪖':'📋';
+  document.getElementById('hTitle').textContent=m?'SITREP — Registre Opérationnel':'Registre d\'Actions';
+  document.getElementById('hSub').textContent=m?'CLASSIFIÉ — DEMANDE · ACCORD · RÉSULTAT · PREUVE':'Date · Action · Demande · Accord · Résultat · Preuve';
+  document.getElementById('mTitle').textContent=m?'⚡ RAPPORT DE SITUATION':'📄 Rapport d\'Activité';
+}
+
+function tSec(id){document.getElementById(id).classList.toggle('open')}
+
+function selPrio(b){document.querySelectorAll('#prioCats .cat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selPr=b.dataset.p}
+function setPrioV(v){document.querySelectorAll('#prioCats .cat-btn').forEach(x=>x.classList.toggle('active',x.dataset.p===v));selPr=v}
+function selCat(b){document.querySelectorAll('#catCats .cat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selCatV=b.dataset.c}
+function setCatV(v){document.querySelectorAll('#catCats .cat-btn').forEach(x=>x.classList.toggle('active',x.dataset.c===v));selCatV=v}
+function selSt(b){document.querySelectorAll('#statusCats .cat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selStV=b.dataset.s}
+function setStV(v){document.querySelectorAll('#statusCats .cat-btn').forEach(x=>x.classList.toggle('active',x.dataset.s===v));selStV=v}
+
+function addEntry(){
+  const act=document.getElementById('iAction').value.trim();
+  if(!act){shake('iAction');return;}
+  const entry={
+    id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),
+    date:document.getElementById('iDate').value,
+    time:document.getElementById('iTime').value,
+    action:act,
+    demande:document.getElementById('iDemande').value.trim(),
+    accord:document.getElementById('iAccord').value.trim(),
+    resultat:document.getElementById('iResultat').value.trim(),
+    preuve:document.getElementById('iPreuve').value.trim(),
+    status:selStV, priority:selPr, cat:selCatV,
+    createdAt:editId?(entries.find(e=>e.id===editId)||{createdAt:new Date().toISOString()}).createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  if(editId){const i=entries.findIndex(e=>e.id===editId);if(i>-1)entries[i]=entry;editId=null;document.getElementById('submitBtn').textContent='+ ENREGISTRER L\'ENTRÉE';}
+  else entries.unshift(entry);
+  save();clearForm();renderList();updateStats();
+  window.scrollTo({top:document.getElementById('aList').offsetTop-60,behavior:'smooth'});
+}
+
+function editEntry(id){
+  const a=entries.find(x=>x.id===id);if(!a)return;
+  editId=id;
+  document.getElementById('iDate').value=a.date||'';
+  document.getElementById('iTime').value=a.time||'';
+  document.getElementById('iAction').value=a.action||'';
+  document.getElementById('iDemande').value=a.demande||'';
+  document.getElementById('iAccord').value=a.accord||'';
+  document.getElementById('iResultat').value=a.resultat||'';
+  document.getElementById('iPreuve').value=a.preuve||'';
+  setPrioV(a.priority||'moyenne');setCatV(a.cat||'général');setStV(a.status||'en-cours');
+  ['s-demande','s-accord','s-resultat','s-preuve'].forEach(s=>document.getElementById(s).classList.add('open'));
+  document.getElementById('submitBtn').textContent='✏️ METTRE À JOUR';
+  goForm();
+}
+
+function delEntry(id){
+  if(!confirm('Supprimer cette entrée ?'))return;
+  entries=entries.filter(e=>e.id!==id);save();renderList();updateStats();
+}
+
+function clearForm(){
+  ['iAction','iDemande','iAccord','iResultat','iPreuve'].forEach(id=>document.getElementById(id).value='');
+  const n=new Date();
+  document.getElementById('iDate').value=n.toISOString().split('T')[0];
+  document.getElementById('iTime').value=n.toTimeString().slice(0,5);
+  setPrioV('moyenne');setCatV('général');setStV('en-cours');
+  editId=null;document.getElementById('submitBtn').textContent='+ ENREGISTRER L\'ENTRÉE';
+}
+
+function setF(f,b){curF=f;document.querySelectorAll('.filter-chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderList();}
+
+function getFiltered(){
+  const today=new Date().toISOString().split('T')[0];
+  const s=document.getElementById('sInput').value.toLowerCase();
+  return entries.filter(a=>{
+    if(curF==='auj'&&a.date!==today)return false;
+    if(curF==='preuve'&&!a.preuve)return false;
+    if(['accord','refuse','en-cours','attente'].includes(curF)&&a.status!==curF)return false;
+    if(s&&![a.action,a.demande,a.accord,a.resultat,a.preuve].some(f=>(f||'').toLowerCase().includes(s)))return false;
+    return true;
+  });
+}
+
+function renderList(){
+  const list=document.getElementById('aList');
+  const fil=getFiltered();
+  document.getElementById('lCount').textContent=fil.length;
+  if(!fil.length){list.innerHTML=`<div class="empty-state"><div class="ei">📭</div><p>Aucune entrée trouvée</p></div>`;return;}
+  const mil=document.getElementById('body').dataset.theme==='military';
+  list.innerHTML=fil.map(a=>{
+    const pc=PC[a.priority]||'#888';
+    const ds=a.date?new Date(a.date+'T00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'—';
+    const rid=mil?`OPS-${a.id.toUpperCase().slice(0,6)}`:`#${a.id.slice(0,6)}`;
+    const ts=new Date(a.createdAt);
+    const tss=ts.toLocaleDateString('fr-FR')+' '+ts.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const cf=(label,val,dc,extra='')=>`<div class="cf ${extra}"><div class="fn"><div class="fds" style="background:${dc}"></div>${label}</div><div class="fv ${val?'':'mt'}">${val?esc(val):'—'}</div></div>`;
+    return `<div class="action-card" style="--_pc:${pc}">
+      <div class="card-top" style="border-left-color:${pc}">
+        <div class="card-hd">
+          <div class="card-title">${esc(a.action)}</div>
+          <div class="card-btns">
+            <button class="ib" onclick="editEntry('${a.id}')" title="Modifier">✏️</button>
+            <button class="ib del" onclick="delEntry('${a.id}')" title="Supprimer">🗑️</button>
+          </div>
+        </div>
+        <div class="card-badges">
+          <span class="badge bd">📅 ${ds}${a.time?' · '+a.time:''}</span>
+          <span class="badge bc" style="background:${pc}cc">${a.cat}</span>
+          <span class="badge bp" style="color:${pc};border-color:${pc}">${PL[a.priority]||''}</span>
+          <span class="sp ${SC[a.status]||''}">${SL[a.status]||a.status}</span>
+        </div>
+      </div>
+      <div class="card-fields">
+        ${cf('Demande initiale',a.demande,'var(--col-demande)')}
+        ${cf('Accord',a.accord,'var(--col-accord)')}
+        ${cf('Résultat / Suivi',a.resultat,'var(--col-resultat)')}
+        ${cf('Preuve / Référence',a.preuve,'var(--col-preuve)','cf-preuve')}
+      </div>
+      <div class="card-foot">
+        <span class="cid">${rid}</span>
+        <span class="cts">${tss}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('sTotal').textContent=entries.length;
+  document.getElementById('sAuj').textContent=entries.filter(a=>a.date===today).length;
+  document.getElementById('sAcc').textContent=entries.filter(a=>a.status==='accord').length;
+  document.getElementById('sRef').textContent=entries.filter(a=>a.status==='refuse').length;
+  document.getElementById('sPrv').textContent=entries.filter(a=>a.preuve).length;
+}
+
+function openModal(){
+  const mil=document.getElementById('body').dataset.theme==='military';
+  const n=new Date();
+  const ds=n.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const ts=n.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rDate').textContent=`${ds} à ${ts}`;
+  let r='';
+  if(mil){
+    r+=`╔══════════════════════════════════════════╗\n`;
+    r+=`║    SITREP — REGISTRE OPÉRATIONNEL        ║\n`;
+    r+=`╚══════════════════════════════════════════╝\n\n`;
+    r+=`DATE/H  : ${ds.toUpperCase()} — ${ts}\n`;
+    r+=`TOTAL   : ${entries.length} entrées\n`;
+    r+=`ACCORDÉ : ${entries.filter(a=>a.status==='accord').length}  REFUSÉ : ${entries.filter(a=>a.status==='refuse').length}  ATTENTE : ${entries.filter(a=>a.status==='attente').length}\n`;
+    r+=`PREUVES : ${entries.filter(a=>a.preuve).length} dossiers documentés\n\n`;
+  }else{
+    r+=`REGISTRE D'ACTIONS — RAPPORT COMPLET\n`;
+    r+=`════════════════════════════════════════════\n`;
+    r+=`Généré le ${ds} à ${ts}\n`;
+    r+=`Total : ${entries.length}  |  Accordés : ${entries.filter(a=>a.status==='accord').length}  |  Refusés : ${entries.filter(a=>a.status==='refuse').length}  |  Preuves : ${entries.filter(a=>a.preuve).length}\n`;
+    r+=`────────────────────────────────────────────\n\n`;
+  }
+  const sorted=[...entries].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const byDate={};
+  sorted.forEach(a=>{const d=a.date||'Sans date';if(!byDate[d])byDate[d]=[];byDate[d].push(a);});
+  Object.entries(byDate).forEach(([date,list])=>{
+    const dl=date!=='Sans date'?new Date(date+'T00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}):'Sans date';
+    r+=mil?`\n▶▶ ${dl.toUpperCase()}\n${'═'.repeat(44)}\n`:`\n📅 ${dl}\n${'─'.repeat(44)}\n`;
+    list.forEach(a=>{
+      const si={'en-cours':'[~]',accord:'[✓]',refuse:'[✗]',attente:'[?]'}[a.status]||'[ ]';
+      const pi={haute:'!!!',moyenne:'!! ',basse:'.  ',info:'(i)'}[a.priority]||'   ';
+      r+=`\n${si} ${pi} ACTION   : ${a.action}\n`;
+      if(a.time) r+=`         Heure     : ${a.time}\n`;
+      r+=`         Catég.    : ${a.cat}  —  Statut : ${SL[a.status]||a.status}\n`;
+      if(a.demande) r+=`         DEMANDE   : ${a.demande}\n`;
+      if(a.accord)  r+=`         ACCORD    : ${a.accord}\n`;
+      if(a.resultat)r+=`         RÉSULTAT  : ${a.resultat}\n`;
+      if(a.preuve)  r+=`         PREUVE    : ${a.preuve}\n`;
+      r+=`         Réf.      : ${a.id.toUpperCase().slice(0,8)}\n`;
+    });
+  });
+  r+=mil
+    ?`\n${'═'.repeat(44)}\nFIN SITREP — USAGE RESTREINT\n\nPROMPT IA :\nAnalyse ce registre opérationnel. Identifie les dossiers sans preuve, les accords non suivis d'effet, et les actions à relancer en priorité.\n`
+    :`\n${'═'.repeat(44)}\nFin du registre\n\n💡 Prompt IA suggéré :\n"Analyse ce registre d'actions. Vérifie la cohérence entre chaque demande initiale, l'accord obtenu, le résultat et la preuve associée. Liste les dossiers incomplets, les incohérences et les actions nécessitant un suivi."\n`;
+  document.getElementById('rContent').textContent=r;
+  document.getElementById('mOv').classList.add('open');
+}
+
+function mClose(){document.getElementById('mOv').classList.remove('open');}
+function mClose2(e){if(e.target===document.getElementById('mOv'))mClose();}
+function copyR(){navigator.clipboard.writeText(document.getElementById('rContent').textContent).then(()=>toast('Rapport copié !')).catch(()=>toast('Copie échouée'));}
+
+function expJSON(){
+  const blob=new Blob([JSON.stringify({version:'3.0',exportedAt:new Date().toISOString(),count:entries.length,entries},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`registre_${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(url);toast('Export JSON téléchargé !');
+}
+function impJSON(){document.getElementById('fImp').click();}
+function loadJ(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{try{const d=JSON.parse(e.target.result);const imp=d.entries||d.actions||d;if(!Array.isArray(imp))throw 0;if(confirm(`Importer ${imp.length} entrées ? (fusion)`)){const ids=new Set(entries.map(a=>a.id));imp.forEach(a=>{if(!ids.has(a.id))entries.push(a);});save();renderList();updateStats();toast(`${imp.length} entrées importées !`);mClose();}}catch{toast('Fichier JSON invalide');}};
+  r.readAsText(f);ev.target.value='';
+}
+
+function save(){localStorage.setItem('reg_v3',JSON.stringify(entries));}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function goForm(){document.getElementById('formCard').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>document.getElementById('iAction').focus(),400);}
+function shake(id){const el=document.getElementById(id);el.style.borderColor='var(--danger)';el.style.animation='shk 0.3s';setTimeout(()=>{el.style.borderColor='';el.style.animation='';},600);}
+function toast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'var(--accent)',color:'white',padding:'10px 20px',borderRadius:'20px',fontFamily:'var(--font-ui)',fontSize:'0.8rem',letterSpacing:'0.1em',zIndex:'9999',boxShadow:'0 4px 16px rgba(0,0,0,0.3)',opacity:'0',transition:'opacity 0.2s',whiteSpace:'nowrap'});document.body.appendChild(t);requestAnimationFrame(()=>t.style.opacity='1');setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),200);},2400);}
+
+const st=document.createElement('style');
+st.textContent=`@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}`;
+document.head.appendChild(st);
+init();
+</script>
+</body>
+</html>
