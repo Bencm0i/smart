@@ -851,17 +851,84 @@ button, input, select { touch-action: manipulation; }
 }
 .pmv-row:last-child { border-bottom: none; }
 
-/* ═══ SURBRILLANCE INVEST ═══ */
+/* ═══ BTC HERO CARD ═══ */
 .card.inv-btc {
-  border-color: rgba(126,184,212,0.55);
-  background: rgba(126,184,212,0.06);
+  border: 2px solid rgba(247,147,26,0.7);
+  background: linear-gradient(135deg, rgba(247,147,26,0.08) 0%, rgba(247,147,26,0.03) 60%, rgba(126,184,212,0.05) 100%);
+  box-shadow: 0 0 24px rgba(247,147,26,0.18), inset 0 0 40px rgba(247,147,26,0.04);
+  position: relative;
+  overflow: visible;
+}
+.card.inv-btc::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(247,147,26,0.5), transparent 60%);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.25;
 }
 .card.inv-btc .card-head {
-  background: rgba(126,184,212,0.12);
-  border-bottom-color: rgba(126,184,212,0.35);
+  background: linear-gradient(90deg, rgba(247,147,26,0.22) 0%, rgba(247,147,26,0.06) 100%);
+  border-bottom: 1px solid rgba(247,147,26,0.4);
 }
-.card.inv-btc .card-title-sm { color: var(--accent); }
-.card.inv-btc .lbl { color: rgba(126,184,212,0.7); }
+.card.inv-btc .card-title-sm {
+  color: #f7931a;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px rgba(247,147,26,0.5);
+}
+.card.inv-btc .lbl { color: rgba(247,147,26,0.75); }
+
+/* BTC live price display */
+.btc-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid rgba(247,147,26,0.2);
+  margin-bottom: 12px;
+}
+.btc-hero-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f7931a;
+  letter-spacing: -1px;
+  text-shadow: 0 0 20px rgba(247,147,26,0.4);
+  line-height: 1;
+}
+.btc-hero-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.btc-hero-badge.up { background: rgba(90,171,122,0.18); border: 1px solid rgba(90,171,122,0.4); color: #5aab7a; }
+.btc-hero-badge.dn { background: rgba(192,90,90,0.18); border: 1px solid rgba(192,90,90,0.4); color: #c05a5a; }
+.btc-hero-badge.neu { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.btc-pv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.btc-pv-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+@keyframes btcPulse {
+  0%,100% { box-shadow: 0 0 24px rgba(247,147,26,0.18), inset 0 0 40px rgba(247,147,26,0.04); }
+  50%      { box-shadow: 0 0 38px rgba(247,147,26,0.32), inset 0 0 40px rgba(247,147,26,0.07); }
+}
+.card.inv-btc { animation: btcPulse 3s ease-in-out infinite; }
+
+/* ═══ SURBRILLANCE INVEST (autres) ═══ */
 
 .card.inv-gold {
   border-color: rgba(200,169,110,0.55);
@@ -964,6 +1031,13 @@ button, input, select { touch-action: manipulation; }
         <div class="field-label">Revenu mensuel net<small>Salaire net après impôt</small></div>
         <div class="euro-input">
           <input type="number" id="revenuMensuelNet" min="0" step="0.01" placeholder="0.00" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Impôt sur le revenu (année)<small>Montant total avis d'imposition</small></div>
+        <div class="euro-input">
+          <input type="number" id="impotAnnee" min="0" step="1" placeholder="0" inputmode="decimal" autocomplete="off" oninput="DATA.impotAnnee=parseFloat(this.value)||0;autoSave()">
           <span class="unit">€</span>
         </div>
       </div>
@@ -1314,6 +1388,7 @@ let DATA = {
   maison:0,
   especeCache:0,
   revenuMensuelNet:0,
+  impotAnnee:0,
   ath:[],
   dca:[],
   depenses:{
@@ -1452,6 +1527,7 @@ function renderAllBanks() {
   renderBank('natixis', 'body-natixis');
   document.getElementById('especeCache').value = DATA.especeCache || '';
   document.getElementById('revenuMensuelNet').value = DATA.revenuMensuelNet || '';
+  document.getElementById('impotAnnee').value = DATA.impotAnnee || '';
 }
 
 // ─── INVESTISSEMENTS ───────────────────────────────────────────────────────
@@ -1465,10 +1541,30 @@ function renderInvPortfolio(key, containerId) {
     return `
     <div class="card ${cardCls}" style="margin-bottom:10px;">
       <div class="card-head">
-        <span class="card-title-sm">${r.ticker || r.nom || '—'}</span>
+        <span class="card-title-sm">${isBTC ? '₿ BITCOIN' : (r.ticker || r.nom || '—')}</span>
         <button class="del-btn" onclick="delInvRow('${key}',${i})">✕</button>
       </div>
       <div class="card-body">
+        ${isBTC ? `
+        <div class="btc-hero" id="btc-hero-${i}">
+          <div>
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(247,147,26,0.7);margin-bottom:4px;">COURS LIVE BTC/EUR</div>
+            <div class="btc-hero-price" id="btc-live-price-${i}">${r.coursActuel > 0 ? new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(r.coursActuel) : '—'}</div>
+          </div>
+          <div id="btc-live-chg-${i}" class="btc-hero-badge neu">— %</div>
+        </div>
+        ${r.qte > 0 && r.coursActuel > 0 ? `
+        <div class="btc-pv-row" style="border-bottom:1px solid rgba(247,147,26,0.12);padding-bottom:10px;margin-bottom:4px;">
+          <span style="color:var(--muted);">Valeur position</span>
+          <span class="btc-pv-val" style="color:#f7931a;">${new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(r.qte*r.coursActuel)}</span>
+        </div>
+        ${r.pr > 0 ? `
+        <div class="btc-pv-row">
+          <span style="color:var(--muted);">P/MV latente</span>
+          <span class="btc-pv-val" style="color:${r.qte*(r.coursActuel-r.pr)>=0?'#5aab7a':'#c05a5a'};">${r.qte*(r.coursActuel-r.pr)>=0?'+':''}${new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(r.qte*(r.coursActuel-r.pr))} <span style="font-size:10px;opacity:0.75;">(${((r.coursActuel-r.pr)/r.pr*100).toFixed(1)}%)</span></span>
+        </div>` : ''}
+        ` : ''}
+        ` : ''}
         <div class="grid2">
           <div class="form-field full">
             <label class="lbl">Nom</label>
@@ -1932,6 +2028,7 @@ function bindMobiliteEvents() {
 
 // ─── AUTO-SAVE ─────────────────────────────────────────────────────────────
 let saveTimer;
+let athTimer; // timer séparé pour ATH — délai plus long pour éviter enregistrement erroné
 function autoSave() {
   clearTimeout(saveTimer);
   const active = document.activeElement;
@@ -1943,7 +2040,13 @@ function autoSave() {
   }
   saveTimer = setTimeout(() => {
     try { localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); } catch(e){}
-    // ─── ATH AUTO ───────────────────────────────────────────────────
+    if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
+  }, 600);
+
+  // ─── ATH AUTO — tempo séparée de 3s ─────────────────────────────
+  // Délai long pour ne pas enregistrer un ATH en cours de frappe
+  clearTimeout(athTimer);
+  athTimer = setTimeout(() => {
     try {
       const bTotal = ['boursorama','fortuneo','revolut','natixis'].reduce((s,k) => s + (DATA[k]||[]).reduce((ss,r)=>ss+(r.val||0),0), 0);
       const scpiVal = (DATA.scpi||[]).reduce((s,r)=>s+(r.totalActuel||(r.parts||0)*(r.pxActuel||0)||0),0);
@@ -1951,12 +2054,11 @@ function autoSave() {
       const avSyncVal = (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0);
       const ebVal   = (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0);
       const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal;
-      if (grandTotal > 100) { // ignorer si données vides
+      if (grandTotal > 100) {
         const maxATH = (DATA.ath||[]).reduce((mx,r)=>Math.max(mx,r.val||0),0);
         if (grandTotal > maxATH) {
           if (!DATA.ath) DATA.ath = [];
           const today = new Date().toISOString().slice(0,10);
-          // Mettre à jour si déjà une entrée aujourd'hui, sinon ajouter
           const todayEntry = DATA.ath.find(r=>r.date===today);
           if (todayEntry) { todayEntry.val = grandTotal; }
           else { DATA.ath.push({date: today, val: grandTotal, auto: true}); }
@@ -1966,9 +2068,7 @@ function autoSave() {
         }
       }
     } catch(_) {}
-    // ────────────────────────────────────────────────────────────────
-    if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
-  }, 600);
+  }, 3000); // 3s de tempo — la frappe doit s'arrêter avant d'enregistrer l'ATH
 }
 
 // ─── EXPORT JSON ───────────────────────────────────────────────────────────
@@ -2396,6 +2496,36 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
+    // ── CARD IMPÔTS ──────────────────────────────────────────────────
+    const impot = DATA.impotAnnee || 0;
+    const patrimoineNetFiscal = k.grandTotal - impot;
+    const impotCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid #ef4444;" onclick="this.querySelector('.impot-detail').style.display=this.querySelector('.impot-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Patrimoine net fiscal <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+          ${impot > 0 ? `<span style="font-size:9px;color:#ef4444;font-family:'DM Mono',monospace;">− ${fmt(impot)} impôts</span>` : '<span style="font-size:9px;color:var(--muted);">Impôt non renseigné</span>'}
+        </div>
+        <div class="kpi-card-value" style="color:${impot>0?'#ef4444':'var(--muted)'};">${impot > 0 ? fmt(patrimoineNetFiscal) : '—'}</div>
+        <div class="kpi-card-sub">Total − impôt sur le revenu de l'année</div>
+        <div class="impot-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="font-size:11px;color:var(--text);">Patrimoine brut</span>
+            <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);">${fmt(k.grandTotal)}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div>
+              <div style="font-size:11px;color:var(--text);">Impôt sur le revenu</div>
+              <div style="font-size:9px;color:var(--muted);">Avis d'imposition — modifiable dans Banques</div>
+            </div>
+            <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#ef4444;">${impot > 0 ? '− '+fmt(impot) : '—'}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:2px;">
+            <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">NET FISCAL</span>
+            <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${impot>0?'#ef4444':'var(--muted)'};">${impot > 0 ? fmt(patrimoineNetFiscal) : '—'}</span>
+          </div>
+        </div>
+      </div>`;
+
     // ── CARD RESTE NON INVESTI ──────────────────────────────────────
     const niPct = k.grandTotal > 0 ? k.nonInvestiTotal / k.grandTotal * 100 : 0;
     const BANK_COLORS = { boursorama:'#7eb8d4', fortuneo:'#5aab7a', revolut:'#c8a96e', natixis:'#c05a5a', 'Épargne réglementée':'#8b9fba', 'Divers':'#6b7585' };
@@ -2594,7 +2724,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = patrimoineCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
+    el.innerHTML = patrimoineCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
@@ -2830,7 +2960,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { id:'wpea', sym:'WPEA',      gfSym:'EPA:WPEA',           yf:'WPEA.PA',   fmt:'eur',  dot:'#a855f7', yfOnly:false },
     { id:'nas',  sym:'NASDAQ',    gfSym:'INDEXNASDAQ:.IXIC',  yf:'%5EIXIC',   fmt:'idx',  dot:'#e8c96e', yfOnly:false },
     { id:'eur',  sym:'EUR/USD',   gfSym:'CURRENCY:EURUSD',    yf:'EURUSD=X',  fmt:'fx',   dot:'#4df0c8', yfOnly:true  },
-    { id:'gold', sym:'OR (XAU)',  gfSym:'CURRENCY:XAUUSD',    yf:'GC=F',      fmt:'usd',  dot:'#c8a96e', yfOnly:false },
+    // { id:'gold' } — supprimé (OR retiré du ticker)
     { id:'cac',  sym:'CAC 40',    gfSym:'INDEXEURO:PX1',      yf:'%5EFCHI',   fmt:'idx',  dot:'#5aab7a', yfOnly:false },
   ];
 
@@ -2968,6 +3098,27 @@ window.addEventListener('DOMContentLoaded', () => {
         ce.className = 't-chg ' + cls;
       }
     });
+    // ── Mise à jour BTC hero cards ──
+    if (id === 'btc' && price) {
+      const fmtEurBtc = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+      document.querySelectorAll('[id^="btc-live-price-"]').forEach(el => {
+        el.textContent = fmtEurBtc(price);
+        // Mettre à jour coursActuel dans DATA si l'entrée correspond
+        const idx = parseInt(el.id.replace('btc-live-price-',''));
+        const rows = DATA.investissements.revolut;
+        if (rows && rows[idx] && (rows[idx].ticker==='BTC'||rows[idx].nom?.toLowerCase().includes('bitcoin'))) {
+          rows[idx].coursActuel = price;
+          syncInvToBank();
+          // re-render la valeur/PV inline sans re-render complet
+        }
+      });
+      document.querySelectorAll('[id^="btc-live-chg-"]').forEach(el => {
+        if (chgPct == null) return;
+        const up = chgPct >= 0;
+        el.textContent = (up?'▲ ':'▼ ') + Math.abs(chgPct).toFixed(2) + '%';
+        el.className = 'btc-hero-badge ' + (up ? 'up' : 'dn');
+      });
+    }
   }
 
   function markError(id) {
