@@ -23,7 +23,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
   opacity:0.5}
 
-header{background:var(--header-bg);padding:16px 20px 14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:space-between;position:relative}
+header{background:var(--header-bg);padding:16px 20px 14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:space-between}
 .header-left{display:flex;align-items:flex-start;gap:12px}
 .header-icon{font-size:22px;opacity:0.85;margin-top:2px}
 .header-title-wrap h1{font-family:var(--font-title);font-size:1.2rem;font-weight:600;color:var(--header-text);letter-spacing:0.02em;line-height:1.1}
@@ -165,6 +165,54 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
 .cb{background:var(--accent);color:white;font-size:0.55rem;font-family:var(--font-ui);padding:2px 7px;border-radius:3px;margin-left:6px}
 
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* TAB NAV */
+.tab-nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:60px;z-index:90;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{flex:1;min-width:110px;padding:10px 6px;font-family:var(--font-ui);font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(139,94,60,0.05)}
+.tab-btn:hover:not(.active){color:var(--text2)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:0 2px 14px var(--shadow);position:relative;overflow:hidden}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--_kc,var(--accent))}
+.kpi-val{font-family:var(--font-title);font-size:2rem;font-weight:700;color:var(--_kc,var(--accent));line-height:1;margin-bottom:4px}
+.kpi-pct{font-family:var(--font-body);font-size:0.65rem;color:var(--text3);margin-bottom:2px}
+.kpi-lbl{font-family:var(--font-ui);font-size:0.52rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text3)}
+.kpi-wide{grid-column:1/-1}
+.kpi-bar-wrap{margin-top:8px;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.kpi-bar{height:100%;border-radius:3px;background:var(--_kc,var(--accent));transition:width 0.6s ease}
+
+/* DONUT CHART */
+.donut-wrap{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:7px;flex:1}
+.dl-item{display:flex;align-items:center;gap:7px;font-family:var(--font-ui);font-size:0.63rem;color:var(--text2)}
+.dl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.dl-val{margin-left:auto;font-family:var(--font-body);font-weight:500;color:var(--text)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:22px;margin-top:8px}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:1px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:14px;animation:sli 0.2s ease both}
+.tl-dot{position:absolute;left:-22px;width:15px;height:15px;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 2px var(--_tc,var(--accent));background:var(--_tc,var(--accent));top:3px;flex-shrink:0}
+.tl-date{font-family:var(--font-body);font-size:0.58rem;color:var(--text3);margin-bottom:3px;letter-spacing:0.05em}
+.tl-title{font-family:var(--font-title);font-size:0.95rem;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:4px}
+.tl-meta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tl-empty{text-align:center;padding:32px 10px;color:var(--text3);font-family:var(--font-ui);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;opacity:0.5}
+
+/* PROGRESS SECTION */
+.progress-section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px;box-shadow:0 2px 14px var(--shadow)}
+.prog-title{font-family:var(--font-ui);font-size:0.58rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.prog-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.prog-row:last-child{margin-bottom:0}
+.prog-label{font-family:var(--font-ui);font-size:0.62rem;color:var(--text2);width:100px;flex-shrink:0}
+.prog-track{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+.prog-num{font-family:var(--font-body);font-size:0.65rem;color:var(--text3);width:30px;text-align:right;flex-shrink:0}
 </style>
 </head>
 <body id="body">
@@ -195,7 +243,14 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
   <div class="stat" style="min-width:80px"><div class="stat-num" id="sTotal€" style="font-size:1.1rem">0 €</div><div class="stat-label">Total frais</div></div>
 </div>
 
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('tab-demarches',this)">✍️ Démarches</button>
+  <button class="tab-btn" onclick="switchTab('tab-kpi',this)">📊 KPI & Chronologie</button>
+</div>
+
 <main>
+
+  <div id="tab-demarches" class="tab-pane active">
 
   <!-- RAPPELS UTILES -->
   <div class="rappels-panel" id="rappelsPanel">
@@ -301,6 +356,75 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
   </div>
 
   <div id="aList"></div>
+
+  </div><!-- end tab-demarches -->
+
+  <!-- KPI & CHRONOLOGIE TAB -->
+  <div id="tab-kpi" class="tab-pane">
+
+    <div class="section-title">📊 Indicateurs clés</div>
+
+    <!-- KPI GRID -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card" style="--_kc:#3a6b3a">
+        <div class="kpi-val" id="kpi-accord">0</div>
+        <div class="kpi-pct" id="kpi-accord-pct">—</div>
+        <div class="kpi-lbl">Accordées</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-accord-bar" style="width:0%;--_kc:#3a6b3a"></div></div>
+      </div>
+      <div class="kpi-card" style="--_kc:#b03030">
+        <div class="kpi-val" id="kpi-refuse">0</div>
+        <div class="kpi-pct" id="kpi-refuse-pct">—</div>
+        <div class="kpi-lbl">Refusées</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-refuse-bar" style="width:0%;--_kc:#b03030"></div></div>
+      </div>
+      <div class="kpi-card" style="--_kc:#9b5a00">
+        <div class="kpi-val" id="kpi-relancer">0</div>
+        <div class="kpi-pct" id="kpi-relancer-pct">—</div>
+        <div class="kpi-lbl">À relancer</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-relancer-bar" style="width:0%;--_kc:#9b5a00"></div></div>
+      </div>
+      <div class="kpi-card" style="--_kc:var(--col-resultat)">
+        <div class="kpi-val" id="kpi-attente">0</div>
+        <div class="kpi-pct" id="kpi-attente-pct">—</div>
+        <div class="kpi-lbl">En attente</div>
+        <div class="kpi-bar-wrap"><div class="kpi-bar" id="kpi-attente-bar" style="width:0%;--_kc:#2a5a8b"></div></div>
+      </div>
+      <div class="kpi-card kpi-wide" style="--_kc:var(--accent)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div class="kpi-val" id="kpi-total-eur" style="font-size:1.6rem">0 €</div>
+            <div class="kpi-lbl">Total frais engagés</div>
+          </div>
+          <div style="text-align:right">
+            <div class="kpi-val" id="kpi-total" style="font-size:1.6rem;color:var(--text2)">0</div>
+            <div class="kpi-lbl">Démarches totales</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RÉPARTITION PAR CATÉGORIE -->
+    <div class="progress-section">
+      <div class="prog-title">Répartition par catégorie</div>
+      <div id="kpi-cat-progress"></div>
+    </div>
+
+    <!-- DONUT STATUT -->
+    <div class="progress-section">
+      <div class="prog-title">Répartition par statut</div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90" id="donutSvg"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="section-title" style="margin-top:24px">🕐 Chronologie des actions</div>
+    <div id="kpi-timeline"></div>
+
+  </div><!-- end tab-kpi -->
+
 </main>
 
 <button class="fab" onclick="goForm()" title="Nouvelle démarche">+</button>
@@ -347,7 +471,8 @@ const RAPPELS = [
 function init(){
   const n = new Date();
   document.getElementById('iDate').value = n.toISOString().split('T')[0];
-  document.getElementById('iTime').value = n.toTimeString().slice(0,5);
+  const iTime = document.getElementById('iTime');
+  if(iTime) iTime.value = n.toTimeString().slice(0,5);
   document.getElementById('headerDate').textContent = n.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   renderRappels();
   renderList();
@@ -630,6 +755,114 @@ function toast(msg){
 const st=document.createElement('style');
 st.textContent=`@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}`;
 document.head.appendChild(st);
+function switchTab(tabId, btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+  if(tabId==='tab-kpi') renderKPI();
+}
+
+function renderKPI(){
+  const n = entries.length;
+  const acc = entries.filter(a=>a.status==='accord').length;
+  const ref = entries.filter(a=>a.status==='refuse').length;
+  const rel = entries.filter(a=>a.status==='relancer').length;
+  const att = entries.filter(a=>a.status==='attente').length;
+  const enc = entries.filter(a=>a.status==='en-cours').length;
+  const totalEur = entries.reduce((s,a)=>s+(parseFloat(a.prix)||0),0);
+  const pct = v => n>0 ? Math.round(v/n*100) : 0;
+
+  document.getElementById('kpi-total').textContent = n;
+  document.getElementById('kpi-total-eur').textContent = totalEur.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})+' €';
+
+  [['accord',acc],['refuse',ref],['relancer',rel],['attente',att]].forEach(([k,v])=>{
+    document.getElementById('kpi-'+k).textContent = v;
+    document.getElementById('kpi-'+k+'-pct').textContent = n>0 ? pct(v)+'% des démarches' : '—';
+    setTimeout(()=>{ document.getElementById('kpi-'+k+'-bar').style.width = pct(v)+'%'; },50);
+  });
+
+  // Cat progress
+  const cats = {};
+  entries.forEach(a=>{ cats[a.cat]=(cats[a.cat]||0)+1; });
+  const catColors = {'Notaire':'#8b5e3c','Bien immobilier':'#4a7a4a','Comptes bancaires':'#2a5a8b','Testament':'#7a3a7a','Actes officiels':'#5a5a2a','Famille':'#9b5a00','Impôts / Taxes':'#3a6b6b','Assurances':'#6b3a6b','Autre':'#888'};
+  const catSorted = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('kpi-cat-progress').innerHTML = catSorted.length ? catSorted.map(([cat,cnt])=>`
+    <div class="prog-row">
+      <div class="prog-label" style="font-size:0.6rem">${cat}</div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct(cnt)}%;background:${catColors[cat]||'#888'}"></div></div>
+      <div class="prog-num">${cnt}</div>
+    </div>`).join('') : '<div style="color:var(--text3);font-family:var(--font-ui);font-size:0.65rem;padding:8px 0;opacity:0.5">Aucune donnée</div>';
+
+  // Donut
+  renderDonut([
+    {label:'Accordées',val:acc,color:'#3a6b3a'},
+    {label:'Refusées',val:ref,color:'#b03030'},
+    {label:'En cours',val:enc,color:'#8b5e3c'},
+    {label:'À relancer',val:rel,color:'#9b5a00'},
+    {label:'En attente',val:att,color:'#2a5a8b'},
+  ]);
+
+  // Timeline
+  renderTimeline();
+}
+
+function renderDonut(data){
+  const total = data.reduce((s,d)=>s+d.val,0);
+  const svg = document.getElementById('donutSvg');
+  const leg = document.getElementById('donutLegend');
+  const cx=45,cy=45,r=32,stroke=14;
+  if(!total){
+    svg.innerHTML=`<circle cx="45" cy="45" r="32" fill="none" stroke="var(--border)" stroke-width="14"/>`;
+    leg.innerHTML='<div style="color:var(--text3);font-size:0.6rem;font-family:var(--font-ui)">Aucune donnée</div>';
+    return;
+  }
+  const circ = 2*Math.PI*r;
+  let offset = -circ/4;
+  let paths='';
+  data.forEach(d=>{
+    if(!d.val)return;
+    const len = (d.val/total)*circ;
+    paths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="${stroke}" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-offset}" style="transform-origin:center;transform:rotate(-90deg)"/>`;
+    offset+=len;
+  });
+  svg.innerHTML=paths+`<text x="45" y="49" text-anchor="middle" font-family="var(--font-title)" font-size="14" font-weight="700" fill="var(--accent)">${total}</text>`;
+  leg.innerHTML=data.filter(d=>d.val>0).map(d=>`
+    <div class="dl-item">
+      <div class="dl-dot" style="background:${d.color}"></div>
+      <span>${d.label}</span>
+      <span class="dl-val">${d.val}</span>
+    </div>`).join('');
+}
+
+function renderTimeline(){
+  const el = document.getElementById('kpi-timeline');
+  const sorted = [...entries].filter(a=>a.date).sort((a,b)=>b.date.localeCompare(a.date));
+  const all = [...sorted, ...entries.filter(a=>!a.date)];
+  if(!all.length){
+    el.innerHTML='<div class="tl-empty">📂 Aucune démarche enregistrée</div>';
+    return;
+  }
+  const tc = {haute:'#b03030',moyenne:'#8b5e3c',basse:'#3a6b3a',info:'#2a5a8b'};
+  const sc = {'en-cours':'#8b5e3c',accord:'#3a6b3a',refuse:'#b03030',attente:'#2a5a8b',relancer:'#9b5a00'};
+  // Abréviations des noms d'actions (max 40 chars)
+  const abbrev = s => s.length>42 ? s.slice(0,40)+'…' : s;
+  el.innerHTML='<div class="timeline">'+all.map((a,i)=>{
+    const ds = a.date ? new Date(a.date+'T00:00').toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : 'Sans date';
+    const dotColor = sc[a.status]||'#888';
+    return `<div class="tl-item" style="animation-delay:${i*0.03}s">
+      <div class="tl-dot" style="--_tc:${dotColor};background:${dotColor}"></div>
+      <div class="tl-date">${ds}</div>
+      <div class="tl-title">${abbrev(a.action)}</div>
+      <div class="tl-meta">
+        <span class="badge bc" style="background:${dotColor}cc;font-size:0.5rem">${SL[a.status]||a.status}</span>
+        <span class="badge bd" style="font-size:0.5rem">${a.cat}</span>
+        ${a.interlocuteur?`<span class="badge" style="background:rgba(90,90,42,0.08);color:var(--text2);font-size:0.5rem">👤 ${a.interlocuteur}</span>`:''}
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
 init();
 </script>
 </body>
