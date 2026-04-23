@@ -212,7 +212,10 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
 
     <div class="form-row">
       <div><label>📅 Date</label><input type="date" id="iDate"></div>
-      <div><label>⏱ Heure</label><input type="time" id="iTime"></div>
+      <div>
+        <label>💶 Frais (€)</label>
+        <input type="number" id="iPrix" placeholder="0.00" min="0" step="0.01" style="text-align:right">
+      </div>
     </div>
 
     <div class="field-group">
@@ -226,69 +229,33 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
         <input type="text" id="iInterlocuteur" placeholder="Nom, prénom, qualité…">
       </div>
       <div>
-        <label>📎 Réf. officielle / N° dossier</label>
+        <label>📎 Réf. / N° dossier</label>
         <input type="text" id="iRef" placeholder="N° acte, réf. courrier…">
       </div>
     </div>
 
-    <div class="form-row" style="max-width:50%;margin-bottom:4px">
-      <div>
-        <label>💶 Montant / Frais (€)</label>
-        <input type="number" id="iPrix" placeholder="0.00" min="0" step="0.01" style="text-align:right">
+    <div class="field-group">
+      <label>Statut</label>
+      <div class="cat-grid" id="statusCats">
+        <button class="cat-btn active" data-s="en-cours" onclick="selSt(this)">⏳ En cours</button>
+        <button class="cat-btn" data-s="accord" onclick="selSt(this)">✅ Accordé</button>
+        <button class="cat-btn" data-s="refuse" onclick="selSt(this)">❌ Refusé</button>
+        <button class="cat-btn" data-s="attente" onclick="selSt(this)">🕐 En attente</button>
+        <button class="cat-btn" data-s="relancer" onclick="selSt(this)">🔔 À relancer</button>
       </div>
     </div>
 
-    <div style="margin-top:4px">
-      <div class="fsec open" id="s-demande">
-        <div class="fsec-hd" onclick="tSec('s-demande')">
-          <span><div class="fdot" style="background:var(--col-demande)"></div>Demande / Objet</span>
-          <span class="chev">▼</span>
-        </div>
-        <div class="fsec-bd">
-          <textarea id="iDemande" placeholder="Quelle était la demande de départ ? Qui l'a formulée, dans quel contexte…"></textarea>
-        </div>
-      </div>
-
-      <div class="fsec" id="s-accord">
-        <div class="fsec-hd" onclick="tSec('s-accord')">
-          <span><div class="fdot" style="background:var(--col-accord)"></div>Réponse / Accord obtenu</span>
-          <span class="chev">▼</span>
-        </div>
-        <div class="fsec-bd">
-          <label style="margin-bottom:6px">Statut</label>
-          <div class="cat-grid" id="statusCats">
-            <button class="cat-btn active" data-s="en-cours" onclick="selSt(this)">⏳ En cours</button>
-            <button class="cat-btn" data-s="accord" onclick="selSt(this)">✅ Accordé</button>
-            <button class="cat-btn" data-s="refuse" onclick="selSt(this)">❌ Refusé</button>
-            <button class="cat-btn" data-s="attente" onclick="selSt(this)">🕐 En attente</button>
-            <button class="cat-btn" data-s="relancer" onclick="selSt(this)">🔔 À relancer</button>
-          </div>
-          <textarea id="iAccord" placeholder="Détails de la réponse, conditions, qui a décidé, date promise…" style="min-height:56px"></textarea>
-        </div>
-      </div>
-
-      <div class="fsec" id="s-resultat">
-        <div class="fsec-hd" onclick="tSec('s-resultat')">
-          <span><div class="fdot" style="background:var(--col-resultat)"></div>Résultat / Suite à donner</span>
-          <span class="chev">▼</span>
-        </div>
-        <div class="fsec-bd">
-          <textarea id="iResultat" placeholder="Qu'est-il résulté ? Prochaine étape, délai, action à mener…"></textarea>
-        </div>
-      </div>
-
-      <div class="fsec" id="s-preuve">
-        <div class="fsec-hd" onclick="tSec('s-preuve')">
-          <span><div class="fdot" style="background:var(--col-preuve)"></div>Preuve / Document de référence</span>
-          <span class="chev">▼</span>
-        </div>
-        <div class="fsec-bd">
-          <textarea id="iPreuve" placeholder="N° document, e-mail (date + expéditeur), témoin, courrier recommandé (AR), capture écran, lien…" style="min-height:56px"></textarea>
-        </div>
-      </div>
+    <div class="field-group">
+      <div class="field-label-row"><div class="fdot" style="background:var(--col-accord)"></div><span>Notes / Contexte / Suite</span></div>
+      <textarea id="iNotes" placeholder="Demande, réponse obtenue, prochaine étape, conditions, délais…" style="min-height:80px"></textarea>
     </div>
 
-    <div style="margin-top:12px">
+    <div class="field-group" style="background:rgba(122,58,122,0.04);border:1px solid rgba(122,58,122,0.18);border-radius:7px;padding:12px;margin-bottom:0">
+      <div class="field-label-row"><div class="fdot" style="background:var(--col-preuve)"></div><span>Preuve / Document de référence</span></div>
+      <textarea id="iPreuve" placeholder="N° document, e-mail (date + expéditeur), témoin, courrier recommandé (AR), capture écran, lien…" style="min-height:60px;background:transparent;border-color:rgba(122,58,122,0.25)"></textarea>
+    </div>
+
+    <div style="margin-top:14px">
       <label>Catégorie</label>
       <div class="cat-grid" id="catCats">
         <button class="cat-btn active" data-c="Notaire" onclick="selCat(this)">⚖️ Notaire</button>
@@ -416,19 +383,25 @@ function setCatV(v){document.querySelectorAll('#catCats .cat-btn').forEach(x=>x.
 function selSt(b){document.querySelectorAll('#statusCats .cat-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selStV=b.dataset.s}
 function setStV(v){document.querySelectorAll('#statusCats .cat-btn').forEach(x=>x.classList.toggle('active',x.dataset.s===v));selStV=v}
 
+// Agrège les champs legacy (demande/accord/resultat) en notes pour rétrocompat
+function legacyNotes(a){
+  const parts=[];
+  if(a.demande)parts.push('Demande : '+a.demande);
+  if(a.accord)parts.push('Réponse : '+a.accord);
+  if(a.resultat)parts.push('Résultat : '+a.resultat);
+  return parts.join('\n\n');
+}
+
 function addEntry(){
   const act = document.getElementById('iAction').value.trim();
   if(!act){shake('iAction');return;}
   const entry = {
     id: editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),
     date: document.getElementById('iDate').value,
-    time: document.getElementById('iTime').value,
     action: act,
     interlocuteur: document.getElementById('iInterlocuteur').value.trim(),
     refOfficielle: document.getElementById('iRef').value.trim(),
-    demande: document.getElementById('iDemande').value.trim(),
-    accord: document.getElementById('iAccord').value.trim(),
-    resultat: document.getElementById('iResultat').value.trim(),
+    notes: document.getElementById('iNotes').value.trim(),
     preuve: document.getElementById('iPreuve').value.trim(),
     prix: parseFloat(document.getElementById('iPrix').value)||0,
     status: selStV, priority: selPr, cat: selCatV,
@@ -447,17 +420,14 @@ function editEntry(id){
   if(!a)return;
   editId=id;
   document.getElementById('iDate').value=a.date||'';
-  document.getElementById('iTime').value=a.time||'';
   document.getElementById('iAction').value=a.action||'';
   document.getElementById('iInterlocuteur').value=a.interlocuteur||'';
   document.getElementById('iRef').value=a.refOfficielle||'';
-  document.getElementById('iDemande').value=a.demande||'';
-  document.getElementById('iAccord').value=a.accord||'';
-  document.getElementById('iResultat').value=a.resultat||'';
+  // compat legacy : si notes vide, reconstitue depuis demande/accord/resultat
+  document.getElementById('iNotes').value=a.notes||(legacyNotes(a));
   document.getElementById('iPreuve').value=a.preuve||'';
   document.getElementById('iPrix').value=a.prix||'';
   setPrioV(a.priority||'moyenne');setCatV(a.cat||'Notaire');setStV(a.status||'en-cours');
-  ['s-demande','s-accord','s-resultat','s-preuve'].forEach(s=>document.getElementById(s).classList.add('open'));
   document.getElementById('submitBtn').textContent='✏️ METTRE À JOUR';
   goForm();
 }
@@ -468,10 +438,9 @@ function delEntry(id){
 }
 
 function clearForm(){
-  ['iAction','iInterlocuteur','iRef','iDemande','iAccord','iResultat','iPreuve','iPrix'].forEach(id=>document.getElementById(id).value='');
+  ['iAction','iInterlocuteur','iRef','iNotes','iPreuve','iPrix'].forEach(id=>document.getElementById(id).value='');
   const n=new Date();
   document.getElementById('iDate').value=n.toISOString().split('T')[0];
-  document.getElementById('iTime').value=n.toTimeString().slice(0,5);
   setPrioV('moyenne');setCatV('Notaire');setStV('en-cours');
   editId=null;document.getElementById('submitBtn').textContent='+ ENREGISTRER LA DÉMARCHE';
 }
@@ -495,7 +464,7 @@ function getFiltered(){
     if(curF==='notaire'&&a.cat!=='Notaire')return false;
     if(curF==='immobilier'&&a.cat!=='Bien immobilier')return false;
     if(curF==='banque'&&a.cat!=='Comptes bancaires')return false;
-    if(s&&![a.action,a.demande,a.accord,a.resultat,a.preuve,a.interlocuteur,a.refOfficielle].some(f=>(f||'').toLowerCase().includes(s)))return false;
+    if(s&&![a.action,a.notes,a.demande,a.accord,a.resultat,a.preuve,a.interlocuteur,a.refOfficielle].some(f=>(f||'').toLowerCase().includes(s)))return false;
     return true;
   });
 }
@@ -515,6 +484,8 @@ function renderList(){
     const ts = new Date(a.createdAt);
     const tss = ts.toLocaleDateString('fr-FR')+' '+ts.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     const cf=(label,val,dc,extra='')=>`<div class="cf ${extra}"><div class="fn"><div class="fds" style="background:${dc}"></div>${label}</div><div class="fv ${val?'':'mt'}">${val?esc(val):'—'}</div></div>`;
+    // compat legacy : reconstitue notes depuis anciens champs si besoin
+    const notesVal = a.notes || [a.demande&&'Demande : '+a.demande, a.accord&&'Réponse : '+a.accord, a.resultat&&'Résultat : '+a.resultat].filter(Boolean).join('\n\n');
     const interloRow = a.interlocuteur?`<div class="card-interlocuteur">👤 <strong>${esc(a.interlocuteur)}</strong></div>`:'';
     const refRow = a.refOfficielle?`<div class="card-ref-officiel">📎 Réf. : ${esc(a.refOfficielle)}</div>`:'';
     return `<div class="action-card" style="--_pc:${pc}">
@@ -527,7 +498,7 @@ function renderList(){
           </div>
         </div>
         <div class="card-badges">
-          <span class="badge bd">📅 ${ds}${a.time?' · '+a.time:''}</span>
+          <span class="badge bd">📅 ${ds}</span>
           <span class="badge bc" style="background:${pc}cc">${a.cat}</span>
           <span class="badge bp" style="color:${pc};border-color:${pc}">${PL[a.priority]||''}</span>
           <span class="sp ${SC[a.status]||''}">${SL[a.status]||a.status}</span>
@@ -535,10 +506,8 @@ function renderList(){
         </div>
       </div>
       ${interloRow}${refRow}
-      <div class="card-fields">
-        ${cf('Demande / Objet',a.demande,'var(--col-demande)')}
-        ${cf('Réponse / Accord',a.accord,'var(--col-accord)')}
-        ${cf('Résultat / Suite',a.resultat,'var(--col-resultat)')}
+      <div class="card-fields" style="grid-template-columns:1fr">
+        ${cf('Notes / Contexte',notesVal,'var(--col-accord)')}
         ${cf('Preuve / Document',a.preuve,'var(--col-preuve)','cf-preuve')}
       </div>
       <div class="card-foot">
@@ -595,10 +564,11 @@ function openModal(){
       if(a.interlocuteur) r += `         Interlocuteur : ${a.interlocuteur}\n`;
       if(a.refOfficielle) r += `         Réf. officielle: ${a.refOfficielle}\n`;
       r +=                    `         Catégorie     : ${a.cat}  —  Statut : ${SL[a.status]||a.status}\n`;
-      if(a.demande)  r += `         DEMANDE       : ${a.demande}\n`;
-      if(a.accord)   r += `         RÉPONSE       : ${a.accord}\n`;
-      if(a.resultat) r += `         RÉSULTAT      : ${a.resultat}\n`;
+      // notes (nouveau) ou reconstitution legacy
+      const rNotes = a.notes || [a.demande&&'Demande : '+a.demande, a.accord&&'Réponse : '+a.accord, a.resultat&&'Résultat : '+a.resultat].filter(Boolean).join(' | ');
+      if(rNotes) r += `         Notes         : ${rNotes}\n`;
       if(a.preuve)   r += `         PREUVE        : ${a.preuve}\n`;
+      if(a.prix>0)   r += `         Frais         : ${parseFloat(a.prix).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})} €\n`;
       r += `         Réf. interne  : ${a.id.toUpperCase().slice(0,8)}\n`;
     });
   });
