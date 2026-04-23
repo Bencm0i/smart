@@ -53,7 +53,7 @@ label{display:block;font-family:var(--font-ui);font-size:0.58rem;letter-spacing:
 .fdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .field-label-row span{font-family:var(--font-ui);font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3)}
 
-input[type="text"],input[type="date"],input[type="time"],textarea,select{
+input[type="text"],input[type="date"],input[type="time"],input[type="number"],textarea,select{
   width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;
   padding:9px 12px;font-family:var(--font-body);font-size:0.87rem;color:var(--text);
   outline:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none}
@@ -191,6 +191,8 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
   <div class="stat"><div class="stat-num" id="sRelancer">0</div><div class="stat-label">À relancer</div></div>
   <div class="stat-divider"></div>
   <div class="stat"><div class="stat-num" id="sPrv">0</div><div class="stat-label">Preuves</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat" style="min-width:80px"><div class="stat-num" id="sTotal€" style="font-size:1.1rem">0 €</div><div class="stat-label">Total frais</div></div>
 </div>
 
 <main>
@@ -226,6 +228,13 @@ textarea{resize:vertical;min-height:64px;line-height:1.55}
       <div>
         <label>📎 Réf. officielle / N° dossier</label>
         <input type="text" id="iRef" placeholder="N° acte, réf. courrier…">
+      </div>
+    </div>
+
+    <div class="form-row" style="max-width:50%;margin-bottom:4px">
+      <div>
+        <label>💶 Montant / Frais (€)</label>
+        <input type="number" id="iPrix" placeholder="0.00" min="0" step="0.01" style="text-align:right">
       </div>
     </div>
 
@@ -421,6 +430,7 @@ function addEntry(){
     accord: document.getElementById('iAccord').value.trim(),
     resultat: document.getElementById('iResultat').value.trim(),
     preuve: document.getElementById('iPreuve').value.trim(),
+    prix: parseFloat(document.getElementById('iPrix').value)||0,
     status: selStV, priority: selPr, cat: selCatV,
     createdAt: editId?(entries.find(e=>e.id===editId)||{createdAt:new Date().toISOString()}).createdAt:new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -445,6 +455,7 @@ function editEntry(id){
   document.getElementById('iAccord').value=a.accord||'';
   document.getElementById('iResultat').value=a.resultat||'';
   document.getElementById('iPreuve').value=a.preuve||'';
+  document.getElementById('iPrix').value=a.prix||'';
   setPrioV(a.priority||'moyenne');setCatV(a.cat||'Notaire');setStV(a.status||'en-cours');
   ['s-demande','s-accord','s-resultat','s-preuve'].forEach(s=>document.getElementById(s).classList.add('open'));
   document.getElementById('submitBtn').textContent='✏️ METTRE À JOUR';
@@ -457,7 +468,7 @@ function delEntry(id){
 }
 
 function clearForm(){
-  ['iAction','iInterlocuteur','iRef','iDemande','iAccord','iResultat','iPreuve'].forEach(id=>document.getElementById(id).value='');
+  ['iAction','iInterlocuteur','iRef','iDemande','iAccord','iResultat','iPreuve','iPrix'].forEach(id=>document.getElementById(id).value='');
   const n=new Date();
   document.getElementById('iDate').value=n.toISOString().split('T')[0];
   document.getElementById('iTime').value=n.toTimeString().slice(0,5);
@@ -520,6 +531,7 @@ function renderList(){
           <span class="badge bc" style="background:${pc}cc">${a.cat}</span>
           <span class="badge bp" style="color:${pc};border-color:${pc}">${PL[a.priority]||''}</span>
           <span class="sp ${SC[a.status]||''}">${SL[a.status]||a.status}</span>
+          ${a.prix>0?`<span class="badge" style="background:rgba(42,90,139,0.1);color:var(--col-resultat);border:1px solid var(--col-resultat)">💶 ${parseFloat(a.prix).toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`:''}
         </div>
       </div>
       ${interloRow}${refRow}
@@ -543,6 +555,8 @@ function updateStats(){
   document.getElementById('sRef').textContent = entries.filter(a=>a.status==='refuse').length;
   document.getElementById('sRelancer').textContent = entries.filter(a=>a.status==='relancer').length;
   document.getElementById('sPrv').textContent = entries.filter(a=>a.preuve).length;
+  const total = entries.reduce((s,a)=>s+(parseFloat(a.prix)||0),0);
+  document.getElementById('sTotal€').textContent = total>0 ? total.toLocaleString('fr-FR',{minimumFractionDigits:0,maximumFractionDigits:2})+' €' : '0 €';
 }
 
 function openModal(){
