@@ -1,0 +1,3189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SAISIE · Patrimoine</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+<style>
+:root {
+  --bg:       #1a1e24;
+  --surface:  #22272f;
+  --surface2: #2a3040;
+  --border:   #3a4455;
+  --accent:   #7eb8d4;
+  --accent2:  #5b9fba;
+  --text:     #c8cdd8;
+  --muted:    #6b7585;
+  --gold:     #c8a96e;
+  --green:    #5aab7a;
+  --red:      #c05a5a;
+  --olive:    #4a5530;
+  --olive2:   #5a6840;
+  --grid-color: rgba(255,255,255,0.03);
+}
+
+/* ═══ THÈME MILITAIRE ═══ */
+:root.theme-mil {
+  --bg:       #f0e8d0;
+  --surface:  #e8dfc0;
+  --surface2: #ddd4a8;
+  --border:   #b8a878;
+  --accent:   #c8601a;
+  --accent2:  #a84e10;
+  --text:     #2c2510;
+  --muted:    #7a6a42;
+  --gold:     #c8601a;
+  --green:    #4a6b28;
+  --red:      #aa2820;
+  --olive:    #5a6830;
+  --olive2:   #4a5820;
+  --grid-color: rgba(0,0,0,0.06);
+}
+:root.theme-mil body {
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+    repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(90,104,48,0.04) 18px, rgba(90,104,48,0.04) 20px),
+    repeating-linear-gradient(-45deg, transparent, transparent 18px, rgba(90,104,48,0.04) 18px, rgba(90,104,48,0.04) 20px);
+}
+:root.theme-mil .header { background: rgba(232,223,192,0.97); }
+:root.theme-mil .ticker-band { background: rgba(218,208,170,0.99); }
+:root.theme-mil .tabs-bar { background: var(--bg); }
+:root.theme-mil input[type="number"],
+:root.theme-mil input[type="text"],
+:root.theme-mil input[type="date"],
+:root.theme-mil select,
+:root.theme-mil textarea { background: var(--surface2); color: var(--text); border-color: var(--border); }
+:root.theme-mil .kpi-card { background: var(--surface); border-color: var(--border); }
+:root.theme-mil .card { background: var(--surface); border-color: var(--border); }
+:root.theme-mil .card-head { background: var(--surface2); border-bottom-color: var(--border); }
+:root.theme-mil .section { background: var(--surface); border-color: var(--border); }
+:root.theme-mil .section-head { background: var(--surface2); border-bottom-color: var(--border); }
+:root.theme-mil .logo { color: var(--accent); }
+:root.theme-mil .badge { background: var(--surface2); border-color: var(--border); color: var(--muted); }
+:root.theme-mil .badge.green { background: rgba(74,107,40,0.15); border-color: rgba(74,107,40,0.35); color: var(--green); }
+:root.theme-mil .badge.gold  { background: rgba(200,96,26,0.15); border-color: rgba(200,96,26,0.35); color: var(--accent); }
+:root.theme-mil .badge.blue  { background: rgba(200,96,26,0.12); border-color: rgba(200,96,26,0.3);  color: var(--accent); }
+:root.theme-mil .num-ctrl { background: var(--surface2); border-color: var(--border); }
+:root.theme-mil .t-price  { color: var(--text); }
+:root.theme-mil .t-sym    { color: var(--muted); }
+:root.theme-mil .bank-total-val { color: var(--accent); }
+:root.theme-mil .kpi-card-value.blue { color: var(--accent); }
+:root.theme-mil .section.accent-blue { border-top-color: var(--accent); }
+:root.theme-mil .section.accent-green { border-top-color: var(--green); }
+:root.theme-mil .section.accent-gold  { border-top-color: #c8601a; }
+:root.theme-mil .section.accent-red   { border-top-color: var(--red); }
+:root.theme-mil .hbtn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Toggle button */
+.theme-toggle {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  transition: all 0.2s;
+  min-height: 36px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+:root.theme-mil .theme-toggle { background: var(--surface2); border-color: var(--border); }
+:root.theme-mil .theme-toggle-dot { background: var(--accent); border-color: var(--accent); }
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+body {
+  background: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 13px;
+  min-height: 100vh;
+  padding-bottom: 120px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');
+
+/* ═══ HEADER ═══ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(26,30,36,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.5px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.logo span { color: var(--muted); font-weight: 700; }
+.header-btns { display: flex; gap: 8px; align-items: center; }
+.hbtn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all 0.18s;
+  min-height: 36px;
+}
+.hbtn:hover, .hbtn:active { border-color: var(--accent); color: var(--accent); }
+.hbtn.primary { background: var(--accent); color: #1a1e24; border-color: var(--accent); font-weight: 500; }
+.hbtn.primary:hover { background: var(--accent2); }
+.hbtn.danger { border-color: var(--red); color: var(--red); }
+
+.save-status {
+  font-size: 10px;
+  color: var(--green);
+  opacity: 0;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+}
+.save-status.show { opacity: 1; }
+
+/* ═══ TICKER BAND ═══ */
+.ticker-band {
+  position: sticky;
+  top: 61px;
+  z-index: 150;
+  background: rgba(18,21,27,0.97);
+  border-bottom: 1px solid var(--border);
+  height: 38px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+}
+.ticker-band::before,
+.ticker-band::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 32px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ticker-band::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(18,21,27,1), transparent);
+}
+.ticker-band::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(18,21,27,1), transparent);
+}
+.ticker-track {
+  display: flex;
+  align-items: center;
+  animation: tickerScroll 38s linear infinite;
+  will-change: transform;
+}
+.ticker-band:hover .ticker-track {
+  animation-play-state: paused;
+}
+@keyframes tickerScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 22px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.ticker-item:last-child { border-right: none; }
+.t-sym {
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 11px;
+}
+.t-price {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+.t-chg {
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+.t-chg.up  { color: var(--green); }
+.t-chg.dn  { color: var(--red); }
+.t-chg.neu { color: var(--muted); }
+.t-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.tabs-bar {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding: 0 4px;
+  position: sticky;
+  top: 99px;
+  z-index: 100;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 16px 16px;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: all 0.18s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ═══ PANELS ═══ */
+.panel { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+.panel.active { display: block; }
+
+/* ═══ SECTION ═══ */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.section-head {
+  background: var(--surface2);
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.section-body { padding: 14px 16px; }
+
+/* ═══ FIELD ROWS ═══ */
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.field-row:last-child { border-bottom: none; }
+.field-label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.3;
+  min-width: 0;
+}
+.field-label small { display: block; font-size: 10px; color: var(--muted); margin-top: 1px; }
+.field-input-wrap { flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+
+/* ═══ INPUTS ═══ */
+input[type="number"], input[type="text"], input[type="date"], select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 48px;
+}
+input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(126,184,212,0.15);
+}
+input[type="number"] { text-align: right; width: 130px; font-size: 16px; }
+.input-euro { position: relative; }
+.input-euro::after { content: '€'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+.input-euro input { padding-right: 30px; }
+.input-pct::after { content: '%'; }
+.input-pct input { padding-right: 30px; }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7585' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+select option { background: var(--surface2); }
+
+.num-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 0;
+}
+.num-ctrl button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: rgba(126,184,212,0.2);
+}
+.num-ctrl button:active { background: rgba(126,184,212,0.18); }
+.num-ctrl input[type="number"] {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  width: 90px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 4px;
+  min-height: 48px;
+}
+.num-ctrl input[type="number"]:focus { border: none; box-shadow: none; }
+
+.euro-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.euro-input input {
+  padding-right: 32px;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: right;
+  width: 140px;
+  min-height: 48px;
+}
+.euro-input .unit {
+  position: absolute;
+  right: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* ═══ MINI BUTTONS ═══ */
+.mini-btn {
+  background: none;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s;
+  width: 100%;
+  justify-content: center;
+  margin-top: 10px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+}
+.mini-btn:hover, .mini-btn:active { border-color: var(--accent); color: var(--accent); background: rgba(126,184,212,0.06); }
+.del-btn {
+  background: rgba(192,90,90,0.08);
+  border: 1px solid rgba(192,90,90,0.2);
+  color: var(--red);
+  font-size: 15px;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.del-btn:hover, .del-btn:active { background: rgba(192,90,90,0.2); color: var(--red); }
+
+/* ═══ CARD ═══ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.card-head {
+  background: var(--surface2);
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.card-title-sm {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-body { padding: 12px 14px; }
+
+/* ═══ BADGES ═══ */
+.badge {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.badge.green { background: rgba(90,171,122,0.15); border-color: rgba(90,171,122,0.3); color: var(--green); }
+.badge.gold { background: rgba(200,169,110,0.15); border-color: rgba(200,169,110,0.3); color: var(--gold); }
+.badge.blue { background: rgba(126,184,212,0.15); border-color: rgba(126,184,212,0.3); color: var(--accent); }
+
+/* ═══ RISK SELECTOR ═══ */
+.risk-sel {
+  display: flex;
+  gap: 3px;
+}
+.risk-sel label {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  color: #fff;
+  user-select: none;
+}
+.risk-sel input[type="radio"] { display: none; }
+.risk-sel input[type="radio"]:checked + label { border-color: #fff; transform: scale(1.1); }
+
+/* ═══ GRID 2 cols ═══ */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid2 .full { grid-column: 1 / -1; }
+
+/* ═══ LABEL ═══ */
+.lbl {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+  display: block;
+}
+.form-field { display: flex; flex-direction: column; margin-bottom: 10px; }
+.form-field:last-child { margin-bottom: 0; }
+
+/* ═══ LOG TABLE ═══ */
+.log-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.log-table th {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.log-table td { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+.log-table tr:last-child td { border-bottom: none; }
+.log-table input { font-size: 15px; padding: 10px 8px; min-height: 44px; }
+
+/* ═══ LOG CARDS ═══ */
+.log-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.log-card-fields {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.log-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 100px;
+}
+.log-card-field label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.log-card-field input {
+  font-size: 15px;
+  padding: 10px 10px;
+  min-height: 44px;
+  width: 100%;
+}
+.log-card-del {
+  flex-shrink: 0;
+}
+
+/* ═══ SEPARATOR ═══ */
+.sep {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+.sep::before, .sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ═══ TOAST ═══ */
+#toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green);
+  color: #1a1e24;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══ BOTTOM BAR ═══ */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(26,30,36,0.97);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 200;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.bar-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s;
+  min-height: 48px;
+}
+.bar-btn:hover, .bar-btn:active { border-color: var(--accent); color: var(--accent); }
+.bar-btn.primary { background: var(--accent); color: #1a1e24; border-color: var(--accent); }
+.bar-btn.primary:active { background: var(--accent2); }
+
+@media (min-width: 640px) {
+  .bottom-bar { left: 50%; transform: translateX(-50%); right: auto; width: 640px; border-radius: 16px 16px 0 0; }
+}
+
+.collapsible { overflow: hidden; transition: max-height 0.3s ease; }
+.collapse-toggle { background: none; border: none; color: var(--accent); font-size: 13px; cursor: pointer; padding: 2px; }
+
+.section.accent-green { border-top: 2px solid var(--green); }
+.section.accent-gold { border-top: 2px solid var(--gold); }
+.section.accent-blue { border-top: 2px solid var(--accent); }
+.section.accent-red { border-top: 2px solid var(--red); }
+
+/* ═══ BANK TOTAL ROW ═══ */
+.bank-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+.bank-total-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bank-total-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+
+.card-body { padding: 14px; }
+.section-body { padding: 12px 14px; }
+
+@keyframes inputSaved {
+  0%   { border-color: var(--green); box-shadow: 0 0 0 3px rgba(90,171,122,0.2); }
+  100% { border-color: var(--border); box-shadow: none; }
+}
+.input-saved { animation: inputSaved 0.8s ease-out forwards; }
+
+.tabs-bar::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, transparent, var(--bg));
+  pointer-events: none;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(126,184,212,0.06);
+  border-radius: 6px 6px 0 0;
+}
+
+.hbtn { min-height: 40px; padding: 8px 14px; font-size: 12px; }
+
+@media (max-width: 400px) {
+  .euro-input input { width: 120px; }
+  input[type="number"] { width: 110px; }
+  .grid2 { grid-template-columns: 1fr; }
+}
+
+button, input, select { touch-action: manipulation; }
+
+.section-head .mini-btn {
+  margin: 0;
+  width: auto;
+  padding: 8px 14px;
+  border-style: solid;
+  font-size: 16px;
+  line-height: 1;
+  min-height: 36px;
+  border-radius: 8px;
+}
+
+.lbl { margin-bottom: 6px; font-size: 10px; }
+.form-field { margin-bottom: 12px; }
+.risk-sel label { width: 34px; height: 34px; font-size: 12px; }
+
+/* ═══ KPI PANEL ═══ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.kpi-card.full { grid-column: 1 / -1; }
+.kpi-card-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.kpi-card-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+.kpi-card-value.green { color: var(--green); }
+.kpi-card-value.red   { color: var(--red); }
+.kpi-card-value.gold  { color: var(--gold); }
+.kpi-card-value.blue  { color: var(--accent); }
+.kpi-card-sub {
+  font-size: 10px;
+  color: var(--muted);
+}
+.kpi-ratio-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: 12px;
+}
+.kpi-ratio-row:last-child { border-bottom: none; }
+.kpi-ratio-label { font-size: 12px; color: var(--text); flex: 1; }
+.kpi-ratio-label small { display:block; font-size:10px; color:var(--muted); }
+.kpi-ratio-val {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+.kpi-ratio-bar-wrap { width: 80px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; flex-shrink:0; }
+.kpi-ratio-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+.pmv-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.pmv-row:last-child { border-bottom: none; }
+
+/* ═══ BTC HERO CARD ═══ */
+.card.inv-btc {
+  border: 2px solid rgba(247,147,26,0.7);
+  background: linear-gradient(135deg, rgba(247,147,26,0.08) 0%, rgba(247,147,26,0.03) 60%, rgba(126,184,212,0.05) 100%);
+  box-shadow: 0 0 24px rgba(247,147,26,0.18), inset 0 0 40px rgba(247,147,26,0.04);
+  position: relative;
+  overflow: visible;
+}
+.card.inv-btc::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(247,147,26,0.5), transparent 60%);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.25;
+}
+.card.inv-btc .card-head {
+  background: linear-gradient(90deg, rgba(247,147,26,0.22) 0%, rgba(247,147,26,0.06) 100%);
+  border-bottom: 1px solid rgba(247,147,26,0.4);
+}
+.card.inv-btc .card-title-sm {
+  color: #f7931a;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px rgba(247,147,26,0.5);
+}
+.card.inv-btc .lbl { color: rgba(247,147,26,0.75); }
+
+/* BTC live price display */
+.btc-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid rgba(247,147,26,0.2);
+  margin-bottom: 12px;
+}
+.btc-hero-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f7931a;
+  letter-spacing: -1px;
+  text-shadow: 0 0 20px rgba(247,147,26,0.4);
+  line-height: 1;
+}
+.btc-hero-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.btc-hero-badge.up { background: rgba(90,171,122,0.18); border: 1px solid rgba(90,171,122,0.4); color: #5aab7a; }
+.btc-hero-badge.dn { background: rgba(192,90,90,0.18); border: 1px solid rgba(192,90,90,0.4); color: #c05a5a; }
+.btc-hero-badge.neu { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+.btc-pv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.btc-pv-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+@keyframes btcPulse {
+  0%,100% { box-shadow: 0 0 24px rgba(247,147,26,0.18), inset 0 0 40px rgba(247,147,26,0.04); }
+  50%      { box-shadow: 0 0 38px rgba(247,147,26,0.32), inset 0 0 40px rgba(247,147,26,0.07); }
+}
+.card.inv-btc { animation: btcPulse 3s ease-in-out infinite; }
+
+/* ═══ SURBRILLANCE INVEST (autres) ═══ */
+
+.card.inv-gold {
+  border-color: rgba(200,169,110,0.55);
+  background: rgba(200,169,110,0.06);
+}
+.card.inv-gold .card-head {
+  background: rgba(200,169,110,0.12);
+  border-bottom-color: rgba(200,169,110,0.35);
+}
+.card.inv-gold .card-title-sm { color: var(--gold); }
+.card.inv-gold .lbl { color: rgba(200,169,110,0.7); }
+
+.card.inv-av {
+  border-color: rgba(90,171,122,0.55);
+  background: rgba(90,171,122,0.06);
+}
+.card.inv-av .card-head {
+  background: rgba(90,171,122,0.12);
+  border-bottom-color: rgba(90,171,122,0.35);
+}
+.card.inv-av .card-title-sm { color: var(--green); }
+.card.inv-av .lbl { color: rgba(90,171,122,0.7); }
+
+/* ATH auto badge */
+.ath-auto-badge {
+  font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  background:rgba(200,169,110,0.18);border:1px solid rgba(200,169,110,0.4);
+  color:var(--gold);padding:2px 8px;border-radius:4px;margin-left:8px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="logo">PAT<span>.</span>SAISIE</div>
+  <div class="header-btns">
+    <span class="save-status" id="saveStatus">✓ Copié</span>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Basculer thème">
+      <span class="theme-toggle-dot" id="themeIcon">🌙</span>
+      <span id="themeLabel">DARK</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══ TICKER BAND ═══ -->
+<div class="ticker-band" id="tickerBand" title="Pause au survol · Clic pour actualiser">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<!-- ═══ TABS ═══ -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('banques')">🏦 Banques</button>
+  <button class="tab-btn" onclick="switchTab('investissements')">📈 Invest.</button>
+  <button class="tab-btn" onclick="switchTab('scpi')">🏢 SCPI</button>
+  <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
+  <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
+  <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
+  <button class="tab-btn" onclick="switchTab('kpi')">📊 KPI</button>
+</div>
+
+<!-- ═══ PANEL : BANQUES ═══ -->
+<div class="panel active" id="panel-banques">
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">🏦 Boursorama <span class="badge blue">Boursobank</span></div>
+    </div>
+    <div class="section-body" id="body-boursorama"></div>
+  </div>
+  <div class="section accent-green">
+    <div class="section-head">
+      <div class="section-title">🏦 Fortuneo</div>
+    </div>
+    <div class="section-body" id="body-fortuneo"></div>
+  </div>
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">💳 Revolut</div>
+    </div>
+    <div class="section-body" id="body-revolut"></div>
+  </div>
+  <div class="section accent-red">
+    <div class="section-head">
+      <div class="section-title">🏢 Natixis</div>
+    </div>
+    <div class="section-body" id="body-natixis"></div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div class="section-title">💵 Espèces & Divers</div></div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field-label">Espèces cache / liquide<small>Non placé, hors compte</small></div>
+        <div class="euro-input">
+          <input type="number" id="especeCache" min="0" step="0.01" placeholder="0.00" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Revenu mensuel net<small>Salaire net après impôt</small></div>
+        <div class="euro-input">
+          <input type="number" id="revenuMensuelNet" min="0" step="0.01" placeholder="0.00" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-label">Impôt sur le revenu (année)<small>Montant total avis d'imposition</small></div>
+        <div class="euro-input">
+          <input type="number" id="impotAnnee" min="0" step="1" placeholder="0" inputmode="decimal" autocomplete="off" oninput="DATA.impotAnnee=parseFloat(this.value)||0;autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANEL : INVESTISSEMENTS ═══ -->
+<div class="panel" id="panel-investissements">
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">📈 PEA</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('pea')">＋</button>
+    </div>
+    <div class="section-body" id="body-pea"></div>
+  </div>
+  <div class="section accent-green">
+    <div class="section-head">
+      <div class="section-title">📊 CTO</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('cto')">＋</button>
+    </div>
+    <div class="section-body" id="body-cto"></div>
+  </div>
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">💳 Revolut Invest.</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('revolut')">＋</button>
+    </div>
+    <div class="section-body" id="body-inv-revolut"></div>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">🏢 Épargne Entreprise (PEE/PERCO)</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addEERow()">＋</button>
+    </div>
+    <div class="section-body" id="body-ee"></div>
+  </div>
+  <div class="section accent-red">
+    <div class="section-head">
+      <div class="section-title">🛡️ Assurances Vie</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addAVRow()">＋</button>
+    </div>
+    <div class="section-body" id="body-av"></div>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">🔒 Épargne Réglementée</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addEBRow()">＋</button>
+    </div>
+    <div class="section-body" id="body-eb"></div>
+  </div>
+</div>
+
+<!-- ═══ PANEL : SCPI ═══ -->
+<div class="panel" id="panel-scpi">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">🏢 SCPI</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addSCPIRow()">＋</button>
+    </div>
+    <div class="section-body" id="body-scpi"></div>
+  </div>
+</div>
+
+<!-- ═══ PANEL : ACTIFS ═══ -->
+<div class="panel" id="panel-actifs">
+  <div class="section">
+    <div class="section-head"><div class="section-title">🏠 Immobilier</div></div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field-label">Valeur estimée maison<small>Estimation marché actuel</small></div>
+        <div class="euro-input">
+          <input type="number" id="maison" min="0" step="1000" placeholder="0" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">🏆 All-Time High</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addATHEntry()">＋ ATH</button>
+    </div>
+    <div class="section-body" id="body-ath">
+      <p style="font-size:11px;color:var(--muted);">Enregistre les pics patrimoniaux successifs.</p>
+    </div>
+  </div>
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">📅 Suivi DCA</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDCAEntry()">＋ Versement</button>
+    </div>
+    <div class="section-body" id="body-dca"></div>
+  </div>
+</div>
+
+<!-- ═══ PANEL : DÉPENSES ═══ -->
+<div class="panel" id="panel-depenses">
+  <div id="body-depenses"></div>
+</div>
+
+<!-- ═══ PANEL : MOBILITÉ ═══ -->
+<div class="panel" id="panel-mobilite">
+  <div class="section accent-blue">
+    <div class="section-head"><div class="section-title">🚗 Voiture — Kilométrage</div></div>
+    <div class="section-body">
+      <div id="body-odo-auto"></div>
+      <button class="mini-btn" onclick="addOdoEntry('auto')">＋ Relevé kilométrique</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div class="section-title">🚗 Carburant</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Conso (L/100km)</label>
+          <input type="number" id="conso100km" min="0" step="0.1" placeholder="0.0" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Prix au litre (€)</label>
+          <input type="number" id="prixLitre" min="0" step="0.001" placeholder="0.000" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Capacité réservoir (L)</label>
+          <input type="number" id="capaciteTank" min="0" step="1" placeholder="0" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km annuels essence</label>
+          <input type="number" id="essence" min="0" step="100" placeholder="0" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div class="section-title">💼 Trajet domicile-travail</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Distance A/R (km)</label>
+          <input type="number" id="trajetAR" min="0" step="0.1" placeholder="0" inputmode="decimal" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Jours / an</label>
+          <input type="number" id="joursAn" min="0" step="1" placeholder="0" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section accent-green">
+    <div class="section-head"><div class="section-title">🚲 Vélo — Kilométrage</div></div>
+    <div class="section-body">
+      <div id="body-odo-velo"></div>
+      <button class="mini-btn" onclick="addOdoEntry('velo')">＋ Relevé kilométrique</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div class="section-title">🔋 Batterie Vélo</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Date de pose</label>
+          <input type="date" id="batDatePose" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km à la pose</label>
+          <input type="number" id="batKmPose" min="0" step="1" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Cycles actuels</label>
+          <input type="number" id="batCycles" min="0" step="1" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Cycles max</label>
+          <input type="number" id="batCyclesMax" min="0" step="1" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field full">
+          <label class="lbl">Durée théorique (km)</label>
+          <input type="number" id="batDureeKm" min="0" step="100" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-head"><div class="section-title">⚙️ Moteur Vélo</div></div>
+    <div class="section-body">
+      <div class="grid2">
+        <div class="form-field">
+          <label class="lbl">Date de pose</label>
+          <input type="date" id="motDatePose" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km à la pose</label>
+          <input type="number" id="motKmPose" min="0" step="1" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Km total</label>
+          <input type="number" id="motKmTotal" min="0" step="1" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+        <div class="form-field">
+          <label class="lbl">Durée théorique (km)</label>
+          <input type="number" id="motDureeKm" min="0" step="100" inputmode="numeric" autocomplete="off" oninput="autoSave()">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
+<div class="panel" id="panel-kpi">
+
+  <!-- KPI CARDS ROW -->
+  <div class="kpi-grid" id="kpi-cards"></div>
+
+  <!-- RÉPARTITION PATRIMONIALE -->
+  <div class="section accent-blue" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">🥧 Répartition du patrimoine</div>
+      <span class="badge blue" id="kpi-total-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-patrimoine" height="220"></canvas>
+      <div id="chart-patrimoine-legend" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- RÉPARTITION RISQUE -->
+  <div class="section accent-gold" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">⚖️ Répartition par niveau de risque</div>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-risque" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- DÉPENSES -->
+  <div class="section accent-red" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">💸 Dépenses mensuelles par catégorie</div>
+      <span class="badge" id="kpi-depenses-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-depenses" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- TAUX D'ÉPARGNE -->
+  <div class="section accent-green" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">📐 Taux d'épargne & ratios</div>
+    </div>
+    <div class="section-body" style="padding:14px 16px;">
+      <div id="kpi-ratios"></div>
+    </div>
+  </div>
+
+  <!-- PLUS/MOINS VALUES -->
+  <div class="section" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">📈 Plus/moins-values latentes</div>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <canvas id="chart-pmv" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- KPI MOBILITÉ -->
+  <div class="section accent-blue" style="margin-bottom:16px;">
+    <div class="section-head">
+      <div class="section-title">🚗 KPI Mobilité</div>
+      <span class="badge blue" id="kpi-mob-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:14px 16px;">
+      <div id="kpi-mobilite-content"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ MODAL KPI EXPORT ═══ -->
+<div id="kpi-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:900;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:14px;width:100%;max-width:400px;overflow:hidden;">
+    <div style="background:var(--surface2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);">📊 Export KPI Terminal</span>
+      <button onclick="closeKpiModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px;">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:14px;">
+      <p style="font-size:11px;color:var(--muted);line-height:1.5;">Génère un JSON chiffré compatible avec <strong style="color:var(--text);">patrimoine_kpi_saisie.html</strong>.<br>Le mot de passe protège les données — il vous sera demandé à l'ouverture.</p>
+      <div>
+        <label style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Mot de passe (requis)</label>
+        <input type="password" id="kpi-pwd" placeholder="••••••••" maxlength="32"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:10px 12px;width:100%;outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')exportKPI()">
+      </div>
+      <div id="kpi-err" style="font-size:11px;color:var(--red);min-height:14px;"></div>
+      <button onclick="exportKPI()" style="background:var(--accent);border:none;color:#1a1e24;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:13px;border-radius:10px;cursor:pointer;width:100%;">💾 Enregistrer le fichier KPI</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div id="toast"></div>
+
+<!-- ═══ BOTTOM BAR ═══ -->
+<div class="bottom-bar">
+  <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
+  <button class="bar-btn primary" onclick="exportJSON()">💾 Enregistrer JSON</button>
+  <button class="bar-btn" onclick="copyJSON()">📋 Copier</button>
+</div>
+
+<input type="file" id="fileInput" accept=".json,.patrenenc" style="display:none" onchange="handleFileLoad(event)">
+
+<script>
+let DATA = {
+  boursorama:[
+    {label:"Compte courant",val:0,liq:0,risk:1},{label:"Livret A",val:0,liq:1,risk:1},
+    {label:"Livret B+",val:0,liq:1,risk:1},{label:"CTO",val:0,liq:1,risk:4},
+    {label:"CTO Liquidités",val:0,liq:0,risk:1},{label:"PEA",val:0,liq:1,risk:4},
+    {label:"PEA Liquidités",val:0,liq:0,risk:1},{label:"Assurance Vie",val:0,liq:1,risk:3},
+  ],
+  fortuneo:[
+    {label:"Compte Courant",val:0,liq:0,risk:1},{label:"Livret+",val:0,liq:1,risk:1},
+    {label:"LDDS",val:0,liq:1,risk:1},{label:"Assurance Vie",val:0,liq:1,risk:3},
+    {label:"CTO Liquidités",val:0,liq:0,risk:1},{label:"CTO",val:0,liq:1,risk:4},
+    {label:"PEA Liquidités",val:0,liq:0,risk:1},{label:"PEA",val:0,liq:1,risk:4},
+  ],
+  revolut:[
+    {label:"Compte Courant",val:0,liq:0,risk:1},{label:"€ster (€)",val:0,liq:0,risk:1},
+    {label:"$ster (USD)",val:0,liq:0,risk:2},{label:"Gold (or)",val:0,liq:1,risk:3},
+    {label:"Actions US",val:0,liq:1,risk:5},{label:"Obligations",val:0,liq:1,risk:2},
+    {label:"REITs",val:0,liq:1,risk:4},{label:"Crypto",val:0,liq:1,risk:7},
+  ],
+  natixis:[{label:"Placement",val:0,liq:1,risk:2}],
+  liens:{
+    boursorama:"https://clients.boursobank.com/",
+    fortuneo:"https://clients.fortuneo.fr/index.php",
+    revolut:"https://app.revolut.com/home",
+    natixis:"https://www.assurances.natixis.fr/espaceClient/login.do",
+    carburant:"https://www.e.leclerc/mag/e-leclerc-bourg-les-valence",
+  },
+  scpi:[
+    {gestionnaire:"ALDERAN",produit:"Activimmo Falcon",parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:"https://www.alderan-re.com/activimmo/"},
+    {gestionnaire:"ATLAND VOISIN",produit:"Epargne Pierre",parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:""},
+    {gestionnaire:"NORMACAPITAL",produit:"Vendome Région",parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:""},
+    {gestionnaire:"PERIAL",produit:"PFO Perial",parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:""},
+  ],
+  maison:0,
+  especeCache:0,
+  revenuMensuelNet:0,
+  impotAnnee:0,
+  ath:[],
+  dca:[],
+  depenses:{
+    categories:[
+      {nom:"Impôts & Taxes",icon:"🏛️",color:"#ef4444",items:[
+        {label:"Impôt sur le revenu",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Taxe foncière",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Logement & Énergie",icon:"🏠",color:"#d4875a",items:[
+        {label:"Électricité (Engie)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Eau",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Bois chauffage",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Ramonage",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Assurances & Santé",icon:"🛡️",color:"#3b82f6",items:[
+        {label:"Assurance auto (AXA)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Assurance responsabilité (AXA)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Assurance habitation (AXA)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Mutuelle",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Télécom",icon:"📡",color:"#7eb8d4",items:[
+        {label:"Téléphone (RED SFR)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Internet (RED SFR)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+      {nom:"Vie Courante",icon:"🛒",color:"#7eb8d4",items:[
+        {label:"Alimentation (E.Leclerc Drive)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Essence (E.Leclerc)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Entretien voiture (Feu Vert)",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Crédit immobilier",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Chien / Chat",mensuel:0,annuel:0,url:"",note:"mensuel"},
+        {label:"Ménage",mensuel:0,annuel:0,url:"",note:"mensuel"},
+      ]},
+    ]
+  },
+  investissements:{
+    pea:[
+      {nom:"iShares MSCI World Swap PEA UCITS ETF - EUR ACC",ticker:"WPEA",isin:"IE0002XZSHO1",qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+    ],
+    cto:[
+      {nom:"iShares MSCI World Swap PEA UCITS ETF - EUR ACC",ticker:"WPEA",isin:"IE0002XZSHO1",qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+    ],
+    revolut:[
+      {nom:"Bitcoin",ticker:"BTC",isin:"",qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+      {nom:"Or (XAU/EUR)",ticker:"XAU",isin:"",qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:""},
+    ],
+    epargne_entreprise:[
+      {nom:"PEE — Natixis",fonds:"Fonds diversifié",parts:0,pr:0,valeurActuelle:0,tauxRendement:0,url:""},
+    ],
+    assurance_vie:[
+      {nom:"Assurance Vie Boursorama",assureur:"Boursorama",contrat:"",versements:0,valeurActuelle:0,tauxRendement:0,url:""},
+      {nom:"Assurance Vie Fortuneo",assureur:"Fortuneo",contrat:"",versements:0,valeurActuelle:0,tauxRendement:0,url:""},
+    ],
+    epargne_bloquee:[
+      {nom:"Livret A — Boursorama",type:"Livret A",banque:"Boursorama",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+      {nom:"Livret B+ — Boursorama",type:"Livret B+",banque:"Boursorama",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+      {nom:"LDDS — Fortuneo",type:"LDDS",banque:"Fortuneo",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+      {nom:"Livret+ — Fortuneo",type:"Livret+",banque:"Fortuneo",montant:0,tauxAnnuel:0,dateOuverture:"",url:""},
+    ],
+  },
+  mobilite:{
+    auto:{odoLog:[{date:"",km:0}],composants:[],entretien:[]},
+    velo:{
+      odoLog:[{date:"",km:0}],
+      batterie:{datePose:"",kmPose:0,cyclesActuels:0,cyclesMax:0,dureeTheoKm:0},
+      moteur:{datePose:"",kmPose:0,kmTotal:0,dureeTheoKm:0},
+    },
+    travail:{trajetAR:0,joursAn:0},
+    carburant:{essence:0,prixLitre:0,capaciteTank:0,conso100km:0},
+  },
+};
+
+// ─── TAB SWITCHING ─────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const map = {banques:0,investissements:1,scpi:2,actifs:3,depenses:4,mobilite:5,kpi:6};
+  document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'kpi') { if (typeof renderKPIPanel === 'function') renderKPIPanel(); }
+}
+
+// ─── RENDER BANK ROWS ──────────────────────────────────────────────────────
+const MANAGED = {
+  boursorama: [3,5,7],
+  fortuneo:   [3,5,7],
+  revolut:    [3,7],
+  natixis:    [0],
+};
+
+function renderBank(bankKey, containerId) {
+  const rows = DATA[bankKey];
+  const managed = MANAGED[bankKey] || [];
+  const container = document.getElementById(containerId);
+  const total = rows.reduce((s,r) => s+(r.val||0), 0);
+  const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+  container.innerHTML = rows.map((r, i) => {
+    const isManaged = managed.includes(i);
+    const liqLabel = r.liq === 0 ? '⚡ Immédiat' : r.liq === 1 ? '⏱ 1-3 mois' : '🔒 +6 mois';
+    const badgeClass = r.liq === 0 ? 'green' : r.liq === 1 ? 'blue' : '';
+    return `<div class="field-row">
+      <div class="field-label">${r.label}
+        <small><span class="badge ${badgeClass}">${liqLabel}</span> ${isManaged ? '<span class="badge" title="Synchronisé depuis Investissements">⇄ Auto</span>' : ''}</small>
+      </div>
+      <div class="euro-input">
+        <input type="number" 
+          id="${bankKey}_${i}" 
+          min="0" step="0.01" 
+          value="${r.val || ''}" 
+          placeholder="0.00"
+          inputmode="decimal"
+          autocomplete="off"
+          ${isManaged ? 'readonly style="color:var(--muted);cursor:not-allowed;"' : ''}
+          oninput="DATA['${bankKey}'][${i}].val=parseFloat(this.value)||0;updateBankTotal('${bankKey}','${containerId}');autoSave()">
+        <span class="unit">€</span>
+      </div>
+    </div>`;
+  }).join('') + `
+  <div class="bank-total-row" id="bank-total-${bankKey}">
+    <span class="bank-total-label">TOTAL ${bankKey.toUpperCase()}</span>
+    <span class="bank-total-val">${fmtEur(total)}</span>
+  </div>`;
+}
+
+function updateBankTotal(bankKey, containerId) {
+  const rows = DATA[bankKey];
+  const total = rows.reduce((s,r) => s+(r.val||0), 0);
+  const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+  const el = document.getElementById('bank-total-'+bankKey);
+  if(el) el.querySelector('.bank-total-val').textContent = fmtEur(total);
+}
+
+function renderAllBanks() {
+  renderBank('boursorama', 'body-boursorama');
+  renderBank('fortuneo', 'body-fortuneo');
+  renderBank('revolut', 'body-revolut');
+  renderBank('natixis', 'body-natixis');
+  document.getElementById('especeCache').value = DATA.especeCache || '';
+  document.getElementById('revenuMensuelNet').value = DATA.revenuMensuelNet || '';
+  document.getElementById('impotAnnee').value = DATA.impotAnnee || '';
+}
+
+// ─── INVESTISSEMENTS ───────────────────────────────────────────────────────
+function renderInvPortfolio(key, containerId) {
+  const rows = DATA.investissements[key] || [];
+  const container = document.getElementById(containerId);
+  container.innerHTML = rows.map((r, i) => {
+    const isBTC  = r.ticker==='BTC' || (r.nom||'').toLowerCase().includes('bitcoin');
+    const isGold = r.ticker==='XAU' || (r.nom||'').toLowerCase().includes(' or') || (r.nom||'').toLowerCase().startsWith('or ') || (r.nom||'').toLowerCase().includes('gold') || (r.nom||'').toLowerCase().includes('xau');
+    const cardCls = isBTC ? 'inv-btc' : isGold ? 'inv-gold' : '';
+    return `
+    <div class="card ${cardCls}" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${isBTC ? '₿ BITCOIN' : (r.ticker || r.nom || '—')}</span>
+        <button class="del-btn" onclick="delInvRow('${key}',${i})">✕</button>
+      </div>
+      <div class="card-body">
+        ${isBTC ? `
+        <div class="btc-hero" id="btc-hero-${i}">
+          <div>
+            <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(247,147,26,0.7);margin-bottom:4px;">COURS LIVE BTC/EUR</div>
+            <div class="btc-hero-price" id="btc-live-price-${i}">${r.coursActuel > 0 ? new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(r.coursActuel) : '—'}</div>
+          </div>
+          <div id="btc-live-chg-${i}" class="btc-hero-badge neu">— %</div>
+        </div>
+        ${r.qte > 0 && r.coursActuel > 0 ? `
+        <div class="btc-pv-row" style="border-bottom:1px solid rgba(247,147,26,0.12);padding-bottom:10px;margin-bottom:4px;">
+          <span style="color:var(--muted);">Valeur position</span>
+          <span class="btc-pv-val" style="color:#f7931a;">${new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(r.qte*r.coursActuel)}</span>
+        </div>
+        ${r.pr > 0 ? `
+        <div class="btc-pv-row">
+          <span style="color:var(--muted);">P/MV latente</span>
+          <span class="btc-pv-val" style="color:${r.qte*(r.coursActuel-r.pr)>=0?'#5aab7a':'#c05a5a'};">${r.qte*(r.coursActuel-r.pr)>=0?'+':''}${new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(r.qte*(r.coursActuel-r.pr))} <span style="font-size:10px;opacity:0.75;">(${((r.coursActuel-r.pr)/r.pr*100).toFixed(1)}%)</span></span>
+        </div>` : ''}
+        ` : ''}
+        ` : ''}
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom</label>
+            <input type="text" value="${r.nom||''}" placeholder="Nom complet" autocomplete="off" autocapitalize="words"
+              oninput="DATA.investissements['${key}'][${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Ticker</label>
+            <input type="text" value="${r.ticker||''}" placeholder="ex: WPEA" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"
+              oninput="DATA.investissements['${key}'][${i}].ticker=this.value.toUpperCase();autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">ISIN</label>
+            <input type="text" value="${r.isin||''}" placeholder="IE000..." autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"
+              oninput="DATA.investissements['${key}'][${i}].isin=this.value.toUpperCase();autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Quantité</label>
+            <input type="number" value="${r.qte||''}" step="0.0001" min="0" placeholder="0.0000" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements['${key}'][${i}].qte=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">PRU (€)</label>
+            <input type="number" value="${r.pr||''}" step="0.01" min="0" placeholder="0.00" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements['${key}'][${i}].pr=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field full">
+            <label class="lbl">Cours actuel (€)</label>
+            <input type="number" value="${r.coursActuel||''}" step="0.01" min="0" placeholder="0.00" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements['${key}'][${i}].coursActuel=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ pour ajouter.</p>';
+}
+
+function addInvRow(key) {
+  DATA.investissements[key].push({nom:'',ticker:'',isin:'',qte:0,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:''});
+  renderInvPortfolio(key, key==='revolut'?'body-inv-revolut':'body-'+key);
+  autoSave();
+}
+function delInvRow(key, i) {
+  DATA.investissements[key].splice(i,1);
+  renderInvPortfolio(key, key==='revolut'?'body-inv-revolut':'body-'+key);
+  syncInvToBank();
+  autoSave();
+}
+
+// ─── ÉPARGNE ENTREPRISE ────────────────────────────────────────────────────
+function renderEE() {
+  const rows = DATA.investissements.epargne_entreprise || [];
+  const c = document.getElementById('body-ee');
+  c.innerHTML = rows.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.nom||'PEE/PERCO'}</span>
+        <button class="del-btn" onclick="delEERow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom du produit</label>
+            <input type="text" value="${r.nom||''}" placeholder="ex: PEE Natixis"
+              oninput="DATA.investissements.epargne_entreprise[${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field full">
+            <label class="lbl">Fonds / Détail</label>
+            <input type="text" value="${r.fonds||''}" placeholder="Fonds diversifié"
+              oninput="DATA.investissements.epargne_entreprise[${i}].fonds=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Nb parts</label>
+            <input type="number" value="${r.parts||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.epargne_entreprise[${i}].parts=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">PRU (€)</label>
+            <input type="number" value="${r.pr||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.epargne_entreprise[${i}].pr=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Valeur actuelle (€)</label>
+            <input type="number" value="${r.valeurActuelle||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.epargne_entreprise[${i}].valeurActuelle=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Taux rendement (%)</label>
+            <input type="number" value="${r.tauxRendement||''}" step="0.01" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.epargne_entreprise[${i}].tauxRendement=parseFloat(this.value)||0;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+function addEERow() { DATA.investissements.epargne_entreprise.push({nom:'',fonds:'',parts:0,pr:0,valeurActuelle:0,tauxRendement:0,url:''}); renderEE(); autoSave(); }
+function delEERow(i) { DATA.investissements.epargne_entreprise.splice(i,1); renderEE(); autoSave(); }
+
+// ─── ASSURANCE VIE ─────────────────────────────────────────────────────────
+function renderAV() {
+  const rows = DATA.investissements.assurance_vie || [];
+  const c = document.getElementById('body-av');
+  c.innerHTML = rows.map((r,i) => `
+    <div class="card inv-av" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.nom||'Assurance Vie'}</span>
+        <button class="del-btn" onclick="delAVRow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom du contrat</label>
+            <input type="text" value="${r.nom||''}"
+              oninput="DATA.investissements.assurance_vie[${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Assureur</label>
+            <input type="text" value="${r.assureur||''}"
+              oninput="DATA.investissements.assurance_vie[${i}].assureur=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">N° contrat</label>
+            <input type="text" value="${r.contrat||''}"
+              oninput="DATA.investissements.assurance_vie[${i}].contrat=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Versements (€)</label>
+            <input type="number" value="${r.versements||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.assurance_vie[${i}].versements=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Valeur actuelle (€)</label>
+            <input type="number" value="${r.valeurActuelle||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.assurance_vie[${i}].valeurActuelle=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+          </div>
+          <div class="form-field full">
+            <label class="lbl">Taux rendement (%)</label>
+            <input type="number" value="${r.tauxRendement||''}" step="0.01" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.assurance_vie[${i}].tauxRendement=parseFloat(this.value)||0;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+function addAVRow() { DATA.investissements.assurance_vie.push({nom:'',assureur:'',contrat:'',versements:0,valeurActuelle:0,tauxRendement:0,url:''}); renderAV(); autoSave(); }
+function delAVRow(i) { DATA.investissements.assurance_vie.splice(i,1); renderAV(); autoSave(); }
+
+// ─── ÉPARGNE BLOQUÉE ───────────────────────────────────────────────────────
+function renderEB() {
+  const rows = DATA.investissements.epargne_bloquee || [];
+  const c = document.getElementById('body-eb');
+  c.innerHTML = rows.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.nom||'Livret'} <span class="badge">${r.type||''}</span></span>
+        <button class="del-btn" onclick="delEBRow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field full">
+            <label class="lbl">Nom</label>
+            <input type="text" value="${r.nom||''}"
+              oninput="DATA.investissements.epargne_bloquee[${i}].nom=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Type</label>
+            <select oninput="DATA.investissements.epargne_bloquee[${i}].type=this.value;autoSave()">
+              ${["Livret A","LDDS","Livret+","Livret B+","PEL","CEL","Autre"].map(t=>`<option${r.type===t?' selected':''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="lbl">Banque</label>
+            <input type="text" value="${r.banque||''}"
+              oninput="DATA.investissements.epargne_bloquee[${i}].banque=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Montant (€)</label>
+            <input type="number" value="${r.montant||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.epargne_bloquee[${i}].montant=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Taux annuel (%)</label>
+            <input type="number" value="${r.tauxAnnuel||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements.epargne_bloquee[${i}].tauxAnnuel=parseFloat(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Date ouverture</label>
+            <input type="date" value="${r.dateOuverture||''}"
+              oninput="DATA.investissements.epargne_bloquee[${i}].dateOuverture=this.value;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+function addEBRow() { DATA.investissements.epargne_bloquee.push({nom:'',type:'Livret A',banque:'',montant:0,tauxAnnuel:0,dateOuverture:'',url:''}); renderEB(); autoSave(); }
+function delEBRow(i) { DATA.investissements.epargne_bloquee.splice(i,1); renderEB(); autoSave(); }
+
+// ─── SYNC INV → BANK ───────────────────────────────────────────────────────
+function syncInvToBank() {
+  const avBourso = DATA.investissements.assurance_vie.find(a=>a.assureur==='Boursorama'||a.nom.toLowerCase().includes('bourso'));
+  if(avBourso) DATA.boursorama[7].val = avBourso.valeurActuelle;
+  const avFort = DATA.investissements.assurance_vie.find(a=>a.assureur==='Fortuneo'||a.nom.toLowerCase().includes('fortuneo'));
+  if(avFort) DATA.fortuneo[3].val = avFort.valeurActuelle;
+  const ctoPEA = DATA.investissements.cto.reduce((s,r)=>s+r.qte*r.coursActuel,0);
+  DATA.fortuneo[5].val = ctoPEA;
+  const pea = DATA.investissements.pea.reduce((s,r)=>s+r.qte*r.coursActuel,0);
+  DATA.fortuneo[7].val = pea;
+  const or = DATA.investissements.revolut.find(r=>r.ticker==='XAU'||r.nom.toLowerCase().includes('or'));
+  if(or) DATA.revolut[3].val = or.qte * or.coursActuel;
+  const btc = DATA.investissements.revolut.find(r=>r.ticker==='BTC'||r.nom.toLowerCase().includes('bitcoin'));
+  if(btc) DATA.revolut[7].val = btc.qte * btc.coursActuel;
+  const ee = DATA.investissements.epargne_entreprise.reduce((s,r)=>s+r.valeurActuelle,0);
+  DATA.natixis[0].val = ee;
+  ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+    const managed = MANAGED[bank] || [];
+    managed.forEach(i => {
+      const inp = document.getElementById(`${bank}_${i}`);
+      if(inp) inp.value = DATA[bank][i].val || '';
+    });
+    updateBankTotal(bank, 'body-'+bank);
+  });
+}
+
+// ─── SCPI ──────────────────────────────────────────────────────────────────
+function renderSCPI() {
+  const c = document.getElementById('body-scpi');
+  c.innerHTML = DATA.scpi.map((r,i) => `
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-head">
+        <span class="card-title-sm">${r.produit||'SCPI'}</span>
+        <button class="del-btn" onclick="delSCPIRow(${i})">✕</button>
+      </div>
+      <div class="card-body">
+        <div class="grid2">
+          <div class="form-field">
+            <label class="lbl">Gestionnaire</label>
+            <input type="text" value="${r.gestionnaire||''}"
+              oninput="DATA.scpi[${i}].gestionnaire=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Produit</label>
+            <input type="text" value="${r.produit||''}"
+              oninput="DATA.scpi[${i}].produit=this.value;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Nb parts</label>
+            <input type="number" value="${r.parts||''}" step="1" min="0" inputmode="numeric" autocomplete="off"
+              oninput="DATA.scpi[${i}].parts=parseInt(this.value)||0;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Prix achat (€)</label>
+            <input type="number" value="${r.pxAchat||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.scpi[${i}].pxAchat=parseFloat(this.value)||0;DATA.scpi[${i}].montantPlace=DATA.scpi[${i}].parts*DATA.scpi[${i}].pxAchat;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Prix actuel (€)</label>
+            <input type="number" value="${r.pxActuel||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.scpi[${i}].pxActuel=parseFloat(this.value)||0;DATA.scpi[${i}].totalActuel=DATA.scpi[${i}].parts*DATA.scpi[${i}].pxActuel;autoSave()">
+          </div>
+          <div class="form-field">
+            <label class="lbl">Montant placé (€)</label>
+            <input type="number" value="${r.montantPlace||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.scpi[${i}].montantPlace=parseFloat(this.value)||0;autoSave()">
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:''}); renderSCPI(); autoSave(); }
+function delSCPIRow(i) { DATA.scpi.splice(i,1); renderSCPI(); autoSave(); }
+
+// ─── ATH + DCA ─────────────────────────────────────────────────────────────
+function renderATH() {
+  const c = document.getElementById('body-ath');
+  const rows = DATA.ath || [];
+  c.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Enregistre les pics patrimoniaux successifs.</p>` +
+    rows.map((r,i)=>`
+    <div class="log-card">
+      <div class="log-card-fields">
+        <div class="log-card-field">
+          <label>Date</label>
+          <input type="date" value="${r.date||''}" oninput="DATA.ath[${i}].date=this.value;autoSave()">
+        </div>
+        <div class="log-card-field">
+          <label>Montant (€) ${r.auto ? '<span class="ath-auto-badge">AUTO</span>' : ''}</label>
+          <input type="number" value="${r.val||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off" placeholder="0.00" style="text-align:right" oninput="DATA.ath[${i}].val=parseFloat(this.value)||0;autoSave()">
+        </div>
+      </div>
+      <div class="log-card-del">
+        <button class="del-btn" onclick="DATA.ath.splice(${i},1);renderATH();autoSave()">✕</button>
+      </div>
+    </div>`).join('');
+}
+function addATHEntry() {
+  if(!DATA.ath) DATA.ath=[];
+  DATA.ath.push({date:new Date().toISOString().slice(0,10),val:0});
+  renderATH(); autoSave();
+}
+
+function renderDCA() {
+  const c = document.getElementById('body-dca');
+  const rows = DATA.dca || [];
+  c.innerHTML = rows.length ? rows.map((r,i)=>`
+    <div class="log-card">
+      <div class="log-card-fields">
+        <div class="log-card-field" style="min-width:120px;">
+          <label>Date</label>
+          <input type="date" value="${r.date||''}" oninput="DATA.dca[${i}].date=this.value;autoSave()">
+        </div>
+        <div class="log-card-field" style="min-width:90px;">
+          <label>Montant (€)</label>
+          <input type="number" value="${r.montant||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off" placeholder="0.00" style="text-align:right" oninput="DATA.dca[${i}].montant=parseFloat(this.value)||0;autoSave()">
+        </div>
+        <div class="log-card-field" style="min-width:70px;max-width:90px;">
+          <label>Ticker</label>
+          <input type="text" value="${r.ticker||''}" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase" oninput="DATA.dca[${i}].ticker=this.value.toUpperCase();autoSave()">
+        </div>
+      </div>
+      <div class="log-card-del">
+        <button class="del-btn" onclick="DATA.dca.splice(${i},1);renderDCA();autoSave()">✕</button>
+      </div>
+    </div>`).join('') : '<p style="font-size:11px;color:var(--muted);">Aucun versement enregistré.</p>';
+}
+function addDCAEntry() {
+  if(!DATA.dca) DATA.dca=[];
+  DATA.dca.push({date:new Date().toISOString().slice(0,10),montant:0,ticker:'WPEA'});
+  renderDCA(); autoSave();
+}
+
+// ─── DÉPENSES ──────────────────────────────────────────────────────────────
+function renderDepenses() {
+  const c = document.getElementById('body-depenses');
+  c.innerHTML = DATA.depenses.categories.map((cat, ci) => `
+    <div class="section" style="margin-bottom:16px;">
+      <div class="section-head">
+        <div class="section-title">${cat.icon} ${cat.nom}</div>
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDepenseItem(${ci})">＋</button>
+      </div>
+      <div class="section-body">
+        ${cat.items.map((item,ii) => `
+          <div class="card" style="margin-bottom:8px;">
+            <div class="card-head">
+              <span class="card-title-sm" style="font-size:10px;">${item.label}</span>
+              <button class="del-btn" onclick="delDepenseItem(${ci},${ii})">✕</button>
+            </div>
+            <div class="card-body">
+              <div class="grid2">
+                <div class="form-field full">
+                  <label class="lbl">Label</label>
+                  <input type="text" value="${item.label||''}"
+                    oninput="DATA.depenses.categories[${ci}].items[${ii}].label=this.value;renderDepenses();autoSave()">
+                </div>
+                <div class="form-field">
+                  <label class="lbl">Mensuel (€)</label>
+                  <input type="number" value="${item.mensuel||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+                    oninput="DATA.depenses.categories[${ci}].items[${ii}].mensuel=parseFloat(this.value)||0;DATA.depenses.categories[${ci}].items[${ii}].annuel=DATA.depenses.categories[${ci}].items[${ii}].mensuel*12;autoSave()">
+                </div>
+                <div class="form-field">
+                  <label class="lbl">Annuel (€)</label>
+                  <input type="number" value="${item.annuel||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+                    oninput="DATA.depenses.categories[${ci}].items[${ii}].annuel=parseFloat(this.value)||0;autoSave()">
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function addDepenseItem(ci) {
+  DATA.depenses.categories[ci].items.push({label:'Nouvelle dépense',mensuel:0,annuel:0,url:'',note:'mensuel'});
+  renderDepenses(); autoSave();
+}
+function delDepenseItem(ci, ii) {
+  DATA.depenses.categories[ci].items.splice(ii,1);
+  renderDepenses(); autoSave();
+}
+
+// ─── MOBILITÉ ──────────────────────────────────────────────────────────────
+function renderOdo(vehicle, containerId) {
+  const log = DATA.mobilite[vehicle].odoLog || [];
+  const c = document.getElementById(containerId);
+  c.innerHTML = log.length ? log.map((r,i)=>`
+    <div class="log-card">
+      <div class="log-card-fields">
+        <div class="log-card-field">
+          <label>Date</label>
+          <input type="date" value="${r.date||''}" oninput="DATA.mobilite['${vehicle}'].odoLog[${i}].date=this.value;autoSave()">
+        </div>
+        <div class="log-card-field">
+          <label>Km</label>
+          <input type="number" value="${r.km||''}" step="1" min="0" inputmode="numeric" autocomplete="off" placeholder="0" style="text-align:right" oninput="DATA.mobilite['${vehicle}'].odoLog[${i}].km=parseInt(this.value)||0;autoSave()">
+        </div>
+      </div>
+      <div class="log-card-del">
+        <button class="del-btn" onclick="DATA.mobilite['${vehicle}'].odoLog.splice(${i},1);renderOdo('${vehicle}','${containerId}');autoSave()">✕</button>
+      </div>
+    </div>`).join('') : '<p style="font-size:11px;color:var(--muted);">Aucun relevé.</p>';
+}
+function addOdoEntry(vehicle) {
+  DATA.mobilite[vehicle].odoLog.push({date:new Date().toISOString().slice(0,10),km:0});
+  renderOdo(vehicle, 'body-odo-'+vehicle);
+  autoSave();
+}
+
+function renderMobilite() {
+  renderOdo('auto','body-odo-auto');
+  renderOdo('velo','body-odo-velo');
+  const m = DATA.mobilite;
+  const v = (id, val) => { const e = document.getElementById(id); if(e) e.value = val||''; };
+  v('conso100km', m.carburant.conso100km);
+  v('prixLitre', m.carburant.prixLitre);
+  v('capaciteTank', m.carburant.capaciteTank);
+  v('essence', m.carburant.essence);
+  v('trajetAR', m.travail.trajetAR);
+  v('joursAn', m.travail.joursAn);
+  v('batDatePose', m.velo.batterie.datePose);
+  v('batKmPose', m.velo.batterie.kmPose);
+  v('batCycles', m.velo.batterie.cyclesActuels);
+  v('batCyclesMax', m.velo.batterie.cyclesMax);
+  v('batDureeKm', m.velo.batterie.dureeTheoKm);
+  v('motDatePose', m.velo.moteur.datePose);
+  v('motKmPose', m.velo.moteur.kmPose);
+  v('motKmTotal', m.velo.moteur.kmTotal);
+  v('motDureeKm', m.velo.moteur.dureeTheoKm);
+}
+
+function bindMobiliteEvents() {
+  const b = (id, path) => {
+    const e = document.getElementById(id);
+    if(!e) return;
+    e.addEventListener('input', () => {
+      const keys = path.split('.');
+      let obj = DATA;
+      keys.slice(0,-1).forEach(k => obj = obj[k]);
+      const last = keys[keys.length-1];
+      const val = e.type==='date' ? e.value : (parseFloat(e.value)||0);
+      obj[last] = val;
+      autoSave();
+    });
+  };
+  b('conso100km','mobilite.carburant.conso100km');
+  b('prixLitre','mobilite.carburant.prixLitre');
+  b('capaciteTank','mobilite.carburant.capaciteTank');
+  b('essence','mobilite.carburant.essence');
+  b('trajetAR','mobilite.travail.trajetAR');
+  b('joursAn','mobilite.travail.joursAn');
+  b('batDatePose','mobilite.velo.batterie.datePose');
+  b('batKmPose','mobilite.velo.batterie.kmPose');
+  b('batCycles','mobilite.velo.batterie.cyclesActuels');
+  b('batCyclesMax','mobilite.velo.batterie.cyclesMax');
+  b('batDureeKm','mobilite.velo.batterie.dureeTheoKm');
+  b('motDatePose','mobilite.velo.moteur.datePose');
+  b('motKmPose','mobilite.velo.moteur.kmPose');
+  b('motKmTotal','mobilite.velo.moteur.kmTotal');
+  b('motDureeKm','mobilite.velo.moteur.dureeTheoKm');
+  ['especeCache','revenuMensuelNet'].forEach(id => {
+    const e = document.getElementById(id);
+    if(e) e.addEventListener('input', () => { DATA[id] = parseFloat(e.value)||0; autoSave(); });
+  });
+}
+
+// ─── AUTO-SAVE ─────────────────────────────────────────────────────────────
+let saveTimer;
+let athTimer; // timer séparé pour ATH — délai plus long pour éviter enregistrement erroné
+function autoSave() {
+  clearTimeout(saveTimer);
+  const active = document.activeElement;
+  if(active && (active.tagName==='INPUT'||active.tagName==='SELECT'||active.tagName==='TEXTAREA')) {
+    active.classList.remove('input-saved');
+    void active.offsetWidth;
+    active.classList.add('input-saved');
+    setTimeout(()=>active.classList.remove('input-saved'), 900);
+  }
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); } catch(e){}
+    if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
+  }, 600);
+
+  // ─── ATH AUTO — tempo séparée de 3s ─────────────────────────────
+  // Délai long pour ne pas enregistrer un ATH en cours de frappe
+  clearTimeout(athTimer);
+  athTimer = setTimeout(() => {
+    try {
+      const bTotal = ['boursorama','fortuneo','revolut','natixis'].reduce((s,k) => s + (DATA[k]||[]).reduce((ss,r)=>ss+(r.val||0),0), 0);
+      const scpiVal = (DATA.scpi||[]).reduce((s,r)=>s+(r.totalActuel||(r.parts||0)*(r.pxActuel||0)||0),0);
+      const avVal   = (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0);
+      const avSyncVal = (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0);
+      const ebVal   = (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0);
+      const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal;
+      if (grandTotal > 100) {
+        const maxATH = (DATA.ath||[]).reduce((mx,r)=>Math.max(mx,r.val||0),0);
+        if (grandTotal > maxATH) {
+          if (!DATA.ath) DATA.ath = [];
+          const today = new Date().toISOString().slice(0,10);
+          const todayEntry = DATA.ath.find(r=>r.date===today);
+          if (todayEntry) { todayEntry.val = grandTotal; }
+          else { DATA.ath.push({date: today, val: grandTotal, auto: true}); }
+          localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+          if (typeof renderATH === 'function') renderATH();
+          showToast('🏆 Nouveau ATH enregistré : ' + new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(grandTotal));
+        }
+      }
+    } catch(_) {}
+  }, 3000); // 3s de tempo — la frappe doit s'arrêter avant d'enregistrer l'ATH
+}
+
+// ─── EXPORT JSON ───────────────────────────────────────────────────────────
+function getJSON() {
+  const out = JSON.parse(JSON.stringify(DATA));
+  out._exportDate = new Date().toISOString();
+  return JSON.stringify(out, null, 2);
+}
+
+async function exportJSON() {
+  const json = getJSON();
+  const d = new Date();
+  const fname = `patrimoine_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  const blob = new Blob([json], {type:'application/json'});
+  if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
+    try {
+      await navigator.share({ title: 'Patrimoine — Export JSON', files: [new File([blob], fname, {type:'application/json'})] });
+      showToast('✓ Partagé : ' + fname);
+      return;
+    } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast('✓ JSON exporté : ' + fname);
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(getJSON()).then(() => {
+    showToast('✓ JSON copié dans le presse-papiers');
+  }).catch(() => showToast('❌ Erreur copie'));
+}
+
+function loadJSON() { document.getElementById('fileInput').click(); }
+
+function handleFileLoad(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const loaded = JSON.parse(ev.target.result);
+      mergeDeep(DATA, loaded);
+      renderAll();
+      showToast('✓ JSON chargé : ' + file.name);
+    } catch(err) {
+      showToast('❌ Erreur lecture JSON');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function mergeDeep(target, source) {
+  for(const key of Object.keys(source)) {
+    if(source[key] && typeof source[key]==='object' && !Array.isArray(source[key]) && key in target && typeof target[key]==='object' && !Array.isArray(target[key])) {
+      mergeDeep(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+}
+
+// ─── EXPORT KPI ────────────────────────────────────────────────────────────
+function openKpiModal() {
+  const overlay = document.getElementById('kpi-overlay');
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('kpi-pwd').focus(), 50);
+}
+function closeKpiModal() {
+  document.getElementById('kpi-overlay').style.display = 'none';
+  document.getElementById('kpi-err').textContent = '';
+  document.getElementById('kpi-pwd').value = '';
+}
+
+function buildKPIPayload() {
+  const peaTotalVal = (DATA.fortuneo?.[7]?.val || 0);
+  const peaTotalPR  = DATA.investissements.pea.reduce((s,r) => s + (r.qte||0)*(r.pr||0), 0);
+  const peaTotalQte = DATA.investissements.pea.reduce((s,r) => s + (r.qte||0), 0);
+  const ctoTotalVal = (DATA.fortuneo?.[5]?.val || 0);
+  const ctoTotalPR  = DATA.investissements.cto.reduce((s,r) => s + (r.qte||0)*(r.pr||0), 0);
+  const ctoTotalQte = DATA.investissements.cto.reduce((s,r) => s + (r.qte||0), 0);
+  const revOr    = DATA.investissements.revolut.find(r => r.ticker==='XAU' || r.nom?.toLowerCase().includes('or'));
+  const revActUS = DATA.investissements.revolut.find(r => r.ticker!=='XAU' && r.ticker!=='BTC' && !r.nom?.toLowerCase().includes('or') && !r.nom?.toLowerCase().includes('bitcoin'));
+  const revCrypto= DATA.investissements.revolut.find(r => r.ticker==='BTC' || r.nom?.toLowerCase().includes('bitcoin') || r.nom?.toLowerCase().includes('crypto'));
+  const eeTotalVal = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.valeurActuelle||0), 0);
+  const eeTotalPR  = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.parts||0)*(r.pr||0), 0);
+  const eeTotalParts = DATA.investissements.epargne_entreprise.reduce((s,r) => s + (r.parts||0), 0);
+  const avBourso = DATA.investissements.assurance_vie.find(a => a.assureur==='Boursorama' || a.nom?.toLowerCase().includes('bourso'));
+  const avFort   = DATA.investissements.assurance_vie.find(a => a.assureur==='Fortuneo'   || a.nom?.toLowerCase().includes('fortuneo'));
+  const findEB = (types) => DATA.investissements.epargne_bloquee.filter(r => types.includes(r.type)).reduce((s,r) => s + (r.montant||0), 0);
+  const scpiEntry = (i) => {
+    const s = DATA.scpi?.[i];
+    if(!s) return { valeur: 0, prixRevient: 0, parts: 0, produit: '' };
+    const valActuelle = s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0;
+    const prixRevient = s.montantPlace || (s.parts||0)*(s.pxAchat||0) || 0;
+    return { valeur: valActuelle, prixRevient: prixRevient, parts: s.parts || 0, produit: s.produit || '', gestionnaire: s.gestionnaire || '', pmv: valActuelle - prixRevient };
+  };
+  return {
+    b1_cc:     { valeur: DATA.boursorama?.[0]?.val || 0 },
+    b1_liva:   { valeur: findEB(['Livret A']) || DATA.boursorama?.[1]?.val || 0 },
+    b1_livb:   { valeur: findEB(['Livret B+']) || DATA.boursorama?.[2]?.val || 0 },
+    b1_cto:    { valeur: ctoTotalVal, prixRevient: ctoTotalQte > 0 ? ctoTotalPR / ctoTotalQte : 0, quantite: ctoTotalQte },
+    b1_ctoliq: { valeur: DATA.boursorama?.[4]?.val || 0 },
+    b1_pea:    { valeur: peaTotalVal, prixRevient: peaTotalQte > 0 ? peaTotalPR / peaTotalQte : 0, quantite: peaTotalQte },
+    b1_pealiq: { valeur: DATA.boursorama?.[6]?.val || 0 },
+    b1_av:     { valeur: avBourso?.valeurActuelle || DATA.boursorama?.[7]?.val || 0, prixRevient: avBourso ? (avBourso.versements > 0 ? avBourso.versements / 1 : 0) : 0, quantite: avBourso ? 1 : 0 },
+    b2_cc:     { valeur: DATA.fortuneo?.[0]?.val || 0 },
+    b2_livp:   { valeur: findEB(['Livret+']) || DATA.fortuneo?.[1]?.val || 0 },
+    b2_ldds:   { valeur: findEB(['LDDS']) || DATA.fortuneo?.[2]?.val || 0 },
+    b2_av:     { valeur: avFort?.valeurActuelle || DATA.fortuneo?.[3]?.val || 0, prixRevient: avFort ? (avFort.versements > 0 ? avFort.versements : 0) : 0, quantite: avFort ? 1 : 0 },
+    b2_ctoliq: { valeur: DATA.fortuneo?.[4]?.val || 0 },
+    b2_cto:    { valeur: ctoTotalVal, prixRevient: ctoTotalQte > 0 ? ctoTotalPR / ctoTotalQte : 0, quantite: ctoTotalQte },
+    b2_pealiq: { valeur: DATA.fortuneo?.[6]?.val || 0 },
+    b2_pea:    { valeur: peaTotalVal, prixRevient: peaTotalQte > 0 ? peaTotalPR / peaTotalQte : 0, quantite: peaTotalQte },
+    b3_cc:     { valeur: DATA.revolut?.[0]?.val || 0 },
+    b3_eur:    { valeur: DATA.revolut?.[1]?.val || 0 },
+    b3_usd:    { valeur: DATA.revolut?.[2]?.val || 0 },
+    b3_gold:   { valeur: DATA.revolut?.[3]?.val || revOr ? (revOr.qte||0)*(revOr.coursActuel||0) : 0, prixRevient: revOr?.pr || 0, quantite: revOr?.qte || 0 },
+    b3_actus:  { valeur: DATA.revolut?.[4]?.val || revActUS ? (revActUS?.qte||0)*(revActUS?.coursActuel||0) : 0, prixRevient: revActUS?.pr || 0, quantite: revActUS?.qte || 0 },
+    b3_oblig:  { valeur: DATA.revolut?.[5]?.val || 0 },
+    b3_reit:   { valeur: DATA.revolut?.[6]?.val || 0 },
+    b3_crypto: { valeur: DATA.revolut?.[7]?.val || revCrypto ? (revCrypto?.qte||0)*(revCrypto?.coursActuel||0) : 0, prixRevient: revCrypto?.pr || 0, quantite: revCrypto?.qte || 0 },
+    b4_pee:    { valeur: eeTotalVal, prixRevient: eeTotalParts > 0 ? eeTotalPR / eeTotalParts : 0, quantite: eeTotalParts },
+    dv_maison: { valeur: DATA.maison || 0 },
+    dv_liquide:{ valeur: DATA.especeCache || 0 },
+    sc_1: scpiEntry(0), sc_2: scpiEntry(1), sc_3: scpiEntry(2), sc_4: scpiEntry(3),
+  };
+}
+
+function xorEncrypt(text, key) {
+  let r = '';
+  for(let i = 0; i < text.length; i++)
+    r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  return btoa(r);
+}
+
+async function exportKPI() {
+  const pwd = document.getElementById('kpi-pwd').value.trim();
+  const errEl = document.getElementById('kpi-err');
+  errEl.textContent = '';
+  if(!pwd) { errEl.textContent = '⚠ Mot de passe requis'; return; }
+  try {
+    const payload = buildKPIPayload();
+    const plaintext = JSON.stringify({ data: payload, date: new Date().toISOString() });
+    const enc = xorEncrypt(plaintext, pwd);
+    const d = new Date();
+    const fname = `kpi_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+    const blob = new Blob([JSON.stringify({ enc })], { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
+      try {
+        await navigator.share({ title: 'Patrimoine — Export KPI', files: [new File([blob], fname, {type:'application/json'})] });
+        closeKpiModal();
+        showToast('✓ KPI partagé : ' + fname);
+        return;
+      } catch(e) { if (e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    closeKpiModal();
+    showToast('✓ KPI exporté : ' + fname);
+  } catch(e) {
+    errEl.textContent = '❌ Erreur : ' + e.message;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('kpi-overlay').addEventListener('click', function(e) {
+    if(e.target === this) closeKpiModal();
+  });
+});
+
+// ─── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── THEME TOGGLE ──────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isMil = document.documentElement.classList.toggle('theme-mil');
+  document.getElementById('themeIcon').textContent  = isMil ? '🪖' : '🌙';
+  document.getElementById('themeLabel').textContent = isMil ? 'MIL' : 'DARK';
+  try { localStorage.setItem('patrimoine_theme', isMil ? 'mil' : 'dark'); } catch(e){}
+}
+(function initTheme() {
+  try {
+    const saved = localStorage.getItem('patrimoine_theme');
+    if (saved === 'mil') {
+      document.documentElement.classList.add('theme-mil');
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon)  icon.textContent  = '🪖';
+      if (label) label.textContent = 'MIL';
+    }
+  } catch(e){}
+})();
+
+// ─── RENDER ALL ────────────────────────────────────────────────────────────
+function renderAll() {
+  renderAllBanks();
+  renderInvPortfolio('pea','body-pea');
+  renderInvPortfolio('cto','body-cto');
+  renderInvPortfolio('revolut','body-inv-revolut');
+  renderEE();
+  renderAV();
+  renderEB();
+  renderSCPI();
+  renderATH();
+  renderDCA();
+  renderDepenses();
+  renderMobilite();
+  document.getElementById('maison').value = DATA.maison || '';
+  if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = localStorage.getItem('patrimoine_saisie');
+    if(saved) mergeDeep(DATA, JSON.parse(saved));
+  } catch(e) {}
+  renderAll();
+  bindMobiliteEvents();
+  document.getElementById('maison').addEventListener('input', function() {
+    DATA.maison = parseFloat(this.value)||0; autoSave();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// KPI & GRAPHIQUES
+// ═══════════════════════════════════════════════════════════════════
+(function() {
+  let chartJsPromise = null;
+  function loadChartJS() {
+    if (chartJsPromise) return chartJsPromise;
+    chartJsPromise = new Promise((res, rej) => {
+      if (window.Chart) { res(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js';
+      s.onload  = res;
+      s.onerror = () => rej(new Error('Chart.js load failed'));
+      document.head.appendChild(s);
+    });
+    return chartJsPromise;
+  }
+
+  const charts = {};
+  function mkChart(id, config) {
+    if (charts[id]) { charts[id].destroy(); }
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    charts[id] = new Chart(ctx.getContext('2d'), config);
+  }
+
+  const fmt  = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+  const fmtK = v => v >= 1000 ? (v/1000).toFixed(1)+'k\u202f€' : v.toFixed(0)+'\u202f€';
+  const pct  = v => v.toFixed(1)+'%';
+
+  function computeKPIs() {
+    const sumBank = (key) => (DATA[key]||[]).reduce((s,r) => s+(r.val||0), 0);
+    const boursoTotal   = sumBank('boursorama');
+    const fortuneoTotal = sumBank('fortuneo');
+    const revolutTotal  = sumBank('revolut');
+    const natixisTotal  = sumBank('natixis');
+    const banquesTotal  = boursoTotal + fortuneoTotal + revolutTotal + natixisTotal;
+
+    const peaVal = DATA.investissements.pea.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const peaPR  = DATA.investissements.pea.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const ctoVal = DATA.investissements.cto.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const ctoPR  = DATA.investissements.cto.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const revInvVal = DATA.investissements.revolut.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const revInvPR  = DATA.investissements.revolut.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const eeVal  = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.valeurActuelle||0), 0);
+    const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
+    const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
+    const avVers = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.versements||0), 0);
+    const avSyncVal = DATA.investissements.assurance_vie
+      .filter(r => r.assureur==='Boursorama' || r.nom?.toLowerCase().includes('bourso') ||
+                   r.assureur==='Fortuneo'   || r.nom?.toLowerCase().includes('fortuneo'))
+      .reduce((s,r) => s+(r.valeurActuelle||0), 0);
+    const avValNonSync = avVal - avSyncVal;
+    const ebVal  = DATA.investissements.epargne_bloquee.reduce((s,r) => s+(r.montant||0), 0);
+
+    const scpiVal = (DATA.scpi||[]).reduce((s,r) => s+(r.totalActuel || (r.parts||0)*(r.pxActuel||0) || 0), 0);
+    const scpiPrix= (DATA.scpi||[]).reduce((s,r) => s+(r.parts||0)*(r.pxAchat||0), 0);
+    const scpiCR  = (DATA.scpi||[]).reduce((s,r) => s+(r.montantPlace || (r.parts||0)*(r.pxAchat||0) || 0), 0);
+
+    const maison  = DATA.maison || 0;
+    const liquide = DATA.especeCache || 0;
+    const revenu  = DATA.revenuMensuelNet || 0;
+
+    const depMens = (DATA.depenses?.categories||[]).reduce((s,cat) =>
+      s + cat.items.reduce((ss, it) => {
+        const m = it.mensuel || (it.note==='annuel' ? (it.annuel||0)/12 : 0);
+        return ss + m;
+      }, 0), 0);
+
+    const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal;
+
+    const pmvPEA  = peaVal - peaPR;
+    const pmvCTO  = ctoVal - ctoPR;
+    const pmvRev  = revInvVal - revInvPR;
+    const pmvEE   = eeVal - eePR;
+    const pmvAV   = avVal - avVers;
+    const pmvSCPI = scpiVal - scpiPrix;
+
+    const txEpargne   = revenu > 0 ? Math.max(0, revenu - depMens) / revenu * 100 : 0;
+    const moisLiberte = depMens > 0 ? grandTotal / depMens : 0;
+    // ── NOUVEAU : indépendance sans résidence principale
+    const moisLiberteSansMaison = depMens > 0 ? (grandTotal - maison) / depMens : 0;
+
+    // ── RESTE NON INVESTI : comptes courants + livrets (hors poches investissements)
+    // On identifie les lignes par label (lowercase) : celles qui ne sont PAS des poches d'investissement
+    const INVEST_LABELS_RE = /pea|cto|assurance.?vie|revolut.invest|actions|crypto|bitcoin|obligation|reit|gold|or\b|ster/i;
+    const nonInvestiLines = [];
+    ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+      (DATA[bank]||[]).forEach((r,i) => {
+        if (!r.val || r.val <= 0) return;
+        if (INVEST_LABELS_RE.test(r.label||'')) return;
+        // Exclure les lignes "auto" (gérées par investissements, ex: PEA/CTO/AV dans Boursorama)
+        if ((MANAGED[bank]||[]).includes(i)) return;
+        nonInvestiLines.push({ bank, label: r.label, val: r.val });
+      });
+    });
+    // Ajouter épargne_bloquee (livrets réglementés saisis dans Investissements)
+    (DATA.investissements?.epargne_bloquee||[]).forEach(r => {
+      if ((r.montant||0) > 0) nonInvestiLines.push({ bank: 'Épargne réglementée', label: r.nom || r.type, val: r.montant });
+    });
+    // Ajouter espèces
+    if (liquide > 0) nonInvestiLines.push({ bank: 'Divers', label: 'Espèces / Liquide', val: liquide });
+    const nonInvestiTotal = nonInvestiLines.reduce((s,r) => s + r.val, 0);
+
+    // ── GAIN VÉLO vs VOITURE ────────────────────────────────────────
+    const mob = DATA.mobilite;
+    const odoVeloLog = [...(mob?.velo?.odoLog||[])].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
+    const kmVeloCumul = odoVeloLog.length > 1 ? odoVeloLog[odoVeloLog.length-1].km - odoVeloLog[0].km : (odoVeloLog.length===1 ? odoVeloLog[0].km : 0);
+    const coutKmVoiture = mob?.carburant?.essence > 0 && mob?.carburant?.conso100km > 0 && mob?.carburant?.prixLitre > 0
+      ? mob.carburant.conso100km / 100 * mob.carburant.prixLitre : 0;
+    const gainVeloVoiture = kmVeloCumul > 0 && coutKmVoiture > 0 ? kmVeloCumul * coutKmVoiture : 0;
+
+    return {
+      grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
+      scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
+      peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
+      pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
+      depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
+      gainVeloVoiture, kmVeloCumul, coutKmVoiture,
+      nonInvestiTotal, nonInvestiLines,
+    };
+  }
+
+  function renderKPICards(k) {
+    const pmvTot  = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV + k.pmvSCPI;
+    // ── NOUVEAU : P/MV sans SCPI
+    const pmvHorsSCPI = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV;
+    const epargne = Math.max(0, k.revenu - k.depMens);
+    const cards = [
+      { label:'SCPI', value: fmtK(k.scpiVal), cls:'gold', sub:'Pierre-papier' },
+      { label:'Immobilier direct', value: fmtK(k.maison), cls:'', sub:'Résidence principale' },
+      // ── MODIFIÉ : Épargne bloquée + Natixis PEE
+      { label:'Épargne bloquée & Natixis', value: fmtK(k.ebVal + k.eeVal), cls:'', sub:'Livrets réglementés · PEE/PERCO' },
+      // ── MODIFIÉ : P/MV hors SCPI (1re card)
+      { label:'P/MV hors SCPI', value: (pmvHorsSCPI>=0?'+':'')+fmtK(pmvHorsSCPI), cls:pmvHorsSCPI>=0?'green':'red', sub:'PEA · CTO · Revolut · EE · AV' },
+      // P/MV tout (2e card)
+      { label:'P/MV (tout)', value: (pmvTot>=0?'+':'')+fmtK(pmvTot), cls:pmvTot>=0?'green':'red', sub:'Toutes poches incl. SCPI' },
+      { label:'Dépenses / mois', value: fmtK(k.depMens), cls:'red', sub:'Toutes catégories' },
+      { label:'Épargne mensuelle', value: fmtK(epargne), cls:'green', sub:'Revenu − Dépenses' },
+      { label:'Taux d\'épargne', value: pct(k.txEpargne), cls: k.txEpargne>=20?'green':k.txEpargne>=10?'gold':'red', sub:'% du revenu net' },
+      // ── MODIFIÉ : Indépendance hors résidence principale
+      { label:'Indépendance (hors immo)', value: k.moisLiberteSansMaison.toFixed(0)+' mois', cls:'gold', sub:'Patrimoine liquide ÷ dépenses' },
+      // ── GAIN VÉLO vs VOITURE
+      ...(k.gainVeloVoiture > 0 ? [{ label:'🚲 Gain vélo vs voiture', value: '+'+fmtK(k.gainVeloVoiture), cls:'green', sub: new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(k.kmVeloCumul)+' km × '+k.coutKmVoiture.toFixed(3)+' €/km' }] : []),
+    ];
+    const el = document.getElementById('kpi-cards');
+    if (!el) return;
+
+    const detailLines = [
+      { label:'Boursorama',      val: k.boursoTotal,   color:'#7eb8d4', icon:'🏦' },
+      { label:'Fortuneo',        val: k.fortuneoTotal, color:'#5aab7a', icon:'🏦' },
+      { label:'Revolut',         val: k.revolutTotal,  color:'#c8a96e', icon:'💳' },
+      { label:'Natixis / PEE',   val: k.natixisTotal,  color:'#c05a5a', icon:'🏢', sub:'Épargne Entreprise' },
+      { label:'Assur. Vie',      val: k.avValNonSync,   color:'#4df0c8', icon:'🛡️', sub:'Contrats hors banques' },
+      { label:'Ép. Bloquée',     val: k.ebVal,         color:'#8b9fba', icon:'🔒' },
+      { label:'Espèces',         val: k.liquide,       color:'#6b7585', icon:'💵' },
+      { label:'SCPI',            val: k.scpiVal,       color:'#a855f7', icon:'🏢', sub:'Parts × prix actuel' },
+      { label:'Immobilier',      val: k.maison,        color:'#e8c96e', icon:'🏠' },
+    ].filter(x => x.val > 0);
+
+    const detailHTML = detailLines.map(d => {
+      const pctPart = k.grandTotal > 0 ? (d.val / k.grandTotal * 100) : 0;
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span style="font-size:12px;width:18px;flex-shrink:0;">${d.icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;color:var(--text);">${d.label}</div>
+            ${d.sub ? `<div style="font-size:9px;color:var(--muted);">${d.sub}</div>` : ''}
+          </div>
+          <div style="width:60px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0;">
+            <div style="width:${pctPart.toFixed(1)}%;height:100%;background:${d.color};border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;">${pctPart.toFixed(0)}%</span>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${d.color};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
+        </div>`;
+    }).join('');
+
+    const patrimoineCard = `
+      <div class="kpi-card full" style="cursor:pointer;" onclick="this.querySelector('.pat-detail').style.display=this.querySelector('.pat-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Patrimoine total <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value blue">${fmt(k.grandTotal)}</div>
+        <div class="kpi-card-sub">Toutes classes confondues</div>
+        <div class="pat-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${detailHTML}
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:2px;">
+            <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL</span>
+            <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">${fmt(k.grandTotal)}</span>
+          </div>
+        </div>
+      </div>`;
+
+    // ── CARD IMPÔTS ──────────────────────────────────────────────────
+    const impot = DATA.impotAnnee || 0;
+    const patrimoineNetFiscal = k.grandTotal - impot;
+    const impotCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid #ef4444;" onclick="this.querySelector('.impot-detail').style.display=this.querySelector('.impot-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Patrimoine net fiscal <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+          ${impot > 0 ? `<span style="font-size:9px;color:#ef4444;font-family:'DM Mono',monospace;">− ${fmt(impot)} impôts</span>` : '<span style="font-size:9px;color:var(--muted);">Impôt non renseigné</span>'}
+        </div>
+        <div class="kpi-card-value" style="color:${impot>0?'#ef4444':'var(--muted)'};">${impot > 0 ? fmt(patrimoineNetFiscal) : '—'}</div>
+        <div class="kpi-card-sub">Total − impôt sur le revenu de l'année</div>
+        <div class="impot-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <span style="font-size:11px;color:var(--text);">Patrimoine brut</span>
+            <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);">${fmt(k.grandTotal)}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+            <div>
+              <div style="font-size:11px;color:var(--text);">Impôt sur le revenu</div>
+              <div style="font-size:9px;color:var(--muted);">Avis d'imposition — modifiable dans Banques</div>
+            </div>
+            <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#ef4444;">${impot > 0 ? '− '+fmt(impot) : '—'}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:2px;">
+            <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">NET FISCAL</span>
+            <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${impot>0?'#ef4444':'var(--muted)'};">${impot > 0 ? fmt(patrimoineNetFiscal) : '—'}</span>
+          </div>
+        </div>
+      </div>`;
+
+    // ── CARD RESTE NON INVESTI ──────────────────────────────────────
+    const niPct = k.grandTotal > 0 ? k.nonInvestiTotal / k.grandTotal * 100 : 0;
+    const BANK_COLORS = { boursorama:'#7eb8d4', fortuneo:'#5aab7a', revolut:'#c8a96e', natixis:'#c05a5a', 'Épargne réglementée':'#8b9fba', 'Divers':'#6b7585' };
+    const niDetailHTML = k.nonInvestiLines.map(d => {
+      const c = BANK_COLORS[d.bank] || '#6b7585';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <span style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;display:inline-block;"></span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.label}</div>
+          <div style="font-size:9px;color:var(--muted);">${d.bank}</div>
+        </div>
+        <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${c};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
+      </div>`;
+    }).join('') + `<div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:2px;">
+      <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL NON INVESTI</span>
+      <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#8b9fba;">${fmt(k.nonInvestiTotal)}</span>
+    </div>`;
+    const niCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid #8b9fba;" onclick="this.querySelector('.ni-detail').style.display=this.querySelector('.ni-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Reste non investi <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+          <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${niPct.toFixed(1)}% du patrimoine</span>
+        </div>
+        <div class="kpi-card-value" style="color:#8b9fba;">${fmt(k.nonInvestiTotal)}</div>
+        <div class="kpi-card-sub">Courant · Livret A · LDDS · Livrets fiscalisés · Espèces</div>
+        <div class="ni-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${niDetailHTML}
+        </div>
+      </div>`;
+
+    // ── CARD BANQUES & LIQUIDITÉS (cliquable) ──────────────────────
+    const BANKS_DEF = [
+      { key:'boursorama', label:'Boursorama', color:'#7eb8d4', icon:'🏦' },
+      { key:'fortuneo',   label:'Fortuneo',   color:'#5aab7a', icon:'🏦' },
+      { key:'revolut',    label:'Revolut',     color:'#c8a96e', icon:'💳' },
+      { key:'natixis',    label:'Natixis',     color:'#c05a5a', icon:'🏢' },
+    ];
+    let bqDetailHTML = '';
+    BANKS_DEF.forEach(b => {
+      const rows = (DATA[b.key] || []).filter(r => (r.val||0) > 0);
+      const total = rows.reduce((s,r) => s+(r.val||0), 0);
+      if (total <= 0) return;
+      bqDetailHTML += `<div style="padding:6px 0 4px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:2px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;">${b.icon}</span>
+            <span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${b.color};">${b.label}</span>
+          </div>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${b.color};">${fmt(total)}</span>
+        </div>
+        ${rows.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0 2px 20px;">
+          <span style="font-size:10px;color:var(--muted);">${r.label||'—'}</span>
+          <span style="font-size:10px;color:var(--text);">${fmt(r.val)}</span>
+        </div>`).join('')}
+      </div>`;
+    });
+    if (k.liquide > 0) {
+      bqDetailHTML += `<div style="padding:6px 0 4px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:2px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><span>💵</span>
+            <span style="font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6b7585;">Espèces</span>
+          </div>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#6b7585;">${fmt(k.liquide)}</span>
+        </div>
+      </div>`;
+    }
+    bqDetailHTML += `<div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
+      <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL</span>
+      <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">${fmt(k.banquesTotal + k.liquide)}</span>
+    </div>`;
+    const banquesCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid var(--accent);" onclick="this.querySelector('.bq-detail').style.display=this.querySelector('.bq-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Banques &amp; Liquidités <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value blue">${fmtK(k.banquesTotal)}</div>
+        <div class="kpi-card-sub">Comptes consolidés · clic pour détail</div>
+        <div class="bq-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${bqDetailHTML}
+        </div>
+      </div>`;
+
+    // ── CARD % GAIN vs PRU ──────────────────────────────────────────
+    const pruAssets = [];
+    const addPRU = (rows, source) => {
+      (rows||[]).forEach(r => {
+        if ((r.pr||0) > 0 && (r.qte||0) > 0 && (r.coursActuel||0) > 0) {
+          const gainPct = (r.coursActuel - r.pr) / r.pr * 100;
+          const gainEur = r.qte * (r.coursActuel - r.pr);
+          const valeur  = r.qte * r.coursActuel;
+          pruAssets.push({ nom: r.nom||r.ticker||'?', ticker: r.ticker||'', gainPct, gainEur, valeur, source, pr: r.pr, cours: r.coursActuel });
+        }
+      });
+    };
+    addPRU(DATA.investissements?.revolut, 'Revolut');
+    addPRU(DATA.investissements?.pea,     'PEA');
+    addPRU(DATA.investissements?.cto,     'CTO');
+    pruAssets.sort((a,b) => Math.abs(b.gainPct) - Math.abs(a.gainPct));
+
+    let pruCard = '';
+    if (pruAssets.length > 0) {
+      const totalValeur = pruAssets.reduce((s,a) => s+a.valeur, 0);
+      const totalGain   = pruAssets.reduce((s,a) => s+a.gainEur, 0);
+      const totalCost   = totalValeur - totalGain;
+      const totalPct    = totalCost > 0 ? totalGain / totalCost * 100 : 0;
+      const totalCls    = totalGain >= 0 ? '#5aab7a' : '#c05a5a';
+      pruCard = `
+        <div class="kpi-card full" style="cursor:pointer;border-top:2px solid ${totalCls};" onclick="this.querySelector('.pru-detail').style.display=this.querySelector('.pru-detail').style.display==='none'?'block':'none';">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="kpi-card-label">% Gain vs PRU <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${pruAssets.length} actifs</span>
+          </div>
+          <div class="kpi-card-value" style="color:${totalCls};">${totalGain>=0?'+':''}${fmtK(totalGain)}</div>
+          <div class="kpi-card-sub">Gain total · ${totalPct>=0?'+':''}${totalPct.toFixed(1)}% global</div>
+          <div class="pru-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+            <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:4px;">
+              <span>Actif</span><span style="text-align:right;">PRU→Cours</span><span style="text-align:right;">Gain €</span><span style="text-align:right;">Gain %</span>
+            </div>
+            ${pruAssets.map(a => {
+              const c = a.gainPct >= 0 ? '#5aab7a' : '#c05a5a';
+              const sign = a.gainPct >= 0 ? '+' : '';
+              // bar width = min(|pct|,100)/100 * 100px, capped
+              const barW = Math.min(Math.abs(a.gainPct), 100).toFixed(0);
+              return `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div>
+                  <div style="font-size:11px;color:var(--text);">${a.nom}</div>
+                  <div style="font-size:9px;color:var(--muted);">${a.source}${a.ticker?' · '+a.ticker:''}</div>
+                  <div style="margin-top:3px;height:3px;background:var(--surface2);border-radius:2px;width:100%;overflow:hidden;">
+                    <div style="height:100%;width:${barW}%;background:${c};border-radius:2px;"></div>
+                  </div>
+                </div>
+                <div style="text-align:right;font-size:9px;color:var(--muted);white-space:nowrap;">${a.pr.toFixed(2)}&nbsp;→&nbsp;${a.cours.toFixed(2)}</div>
+                <div style="text-align:right;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:${c};white-space:nowrap;">${sign}${fmtK(a.gainEur)}</div>
+                <div style="text-align:right;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${c};white-space:nowrap;">${sign}${a.gainPct.toFixed(1)}%</div>
+              </div>`;
+            }).join('')}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
+              <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL INVESTI</span>
+              <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${totalCls};">${totalGain>=0?'+':''}${fmtK(totalGain)} (${totalPct>=0?'+':''}${totalPct.toFixed(1)}%)</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ── KPI Achat Cash ──────────────────────────────────────────────
+    const LOYER_MOIS   = 650;
+    const TF_AN        = 1100;
+    const TRAVAUX_MOIS = 100;
+    const PAR_JOUR = (LOYER_MOIS * 12 - TF_AN - TRAVAUX_MOIS * 12) / 365;
+
+    let achatDate = localStorage.getItem('achat_cash_date') || '';
+    let joursSince = 0, econTotal = 0, econLoyer = 0, coutTF = 0, coutTravaux = 0;
+    if (achatDate) {
+      const d0 = new Date(achatDate); const d1 = new Date();
+      joursSince = Math.max(0, Math.floor((d1 - d0) / 86400000));
+      econLoyer   = Math.round(joursSince * (LOYER_MOIS * 12 / 365));
+      coutTF      = Math.round(joursSince * (TF_AN / 365));
+      coutTravaux = Math.round(joursSince * (TRAVAUX_MOIS * 12 / 365));
+      econTotal   = econLoyer - coutTF - coutTravaux;
+    }
+
+    const achatCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid var(--green);"
+           onclick="this.querySelector('.cash-detail').style.display=this.querySelector('.cash-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div class="kpi-card-label">🏠 Achat Cash — Économies cumulées <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value green">${achatDate ? fmt(econTotal) : '— date non définie'}</div>
+        <div class="kpi-card-sub">${achatDate ? `+${PAR_JOUR.toFixed(2)} €/jour · ${joursSince} jours` : 'Renseigner la date d\'achat ci-dessous'}</div>
+        <div class="cash-detail" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Loyer évité</div>
+              <div style="font-size:15px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;">${achatDate ? fmt(econLoyer) : '—'}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px;">650 €/mois</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">TF payée</div>
+              <div style="font-size:15px;font-weight:700;color:var(--red);font-family:'DM Mono',monospace;">${achatDate ? '−'+fmt(coutTF) : '—'}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px;">1 100 €/an</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Travaux payés</div>
+              <div style="font-size:15px;font-weight:700;color:var(--red);font-family:'DM Mono',monospace;">${achatDate ? '−'+fmt(coutTravaux) : '—'}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px;">100 €/mois</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <label style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">📅 Date d'achat :</label>
+            <input type="date" id="achat-cash-date-input"
+              value="${achatDate}"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;"
+              onchange="localStorage.setItem('achat_cash_date',this.value);if(typeof renderKPIPanel==='function')renderKPIPanel();">
+            <span style="font-size:10px;color:var(--muted);">Sauvegardé automatiquement</span>
+          </div>
+        </div>
+      </div>`;
+
+    el.innerHTML = patrimoineCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
+      <div class="kpi-card${c.full?' full':''}">
+        <div class="kpi-card-label">${c.label}</div>
+        <div class="kpi-card-value ${c.cls}">${c.value}</div>
+        <div class="kpi-card-sub">${c.sub}</div>
+      </div>`).join('');
+  }
+
+  function renderChartPatrimoine(k) {
+    const raw = [
+      { l:'Boursorama', v:k.boursoTotal, c:'#7eb8d4' },
+      { l:'Fortuneo',   v:k.fortuneoTotal, c:'#5aab7a' },
+      { l:'Revolut',    v:k.revolutTotal,  c:'#c8a96e' },
+      { l:'Natixis',    v:k.natixisTotal,  c:'#c05a5a' },
+      { l:'SCPI',        v:k.scpiVal,        c:'#a855f7' },
+      { l:'Immobilier', v:k.maison,        c:'#e8c96e' },
+      { l:'Assur. Vie', v:k.avValNonSync,  c:'#4df0c8' },
+      { l:'Ép. Bloquée',v:k.ebVal,         c:'#8b9fba' },
+      { l:'Espèces',    v:k.liquide,       c:'#6b7585' },
+    ].filter(x => x.v > 0);
+
+    const total = raw.reduce((s,x) => s+x.v, 0);
+    const badge = document.getElementById('kpi-total-badge');
+    if (badge) badge.textContent = fmt(total);
+
+    mkChart('chart-patrimoine', {
+      type: 'doughnut',
+      data: { labels: raw.map(x=>x.l), datasets: [{ data: raw.map(x=>x.v), backgroundColor: raw.map(x=>x.c), borderWidth:2, borderColor:'#1a1e24' }] },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' '+fmt(ctx.raw)+' ('+pct(ctx.raw/total*100)+')' } }
+        },
+        cutout:'62%',
+      }
+    });
+
+    const leg = document.getElementById('chart-patrimoine-legend');
+    if (leg) leg.innerHTML = raw.map(x=>`
+      <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text);">
+        <span style="width:10px;height:10px;border-radius:2px;background:${x.c};flex-shrink:0;display:inline-block;"></span>
+        ${x.l} <span style="color:var(--muted)">(${pct(x.v/total*100)})</span>
+      </div>`).join('');
+  }
+
+  function renderChartRisque(k) {
+    const byRisk = Array(8).fill(0);
+    ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+      (DATA[bank]||[]).forEach(r => { byRisk[Math.min(7,r.risk||1)] += (r.val||0); });
+    });
+    byRisk[3] += k.scpiVal + k.eeVal;
+    byRisk[2] += k.avVal + k.maison;
+    byRisk[1] += k.ebVal + k.liquide;
+
+    const labels = ['R1 Sécurisé','R2 Prudent','R3 Équilibré','R4 Dynamique','R5 Offensif','R6 Spéculatif','R7 Très risqué'];
+    const colors = ['#5aab7a','#4df0c8','#7eb8d4','#c8a96e','#e8c96e','#d4875a','#c05a5a'];
+    const active = byRisk.slice(1).map((v,i)=>({v,l:labels[i],c:colors[i]})).filter(x=>x.v>0);
+
+    mkChart('chart-risque', {
+      type:'bar',
+      data:{ labels:active.map(x=>x.l), datasets:[{ data:active.map(x=>x.v), backgroundColor:active.map(x=>x.c), borderRadius:6, borderSkipped:false }] },
+      options:{
+        indexAxis:'y',
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}} },
+        scales:{
+          x:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} },
+          y:{ ticks:{color:'#c8cdd8',font:{size:10}}, grid:{display:false} }
+        }
+      }
+    });
+  }
+
+  function renderChartDepenses(k) {
+    const cats = DATA.depenses?.categories||[];
+    const active = cats.map(cat => ({
+      l: cat.icon+' '+cat.nom,
+      v: cat.items.reduce((s,it)=>s+(it.mensuel||(it.note==='annuel'?(it.annuel||0)/12:0)),0),
+      c: cat.color||'#6b7585'
+    })).filter(x=>x.v>0);
+
+    const badge = document.getElementById('kpi-depenses-badge');
+    if (badge) badge.textContent = fmt(k.depMens)+'/mois';
+
+    mkChart('chart-depenses', {
+      type:'bar',
+      data:{ labels:active.map(x=>x.l), datasets:[{ data:active.map(x=>x.v), backgroundColor:active.map(x=>x.c+'cc'), borderColor:active.map(x=>x.c), borderWidth:1, borderRadius:6, borderSkipped:false }] },
+      options:{
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+'/mois'}} },
+        scales:{
+          x:{ ticks:{color:'#6b7585',font:{size:9},maxRotation:30}, grid:{display:false} },
+          y:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} }
+        }
+      }
+    });
+  }
+
+  function renderChartPMV(k) {
+    const items = [
+      {l:'PEA',v:k.pmvPEA},{l:'CTO',v:k.pmvCTO},
+      {l:'Revolut',v:k.pmvRev},{l:'Épar. Entr.',v:k.pmvEE},
+      {l:'Assur. Vie',v:k.pmvAV},{l:'SCPI',v:k.pmvSCPI},
+    ].filter(x=>x.v!==0);
+    if (!items.length) return;
+    mkChart('chart-pmv', {
+      type:'bar',
+      data:{
+        labels:items.map(x=>x.l),
+        datasets:[{ data:items.map(x=>x.v), backgroundColor:items.map(x=>x.v>=0?'rgba(90,171,122,0.7)':'rgba(192,90,90,0.7)'), borderColor:items.map(x=>x.v>=0?'#5aab7a':'#c05a5a'), borderWidth:1, borderRadius:5, borderSkipped:false }]
+      },
+      options:{
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>(ctx.raw>=0?'+':'')+fmt(ctx.raw)}} },
+        scales:{
+          x:{ ticks:{color:'#c8cdd8',font:{size:11}}, grid:{display:false} },
+          y:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} }
+        }
+      }
+    });
+  }
+
+  function renderRatios(k) {
+    const el = document.getElementById('kpi-ratios');
+    if (!el) return;
+    const rows = [
+      { label:"Taux d'épargne", sub:"Épargne / Revenu net", val:pct(k.txEpargne), num:k.txEpargne, max:50, color:k.txEpargne>=20?'#5aab7a':k.txEpargne>=10?'#c8a96e':'#c05a5a' },
+      { label:"Charge des dépenses", sub:"Dépenses / Revenu mensuel", val:pct(k.revenu>0?k.depMens/k.revenu*100:0), num:k.revenu>0?k.depMens/k.revenu*100:0, max:100, color:k.revenu>0&&k.depMens/k.revenu<0.7?'#5aab7a':'#c05a5a' },
+      { label:"Indépendance (hors immo)", sub:"Patrimoine liquide ÷ dépenses mensuelles", val:k.moisLiberteSansMaison.toFixed(0)+' mois', num:Math.min(k.moisLiberteSansMaison,120), max:120, color:k.moisLiberteSansMaison>=24?'#5aab7a':k.moisLiberteSansMaison>=6?'#c8a96e':'#c05a5a' },
+      { label:"Exposition actions", sub:"PEA + CTO + Revolut / Patrimoine", val:pct(k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0, max:100, color:'#7eb8d4' },
+      { label:"Exposition immobilier", sub:"Maison + SCPI (CR) / Patrimoine", val:pct(k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0, max:100, color:'#c8a96e' },
+    ];
+    el.innerHTML = rows.map(r=>`
+      <div class="kpi-ratio-row">
+        <div class="kpi-ratio-label">${r.label}<small>${r.sub}</small></div>
+        <div class="kpi-ratio-bar-wrap">
+          <div class="kpi-ratio-bar-fill" style="width:${Math.min(100,r.num/r.max*100).toFixed(1)}%;background:${r.color};"></div>
+        </div>
+        <div class="kpi-ratio-val" style="color:${r.color};">${r.val}</div>
+      </div>`).join('');
+  }
+
+  window.renderKPIPanel = async function() {
+    const k = computeKPIs();
+    renderKPICards(k);
+    renderRatios(k);
+    renderKPIMobilite();
+    updateKPITickers();
+    try {
+      await loadChartJS();
+      renderChartPatrimoine(k);
+      renderChartRisque(k);
+      renderChartDepenses(k);
+      renderChartPMV(k);
+    } catch(e) { console.warn('KPI charts:', e); }
+  };
+
+  function renderKPIMobilite() {
+    const el = document.getElementById('kpi-mobilite-content');
+    if (!el) return;
+    const m = DATA.mobilite;
+    if (!m) { el.innerHTML = '<p style="color:var(--muted);font-size:11px;">Aucune donnée mobilité.</p>'; return; }
+
+    const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+    const fmtDec = (v,d=2) => new Intl.NumberFormat('fr-FR',{maximumFractionDigits:d}).format(v);
+
+    const odoAuto = m.auto?.odoLog || [];
+    const sortedAuto = [...odoAuto].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
+    const kmActualAuto = sortedAuto.length ? sortedAuto[sortedAuto.length-1].km : 0;
+    const kmAnnuelEssence = m.carburant?.essence || 0;
+    const prixLitre = m.carburant?.prixLitre || 0;
+    const conso100 = m.carburant?.conso100km || 0;
+    const trajetAR = m.travail?.trajetAR || 0;
+    const joursAn = m.travail?.joursAn || 0;
+
+    const kmTravailAn = trajetAR * joursAn;
+    const litresAn = kmAnnuelEssence > 0 && conso100 > 0 ? kmAnnuelEssence * conso100 / 100 : 0;
+    const coutCarburantAn = litresAn * prixLitre;
+    const coutCarburantMois = coutCarburantAn / 12;
+    const coutKm = kmAnnuelEssence > 0 && coutCarburantAn > 0 ? coutCarburantAn / kmAnnuelEssence : 0;
+    const coutTank = m.carburant?.capaciteTank ? m.carburant.capaciteTank * prixLitre : 0;
+
+    const odoVelo = m.velo?.odoLog || [];
+    const sortedVelo = [...odoVelo].filter(r=>r.date&&r.km).sort((a,b)=>a.date.localeCompare(b.date));
+    const kmActualVelo = sortedVelo.length ? sortedVelo[sortedVelo.length-1].km : 0;
+
+    // Gain vélo : km parcourus en vélo × coût au km voiture (carburant)
+    const kmVeloTotal = kmActualVelo - (sortedVelo.length > 1 ? sortedVelo[0].km : 0);
+    const gainVelo = kmVeloTotal > 0 && coutKm > 0 ? kmVeloTotal * coutKm : 0;
+    const bat = m.velo?.batterie || {};
+    const mot = m.velo?.moteur || {};
+    const batUsagePct = bat.cyclesMax > 0 ? Math.min(100,(bat.cyclesActuels||0)/bat.cyclesMax*100) : 0;
+    const batKmRestants = bat.dureeTheoKm > 0 && bat.kmPose >= 0 ? Math.max(0, bat.dureeTheoKm - (kmActualVelo - (bat.kmPose||0))) : null;
+    const motKmRestants = mot.dureeTheoKm > 0 && mot.kmPose >= 0 ? Math.max(0, mot.dureeTheoKm - (kmActualVelo - (mot.kmPose||0))) : null;
+
+    const badge = document.getElementById('kpi-mob-badge');
+    if (badge && coutCarburantMois > 0) badge.textContent = fmt(coutCarburantMois)+'/mois carburant';
+
+    const mkRow = (label, val, sub, color='') => `
+      <div class="kpi-ratio-row">
+        <div class="kpi-ratio-label">${label}<small>${sub||''}</small></div>
+        <div class="kpi-ratio-val" style="${color?'color:'+color:''}">${val}</div>
+      </div>`;
+
+    const batColor = batUsagePct > 80 ? '#c05a5a' : batUsagePct > 60 ? '#c8a96e' : '#5aab7a';
+
+    el.innerHTML = `
+      <div style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🚗 Voiture</div>
+      ${kmActualAuto > 0 ? mkRow('Kilométrage actuel', fmtDec(kmActualAuto,0)+' km', 'Dernier relevé odométrique') : ''}
+      ${kmAnnuelEssence > 0 ? mkRow('Km essence / an', fmtDec(kmAnnuelEssence,0)+' km', 'Base déclarée', 'var(--text)') : ''}
+      ${kmTravailAn > 0 ? mkRow('Km travail / an', fmtDec(kmTravailAn,0)+' km', trajetAR+' km A/R × '+joursAn+' jours', 'var(--text)') : ''}
+      ${litresAn > 0 ? mkRow('Litres consommés / an', fmtDec(litresAn,0)+' L', conso100+' L/100km × '+kmAnnuelEssence+' km') : ''}
+      ${coutCarburantAn > 0 ? mkRow('Coût carburant / an', fmt(coutCarburantAn), 'Base '+prixLitre.toFixed(3)+' €/L', '#c8a96e') : ''}
+      ${coutCarburantMois > 0 ? mkRow('Coût carburant / mois', fmt(coutCarburantMois), 'Lissé sur 12 mois', '#c8a96e') : ''}
+      ${coutKm > 0 ? mkRow('Coût au km (carburant)', fmtDec(coutKm,3)+' €/km', 'Carburant seul, hors entretien') : ''}
+      ${coutTank > 0 ? mkRow('Plein de réservoir', fmt(coutTank), m.carburant.capaciteTank+' L × '+prixLitre.toFixed(3)+' €/L') : ''}
+      <div style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">🚲 Vélo</div>
+      ${kmActualVelo > 0 ? mkRow('Kilométrage vélo actuel', fmtDec(kmActualVelo,0)+' km', 'Dernier relevé') : ''}
+      ${gainVelo > 0 ? mkRow('💚 Gain vélo vs voiture', fmt(gainVelo), fmtDec(kmVeloTotal,0)+' km × '+fmtDec(coutKm,3)+' €/km carburant', '#5aab7a') : ''}
+      ${bat.cyclesActuels > 0 ? mkRow('Cycles batterie', (bat.cyclesActuels||0)+' / '+(bat.cyclesMax||'?')+' cycles', 'Usage: '+batUsagePct.toFixed(0)+'%', batColor) : ''}
+      ${batKmRestants !== null ? mkRow('Km restants batterie', fmtDec(Math.max(0,batKmRestants),0)+' km estimés', 'Durée théo: '+(bat.dureeTheoKm||0)+' km', batKmRestants < 500 ? '#c05a5a' : '#5aab7a') : ''}
+      ${motKmRestants !== null ? mkRow('Km restants moteur', fmtDec(Math.max(0,motKmRestants),0)+' km estimés', 'Durée théo: '+(mot.dureeTheoKm||0)+' km', motKmRestants < 1000 ? '#c05a5a' : '#5aab7a') : ''}
+      ${(!kmActualAuto && !kmActualVelo && !coutCarburantAn) ? '<p style="color:var(--muted);font-size:11px;">Renseigner les données dans l\'onglet Mobilité.</p>' : ''}
+    `;
+  }
+
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// TICKER BAND
+// ═══════════════════════════════════════════════════════════════════
+(function() {
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyiXiLpcnIxT_ViTV-3Jfo3BrXuzBuMgFeD-l3-V3LU8vfWDs_b-f1keu_H-PjLGzBaKA/exec';
+
+  const TICKERS_DEF = [
+    { id:'btc',  sym:'BTC/EUR',   gfSym:'CURRENCY:BTCEUR',   yf:'BTC-EUR',   fmt:'eur',  dot:'#f7931a', yfOnly:false },
+    { id:'wpea', sym:'WPEA',      gfSym:'EPA:WPEA',           yf:'WPEA.PA',   fmt:'eur',  dot:'#a855f7', yfOnly:false },
+    { id:'nas',  sym:'NASDAQ',    gfSym:'INDEXNASDAQ:.IXIC',  yf:'%5EIXIC',   fmt:'idx',  dot:'#e8c96e', yfOnly:false },
+    { id:'eur',  sym:'EUR/USD',   gfSym:'CURRENCY:EURUSD',    yf:'EURUSD=X',  fmt:'fx',   dot:'#4df0c8', yfOnly:true  },
+    // { id:'gold' } — supprimé (OR retiré du ticker)
+    { id:'cac',  sym:'CAC 40',    gfSym:'INDEXEURO:PX1',      yf:'%5EFCHI',   fmt:'idx',  dot:'#5aab7a', yfOnly:false },
+  ];
+
+  const CORS_PROXIES = [
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  ];
+
+  const state = {};
+  TICKERS_DEF.forEach(t => { state[t.id] = { price: null, chgAbs: null, chgPct: null }; });
+
+  function fmtPrice(v, fmt) {
+    if (!v && v !== 0) return '—';
+    if (fmt === 'usd') return '$' + (v >= 1000 ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:0}).format(v) : v.toFixed(2));
+    if (fmt === 'eur') return new Intl.NumberFormat('fr-FR',{style:'currency', currency:'EUR', maximumFractionDigits:2}).format(v);
+    if (fmt === 'fx') return v.toFixed(4);
+    return v >= 1000 ? new Intl.NumberFormat('fr-FR', {maximumFractionDigits:2}).format(v) : v.toFixed(2);
+  }
+
+  function fmtChg(chgPct) {
+    if (chgPct == null) return { txt: '—', cls: 'neu' };
+    const up = chgPct >= 0;
+    return { txt: (up ? '▲' : '▼') + ' ' + Math.abs(chgPct).toFixed(2) + '%', cls: up ? 'up' : 'dn' };
+  }
+
+  function getKPITickerItems(suffix) {
+    const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+    // Patrimoine total
+    const sumBank = (key) => (typeof DATA !== 'undefined' ? (DATA[key]||[]).reduce((s,r)=>s+(r.val||0),0) : 0);
+    const bTotal = sumBank('boursorama') + sumBank('fortuneo') + sumBank('revolut') + sumBank('natixis');
+    const scpiVal = typeof DATA !== 'undefined' ? (DATA.scpi||[]).reduce((s,r)=>s+(r.totalActuel||(r.parts||0)*(r.pxActuel||0)||0),0) : 0;
+    const avVal   = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0) : 0;
+    const avSyncVal = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0) : 0;
+    const ebVal   = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0) : 0;
+    const maison  = typeof DATA !== 'undefined' ? (DATA.maison||0) : 0;
+    const liquide = typeof DATA !== 'undefined' ? (DATA.especeCache||0) : 0;
+    const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal;
+
+    // PV hors SCPI
+    const peaVal = typeof DATA !== 'undefined' ? (DATA.investissements?.pea||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
+    const peaPR  = typeof DATA !== 'undefined' ? (DATA.investissements?.pea||[]).reduce((s,r)=>s+(r.qte||0)*(r.pr||0),0) : 0;
+    const ctoVal = typeof DATA !== 'undefined' ? (DATA.investissements?.cto||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
+    const ctoPR  = typeof DATA !== 'undefined' ? (DATA.investissements?.cto||[]).reduce((s,r)=>s+(r.qte||0)*(r.pr||0),0) : 0;
+    const revVal = typeof DATA !== 'undefined' ? (DATA.investissements?.revolut||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
+    const revPR  = typeof DATA !== 'undefined' ? (DATA.investissements?.revolut||[]).reduce((s,r)=>s+(r.qte||0)*(r.pr||0),0) : 0;
+    const eeVal  = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_entreprise||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0) : 0;
+    const eePR   = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_entreprise||[]).reduce((s,r)=>s+(r.parts||0)*(r.pr||0),0) : 0;
+    const avVers = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.versements||0),0) : 0;
+    const pmvHorsSCPI = (peaVal-peaPR) + (ctoVal-ctoPR) + (revVal-revPR) + (eeVal-eePR) + (avVal-avVers);
+
+    // ATH
+    const athRows = typeof DATA !== 'undefined' ? (DATA.ath||[]).filter(r=>r.val>0).sort((a,b)=>a.date?.localeCompare(b.date||'')||0) : [];
+    const lastATH = athRows.length ? athRows[athRows.length-1] : null;
+    const athVal  = lastATH ? lastATH.val : 0;
+    const athDiff = athVal > 0 ? grandTotal - athVal : null;
+    const athPct  = athVal > 0 ? (grandTotal - athVal) / athVal * 100 : null;
+
+    const pvCls  = pmvHorsSCPI >= 0 ? 'up' : 'dn';
+    const pvSign = pmvHorsSCPI >= 0 ? '+' : '';
+    const athCls = athDiff === null ? 'neu' : athDiff >= 0 ? 'up' : 'dn';
+    const athSign= athDiff !== null && athDiff >= 0 ? '▲' : '▼';
+
+    return [
+      `<div class="ticker-item" id="kpi-patrimoine${suffix}" style="border-left:1px solid rgba(255,255,255,0.10);border-right:1px solid rgba(255,255,255,0.06);">
+        <span class="t-dot" style="background:#7eb8d4"></span>
+        <span class="t-sym">PATRIMOINE</span>
+        <span class="t-price">${grandTotal > 0 ? fmtEur(grandTotal) : '—'}</span>
+      </div>`,
+      `<div class="ticker-item" id="kpi-pvhs${suffix}">
+        <span class="t-dot" style="background:#5aab7a"></span>
+        <span class="t-sym">PV/HS</span>
+        <span class="t-price ${pvCls}">${grandTotal > 0 ? pvSign+fmtEur(pmvHorsSCPI) : '—'}</span>
+      </div>`,
+      `<div class="ticker-item" id="kpi-ath${suffix}">
+        <span class="t-dot" style="background:#c8a96e"></span>
+        <span class="t-sym">ATH</span>
+        <span class="t-price">${athVal > 0 ? fmtEur(athVal) : '—'}</span>
+        ${athDiff !== null ? `<span class="t-chg ${athCls}">${athSign} ${Math.abs(athPct).toFixed(1)}%</span>` : ''}
+      </div>`,
+    ].join('');
+  }
+
+  function buildTrack() {
+    const track = document.getElementById('tickerTrack');
+    if (!track) return;
+    let html = '';
+    for (let pass = 0; pass < 2; pass++) {
+      const suffix = pass === 0 ? '' : '-b';
+      html += getKPITickerItems(suffix);
+      TICKERS_DEF.forEach(t => {
+        const s = state[t.id];
+        const priceStr = fmtPrice(s.price, t.fmt);
+        const { txt: chgTxt, cls: chgCls } = fmtChg(s.chgPct);
+        html += `<div class="ticker-item">
+          <span class="t-dot" style="background:${t.dot}"></span>
+          <span class="t-sym">${t.sym}</span>
+          <span class="t-price" id="tp-${t.id}${suffix}">${priceStr}</span>
+          <span class="t-chg ${chgCls}" id="tc-${t.id}${suffix}">${chgTxt}</span>
+        </div>`;
+      });
+    }
+    track.innerHTML = html;
+    requestAnimationFrame(() => {
+      const half = track.scrollWidth / 2;
+      const speed = 60;
+      const dur = Math.round(half / speed) * 2;
+      track.style.animationDuration = dur + 's';
+    });
+  }
+
+  function updateKPITickers() {
+    ['', '-b'].forEach(suffix => {
+      const ids = ['kpi-patrimoine','kpi-pvhs','kpi-ath'];
+      const tmp = document.createElement('div');
+      tmp.innerHTML = getKPITickerItems(suffix);
+      const newNodes = Array.from(tmp.children);
+      ids.forEach((baseId, idx) => {
+        const existing = document.getElementById(baseId + suffix);
+        if (existing && newNodes[idx]) existing.replaceWith(newNodes[idx]);
+      });
+    });
+  }
+  window.updateKPITickers = updateKPITickers;
+
+  function updateItem(id, price, chgAbs, chgPct) {
+    state[id] = { price, chgAbs, chgPct };
+    ['', '-b'].forEach(suffix => {
+      const pe = document.getElementById('tp-' + id + suffix);
+      const ce = document.getElementById('tc-' + id + suffix);
+      const t  = TICKERS_DEF.find(x => x.id === id);
+      if (pe) pe.textContent = fmtPrice(price, t.fmt);
+      if (ce) {
+        const { txt, cls } = fmtChg(chgPct);
+        ce.textContent = txt;
+        ce.className = 't-chg ' + cls;
+      }
+    });
+    // ── Mise à jour BTC hero cards ──
+    if (id === 'btc' && price) {
+      const fmtEurBtc = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+      document.querySelectorAll('[id^="btc-live-price-"]').forEach(el => {
+        el.textContent = fmtEurBtc(price);
+        // Mettre à jour coursActuel dans DATA si l'entrée correspond
+        const idx = parseInt(el.id.replace('btc-live-price-',''));
+        const rows = DATA.investissements.revolut;
+        if (rows && rows[idx] && (rows[idx].ticker==='BTC'||rows[idx].nom?.toLowerCase().includes('bitcoin'))) {
+          rows[idx].coursActuel = price;
+          syncInvToBank();
+          // re-render la valeur/PV inline sans re-render complet
+        }
+      });
+      document.querySelectorAll('[id^="btc-live-chg-"]').forEach(el => {
+        if (chgPct == null) return;
+        const up = chgPct >= 0;
+        el.textContent = (up?'▲ ':'▼ ') + Math.abs(chgPct).toFixed(2) + '%';
+        el.className = 'btc-hero-badge ' + (up ? 'up' : 'dn');
+      });
+    }
+  }
+
+  function markError(id) {
+    ['', '-b'].forEach(suffix => {
+      const pe = document.getElementById('tp-' + id + suffix);
+      const ce = document.getElementById('tc-' + id + suffix);
+      if (pe) pe.textContent = 'N/A';
+      if (ce) { ce.textContent = '—'; ce.className = 't-chg neu'; }
+    });
+  }
+
+  async function fetchGAS() {
+    if (!GAS_URL) throw new Error('no GAS_URL');
+    const res = await fetch(GAS_URL, { signal: AbortSignal.timeout(14000) });
+    if (!res.ok) throw new Error('GAS HTTP ' + res.status);
+    const j = await res.json();
+    if (!j.ok) throw new Error('GAS bad resp');
+    TICKERS_DEF.forEach(t => {
+      if (t.yfOnly) return;
+      const d = j.data?.[t.id];
+      if (!d || d.error || d.price === null) { markError(t.id); return; }
+      updateItem(t.id, d.price, d.change, d.changePct);
+    });
+  }
+
+  async function fetchYahoo(t) {
+    const base = `https://query1.finance.yahoo.com/v8/finance/chart/${t.yf}?interval=1d&range=2d`;
+    const urls = [base, ...CORS_PROXIES.map(p => p(base))];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
+        const j = await res.json();
+        const meta = j?.chart?.result?.[0]?.meta;
+        if (!meta) continue;
+        const price   = meta.regularMarketPrice ?? meta.previousClose;
+        const prev    = meta.previousClose || meta.chartPreviousClose;
+        if (!price) continue;
+        const chgAbs  = prev ? price - prev : null;
+        const chgPct  = prev ? (price - prev) / prev * 100 : null;
+        updateItem(t.id, price, chgAbs, chgPct);
+        return;
+      } catch(_) {}
+    }
+    markError(t.id);
+  }
+
+  async function refresh() {
+    const yfOnly = TICKERS_DEF.filter(t => t.yfOnly);
+    const yfOnlyP = Promise.allSettled(yfOnly.map(fetchYahoo));
+    if (GAS_URL) {
+      try {
+        await Promise.all([fetchGAS(), yfOnlyP]);
+        return;
+      } catch(e) { console.warn('Ticker GAS fallback Yahoo:', e.message); }
+    }
+    await Promise.allSettled(TICKERS_DEF.map(fetchYahoo));
+  }
+
+  document.getElementById('tickerBand')?.addEventListener('click', refresh);
+
+  buildTrack();
+  refresh();
+  setInterval(refresh, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
