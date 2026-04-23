@@ -1391,6 +1391,21 @@ button, input, select { touch-action: manipulation; }
   <!-- KPI CARDS ROW -->
   <div class="kpi-grid" id="kpi-cards"></div>
 
+  <!-- HISTORIQUE ATH -->
+  <div class="section accent-gold" style="margin-bottom:16px;" id="section-ath-chart">
+    <div class="section-head">
+      <div class="section-title">🏆 Historique All-Time Highs</div>
+      <span class="badge gold" id="kpi-ath-badge">—</span>
+    </div>
+    <div class="section-body" style="padding:16px;">
+      <div id="ath-chart-empty" style="display:none;font-size:11px;color:var(--muted);text-align:center;padding:20px 0;">
+        Aucun ATH enregistré — rendez-vous dans <strong>Actifs → All-Time High</strong> pour ajouter des points.
+      </div>
+      <canvas id="chart-ath" height="200"></canvas>
+      <div id="ath-chart-legend" style="margin-top:12px;font-size:10px;color:var(--muted);display:flex;flex-wrap:wrap;gap:12px;justify-content:center;"></div>
+    </div>
+  </div>
+
   <!-- RÉPARTITION PATRIMONIALE -->
   <div class="section accent-blue" style="margin-bottom:16px;">
     <div class="section-head">
@@ -3035,6 +3050,110 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>`).join('');
   }
 
+  function renderChartATH() {
+    const ath = (DATA.ath || []).filter(e => e.date && e.val > 0);
+    const emptyEl = document.getElementById('ath-chart-empty');
+    const canvasEl = document.getElementById('chart-ath');
+    const badge = document.getElementById('kpi-ath-badge');
+    const legend = document.getElementById('ath-chart-legend');
+
+    if (!ath.length) {
+      if (emptyEl)  emptyEl.style.display = 'block';
+      if (canvasEl) canvasEl.style.display = 'none';
+      if (badge)    badge.textContent = '—';
+      if (legend)   legend.innerHTML = '';
+      return;
+    }
+    if (emptyEl)  emptyEl.style.display = 'none';
+    if (canvasEl) canvasEl.style.display = 'block';
+
+    // Sort by date
+    const sorted = [...ath].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const latest = sorted[sorted.length - 1];
+    if (badge) badge.textContent = fmt(latest.val);
+
+    const labels = sorted.map(e => {
+      const d = new Date(e.date);
+      return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'2-digit' });
+    });
+    const values = sorted.map(e => e.val);
+
+    // Gradient fill
+    const getGrad = (ctx) => {
+      const grad = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
+      grad.addColorStop(0,  'rgba(200,169,110,0.45)');
+      grad.addColorStop(0.6,'rgba(200,169,110,0.12)');
+      grad.addColorStop(1,  'rgba(200,169,110,0.0)');
+      return grad;
+    };
+
+    mkChart('chart-ath', {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          borderColor: '#c8a96e',
+          borderWidth: 2.5,
+          pointBackgroundColor: values.map((v, i) => i === values.length - 1 ? '#f7d080' : '#c8a96e'),
+          pointBorderColor:     values.map((v, i) => i === values.length - 1 ? '#fff'   : '#c8a96e'),
+          pointRadius:          values.map((v, i) => i === values.length - 1 ? 6 : 4),
+          pointHoverRadius: 7,
+          fill: true,
+          backgroundColor: function(ctx) { return getGrad(ctx); },
+          tension: 0.35,
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ' ' + fmt(ctx.raw),
+              afterLabel: (ctx) => {
+                const prev = values[ctx.dataIndex - 1];
+                if (prev == null) return '';
+                const diff = ctx.raw - prev;
+                const pctV = (diff / prev * 100);
+                return (diff >= 0 ? '▲ +' : '▼ ') + fmt(Math.abs(diff)) + '  (' + (diff >= 0 ? '+' : '') + pctV.toFixed(1) + '%)';
+              }
+            },
+            backgroundColor: 'rgba(26,30,36,0.95)',
+            borderColor: '#c8a96e',
+            borderWidth: 1,
+            titleColor: '#c8a96e',
+            bodyColor: '#c8cdd8',
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6b7585', font: { size: 9 }, maxRotation: 30 },
+            grid:  { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            ticks: { color: '#6b7585', callback: v => fmtK(v) },
+            grid:  { color: 'rgba(255,255,255,0.04)' }
+          }
+        },
+        interaction: { mode: 'nearest', intersect: false }
+      }
+    });
+
+    // Légende : delta entre 1er et dernier ATH
+    if (legend && sorted.length >= 2) {
+      const first  = sorted[0];
+      const diff   = latest.val - first.val;
+      const pctTot = (diff / first.val * 100);
+      const col    = diff >= 0 ? '#5aab7a' : '#c05a5a';
+      legend.innerHTML = `
+        <span>📅 1er ATH : <strong>${new Date(first.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong> — ${fmt(first.val)}</span>
+        <span>🏆 Dernier : <strong>${new Date(latest.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong> — ${fmt(latest.val)}</span>
+        <span style="color:${col};">${diff>=0?'▲ +':'▼ '}${fmt(Math.abs(diff))} (${diff>=0?'+':''}${pctTot.toFixed(1)}%) sur ${sorted.length} jalons</span>`;
+    } else if (legend && sorted.length === 1) {
+      legend.innerHTML = `<span>🏆 1 seul ATH enregistré — ${new Date(latest.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})} : ${fmt(latest.val)}</span>`;
+    }
+  }
+
   window.renderKPIPanel = async function() {
     const k = computeKPIs();
     renderKPICards(k);
@@ -3047,6 +3166,7 @@ window.addEventListener('DOMContentLoaded', () => {
       renderChartRisque(k);
       renderChartDepenses(k);
       renderChartPMV(k);
+      renderChartATH();
     } catch(e) { console.warn('KPI charts:', e); }
   };
 
