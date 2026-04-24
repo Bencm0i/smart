@@ -751,6 +751,28 @@ body {
       </div>
     </div>
 
+    <!-- AUTONOMIE RAPIDE -->
+    <div id="autoBlock" style="display:none;margin-top:10px;">
+      <div class="iblock full highlight" style="padding:13px 14px;">
+        <label style="margin-bottom:7px;">⚡ AUTONOMIE ESTIMÉE — JAUGE CORRIGÉE HYBRIDE</label>
+        <div style="display:flex;gap:10px;align-items:stretch;">
+          <div style="flex:1;background:var(--bg2);border-radius:6px;border:1.5px solid var(--border);padding:10px 10px 8px;text-align:center;">
+            <div id="autoBlockKm" style="font-family:var(--font-mono);font-size:1.55rem;font-weight:600;color:var(--accent);line-height:1;">—</div>
+            <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.08em;margin-top:4px;text-transform:uppercase;">km restants</div>
+          </div>
+          <div style="flex:1;background:var(--bg2);border-radius:6px;border:1.5px solid var(--border);padding:10px 10px 8px;text-align:center;">
+            <div id="autoBlockDays" style="font-family:var(--font-mono);font-size:1.55rem;font-weight:600;color:var(--accent);line-height:1;">—</div>
+            <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.08em;margin-top:4px;text-transform:uppercase;">jours d'utilisation</div>
+          </div>
+          <div style="flex:1;background:var(--bg2);border-radius:6px;border:1.5px solid var(--border);padding:10px 10px 8px;text-align:center;">
+            <div id="autoBlockL" style="font-family:var(--font-mono);font-size:1.55rem;font-weight:600;color:var(--txt2);line-height:1;">—</div>
+            <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.08em;margin-top:4px;text-transform:uppercase;">litres réels</div>
+          </div>
+        </div>
+        <div id="autoBlockNote" style="font-family:var(--font-mono);font-size:0.57rem;color:var(--muted);margin-top:7px;letter-spacing:.05em;text-align:center;"></div>
+      </div>
+    </div>
+
     <div class="divider"></div>
 
     <!-- SAUVEGARDE -->
@@ -1009,6 +1031,57 @@ function fv(id) { const v = parseFloat(document.getElementById(id).value); retur
 function fd(id) { const v = document.getElementById(id).value; return v ? new Date(v) : null; }
 function monthsBetween(d1, d2) { return (d2 - d1) / (1000 * 60 * 60 * 24 * 30.4375); }
 
+/* ── JAUGE NON-LINÉAIRE YARIS HYBRID ──────────────────────────────────────
+   Toyota compresse volontairement le haut du réservoir en affichage :
+   - Haut (100→60% affiché) : la jauge bouge peu → on a consommé PLUS
+     que ce que la jauge montre (réservoir réel plus bas que l'affichage)
+   - Bas (60→0% affiché) : la jauge descend plus vite → on a encore
+     PLUS de carbu qu'il n'y paraît (psychologie anti-panique)
+   
+   Courbe : affichage% → carburant réel% dans le réservoir physique
+   ─────────────────────────────────────────────────────────────────────── */
+function gaugeDisplayToRealFuel(displayPct) {
+  // Points de calibration [affichage%, carburant_réel%]
+  // Haut compressé : 100% affiché → 100% réel, mais 80% affiché → ~65% réel
+  // (on a déjà consommé 35% sans que la jauge descende beaucoup)
+  // Bas réactif : 20% affiché → ~25% réel (plus de carbu qu'affiché)
+  const calibration = [
+    [100, 100],
+    [95,  88],
+    [90,  77],
+    [85,  67],
+    [80,  58],
+    [75,  50],
+    [70,  43],
+    [65,  37],
+    [60,  32],
+    [55,  28],
+    [50,  24],
+    [45,  21],
+    [40,  18],
+    [35,  16],
+    [30,  14],
+    [25,  12],
+    [20,  10],
+    [15,   8],
+    [10,   5],
+    [5,    2],
+    [0,    0]
+  ];
+  // Interpolation linéaire entre points
+  if (displayPct >= 100) return 100;
+  if (displayPct <= 0)   return 0;
+  for (let i = 0; i < calibration.length - 1; i++) {
+    const [d1, r1] = calibration[i];
+    const [d2, r2] = calibration[i + 1];
+    if (displayPct <= d1 && displayPct >= d2) {
+      const t = (displayPct - d1) / (d2 - d1);
+      return r1 + t * (r2 - r1);
+    }
+  }
+  return displayPct;
+}
+
 function adjustKm(delta) {
   const inp = document.getElementById('kmNow');
   const val = parseFloat(inp.value) || 0;
@@ -1096,7 +1169,8 @@ function compute() {
       donutWrap.style.display = 'block';
       const CIRC = 2 * Math.PI * 34;
       const offset = CIRC * (1 - fuel / 100);
-      const fuelLiters = (fuel / 100) * tank;
+      const fuelRealPct = gaugeDisplayToRealFuel(fuel);
+      const fuelLiters = (fuelRealPct / 100) * tank;
       const fuelAutoKm = Math.round((fuelLiters / conso) * 100);
       const donutColor = fuel < 15 ? 'var(--crit)' : fuel < 30 ? 'var(--warn)' : 'var(--ok)';
       const donutFillEl = document.getElementById('donutFill');
@@ -1110,9 +1184,45 @@ function compute() {
       const alertEl2 = document.getElementById('donutAlert');
       if (fuel < 15)      { alertEl2.textContent = '⚠ CRITIQUE — Faire le plein !'; alertEl2.style.color = 'var(--crit)'; }
       else if (fuel < 30) { alertEl2.textContent = '▲ Niveau bas — Plein conseillé';  alertEl2.style.color = 'var(--warn)'; }
+      else if (fuel >= 70){ alertEl2.textContent = '◈ Jauge stable — réserve hybride'; alertEl2.style.color = 'var(--muted)'; }
       else                { alertEl2.textContent = '✓ Niveau correct';                alertEl2.style.color = 'var(--ok)'; }
     } else {
       donutWrap.style.display = 'none';
+    }
+  }
+
+  // Mise à jour du bloc autonomie page saisie (fonctionne dès que fuel + tank + conso sont renseignés)
+  {
+    const autoBlockEl = document.getElementById('autoBlock');
+    if (fuel !== null) {
+      const fuelRealPct2 = gaugeDisplayToRealFuel(fuel);
+      const fuelLiters2  = (fuelRealPct2 / 100) * tank;
+      const autoKm2      = Math.round((fuelLiters2 / conso) * 100);
+      autoBlockEl.style.display = 'block';
+      document.getElementById('autoBlockKm').textContent  = autoKm2.toLocaleString('fr-FR');
+      document.getElementById('autoBlockL').textContent   = fuelLiters2.toFixed(1) + 'L';
+      if (kmMonth) {
+        const kmPerDay2 = kmMonth / 30.4375;
+        const autoDays2 = Math.round(autoKm2 / kmPerDay2);
+        document.getElementById('autoBlockDays').textContent = autoDays2;
+        // Note explicative sur la correction hybride
+        const correction = Math.round(fuel - fuelRealPct2);
+        const noteEl = document.getElementById('autoBlockNote');
+        if (fuel >= 70) {
+          noteEl.textContent = `◈ Jauge ${fuel}% → réel ~${fuelRealPct2.toFixed(0)}% · Toyota compresse le haut (−${correction}pt)`;
+        } else {
+          noteEl.textContent = `Jauge affiche ${fuel}% · carburant réel ~${fuelRealPct2.toFixed(0)}%`;
+        }
+        // Couleur des km selon autonomie
+        const kmCol = autoKm2 < 80 ? 'var(--crit)' : autoKm2 < 150 ? 'var(--warn)' : 'var(--accent)';
+        document.getElementById('autoBlockKm').style.color   = kmCol;
+        document.getElementById('autoBlockDays').style.color = kmCol;
+      } else {
+        document.getElementById('autoBlockDays').textContent = '—';
+        document.getElementById('autoBlockNote').textContent = 'Renseigne km/mois pour les jours d\'autonomie';
+      }
+    } else {
+      autoBlockEl.style.display = 'none';
     }
   }
 
@@ -1126,7 +1236,9 @@ function compute() {
 
   const kmLeftYear  = Math.round(kmPerDay * daysLeft);
   const kmEY        = Math.round(currentKm + kmLeftYear);
-  const fuelL       = (fuel / 100) * tank;
+  // Conversion jauge affichée → carburant réel (non-linéaire Yaris Hybrid)
+  const fuelReal    = fuel !== null ? gaugeDisplayToRealFuel(fuel) : null;
+  const fuelL       = (fuelReal / 100) * tank;
   const autoKm      = Math.round((fuelL / conso) * 100);
   const autoDays    = Math.round(autoKm / kmPerDay);
   const costPer100  = (conso * price).toFixed(2);
@@ -1145,11 +1257,11 @@ function compute() {
   document.getElementById('kmPerYear').textContent   = (kmMonth * 12).toLocaleString('fr-FR');
 
   const gFill = document.getElementById('gaugeFill');
-  gFill.style.width  = fuel + '%';
+  gFill.style.width  = fuelReal + '%';
   gFill.className    = 'gauge-fill' + (fuel < 15 ? ' low' : fuel < 30 ? ' med' : '');
   document.getElementById('fuelL').textContent       = fuelL.toFixed(1) + ' L';
-  document.getElementById('fuelPct').textContent     = fuel + '%';
-  document.getElementById('fuelKmLeft').textContent  = autoKm + ' km restants';
+  document.getElementById('fuelPct').textContent     = fuel + '% affiché · ~' + Math.round(fuelReal) + '% réel';
+  document.getElementById('fuelKmLeft').textContent  = autoKm.toLocaleString('fr-FR') + ' km restants';
 
   const alertEl = document.getElementById('fuelAlert');
   if (fuel < 15)      alertEl.innerHTML = '<div class="alert warn">⚠ CARBURANT CRITIQUE — Faire le plein immédiatement</div>';
