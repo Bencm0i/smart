@@ -1987,8 +1987,21 @@ async function fetchInvPrice(key, i) {
   if (!row || !row.ticker) return;
   const ticker = row.ticker.trim().toUpperCase();
 
-  // Suffixes à essayer : .PA (Euronext Paris), .AS (Amsterdam), direct (US)
-  const candidates = ticker.includes('.') ? [ticker] : [`${ticker}.PA`, ticker];
+  // Suffixes à essayer selon le type de ticker
+  let candidates;
+  if (ticker.includes('.') || ticker.includes('-')) {
+    // Déjà qualifié (ex: WPEA.PA, BTC-EUR)
+    candidates = [ticker];
+  } else if (['BTC','ETH','SOL','XRP','ADA','DOT','AVAX','MATIC','LINK','LTC'].includes(ticker)) {
+    // Crypto → EUR pair
+    candidates = [`${ticker}-EUR`, `${ticker}-USD`];
+  } else if (['XAU','GLD','GOLD','OR'].includes(ticker)) {
+    // Or
+    candidates = [`GC=F`, `XAUEUR=X`, `GLD`];
+  } else {
+    // Actions/ETF : Euronext Paris en priorité, puis US
+    candidates = [`${ticker}.PA`, `${ticker}.AS`, ticker];
+  }
 
   const btnId = `inv-fetch-${key}-${i}`;
   const inp = document.getElementById(`inv-cours-${key}-${i}`);
