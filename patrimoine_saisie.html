@@ -1190,21 +1190,30 @@ button, input, select { touch-action: manipulation; }
   <div class="section accent-blue">
     <div class="section-head">
       <div class="section-title">📈 PEA</div>
-      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('pea')">＋</button>
+      <div style="display:flex;gap:6px;">
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;border-style:solid;font-size:11px;" onclick="fetchAllInvPrices('pea')" title="Récupérer tous les cours live">⟳ Cours</button>
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('pea')">＋</button>
+      </div>
     </div>
     <div class="section-body" id="body-pea"></div>
   </div>
   <div class="section accent-green">
     <div class="section-head">
       <div class="section-title">📊 CTO</div>
-      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('cto')">＋</button>
+      <div style="display:flex;gap:6px;">
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;border-style:solid;font-size:11px;" onclick="fetchAllInvPrices('cto')" title="Récupérer tous les cours live">⟳ Cours</button>
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('cto')">＋</button>
+      </div>
     </div>
     <div class="section-body" id="body-cto"></div>
   </div>
   <div class="section accent-gold">
     <div class="section-head">
       <div class="section-title">💳 Revolut Invest.</div>
-      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('revolut')">＋</button>
+      <div style="display:flex;gap:6px;">
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;border-style:solid;font-size:11px;" onclick="fetchAllInvPrices('revolut')" title="Récupérer tous les cours live">⟳ Cours</button>
+        <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addInvRow('revolut')">＋</button>
+      </div>
     </div>
     <div class="section-body" id="body-inv-revolut"></div>
   </div>
@@ -1769,14 +1778,16 @@ function renderInvPortfolio(key, containerId) {
               oninput="DATA.investissements['${key}'][${i}].pr=parseFloat(this.value)||0;autoSave()">
           </div>
           <div class="form-field full">
-            <label class="lbl">Cours actuel (€)</label>
-            <input type="number" value="${r.coursActuel||''}" step="0.01" min="0" placeholder="0.00" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements['${key}'][${i}].coursActuel=parseFloat(this.value)||0;syncInvToBank();autoSave()">
+            <label class="lbl">Cours actuel (€) ${r.ticker ? `<button id="inv-fetch-${key}-${i}" onclick="fetchInvPrice('${key}',${i})" title="Récupérer le cours live (Yahoo Finance)" style="background:rgba(126,184,212,0.12);border:1px solid rgba(126,184,212,0.3);color:var(--accent);font-size:11px;padding:1px 7px;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;vertical-align:middle;margin-left:4px;">⟳</button>` : ''}</label>
+            <input type="number" id="inv-cours-${key}-${i}" value="${r.coursActuel||''}" step="0.01" min="0" placeholder="0.00" inputmode="decimal" autocomplete="off"
+              oninput="DATA.investissements['${key}'][${i}].coursActuel=parseFloat(this.value)||0;syncInvToBank();renderInvTotals('${key}');autoSave()">
           </div>
         </div>
       </div>
     </div>`;
   }).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ pour ajouter.</p>';
+  container.innerHTML += `<div id="inv-total-${key}"></div>`;
+  renderInvTotals(key);
 }
 
 function addInvRow(key) {
@@ -1963,6 +1974,80 @@ function syncInvToBank() {
     });
     updateBankTotal(bank, 'body-'+bank);
   });
+}
+
+// ─── FETCH LIVE PRIX INVEST ────────────────────────────────────────────────
+const INV_CORS_PROXIES = [
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+];
+
+async function fetchInvPrice(key, i) {
+  const row = DATA.investissements[key]?.[i];
+  if (!row || !row.ticker) return;
+  const ticker = row.ticker.trim().toUpperCase();
+
+  // Suffixes à essayer : .PA (Euronext Paris), .AS (Amsterdam), direct (US)
+  const candidates = ticker.includes('.') ? [ticker] : [`${ticker}.PA`, ticker];
+
+  const btnId = `inv-fetch-${key}-${i}`;
+  const inp = document.getElementById(`inv-cours-${key}-${i}`);
+  const btn = document.getElementById(btnId);
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+
+  for (const sym of candidates) {
+    const base = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
+    const urls = [base, ...INV_CORS_PROXIES.map(p => p(base))];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        if (!res.ok) continue;
+        const j = await res.json();
+        const meta = j?.chart?.result?.[0]?.meta;
+        if (!meta) continue;
+        const price = meta.regularMarketPrice ?? meta.previousClose;
+        if (!price) continue;
+        // Succès
+        DATA.investissements[key][i].coursActuel = price;
+        if (inp) {
+          inp.value = price.toFixed(2);
+          inp.classList.add('input-saved');
+          setTimeout(() => inp.classList.remove('input-saved'), 800);
+        }
+        syncInvToBank();
+        autoSave();
+        renderInvTotals(key);
+        if (btn) { btn.textContent = '✓'; btn.disabled = false; setTimeout(()=>{if(btn)btn.textContent='⟳';},1500); }
+        return;
+      } catch(_) {}
+    }
+  }
+  if (btn) { btn.textContent = '✗'; btn.disabled = false; setTimeout(()=>{if(btn)btn.textContent='⟳';},2000); }
+}
+
+async function fetchAllInvPrices(key) {
+  const rows = DATA.investissements[key] || [];
+  const promises = rows.map((r, i) => r.ticker ? fetchInvPrice(key, i) : Promise.resolve());
+  await Promise.allSettled(promises);
+}
+
+function renderInvTotals(key) {
+  const rows = DATA.investissements[key] || [];
+  const totalVal = rows.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0);
+  const totalPR  = rows.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0);
+  const pmv = totalVal - totalPR;
+  const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+  const el = document.getElementById(`inv-total-${key}`);
+  if (!el) return;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:6px;">
+      <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">VALEUR ACTUELLE</span>
+      <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);">${fmtEur(totalVal)}</span>
+    </div>
+    ${totalPR > 0 ? `<div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:4px;">
+      <span style="font-size:10px;color:var(--muted);">P/MV latente</span>
+      <span style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:${pmv>=0?'var(--green)':'var(--red)'};">${pmv>=0?'+':''}${fmtEur(pmv)}</span>
+    </div>` : ''}`;
 }
 
 // ─── SCPI ──────────────────────────────────────────────────────────────────
