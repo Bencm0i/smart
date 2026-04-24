@@ -1996,8 +1996,8 @@ async function fetchInvPrice(key, i) {
     // Crypto → EUR pair
     candidates = [`${ticker}-EUR`, `${ticker}-USD`];
   } else if (['XAU','GLD','GOLD','OR'].includes(ticker)) {
-    // Or
-    candidates = [`GC=F`, `XAUEUR=X`, `GLD`];
+    // Or → EUR en priorité
+    candidates = [`XAUEUR=X`, `GC=F`];
   } else {
     // Actions/ETF : Euronext Paris en priorité, puis US
     candidates = [`${ticker}.PA`, `${ticker}.AS`, ticker];
@@ -2018,8 +2018,16 @@ async function fetchInvPrice(key, i) {
         const j = await res.json();
         const meta = j?.chart?.result?.[0]?.meta;
         if (!meta) continue;
-        const price = meta.regularMarketPrice ?? meta.previousClose;
+        let price = meta.regularMarketPrice ?? meta.previousClose;
         if (!price) continue;
+        // Si on a dû utiliser un symbole USD (GC=F, BTC-USD…), convertir en EUR
+        const isUSD = meta.currency === 'USD' && !sym.includes('EUR');
+        if (isUSD) {
+          // Récupérer le taux EUR/USD depuis l'état ticker band si dispo
+          const eurusd = window._tickerState?.['eur']?.price || null;
+          if (eurusd && eurusd > 0) price = price / eurusd;
+          else { continue; } // Pas de taux dispo, essayer candidat suivant
+        }
         // Succès
         DATA.investissements[key][i].coursActuel = price;
         if (inp) {
@@ -3425,6 +3433,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const state = {};
   TICKERS_DEF.forEach(t => { state[t.id] = { price: null, chgAbs: null, chgPct: null }; });
+  window._tickerState = state; // Exposé pour fetchInvPrice (conversion USD→EUR)
 
   function fmtPrice(v, fmt) {
     if (!v && v !== 0) return '—';
