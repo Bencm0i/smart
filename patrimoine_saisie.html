@@ -3050,14 +3050,18 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>`).join('');
   }
 
-  function renderChartATH() {
+  function renderChartATH(currentPatrimoine) {
     const ath = (DATA.ath || []).filter(e => e.date && e.val > 0);
     const emptyEl = document.getElementById('ath-chart-empty');
     const canvasEl = document.getElementById('chart-ath');
     const badge = document.getElementById('kpi-ath-badge');
     const legend = document.getElementById('ath-chart-legend');
 
-    if (!ath.length) {
+    // Si pas d'ATH mais un patrimoine actuel, on affiche quand même le point actuel
+    const hasATH = ath.length > 0;
+    const hasCurrent = currentPatrimoine > 0;
+
+    if (!hasATH && !hasCurrent) {
       if (emptyEl)  emptyEl.style.display = 'block';
       if (canvasEl) canvasEl.style.display = 'none';
       if (badge)    badge.textContent = '—';
@@ -3068,18 +3072,29 @@ window.addEventListener('DOMContentLoaded', () => {
     if (canvasEl) canvasEl.style.display = 'block';
 
     // Sort by date
-    const sorted = [...ath].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const latest = sorted[sorted.length - 1];
-    if (badge) badge.textContent = fmt(latest.val);
+    const sorted = hasATH ? [...ath].sort((a, b) => new Date(a.date) - new Date(b.date)) : [];
+    const latest = sorted.length ? sorted[sorted.length - 1] : null;
+    if (badge) badge.textContent = latest ? fmt(latest.val) : '—';
 
-    const labels = sorted.map(e => {
-      const d = new Date(e.date);
-      return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'2-digit' });
-    });
-    const values = sorted.map(e => e.val);
+    // Construire les labels : ATH + "Actuel" si la date du jour n'est pas déjà le dernier point
+    const todayLabel = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'2-digit' });
+    const athLabels = sorted.map(e => new Date(e.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'2-digit' }));
+    const lastLabel = athLabels[athLabels.length - 1];
+    const needsTodayLabel = hasCurrent && lastLabel !== todayLabel;
+    const labels = needsTodayLabel ? [...athLabels, todayLabel] : athLabels;
+    const nPoints = labels.length;
 
-    // Gradient fill
-    const getGrad = (ctx) => {
+    // Dataset 1 : ATH (gold)
+    const athValues = sorted.map(e => e.val);
+    // Si on a ajouté "Actuel" à la fin, on laisse null pour que la ligne ATH ne se prolonge pas
+    const athData = needsTodayLabel ? [...athValues, null] : athValues;
+
+    // Dataset 2 : Patrimoine actuel — point unique à la dernière position + ligne horizontale en pointillés
+    // On répète la valeur sur toute la plage pour tracer une ligne de référence horizontale
+    const patData = hasCurrent ? labels.map(() => currentPatrimoine) : [];
+
+    // Gradient fill ATH
+    const getGradATH = (ctx) => {
       const grad = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
       grad.addColorStop(0,  'rgba(200,169,110,0.45)');
       grad.addColorStop(0.6,'rgba(200,169,110,0.12)');
@@ -3087,31 +3102,69 @@ window.addEventListener('DOMContentLoaded', () => {
       return grad;
     };
 
+    // Gradient fill Actuel
+    const getGradPat = (ctx) => {
+      const grad = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
+      grad.addColorStop(0,  'rgba(126,184,212,0.18)');
+      grad.addColorStop(1,  'rgba(126,184,212,0.0)');
+      return grad;
+    };
+
+    const datasets = [];
+
+    // ATH dataset
+    if (hasATH) {
+      datasets.push({
+        label: 'ATH',
+        data: athData,
+        borderColor: '#c8a96e',
+        borderWidth: 2.5,
+        pointBackgroundColor: athData.map((v, i) => v != null && i === athValues.length - 1 ? '#f7d080' : '#c8a96e'),
+        pointBorderColor:     athData.map((v, i) => v != null && i === athValues.length - 1 ? '#fff'   : '#c8a96e'),
+        pointRadius:          athData.map((v, i) => v == null ? 0 : (i === athValues.length - 1 ? 6 : 4)),
+        pointHoverRadius: 7,
+        fill: true,
+        backgroundColor: function(ctx) { return getGradATH(ctx); },
+        tension: 0.35,
+        spanGaps: false,
+      });
+    }
+
+    // Patrimoine actuel dataset (ligne horizontale en pointillés)
+    if (hasCurrent) {
+      datasets.push({
+        label: 'Patrimoine actuel',
+        data: patData,
+        borderColor: '#7eb8d4',
+        borderWidth: 2,
+        borderDash: [6, 4],
+        pointBackgroundColor: patData.map((_, i) => i === nPoints - 1 ? '#7eb8d4' : 'transparent'),
+        pointBorderColor:     patData.map((_, i) => i === nPoints - 1 ? '#fff'   : 'transparent'),
+        pointRadius:          patData.map((_, i) => i === nPoints - 1 ? 6 : 0),
+        pointHoverRadius: 7,
+        fill: true,
+        backgroundColor: function(ctx) { return getGradPat(ctx); },
+        tension: 0,
+      });
+    }
+
     mkChart('chart-ath', {
       type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          data: values,
-          borderColor: '#c8a96e',
-          borderWidth: 2.5,
-          pointBackgroundColor: values.map((v, i) => i === values.length - 1 ? '#f7d080' : '#c8a96e'),
-          pointBorderColor:     values.map((v, i) => i === values.length - 1 ? '#fff'   : '#c8a96e'),
-          pointRadius:          values.map((v, i) => i === values.length - 1 ? 6 : 4),
-          pointHoverRadius: 7,
-          fill: true,
-          backgroundColor: function(ctx) { return getGrad(ctx); },
-          tension: 0.35,
-        }]
-      },
+      data: { labels, datasets },
       options: {
         plugins: {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: ctx => ' ' + fmt(ctx.raw),
+              label: ctx => {
+                if (ctx.raw == null) return '';
+                const name = ctx.dataset.label === 'ATH' ? '🏆 ATH' : '📊 Actuel';
+                return ' ' + name + ' : ' + fmt(ctx.raw);
+              },
               afterLabel: (ctx) => {
-                const prev = values[ctx.dataIndex - 1];
+                if (ctx.dataset.label !== 'ATH') return '';
+                const vals = sorted.map(e => e.val);
+                const prev = vals[ctx.dataIndex - 1];
                 if (prev == null) return '';
                 const diff = ctx.raw - prev;
                 const pctV = (diff / prev * 100);
@@ -3139,18 +3192,29 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Légende : delta entre 1er et dernier ATH
-    if (legend && sorted.length >= 2) {
-      const first  = sorted[0];
-      const diff   = latest.val - first.val;
-      const pctTot = (diff / first.val * 100);
-      const col    = diff >= 0 ? '#5aab7a' : '#c05a5a';
-      legend.innerHTML = `
-        <span>📅 1er ATH : <strong>${new Date(first.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong> — ${fmt(first.val)}</span>
-        <span>🏆 Dernier : <strong>${new Date(latest.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong> — ${fmt(latest.val)}</span>
-        <span style="color:${col};">${diff>=0?'▲ +':'▼ '}${fmt(Math.abs(diff))} (${diff>=0?'+':''}${pctTot.toFixed(1)}%) sur ${sorted.length} jalons</span>`;
-    } else if (legend && sorted.length === 1) {
-      legend.innerHTML = `<span>🏆 1 seul ATH enregistré — ${new Date(latest.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})} : ${fmt(latest.val)}</span>`;
+    // Légende
+    if (legend) {
+      const parts = [];
+      if (sorted.length >= 2) {
+        const first  = sorted[0];
+        const diff   = latest.val - first.val;
+        const pctTot = (diff / first.val * 100);
+        const col    = diff >= 0 ? '#5aab7a' : '#c05a5a';
+        parts.push(`<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:2px;background:#c8a96e;border-radius:1px;"></span>📅 1er ATH : <strong>${new Date(sorted[0].date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong> — ${fmt(sorted[0].val)}</span>`);
+        parts.push(`<span>🏆 Dernier ATH : <strong>${new Date(latest.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</strong> — ${fmt(latest.val)}</span>`);
+        parts.push(`<span style="color:${col};">${diff>=0?'▲ +':'▼ '}${fmt(Math.abs(diff))} (${diff>=0?'+':''}${pctTot.toFixed(1)}%) sur ${sorted.length} jalons</span>`);
+      } else if (sorted.length === 1) {
+        parts.push(`<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:2px;background:#c8a96e;border-radius:1px;"></span>🏆 1 seul ATH — ${new Date(latest.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})} : ${fmt(latest.val)}</span>`);
+      }
+      if (hasCurrent) {
+        const vsATH = latest ? currentPatrimoine - latest.val : null;
+        const vsCol = vsATH != null ? (vsATH >= 0 ? '#5aab7a' : '#c05a5a') : '#7eb8d4';
+        const vsStr = vsATH != null
+          ? ` — ${vsATH >= 0 ? '▲ +' : '▼ '}${fmt(Math.abs(vsATH))} vs ATH`
+          : '';
+        parts.push(`<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:2px;background:#7eb8d4;border-radius:1px;border-top:2px dashed #7eb8d4;"></span><span style="color:#7eb8d4;">📊 Actuel : ${fmt(currentPatrimoine)}</span><span style="color:${vsCol};">${vsStr}</span></span>`);
+      }
+      legend.innerHTML = parts.join('');
     }
   }
 
@@ -3166,7 +3230,7 @@ window.addEventListener('DOMContentLoaded', () => {
       renderChartRisque(k);
       renderChartDepenses(k);
       renderChartPMV(k);
-      renderChartATH();
+      renderChartATH(k.grandTotal);
     } catch(e) { console.warn('KPI charts:', e); }
   };
 
