@@ -694,10 +694,40 @@ body {
           </button>
         </div>
         <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()">
-        <input type="range" id="fuelSlider" min="0" max="100" step="1" value="50"
-          oninput="syncFuelInput()"
-          style="width:100%;margin-top:8px;cursor:pointer;">
-        <div class="iunit">% du réservoir</div>
+        <!-- Wrapper slider avec bulle Toyota au-dessus et graduations en dessous -->
+        <div style="position:relative;margin-top:22px;margin-bottom:2px;">
+          <!-- Bulle % Toyota au-dessus du curseur -->
+          <div id="sliderBubble" style="
+            position:absolute;top:-22px;
+            transform:translateX(-50%);
+            font-family:var(--font-mono);font-size:0.75rem;font-weight:700;
+            color:var(--accent);line-height:1;
+            white-space:nowrap;pointer-events:none;
+            transition:left .05s linear;
+          "></div>
+          <input type="range" id="fuelSlider" min="0" max="100" step="1" value="50"
+            oninput="syncFuelInput()"
+            style="width:100%;cursor:pointer;">
+          <!-- Graduations fixes en dessous : valeurs remarquables Toyota -->
+          <!-- 80% affiché ≈ 58% réel | 50% affiché ≈ 24% réel | 20% affiché ≈ 10% réel -->
+          <div style="position:relative;height:18px;margin-top:3px;">
+            <!-- tick 80% = position 80% de la barre -->
+            <div style="position:absolute;left:80%;transform:translateX(-50%);text-align:center;">
+              <div style="width:1px;height:5px;background:var(--border);margin:0 auto;"></div>
+              <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:1px;white-space:nowrap;">80%→58%</div>
+            </div>
+            <!-- tick 50% -->
+            <div style="position:absolute;left:50%;transform:translateX(-50%);text-align:center;">
+              <div style="width:1px;height:5px;background:var(--border);margin:0 auto;"></div>
+              <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:1px;white-space:nowrap;">50%→24%</div>
+            </div>
+            <!-- tick 20% -->
+            <div style="position:absolute;left:20%;transform:translateX(-50%);text-align:center;">
+              <div style="width:1px;height:5px;background:var(--border);margin:0 auto;"></div>
+              <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:1px;white-space:nowrap;">20%→10%</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="iblock">
         <label>CAPACITÉ RÉSERVOIR</label>
@@ -1031,49 +1061,29 @@ function fv(id) { const v = parseFloat(document.getElementById(id).value); retur
 function fd(id) { const v = document.getElementById(id).value; return v ? new Date(v) : null; }
 function monthsBetween(d1, d2) { return (d2 - d1) / (1000 * 60 * 60 * 24 * 30.4375); }
 
-/* ── JAUGE NON-LINÉAIRE YARIS HYBRID ──────────────────────────────────────
-   Toyota compresse volontairement le haut du réservoir en affichage :
-   - Haut (100→60% affiché) : la jauge bouge peu → on a consommé PLUS
-     que ce que la jauge montre (réservoir réel plus bas que l'affichage)
-   - Bas (60→0% affiché) : la jauge descend plus vite → on a encore
-     PLUS de carbu qu'il n'y paraît (psychologie anti-panique)
-   
-   Courbe : affichage% → carburant réel% dans le réservoir physique
+/* ── JAUGE LINÉAIRE — % affiché = % réel ──────────────────────────────────
+   On fait confiance à la jauge telle quelle. Toyota corrige peut-être
+   l'affichage mais on ne connaît pas la courbe exacte — autant utiliser
+   ce que le tableau de bord indique directement.
    ─────────────────────────────────────────────────────────────────────── */
 function gaugeDisplayToRealFuel(displayPct) {
-  // Points de calibration [affichage%, carburant_réel%]
-  // Haut compressé : 100% affiché → 100% réel, mais 80% affiché → ~65% réel
-  // (on a déjà consommé 35% sans que la jauge descende beaucoup)
-  // Bas réactif : 20% affiché → ~25% réel (plus de carbu qu'affiché)
-  const calibration = [
-    [100, 100],
-    [95,  88],
-    [90,  77],
-    [85,  67],
-    [80,  58],
-    [75,  50],
-    [70,  43],
-    [65,  37],
-    [60,  32],
-    [55,  28],
-    [50,  24],
-    [45,  21],
-    [40,  18],
-    [35,  16],
-    [30,  14],
-    [25,  12],
-    [20,  10],
-    [15,   8],
-    [10,   5],
-    [5,    2],
-    [0,    0]
+  return displayPct;
+}
+
+/* ── COURBE TOYOTA (informatif uniquement) ─────────────────────────────────
+   Toyota compresse le haut : la jauge bouge peu au début, puis s'accélère.
+   Utilisé uniquement pour afficher "réservoir réel estimé" sous le slider.
+   ─────────────────────────────────────────────────────────────────────── */
+function toyotaRealPct(displayPct) {
+  const cal = [
+    [100,100],[95,88],[90,77],[85,67],[80,58],[75,50],
+    [70,43],[65,37],[60,32],[55,28],[50,24],[45,21],
+    [40,18],[35,16],[30,14],[25,12],[20,10],[15,8],[10,5],[5,2],[0,0]
   ];
-  // Interpolation linéaire entre points
   if (displayPct >= 100) return 100;
   if (displayPct <= 0)   return 0;
-  for (let i = 0; i < calibration.length - 1; i++) {
-    const [d1, r1] = calibration[i];
-    const [d2, r2] = calibration[i + 1];
+  for (let i = 0; i < cal.length - 1; i++) {
+    const [d1,r1] = cal[i], [d2,r2] = cal[i+1];
     if (displayPct <= d1 && displayPct >= d2) {
       const t = (displayPct - d1) / (d2 - d1);
       return r1 + t * (r2 - r1);
@@ -1095,6 +1105,16 @@ function updateSliderColor() {
   document.getElementById('fuelSlider').style.setProperty('--fuel-color', color);
   document.getElementById('fuelSlider').style.background =
     `linear-gradient(to right, ${v>=50?'var(--ok)':v>=25?'var(--warn)':'var(--crit)'} 0%, ${v>=50?'var(--ok)':v>=25?'var(--warn)':'var(--crit)'} ${v}%, var(--bg3) ${v}%, var(--bg3) 100%)`;
+  // Bulle % Toyota au-dessus du curseur
+  const real   = toyotaRealPct(v);
+  const bubble = document.getElementById('sliderBubble');
+  if (bubble) {
+    const thumbOffset = 13;
+    const pct = v / 100;
+    bubble.style.left = `calc(${thumbOffset}px + ${pct} * (100% - ${thumbOffset * 2}px))`;
+    bubble.textContent = '≈' + Math.round(real) + '%';
+    bubble.style.color = v >= 50 ? 'var(--ok)' : v >= 25 ? 'var(--warn)' : 'var(--crit)';
+  }
 }
 
 function syncFuelSlider() {
@@ -1208,11 +1228,7 @@ function compute() {
         // Note explicative sur la correction hybride
         const correction = Math.round(fuel - fuelRealPct2);
         const noteEl = document.getElementById('autoBlockNote');
-        if (fuel >= 70) {
-          noteEl.textContent = `◈ Jauge ${fuel}% → réel ~${fuelRealPct2.toFixed(0)}% · Toyota compresse le haut (−${correction}pt)`;
-        } else {
-          noteEl.textContent = `Jauge affiche ${fuel}% · carburant réel ~${fuelRealPct2.toFixed(0)}%`;
-        }
+        noteEl.textContent = `Jauge ${fuel}% → ${fuelLiters2.toFixed(1)} L · ${(kmMonth / 30.4375).toFixed(0)} km/jour`;
         // Couleur des km selon autonomie
         const kmCol = autoKm2 < 80 ? 'var(--crit)' : autoKm2 < 150 ? 'var(--warn)' : 'var(--accent)';
         document.getElementById('autoBlockKm').style.color   = kmCol;
@@ -1260,7 +1276,7 @@ function compute() {
   gFill.style.width  = fuelReal + '%';
   gFill.className    = 'gauge-fill' + (fuel < 15 ? ' low' : fuel < 30 ? ' med' : '');
   document.getElementById('fuelL').textContent       = fuelL.toFixed(1) + ' L';
-  document.getElementById('fuelPct').textContent     = fuel + '% affiché · ~' + Math.round(fuelReal) + '% réel';
+  document.getElementById('fuelPct').textContent     = fuel + '%';
   document.getElementById('fuelKmLeft').textContent  = autoKm.toLocaleString('fr-FR') + ' km restants';
 
   const alertEl = document.getElementById('fuelAlert');
