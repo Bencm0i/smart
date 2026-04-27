@@ -634,6 +634,41 @@ body {
   <!-- PAGE 1 : SAISIE -->
   <div class="page active" id="page-saisie">
 
+    <!-- KPI RAPIDES + LIEN TOYOTA -->
+    <div id="kpiTopBar" style="display:none;margin-bottom:10px;">
+      <div style="display:flex;gap:7px;margin-bottom:7px;">
+        <div style="flex:1;background:var(--panel);border:2px solid var(--accent);border-radius:8px;padding:9px 10px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);"></div>
+          <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:3px;">Km restants</div>
+          <div id="kpiTopKm" style="font-family:var(--font-mono);font-size:1.45rem;font-weight:600;color:var(--accent);line-height:1;">—</div>
+          <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:2px;">avec carbu. réel</div>
+        </div>
+        <div style="flex:1;background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:9px 10px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--border2);opacity:.4;"></div>
+          <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:3px;">Jours autonomie</div>
+          <div id="kpiTopDays" style="font-family:var(--font-mono);font-size:1.45rem;font-weight:600;color:var(--accent);line-height:1;">—</div>
+          <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:2px;">à usage normal</div>
+        </div>
+        <div style="flex:1;background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:9px 10px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--border2);opacity:.4;"></div>
+          <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:3px;">Litres réels</div>
+          <div id="kpiTopL" style="font-family:var(--font-mono);font-size:1.45rem;font-weight:600;color:var(--txt2);line-height:1;">—</div>
+          <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:2px;">jauge corrigée</div>
+        </div>
+      </div>
+      <!-- Lien Toyota MyT -->
+      <a href="intent://launch#Intent;package=app.mytoyota.toyota.com.mytoyota;end"
+         style="display:flex;align-items:center;gap:9px;background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:9px 13px;text-decoration:none;color:var(--txt);transition:border-color .2s;-webkit-tap-highlight-color:transparent;"
+         ontouchstart="this.style.borderColor='var(--accent)'" ontouchend="this.style.borderColor='var(--border)'">
+        <span style="font-size:22px;line-height:1;flex-shrink:0;">🚗</span>
+        <div style="flex:1;">
+          <div style="font-family:var(--font-body);font-size:0.82rem;font-weight:600;color:var(--txt);">MyT by Toyota</div>
+          <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.06em;">Ouvrir l'application Toyota</div>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);">▶</span>
+      </a>
+    </div>
+
     <div class="sec-title">// HISTORIQUE KILOMÉTRAGE</div>
     <div class="grid2">
       <div class="iblock">
@@ -1061,13 +1096,12 @@ function fv(id) { const v = parseFloat(document.getElementById(id).value); retur
 function fd(id) { const v = document.getElementById(id).value; return v ? new Date(v) : null; }
 function monthsBetween(d1, d2) { return (d2 - d1) / (1000 * 60 * 60 * 24 * 30.4375); }
 
-/* ── JAUGE LINÉAIRE — % affiché = % réel ──────────────────────────────────
-   On fait confiance à la jauge telle quelle. Toyota corrige peut-être
-   l'affichage mais on ne connaît pas la courbe exacte — autant utiliser
-   ce que le tableau de bord indique directement.
+/* ── COURBE TOYOTA NON-LINÉAIRE — jauge affichée → % réservoir réel ────────
+   La jauge Toyota compresse le haut : elle bouge peu au début puis s'accélère.
+   On utilise la même table de calibration que toyotaRealPct().
    ─────────────────────────────────────────────────────────────────────── */
 function gaugeDisplayToRealFuel(displayPct) {
-  return displayPct;
+  return toyotaRealPct(displayPct);
 }
 
 /* ── COURBE TOYOTA (informatif uniquement) ─────────────────────────────────
@@ -1239,6 +1273,31 @@ function compute() {
       }
     } else {
       autoBlockEl.style.display = 'none';
+    }
+  }
+
+  // KPI barre du haut (page saisie)
+  {
+    const kpiBar = document.getElementById('kpiTopBar');
+    if (fuel !== null) {
+      kpiBar.style.display = 'block';
+      const fuelRealPctTop = toyotaRealPct(fuel);
+      const fuelLitersTop  = (fuelRealPctTop / 100) * tank;
+      const autoKmTop      = Math.round((fuelLitersTop / conso) * 100);
+      document.getElementById('kpiTopKm').textContent = autoKmTop.toLocaleString('fr-FR');
+      document.getElementById('kpiTopL').textContent  = fuelLitersTop.toFixed(1) + ' L';
+      const colTop = autoKmTop < 80 ? 'var(--crit)' : autoKmTop < 150 ? 'var(--warn)' : 'var(--accent)';
+      document.getElementById('kpiTopKm').style.color = colTop;
+      if (kmMonth) {
+        const daysTop = Math.round(autoKmTop / (kmMonth / 30.4375));
+        document.getElementById('kpiTopDays').textContent = daysTop;
+        document.getElementById('kpiTopDays').style.color = colTop;
+      } else {
+        document.getElementById('kpiTopDays').textContent = '—';
+        document.getElementById('kpiTopDays').style.color = 'var(--accent)';
+      }
+    } else {
+      kpiBar.style.display = 'none';
     }
   }
 
