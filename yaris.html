@@ -622,15 +622,10 @@ body {
       <div class="subtitle" id="headerSub">CARBURANT &amp; KILOMÉTRAGE</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;">
-    <a href="index.html" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;text-decoration:none;transition:all .2s;-webkit-tap-highlight-color:transparent;" ontouchstart="this.style.borderColor='var(--accent)'" ontouchend="this.style.borderColor='var(--border)'">
-      <span style="font-size:16px;line-height:1;">🏠</span>
-    </a>
-    <button class="toggle-btn" onclick="toggleTheme()">
-      <span class="toggle-dot" id="toggleDot">🌿</span>
-      <span id="themeLabel">Mode Mil.</span>
-    </button>
-  </div>
+  <button class="toggle-btn" onclick="toggleTheme()">
+    <span class="toggle-dot" id="toggleDot">🌿</span>
+    <span id="themeLabel">Mode Mil.</span>
+  </button>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -661,17 +656,24 @@ body {
           <div style="font-family:var(--font-mono);font-size:0.5rem;color:var(--muted);margin-top:2px;">jauge corrigée</div>
         </div>
       </div>
-      <!-- Lien Toyota MyT -->
-      <a href="intent://launch#Intent;package=app.mytoyota.toyota.com.mytoyota;end"
-         style="display:flex;align-items:center;gap:9px;background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:9px 13px;text-decoration:none;color:var(--txt);transition:border-color .2s;-webkit-tap-highlight-color:transparent;"
-         ontouchstart="this.style.borderColor='var(--accent)'" ontouchend="this.style.borderColor='var(--border)'">
-        <span style="font-size:22px;line-height:1;flex-shrink:0;">🚗</span>
-        <div style="flex:1;">
-          <div style="font-family:var(--font-body);font-size:0.82rem;font-weight:600;color:var(--txt);">MyT by Toyota</div>
-          <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.06em;">Ouvrir l'application Toyota</div>
+      <!-- Lien Toyota MyT configurable -->
+      <div style="background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:10px 13px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+          <span style="font-size:20px;line-height:1;flex-shrink:0;">🚗</span>
+          <div style="flex:1;">
+            <div style="font-family:var(--font-body);font-size:0.82rem;font-weight:600;color:var(--txt);">MyT by Toyota</div>
+            <div style="font-family:var(--font-mono);font-size:0.52rem;color:var(--muted);letter-spacing:.06em;">Intent Android personnalisable</div>
+          </div>
         </div>
-        <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--accent);">▶</span>
-      </a>
+        <div style="display:flex;gap:6px;">
+          <input id="toyotaIntent" type="text" placeholder="intent://..." 
+                 style="flex:1;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:6px 9px;font-family:var(--font-mono);font-size:0.62rem;color:var(--txt);outline:none;"
+                 oninput="saveToyotaIntent()">
+          <button onclick="launchToyotaIntent()" 
+                  style="background:var(--accent);border:none;border-radius:6px;padding:6px 12px;font-family:var(--font-mono);font-size:0.65rem;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;"
+                  ontouchstart="this.style.opacity='0.8'" ontouchend="this.style.opacity='1'">▶ Ouvrir</button>
+        </div>
+      </div>
     </div>
 
     <div class="sec-title">// HISTORIQUE KILOMÉTRAGE</div>
@@ -736,10 +738,7 @@ body {
             <span id="sliderLockLabel">LIBRE</span>
           </button>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:6px;">
-          <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()" style="flex:1;">
-          <button class="btn primary" onclick="doPleinFait()" style="padding:4px 10px;font-size:0.72rem;white-space:nowrap;flex-shrink:0;">⛽ Plein !</button>
-        </div>
+        <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()">
         <!-- Wrapper slider avec bulle Toyota au-dessus et graduations en dessous -->
         <div style="position:relative;margin-top:22px;margin-bottom:2px;">
           <!-- Bulle % Toyota au-dessus du curseur -->
@@ -1121,6 +1120,32 @@ function vibrate(ms = 10) {
   if (navigator.vibrate) navigator.vibrate(ms);
 }
 
+/* ── INTENT TOYOTA ── */
+function saveToyotaIntent() {
+  const intent = document.getElementById('toyotaIntent').value;
+  localStorage.setItem('yaris_toyotaIntent', intent);
+}
+
+function loadToyotaIntent() {
+  const saved = localStorage.getItem('yaris_toyotaIntent');
+  if (saved) {
+    document.getElementById('toyotaIntent').value = saved;
+  } else {
+    // Intent par défaut
+    document.getElementById('toyotaIntent').value = 'intent://launch#Intent;package=app.mytoyota.toyota.com.mytoyota;end';
+  }
+}
+
+function launchToyotaIntent() {
+  const intent = document.getElementById('toyotaIntent').value.trim();
+  if (!intent) {
+    alert('Renseigne un intent Android');
+    return;
+  }
+  vibrate(12);
+  window.location.href = intent;
+}
+
 /* ── SWIPE GESTION ONGLETS ── */
 let touchStartX = 0;
 let touchEndX = 0;
@@ -1135,14 +1160,6 @@ mainScroll.addEventListener('touchend', e => {
   if (diff > 0 && current < pages.length - 1) { vibrate(5); switchPage(pages[current + 1]); }
   if (diff < 0 && current > 0) { vibrate(5); switchPage(pages[current - 1]); }
 }, {passive: true});
-
-/* ── PLEIN FAIT ── */
-function doPleinFait() {
-  document.getElementById('fuel').value = 100;
-  syncFuelSlider();
-  compute();
-  vibrate(15);
-}
 
 /* ── AUJOURD'HUI ── */
 function setToday() {
@@ -1899,6 +1916,8 @@ document.querySelectorAll('#page-saisie input').forEach(inp => {
   }
   // Charger pleins
   loadPleins();
+  // Charger intent Toyota
+  loadToyotaIntent();
   // Restaurer dernier onglet KPI
   const lastTab = localStorage.getItem('yaris_lastKpiTab');
   if (lastTab && ['route', 'carbu', 'cout', 'pleins'].includes(lastTab)) {
