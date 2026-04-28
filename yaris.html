@@ -622,10 +622,15 @@ body {
       <div class="subtitle" id="headerSub">CARBURANT &amp; KILOMÉTRAGE</div>
     </div>
   </div>
-  <button class="toggle-btn" onclick="toggleTheme()">
-    <span class="toggle-dot" id="toggleDot">🌿</span>
-    <span id="themeLabel">Mode Mil.</span>
-  </button>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <a href="index.html" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--bg3);border:1.5px solid var(--border);border-radius:6px;text-decoration:none;transition:all .2s;-webkit-tap-highlight-color:transparent;" ontouchstart="this.style.borderColor='var(--accent)'" ontouchend="this.style.borderColor='var(--border)'">
+      <span style="font-size:16px;line-height:1;">🏠</span>
+    </a>
+    <button class="toggle-btn" onclick="toggleTheme()">
+      <span class="toggle-dot" id="toggleDot">🌿</span>
+      <span id="themeLabel">Mode Mil.</span>
+    </button>
+  </div>
 </div>
 
 <!-- MAIN CONTENT -->
@@ -691,7 +696,10 @@ body {
       </div>
       <div class="iblock">
         <label>DATE ACTUELLE</label>
-        <input type="date" id="dateNow" oninput="compute()">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input type="date" id="dateNow" oninput="compute()" style="flex:1;">
+          <button class="btn" onclick="setToday()" style="padding:4px 8px;font-size:0.65rem;flex-shrink:0;white-space:nowrap;">📅 Auj.</button>
+        </div>
       </div>
     </div>
 
@@ -728,7 +736,10 @@ body {
             <span id="sliderLockLabel">LIBRE</span>
           </button>
         </div>
-        <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()">
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <input type="number" inputmode="decimal" id="fuel" placeholder="50" min="0" max="100" oninput="syncFuelSlider();compute()" style="flex:1;">
+          <button class="btn primary" onclick="doPleinFait()" style="padding:4px 10px;font-size:0.72rem;white-space:nowrap;flex-shrink:0;">⛽ Plein !</button>
+        </div>
         <!-- Wrapper slider avec bulle Toyota au-dessus et graduations en dessous -->
         <div style="position:relative;margin-top:22px;margin-bottom:2px;">
           <!-- Bulle % Toyota au-dessus du curseur -->
@@ -908,6 +919,9 @@ body {
         <button class="kpi-tab" onclick="switchKpiTab('cout')" id="ktab-cout">
           <span class="kpi-tab-icon">💶</span>Coûts
         </button>
+        <button class="kpi-tab" onclick="switchKpiTab('pleins')" id="ktab-pleins">
+          <span class="kpi-tab-icon">📋</span>Pleins
+        </button>
       </div>
 
       <!-- ONGLET ROUTE -->
@@ -932,6 +946,11 @@ body {
             <div class="kpi-lbl">KM / AN</div>
             <div class="kpi-val" id="kmPerYear">—</div>
             <div class="kpi-u">km/an estimés (×12)</div>
+          </div>
+          <div class="kpi full">
+            <div class="kpi-lbl">⛽ PROCHAIN PLEIN ESTIMÉ</div>
+            <div class="kpi-val" id="nextFuelDate" style="font-size:1.2rem;">—</div>
+            <div class="kpi-u" id="nextFuelDays">dans — jours</div>
           </div>
 
         </div>
@@ -986,11 +1005,66 @@ body {
             <div class="kpi-val" id="costPer100">—</div>
             <div class="kpi-u">€</div>
           </div>
+          <div class="kpi full">
+            <div class="kpi-lbl">💳 POUR FAIRE LE PLEIN</div>
+            <div class="kpi-val" id="costToFull">—</div>
+            <div class="kpi-u" id="costToFullL">litres manquants × prix</div>
+          </div>
         </div>
       </div>
 
-    </div>
-  </div><!-- /page-kpi -->
+      <!-- ONGLET PLEINS -->
+      <div class="kpi-panel" id="kpanel-pleins">
+        <div style="display:flex;gap:7px;margin-bottom:10px;">
+          <button class="btn primary" style="flex:1;font-size:0.72rem;" onclick="showAddPlein()">+ Enregistrer un plein</button>
+          <button class="btn danger" style="padding:7px 10px;font-size:0.7rem;" onclick="clearPleins()">🗑️</button>
+        </div>
+        <!-- Formulaire ajout plein (caché par défaut) -->
+        <div id="addPleinForm" style="display:none;background:var(--panel);border:2px solid var(--accent);border-radius:8px;padding:12px;margin-bottom:10px;">
+          <div style="font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">NOUVEAU PLEIN</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--muted);margin-bottom:3px;">DATE</div>
+              <input id="pleinDate" type="date" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);color:var(--txt);font-family:var(--font-mono);font-size:0.8rem;padding:2px 0;outline:none;">
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--muted);margin-bottom:3px;">KM COMPTEUR</div>
+              <input id="pleinKm" type="number" inputmode="numeric" placeholder="46500" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);color:var(--txt);font-family:var(--font-mono);font-size:0.8rem;padding:2px 0;outline:none;">
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--muted);margin-bottom:3px;">LITRES</div>
+              <input id="pleinL" type="number" inputmode="decimal" placeholder="35.0" step="0.1" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);color:var(--txt);font-family:var(--font-mono);font-size:0.8rem;padding:2px 0;outline:none;">
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:0.55rem;color:var(--muted);margin-bottom:3px;">PRIX/L (€)</div>
+              <input id="pleinPrix" type="number" inputmode="decimal" placeholder="1.79" step="0.01" style="width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--border);color:var(--txt);font-family:var(--font-mono);font-size:0.8rem;padding:2px 0;outline:none;">
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;margin-top:10px;">
+            <button class="btn primary" style="flex:1;" onclick="savePlein()">✓ Valider</button>
+            <button class="btn" style="flex:1;" onclick="hideAddPlein()">✕ Annuler</button>
+          </div>
+        </div>
+        <!-- Stats pleins -->
+        <div id="pleinsStats" style="display:none;background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">
+            <span>TOTAL DÉPENSÉ</span><span id="pleinsTotalCost" style="color:var(--accent);">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">
+            <span>TOTAL LITRES</span><span id="pleinsTotalL" style="color:var(--txt2);">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;">
+            <span>CONSO RÉELLE MOY.</span><span id="pleinsConsoReal" style="color:var(--ok);">—</span>
+          </div>
+        </div>
+        <!-- Liste pleins -->
+        <div id="pleinsList" style="display:flex;flex-direction:column;gap:6px;">
+          <div style="text-align:center;padding:30px 10px;color:var(--muted);font-family:var(--font-mono);font-size:0.62rem;letter-spacing:.1em;text-transform:uppercase;line-height:2;">
+            <div style="font-size:24px;margin-bottom:8px;">⛽</div>
+            AUCUN PLEIN ENREGISTRÉ<br>APPUIE SUR + POUR COMMENCER
+          </div>
+        </div>
+      </div>
 
   <!-- PAGE 3 : COURBES -->
   <div class="page" id="page-courbes">
@@ -1040,6 +1114,151 @@ body {
 let isMil = false;
 let cKm = null, cCost = null, cProg = null;
 let currentKpiTab = 'route';
+let pleins = []; // journal des pleins
+
+/* ── VIBRATION HAPTIQUE ── */
+function vibrate(ms = 10) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+/* ── SWIPE GESTION ONGLETS ── */
+let touchStartX = 0;
+let touchEndX = 0;
+const mainScroll = document.getElementById('mainScroll');
+mainScroll.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+mainScroll.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  const diff = touchStartX - touchEndX;
+  if (Math.abs(diff) < 80) return; // seuil
+  const pages = ['saisie', 'kpi', 'courbes'];
+  const current = pages.findIndex(p => document.getElementById('page-' + p).classList.contains('active'));
+  if (diff > 0 && current < pages.length - 1) { vibrate(5); switchPage(pages[current + 1]); }
+  if (diff < 0 && current > 0) { vibrate(5); switchPage(pages[current - 1]); }
+}, {passive: true});
+
+/* ── PLEIN FAIT ── */
+function doPleinFait() {
+  document.getElementById('fuel').value = 100;
+  syncFuelSlider();
+  compute();
+  vibrate(15);
+}
+
+/* ── AUJOURD'HUI ── */
+function setToday() {
+  const t = new Date();
+  const y = t.getFullYear();
+  const m = String(t.getMonth() + 1).padStart(2, '0');
+  const d = String(t.getDate()).padStart(2, '0');
+  document.getElementById('dateNow').value = `${y}-${m}-${d}`;
+  compute();
+  vibrate(8);
+}
+
+/* ── GESTION JOURNAL PLEINS ── */
+function loadPleins() {
+  try {
+    const raw = localStorage.getItem('yaris_pleins');
+    pleins = raw ? JSON.parse(raw) : [];
+  } catch(e) { pleins = []; }
+}
+
+function savePleins() {
+  try {
+    localStorage.setItem('yaris_pleins', JSON.stringify(pleins));
+  } catch(e) {}
+}
+
+function showAddPlein() {
+  const form = document.getElementById('addPleinForm');
+  form.style.display = 'block';
+  const t = new Date();
+  const y = t.getFullYear();
+  const m = String(t.getMonth() + 1).padStart(2, '0');
+  const d = String(t.getDate()).padStart(2, '0');
+  document.getElementById('pleinDate').value = `${y}-${m}-${d}`;
+  document.getElementById('pleinKm').value = '';
+  document.getElementById('pleinL').value = '';
+  document.getElementById('pleinPrix').value = document.getElementById('price').value || '';
+  vibrate(8);
+}
+
+function hideAddPlein() {
+  document.getElementById('addPleinForm').style.display = 'none';
+  vibrate(5);
+}
+
+function savePlein() {
+  const date = document.getElementById('pleinDate').value;
+  const km   = parseFloat(document.getElementById('pleinKm').value);
+  const l    = parseFloat(document.getElementById('pleinL').value);
+  const prix = parseFloat(document.getElementById('pleinPrix').value);
+  if (!date || isNaN(km) || isNaN(l) || isNaN(prix)) {
+    alert('Remplis tous les champs');
+    return;
+  }
+  pleins.push({ date, km, l, prix, cost: l * prix });
+  pleins.sort((a, b) => new Date(b.date) - new Date(a.date));
+  savePleins();
+  renderPleins();
+  hideAddPlein();
+  vibrate(12);
+}
+
+function deletePlein(idx) {
+  if (!confirm('Supprimer ce plein ?')) return;
+  pleins.splice(idx, 1);
+  savePleins();
+  renderPleins();
+  vibrate(10);
+}
+
+function clearPleins() {
+  if (!confirm('Effacer tous les pleins enregistrés ?')) return;
+  pleins = [];
+  savePleins();
+  renderPleins();
+  vibrate(15);
+}
+
+function renderPleins() {
+  const list = document.getElementById('pleinsList');
+  const stats = document.getElementById('pleinsStats');
+  if (pleins.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:30px 10px;color:var(--muted);font-family:var(--font-mono);font-size:0.62rem;letter-spacing:.1em;text-transform:uppercase;line-height:2;"><div style="font-size:24px;margin-bottom:8px;">⛽</div>AUCUN PLEIN ENREGISTRÉ<br>APPUIE SUR + POUR COMMENCER</div>';
+    stats.style.display = 'none';
+    return;
+  }
+  // Calculs stats
+  const totalCost = pleins.reduce((s, p) => s + p.cost, 0);
+  const totalL    = pleins.reduce((s, p) => s + p.l, 0);
+  let consoReal   = null;
+  if (pleins.length > 1) {
+    const sorted = [...pleins].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const first = sorted[0];
+    const last  = sorted[sorted.length - 1];
+    const kmTotal = last.km - first.km;
+    const lTotal  = sorted.slice(1).reduce((s, p) => s + p.l, 0);
+    if (kmTotal > 0 && lTotal > 0) consoReal = (lTotal / kmTotal) * 100;
+  }
+  document.getElementById('pleinsTotalCost').textContent = totalCost.toFixed(2) + ' €';
+  document.getElementById('pleinsTotalL').textContent    = totalL.toFixed(1) + ' L';
+  document.getElementById('pleinsConsoReal').textContent = consoReal !== null ? consoReal.toFixed(2) + ' L/100km' : '—';
+  stats.style.display = 'block';
+  // Liste
+  list.innerHTML = pleins.map((p, i) => `
+    <div style="background:var(--panel);border:1.5px solid var(--border);border-radius:6px;padding:9px 11px;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+        <span style="font-family:var(--font-mono);font-size:0.75rem;font-weight:600;color:var(--accent);">${new Date(p.date).toLocaleDateString('fr-FR')}</span>
+        <button onclick="deletePlein(${i})" style="background:transparent;border:none;color:var(--crit);font-size:0.85rem;cursor:pointer;padding:0 4px;-webkit-tap-highlight-color:transparent;">🗑️</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.58rem;color:var(--muted);margin-bottom:3px;">
+        <span>${p.km.toLocaleString('fr-FR')} km</span><span>${p.l.toFixed(1)} L × ${p.prix.toFixed(3)} €/L</span>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;font-weight:600;color:var(--txt2);text-align:right;">${p.cost.toFixed(2)} €</div>
+    </div>
+  `).join('');
+}
 
 /* ── PAGE NAVIGATION ── */
 function switchPage(name) {
@@ -1057,10 +1276,13 @@ function switchPage(name) {
 /* ── KPI SUB-TABS ── */
 function switchKpiTab(name) {
   currentKpiTab = name;
+  localStorage.setItem('yaris_lastKpiTab', name);
   document.querySelectorAll('.kpi-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.kpi-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('ktab-' + name).classList.add('active');
   document.getElementById('kpanel-' + name).classList.add('active');
+  vibrate(5);
+  if (name === 'pleins') renderPleins();
 }
 
 /* ── THEME ── */
@@ -1131,6 +1353,7 @@ function adjustKm(delta) {
   const val = parseFloat(inp.value) || 0;
   inp.value = val + delta;
   compute();
+  vibrate(8);
 }
 
 function updateSliderColor() {
@@ -1320,6 +1543,20 @@ function compute() {
   const costFull    = (tank * price).toFixed(2);
   const costMonth   = Math.round((kmMonth / 100) * conso * price);
   const costYear    = costMonth * 12;
+  
+  // Coût pour faire le plein (litres manquants)
+  const litersToFull = tank - fuelL;
+  const costToFull   = (litersToFull * price).toFixed(2);
+  
+  // Date prochain plein estimé
+  let nextFuelDateStr = '—';
+  let nextFuelDaysStr = '—';
+  if (autoDays > 0 && dateNow) {
+    const nextDate = new Date(dateNow);
+    nextDate.setDate(nextDate.getDate() + autoDays);
+    nextFuelDateStr = nextDate.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short'});
+    nextFuelDaysStr = 'dans ' + autoDays + ' jour' + (autoDays > 1 ? 's' : '');
+  }
 
   document.getElementById('kmEndYear').textContent   = kmEY.toLocaleString('fr-FR');
   document.getElementById('kmRemYear').textContent   = kmLeftYear.toLocaleString('fr-FR');
@@ -1330,6 +1567,10 @@ function compute() {
   document.getElementById('costMonth').textContent   = costMonth;
   document.getElementById('costYear').textContent    = costYear.toLocaleString('fr-FR');
   document.getElementById('kmPerYear').textContent   = (kmMonth * 12).toLocaleString('fr-FR');
+  document.getElementById('nextFuelDate').textContent = nextFuelDateStr;
+  document.getElementById('nextFuelDays').textContent = nextFuelDaysStr;
+  document.getElementById('costToFull').textContent   = costToFull + ' €';
+  document.getElementById('costToFullL').textContent  = litersToFull.toFixed(1) + ' L manquants × ' + price.toFixed(2) + ' €/L';
 
   const gFill = document.getElementById('gaugeFill');
   gFill.style.width  = fuelReal + '%';
@@ -1655,6 +1896,13 @@ document.querySelectorAll('#page-saisie input').forEach(inp => {
     showStatus('✓ Données restaurées');
   } catch(e) {
     compute();
+  }
+  // Charger pleins
+  loadPleins();
+  // Restaurer dernier onglet KPI
+  const lastTab = localStorage.getItem('yaris_lastKpiTab');
+  if (lastTab && ['route', 'carbu', 'cout', 'pleins'].includes(lastTab)) {
+    switchKpiTab(lastTab);
   }
 })();
 </script>
