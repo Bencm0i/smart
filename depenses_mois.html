@@ -232,6 +232,7 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
       <div class="today" id="todayLabel">—</div>
     </div>
     <button class="hbtn" id="themeBtn" onclick="toggleTheme()">🎨</button>
+    <button class="hbtn" onclick="shiftAllDates()" title="Décaler toutes les dates de +1 mois">📅 +1M</button>
     <button class="hbtn" onclick="openBudgetModal()">⚙</button>
   </div>
 </div>
@@ -735,6 +736,27 @@ function deleteCat(idx) { const cats=getCats(); cats.splice(idx,1); saveCats(cat
 ['budgetModal','catModal'].forEach(id => {
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
+
+// ══════════════════════════════════════════════
+// DÉCALAGE DATES +1 MOIS
+// ══════════════════════════════════════════════
+function shiftAllDates() {
+  const mon = ensureMonth();
+  const withDate = mon.items.filter(i => i.date);
+  if (!withDate.length) { showToast('Aucune date à décaler'); return; }
+
+  mon.items.forEach(item => {
+    if (!item.date) return;
+    const [y, m, d] = item.date.split('-').map(Number);
+    const shifted = new Date(y, m, d); // m est déjà 0-indexé en JS (m = mois actuel + 0 = mois+1)
+    // en fait m (1-12) passé tel quel dans new Date(y, m, d) donne automatiquement mois+1
+    item.date = shifted.toISOString().slice(0, 10);
+  });
+
+  saveState();
+  render();
+  showToast(`📅 ${withDate.length} date${withDate.length > 1 ? 's' : ''} décalée${withDate.length > 1 ? 's' : ''} de +1 mois`);
+}
 
 // ══════════════════════════════════════════════
 // TOAST
