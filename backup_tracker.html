@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backup Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23e8650a'/><path d='M16 3 L29 8.5 L29 18 C29 24.5 23 28.5 16 31 C9 28.5 3 24.5 3 18 L3 8.5 Z' fill='%23f5e6c8' opacity='0.95'/><path d='M16 7 L25 11 L25 18 C25 22.5 21 25.5 16 27.5 C11 25.5 7 22.5 7 18 L7 11 Z' fill='%23e8650a' opacity='0.6'/><rect x='14.5' y='12' width='3' height='9' rx='1.5' fill='%23f5e6c8'/><rect x='11.5' y='15' width='9' height='3' rx='1.5' fill='%23f5e6c8'/></svg>">
+<style>
+
+/* ══ THEMES ══ */
+:root {
+  --bg: #191d12;
+  --bg-pattern: repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(255,255,255,0.012) 12px,rgba(255,255,255,0.012) 24px);
+  --surface: #21261a;
+  --surface2: #292f20;
+  --border: #363d28;
+  --border2: #46503a;
+  --accent: #8db840;
+  --accent-hover: #9ecc4a;
+  --accent-glow: rgba(141,184,64,0.18);
+  --accent2: #c8780a;
+  --text: #d8e8c0;
+  --text-dim: #8a9870;
+  --text-muted: #546048;
+  --pro: #7ab8d4;
+  --perso: #c8a870;
+  --ok: #8db840;
+  --warn: #d4a820;
+  --danger: #d44820;
+  --radius: 3px;
+  --header-bg: #141810;
+  --toggle-bg: #292f20;
+  --color-scheme: dark;
+  --camo-a: #1e2416;
+  --camo-b: #2a3020;
+  --camo-c: #363d28;
+}
+
+body.theme-beige {
+  --bg: #f5ede0;
+  --bg-pattern: repeating-linear-gradient(45deg,transparent,transparent 12px,rgba(0,0,0,0.018) 12px,rgba(0,0,0,0.018) 24px);
+  --surface: #fdf6ec;
+  --surface2: #ede4d4;
+  --border: #d8c8b0;
+  --border2: #c8b498;
+  --accent: #e8650a;
+  --accent-hover: #d45508;
+  --accent-glow: rgba(232,101,10,0.14);
+  --accent2: #c04808;
+  --text: #362010;
+  --text-dim: #7a5030;
+  --text-muted: #a08060;
+  --pro: #2868a8;
+  --perso: #885898;
+  --ok: #468820;
+  --warn: #b07800;
+  --danger: #c82808;
+  --radius: 3px;
+  --header-bg: #ece0cc;
+  --toggle-bg: #e0d0bc;
+  --color-scheme: light;
+  --camo-a: #ede0cc;
+  --camo-b: #e4d4bc;
+  --camo-c: #d8c8a8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background-color: var(--bg);
+  background-image: var(--bg-pattern);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0 0 32px 0;
+  font-size: 13px;
+  transition: background-color 0.3s, color 0.3s;
+  color-scheme: var(--color-scheme);
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--header-bg);
+  border-bottom: 2px solid var(--border2);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-icon { font-size: 20px; flex-shrink: 0; }
+
+header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  flex: 1;
+}
+
+#last-save {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px 5px 8px;
+  background: var(--toggle-bg);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+.toggle-track {
+  width: 30px; height: 15px;
+  background: var(--border2);
+  border-radius: 8px;
+  position: relative;
+  transition: background 0.25s;
+  flex-shrink: 0;
+}
+body.theme-beige .toggle-track { background: var(--accent); }
+
+.toggle-thumb {
+  width: 11px; height: 11px;
+  background: var(--text);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: left 0.25s, background 0.25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+body.theme-beige .toggle-thumb { left: 17px; }
+
+/* ── CAMO STRIPE ── */
+.camo-stripe {
+  height: 5px;
+  background: repeating-linear-gradient(90deg,
+    var(--camo-a) 0, var(--camo-b) 14px,
+    var(--camo-c) 28px, var(--camo-a) 42px,
+    var(--camo-b) 56px, var(--camo-c) 70px);
+  margin-bottom: 0;
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  padding: 18px 24px;
+}
+
+/* ── STATS ── */
+.stats-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 13px 7px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 85px;
+  position: relative;
+  overflow: hidden;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+}
+.stat-val { font-size: 17px; font-weight: 700; font-family: 'Syne', sans-serif; }
+.stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn {
+  padding: 5px 11px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text-dim);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.5px;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+.btn.primary:hover { background: var(--accent-hover); }
+
+.filter-btns { display: flex; gap: 5px; margin-left: auto; }
+.filter-btn {
+  padding: 4px 11px;
+  border-radius: 2px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.filter-btn.pro.active { border-color: var(--pro); color: var(--pro); background: rgba(122,184,212,0.1); }
+.filter-btn.perso.active { border-color: var(--perso); color: var(--perso); background: rgba(200,168,112,0.1); }
+
+/* ── TABLE ── */
+.table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+
+thead tr {
+  background: var(--surface2);
+  border-bottom: 2px solid var(--border2);
+}
+
+th {
+  padding: 9px 9px;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+}
+th:hover { color: var(--accent); }
+th.sort-asc::after { content: ' ▲'; color: var(--accent); }
+th.sort-desc::after { content: ' ▼'; color: var(--accent); }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--accent-glow); }
+tbody tr.row-pro td:first-child { border-left: 3px solid var(--pro); }
+tbody tr.row-perso td:first-child { border-left: 3px solid var(--perso); }
+
+td { padding: 6px 9px; vertical-align: middle; font-size: 12px; }
+
+.editable {
+  cursor: text;
+  border-radius: 2px;
+  padding: 2px 4px;
+  display: inline-block;
+  min-width: 28px;
+  min-height: 17px;
+  transition: background 0.1s;
+  white-space: nowrap;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.editable:hover { background: var(--surface2); outline: 1px solid var(--border2); }
+.editable:focus { outline: 1px solid var(--accent); background: var(--accent-glow); white-space: normal; overflow: visible; max-width: none; }
+.editable:empty::before { content: attr(data-ph); color: var(--text-muted); font-style: italic; font-size: 11px; }
+
+/* script path — distinct style */
+.script-path-cell {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  max-width: 170px;
+}
+.script-path-cell:empty::before { color: var(--text-muted); }
+
+select.inline-select {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+  padding: 2px 3px;
+  border-radius: 2px;
+}
+select.inline-select:hover { background: var(--surface2); }
+select.inline-select option { background: var(--surface2); color: var(--text); }
+
+.row-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+tbody tr:hover .row-actions { opacity: 1; }
+
+.icon-btn {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  background: transparent;
+  font-size: 12px;
+  transition: all 0.15s;
+  color: var(--text-muted);
+}
+.icon-btn:hover { border-color: var(--border2); background: var(--surface2); color: var(--text); }
+.icon-btn.del:hover { border-color: var(--danger); color: var(--danger); background: rgba(212,72,32,0.1); }
+.icon-btn.bck:hover { border-color: var(--ok); color: var(--ok); background: rgba(141,184,64,0.12); }
+
+.overdue { color: var(--danger) !important; font-weight: 700; }
+.upcoming { color: var(--warn) !important; }
+.ok-date { color: var(--ok) !important; }
+
+input[type="date"].inline-date {
+  background: transparent; border: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer; outline: none;
+  padding: 2px 4px; border-radius: 2px;
+  color-scheme: var(--color-scheme);
+}
+input[type="date"].inline-date:hover { background: var(--surface2); }
+input[type="date"].inline-date:focus { outline: 1px solid var(--accent); }
+
+/* dots */
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-ok { background: var(--ok); box-shadow: 0 0 5px var(--ok); }
+.dot-warn { background: var(--warn); box-shadow: 0 0 5px var(--warn); }
+.dot-danger { background: var(--danger); box-shadow: 0 0 5px var(--danger); animation: pulse 1.5s infinite; }
+.dot-unknown { background: var(--border2); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.status-cell { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 22px;
+  width: 530px;
+  max-width: 96vw;
+  max-height: 93vh;
+  overflow-y: auto;
+}
+
+.modal h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--accent);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1/-1; }
+.form-group label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 700; }
+.form-group input, .form-group select, .form-group textarea {
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; padding: 7px 9px;
+  border-radius: var(--radius); outline: none; transition: border-color 0.15s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+.form-group select option { background: var(--surface2); }
+.form-group textarea { resize: vertical; min-height: 54px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+/* Legend */
+.legend { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); }
+
+.no-rows { text-align: center; padding: 36px; color: var(--text-muted); font-size: 12px; letter-spacing: 2px; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 18px; right: 18px;
+  background: var(--surface2); border: 1px solid var(--accent);
+  border-left: 3px solid var(--accent); color: var(--accent);
+  padding: 8px 15px; border-radius: var(--radius);
+  font-size: 11px; letter-spacing: 0.5px;
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.25s; pointer-events: none; z-index: 200;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+</style>
+</head>
+<body class="theme-military">
+
+<header>
+  <div class="header-icon">🛡</div>
+  <h1>Backup Tracker</h1>
+  <span id="last-save">Chargement…</span>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Changer de thème">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span id="theme-label">BEIGE</span>
+  </button>
+</header>
+
+<div class="camo-stripe"></div>
+
+<div class="main">
+
+<div class="stats-bar" id="stats-bar"></div>
+
+<div class="toolbar">
+  <button class="btn primary" onclick="openModal()">＋ Ajouter</button>
+  <button class="btn" onclick="exportCSV()">⤓ CSV</button>
+  <button class="btn" onclick="exportJSON()">⤓ JSON</button>
+  <button class="btn" onclick="importJSON()">⤑ Importer</button>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+  <div class="filter-btns">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">Tous</button>
+    <button class="filter-btn pro" data-filter="pro" onclick="setFilter('pro',this)">PRO</button>
+    <button class="filter-btn perso" data-filter="perso" onclick="setFilter('perso',this)">PERSO</button>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('cat')">Cat.</th>
+        <th onclick="sortBy('from')">Source (FROM)</th>
+        <th onclick="sortBy('to')">Destination (TO)</th>
+        <th onclick="sortBy('script')">Script</th>
+        <th onclick="sortBy('scriptPath')">📁 Chemin script</th>
+        <th onclick="sortBy('method')">Méthode</th>
+        <th onclick="sortBy('lastBck')">Dernier BCK</th>
+        <th onclick="sortBy('nextBck')">Programmé</th>
+        <th onclick="sortBy('period')">Périod.</th>
+        <th onclick="sortBy('status')">Statut</th>
+        <th>Commentaires</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="dot dot-ok"></span> À jour</div>
+  <div class="legend-item"><span class="dot dot-warn"></span> Bientôt dû (≤7j)</div>
+  <div class="legend-item"><span class="dot dot-danger"></span> En retard</div>
+  <div class="legend-item"><span class="dot dot-unknown"></span> Non défini</div>
+</div>
+
+</div><!-- .main -->
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">▶ Nouvelle sauvegarde</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Catégorie</label>
+        <select id="f-cat">
+          <option value="perso">Perso</option>
+          <option value="pro">Pro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Méthode</label>
+        <select id="f-method">
+          <option value="manuel">Manuel</option>
+          <option value="automatique">Automatique</option>
+          <option value="script+compteur de demarrage">Script + compteur démarrage</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Source (FROM)</label>
+        <input type="text" id="f-from" placeholder="/chemin/source  ou  https://...">
+      </div>
+      <div class="form-group full">
+        <label>Destination (TO)</label>
+        <input type="text" id="f-to" placeholder="/chemin/dest  ou  https://...">
+      </div>
+      <div class="form-group">
+        <label>Script ?</label>
+        <select id="f-script">
+          <option value="non">Non</option>
+          <option value="oui">Oui</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📁 Chemin du script</label>
+        <input type="text" id="f-scriptPath" placeholder="/usr/scripts/backup.sh">
+      </div>
+      <div class="form-group">
+        <label>Périodicité (jours)</label>
+        <input type="number" id="f-period" placeholder="ex: 7" min="1">
+      </div>
+      <div class="form-group">
+        <label>Dernier BCK</label>
+        <input type="date" id="f-lastbck">
+      </div>
+      <div class="form-group">
+        <label>Programmé</label>
+        <input type="date" id="f-nextbck">
+      </div>
+      <div class="form-group full">
+        <label>Commentaires</label>
+        <textarea id="f-comments" placeholder="Notes, détails…"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Annuler</button>
+      <button class="btn primary" onclick="saveRow()">✔ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+let data = [], editIdx = null, currentFilter = 'all', sortKey = null, sortDir = 1;
+
+// ── THEME ──
+function toggleTheme() {
+  const isMil = document.body.classList.contains('theme-military');
+  document.body.classList.toggle('theme-military', !isMil);
+  document.body.classList.toggle('theme-beige', isMil);
+  document.getElementById('theme-label').textContent = isMil ? 'MILITAIRE' : 'BEIGE';
+  localStorage.setItem('bck_theme', isMil ? 'beige' : 'military');
+}
+function loadTheme() {
+  const t = localStorage.getItem('bck_theme') || 'military';
+  document.body.className = 'theme-' + t;
+  document.getElementById('theme-label').textContent = t === 'beige' ? 'MILITAIRE' : 'BEIGE';
+}
+
+// ── DATA ──
+const INITIAL = [
+  {cat:'perso',from:'/usr/',to:'/2To/',script:'',scriptPath:'',method:'',lastBck:'',nextBck:'',period:'',comments:''},
+  {cat:'pro',from:"C:\\Users\\RFN\\OneDrive - AVENTECH GROUPE\\Documents\\000 -IMPORTANTS\\09-Json-sauvegardes-PRO",to:'https://mega.nz',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-04-30',nextBck:'2026-05-07',period:'7',comments:'JSON boulot'},
+  {cat:'perso',from:'https://bencm0i.github.io',to:'https://mega.nz',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-04-10',nextBck:'2026-04-17',period:'7',comments:'utilitaires important'},
+  {cat:'perso',from:'/usr/importants',to:'',script:'oui',scriptPath:'/usr/scripts/backup_importants.sh',method:'script+compteur de demarrage',lastBck:'',nextBck:'',period:'',comments:'tous les papiers important'},
+  {cat:'perso',from:'/usr/home-assistant',to:'',script:'oui',scriptPath:'/usr/scripts/backup_homeassistant.sh',method:'script+compteur de demarrage',lastBck:'',nextBck:'',period:'',comments:'domotique'},
+  {cat:'perso',from:'Relevé bancaire BOURSORAMA',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-12',nextBck:'2026-04-11',period:'30',comments:'Relevé bancaire'},
+  {cat:'perso',from:'Relevé bancaire FORTUNEO',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-13',nextBck:'2026-04-12',period:'30',comments:'Relevé bancaire'},
+  {cat:'perso',from:'Relevé bancaire REVOLUT',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-14',nextBck:'2026-04-13',period:'30',comments:'Relevé bancaire'},
+  {cat:'perso',from:'Relevé SCPI 1',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-15',nextBck:'2026-04-14',period:'30',comments:'Relevé SCPI'},
+  {cat:'perso',from:'Relevé SCPI 2',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-16',nextBck:'2026-04-15',period:'30',comments:'Relevé SCPI'},
+  {cat:'perso',from:'Relevé SCPI 3',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-17',nextBck:'2026-04-16',period:'30',comments:'Relevé SCPI'},
+  {cat:'perso',from:'Relevé SCPI 4',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-18',nextBck:'2026-04-17',period:'30',comments:'Relevé SCPI'},
+  {cat:'perso',from:'Google Takeout guillaumekind@gmail.com',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-19',nextBck:'2026-06-17',period:'90',comments:'Relevé mail'},
+  {cat:'perso',from:'Google Takeout guillaumerfn@gmail.com',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-20',nextBck:'2026-06-18',period:'90',comments:'Relevé mail'},
+  {cat:'pro',from:'/mydocuments',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-01',nextBck:'2026-04-01',period:'31',comments:'Bulletin de salaire'},
+  {cat:'perso',from:'/téléchargements',to:'',script:'non',scriptPath:'',method:'manuel',lastBck:'2026-03-02',nextBck:'2026-03-17',period:'15',comments:'JSON SMARTPHONE'},
+  {cat:'pro',from:'',to:'',script:'',scriptPath:'',method:'',lastBck:'',nextBck:'',period:'',comments:''},
+  {cat:'pro',from:'',to:'',script:'',scriptPath:'',method:'',lastBck:'',nextBck:'',period:'',comments:''},
+  {cat:'pro',from:'',to:'',script:'',scriptPath:'',method:'',lastBck:'',nextBck:'',period:'',comments:''},
+];
+
+function loadData() {
+  const saved = localStorage.getItem('backup_tracker_v3');
+  if (saved) { try { data = JSON.parse(saved); return; } catch(e){} }
+  data = INITIAL.map(r => ({...r}));
+}
+
+function saveData() {
+  localStorage.setItem('backup_tracker_v3', JSON.stringify(data));
+  const now = new Date();
+  document.getElementById('last-save').textContent =
+    `✔ ${now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`;
+}
+
+// ── STATUS ──
+function getStatus(row) {
+  if (!row.nextBck) return 'unknown';
+  const diff = Math.floor((new Date(row.nextBck) - TODAY) / 86400000);
+  if (diff < 0) return 'danger';
+  if (diff <= 7) return 'warn';
+  return 'ok';
+}
+function statusDot(s) {
+  const c={ok:'dot-ok',warn:'dot-warn',danger:'dot-danger',unknown:'dot-unknown'};
+  return `<span class="dot ${c[s]||'dot-unknown'}"></span>`;
+}
+function daysLabel(dateStr) {
+  const diff = Math.floor((new Date(dateStr) - TODAY) / 86400000);
+  if (diff < 0) return `<span class="overdue">${Math.abs(diff)}j retard</span>`;
+  if (diff === 0) return `<span class="upcoming">aujourd'hui</span>`;
+  if (diff <= 7) return `<span class="upcoming">J+${diff}</span>`;
+  return `<span class="ok-date">J+${diff}</span>`;
+}
+function dateClass(dateStr) {
+  if (!dateStr) return '';
+  const diff = Math.floor((new Date(dateStr) - TODAY) / 86400000);
+  if (diff < 0) return 'overdue';
+  if (diff <= 7) return 'upcoming';
+  return 'ok-date';
+}
+
+// ── RENDER ──
+function getFiltered() {
+  let rows = data.filter(r => r.from || r.to || r.comments);
+  if (currentFilter !== 'all') rows = rows.filter(r => r.cat === currentFilter);
+  if (sortKey) {
+    rows = [...rows].sort((a,b) => {
+      let av = sortKey==='status' ? getStatus(a) : (a[sortKey]||'');
+      let bv = sortKey==='status' ? getStatus(b) : (b[sortKey]||'');
+      return av < bv ? -sortDir : av > bv ? sortDir : 0;
+    });
+  }
+  return rows;
+}
+
+function renderStats() {
+  const all = data.filter(r => r.from || r.to);
+  const s = {danger:0,warn:0,ok:0};
+  all.forEach(r => { const st=getStatus(r); if(s[st]!==undefined)s[st]++; });
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat"><span class="stat-val">${all.length}</span><span class="stat-label">Total</span></div>
+    <div class="stat"><span class="stat-val" style="color:var(--danger)">${s.danger}</span><span class="stat-label">En retard</span></div>
+    <div class="stat"><span class="stat-val" style="color:var(--warn)">${s.warn}</span><span class="stat-label">Bientôt dû</span></div>
+    <div class="stat"><span class="stat-val" style="color:var(--ok)">${s.ok}</span><span class="stat-label">À jour</span></div>
+    <div class="stat"><span class="stat-val" style="color:var(--pro)">${all.filter(r=>r.cat==='pro').length}</span><span class="stat-label">Pro</span></div>
+    <div class="stat"><span class="stat-val" style="color:var(--perso)">${all.filter(r=>r.cat==='perso').length}</span><span class="stat-label">Perso</span></div>`;
+}
+
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function render() {
+  renderStats();
+  const rows = getFiltered();
+  const tbody = document.getElementById('table-body');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="12" class="no-rows">// AUCUNE ENTRÉE //</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(row => {
+    const idx = data.indexOf(row);
+    const status = getStatus(row);
+    const dc = dateClass(row.nextBck);
+    const spOpacity = row.scriptPath ? '1' : '0.4';
+    return `
+    <tr class="row-${row.cat}" data-idx="${idx}">
+      <td>
+        <select class="inline-select" onchange="updateField(${idx},'cat',this.value)">
+          <option value="perso" ${row.cat==='perso'?'selected':''}>perso</option>
+          <option value="pro" ${row.cat==='pro'?'selected':''}>pro</option>
+        </select>
+      </td>
+      <td><span class="editable" contenteditable="true" data-idx="${idx}" data-field="from" title="${esc(row.from)}" data-ph="source…">${esc(row.from)}</span></td>
+      <td><span class="editable" contenteditable="true" data-idx="${idx}" data-field="to" title="${esc(row.to)}" data-ph="dest…">${esc(row.to)}</span></td>
+      <td>
+        <select class="inline-select" onchange="updateField(${idx},'script',this.value)">
+          <option value="" ${!row.script?'selected':''}>—</option>
+          <option value="oui" ${row.script==='oui'?'selected':''}>oui</option>
+          <option value="non" ${row.script==='non'?'selected':''}>non</option>
+        </select>
+      </td>
+      <td>
+        <span class="editable script-path-cell" contenteditable="true" data-idx="${idx}" data-field="scriptPath"
+          title="${esc(row.scriptPath)}" data-ph="/chemin/script.sh"
+          style="opacity:${spOpacity}">${esc(row.scriptPath)}</span>
+      </td>
+      <td>
+        <select class="inline-select" onchange="updateField(${idx},'method',this.value)">
+          <option value="" ${!row.method?'selected':''}>—</option>
+          <option value="manuel" ${row.method==='manuel'?'selected':''}>manuel</option>
+          <option value="automatique" ${row.method==='automatique'?'selected':''}>auto</option>
+          <option value="script+compteur de demarrage" ${row.method==='script+compteur de demarrage'?'selected':''}>script+cpt</option>
+        </select>
+      </td>
+      <td><input type="date" class="inline-date" value="${row.lastBck||''}" onchange="updateField(${idx},'lastBck',this.value)" style="color:var(--text-dim)"></td>
+      <td><input type="date" class="inline-date ${dc}" value="${row.nextBck||''}" onchange="updateField(${idx},'nextBck',this.value)"></td>
+      <td><span class="editable" contenteditable="true" data-idx="${idx}" data-field="period" style="min-width:26px;text-align:center" data-ph="j">${esc(row.period)}</span></td>
+      <td>
+        <div class="status-cell">
+          ${statusDot(status)}
+          ${row.nextBck ? daysLabel(row.nextBck) : '<span style="color:var(--text-muted);font-size:10px">—</span>'}
+        </div>
+      </td>
+      <td><span class="editable" contenteditable="true" data-idx="${idx}" data-field="comments" style="max-width:175px" data-ph="note…">${esc(row.comments)}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn bck" title="BCK fait aujourd'hui + recalcul" onclick="markDone(${idx})">✔</button>
+          <button class="icon-btn" title="Éditer" onclick="openModal(${idx})">✎</button>
+          <button class="icon-btn del" title="Supprimer" onclick="deleteRow(${idx})">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('.editable[contenteditable]').forEach(el => {
+    el.addEventListener('blur', () => {
+      const idx = +el.dataset.idx, field = el.dataset.field;
+      data[idx][field] = el.innerText.trim();
+      if (field === 'scriptPath') el.style.opacity = el.innerText.trim() ? '1' : '0.4';
+      saveData(); renderStats();
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+      if (e.key === 'Escape') el.blur();
+    });
+  });
+}
+
+function updateField(idx, field, value) {
+  data[idx][field] = value; saveData(); render();
+}
+
+function markDone(idx) {
+  const row = data[idx];
+  row.lastBck = TODAY.toISOString().split('T')[0];
+  if (row.period) {
+    const next = new Date(TODAY);
+    next.setDate(next.getDate() + parseInt(row.period));
+    row.nextBck = next.toISOString().split('T')[0];
+  }
+  saveData(); render();
+  toast(`✔ BCK effectué — ${row.from || 'ligne ' + idx}`);
+}
+
+function deleteRow(idx) {
+  if (!confirm('Supprimer cette entrée ?')) return;
+  data.splice(idx, 1); saveData(); render();
+  toast('Entrée supprimée');
+}
+
+function openModal(idx) {
+  editIdx = idx !== undefined ? idx : null;
+  document.getElementById('modal-title').textContent = editIdx !== null ? '✎ Modifier' : '▶ Nouvelle sauvegarde';
+  const r = editIdx !== null ? data[editIdx] : {};
+  document.getElementById('f-cat').value = r.cat || 'perso';
+  document.getElementById('f-from').value = r.from || '';
+  document.getElementById('f-to').value = r.to || '';
+  document.getElementById('f-script').value = r.script || 'non';
+  document.getElementById('f-scriptPath').value = r.scriptPath || '';
+  document.getElementById('f-method').value = r.method || 'manuel';
+  document.getElementById('f-lastbck').value = r.lastBck || '';
+  document.getElementById('f-nextbck').value = r.nextBck || '';
+  document.getElementById('f-period').value = r.period || '';
+  document.getElementById('f-comments').value = r.comments || '';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function saveRow() {
+  const row = {
+    cat: document.getElementById('f-cat').value,
+    from: document.getElementById('f-from').value.trim(),
+    to: document.getElementById('f-to').value.trim(),
+    script: document.getElementById('f-script').value,
+    scriptPath: document.getElementById('f-scriptPath').value.trim(),
+    method: document.getElementById('f-method').value,
+    lastBck: document.getElementById('f-lastbck').value,
+    nextBck: document.getElementById('f-nextbck').value,
+    period: document.getElementById('f-period').value,
+    comments: document.getElementById('f-comments').value.trim(),
+  };
+  if (editIdx !== null) data[editIdx] = row; else data.push(row);
+  saveData(); render(); closeModal();
+  toast(editIdx !== null ? 'Mise à jour effectuée' : 'Entrée ajoutée');
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); render();
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  const map = {cat:0,from:1,to:2,script:3,scriptPath:4,method:5,lastBck:6,nextBck:7,period:8,status:9};
+  const ths = document.querySelectorAll('th');
+  if (map[key] !== undefined) ths[map[key]].classList.add(sortDir===1?'sort-asc':'sort-desc');
+  render();
+}
+
+function exportCSV() {
+  const h = ['Catégorie','Source','Destination','Script','Chemin script','Méthode','Dernier BCK','Programmé','Périodicité','Commentaires'];
+  const rows = data.map(r =>
+    [r.cat,r.from,r.to,r.script,r.scriptPath,r.method,r.lastBck,r.nextBck,r.period,r.comments]
+    .map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+  download('sauvegardes.csv', [h.join(','),...rows].join('\n'), 'text/csv');
+  toast('Export CSV généré');
+}
+function exportJSON() {
+  download('sauvegardes.json', JSON.stringify(data,null,2), 'application/json');
+  toast('Export JSON généré');
+}
+function importJSON() { document.getElementById('import-file').click(); }
+function handleImport(e) {
+  const file = e.target.files[0]; if(!file)return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (Array.isArray(imported)) {
+        data = imported.map(r => ({scriptPath:'', ...r}));
+        saveData(); render(); toast(`${imported.length} entrées importées`);
+      }
+    } catch(err) { alert('Fichier JSON invalide'); }
+  };
+  reader.readAsText(file); e.target.value='';
+}
+function download(name, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content],{type}));
+  a.download = name; a.click();
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+['f-lastbck','f-period'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    const lb = document.getElementById('f-lastbck').value;
+    const p = document.getElementById('f-period').value;
+    if (lb && p) {
+      const d = new Date(lb); d.setDate(d.getDate() + parseInt(p));
+      document.getElementById('f-nextbck').value = d.toISOString().split('T')[0];
+    }
+  });
+});
+
+loadTheme(); loadData(); render();
+document.getElementById('last-save').textContent = '✔ Données chargées';
+</script>
+</body>
+</html>
