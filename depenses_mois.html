@@ -219,6 +219,21 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
 
 /* ─── SECTION LABEL ─── */
 .sec-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 0 4px;}
+
+/* ─── DATE INLINE EDIT ─── */
+.tag.date-tag{cursor:pointer;transition:background .15s;}
+.tag.date-tag:hover{background:rgba(200,168,66,.2);}
+.tag.today-tag{cursor:pointer;}
+.tag.echu-tag{cursor:pointer;}
+.date-input-inline{
+  font-size:9px;font-weight:700;letter-spacing:.5px;
+  padding:1px 6px;border-radius:4px;
+  border:1px solid var(--accent);background:var(--surface2);
+  color:var(--gold);font-family:'Space Grotesk',sans-serif;
+  cursor:pointer;height:18px;outline:none;
+}
+.tag.add-date-tag{cursor:pointer;border-style:dashed;color:var(--muted);transition:all .15s;}
+.tag.add-date-tag:hover{border-color:var(--gold);color:var(--gold);}
 </style>
 </head>
 <body>
@@ -232,7 +247,8 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
       <div class="today" id="todayLabel">—</div>
     </div>
     <button class="hbtn" id="themeBtn" onclick="toggleTheme()">🎨</button>
-    <button class="hbtn" onclick="shiftAllDates()" title="Décaler toutes les dates de +1 mois">📅 +1M</button>
+    <button class="hbtn" onclick="shiftAllDates(-1)" title="Décaler toutes les dates de -1 mois">📅 −1M</button>
+    <button class="hbtn" onclick="shiftAllDates(1)" title="Décaler toutes les dates de +1 mois">📅 +1M</button>
     <button class="hbtn" onclick="openBudgetModal()">⚙</button>
   </div>
 </div>
@@ -509,8 +525,8 @@ function renderItems(items, cats) {
     const rowClass  = item.done ? 'paid' : isToday ? 'today-due' : isOverdue ? 'overdue' : '';
 
     const dateTag = item.date
-      ? `<span class="tag ${isToday?'today-tag':isOverdue?'echu-tag':'date-tag'}">${isToday?'🔔 ':isOverdue?'⚠ ':'📅 '}${fmtDate(item.date)}</span>`
-      : '';
+      ? `<span class="tag ${isToday?'today-tag':isOverdue?'echu-tag':'date-tag'}" onclick="editDate(event,${realIdx})" title="Modifier la date">${isToday?'🔔 ':isOverdue?'⚠ ':'📅 '}${fmtDate(item.date)}</span>`
+      : `<span class="tag add-date-tag" onclick="editDate(event,${realIdx})" title="Ajouter une date">📅 date</span>`;
     const catTag  = cat ? `<span class="tag cat-tag">${cat.icon} ${esc(cat.name)}</span>` : '';
     const noteTag = item.note ? `<span class="tag note-tag">${esc(item.note)}</span>` : '';
 
@@ -612,6 +628,39 @@ function amtKey(e, el, idx) {
   if (e.key === 'Enter')  { e.preventDefault(); el.blur(); }
   if (e.key === 'Escape') { el.contentEditable = 'false'; render(); }
   e.stopPropagation();
+}
+
+// ══════════════════════════════════════════════
+// ÉDITION DATE INLINE
+// ══════════════════════════════════════════════
+function editDate(e, idx) {
+  e.stopPropagation();
+  const tag = e.currentTarget;
+  const mon = ensureMonth();
+  const currentDate = mon.items[idx].date || TODAY_STR;
+
+  // Remplace le tag par un input date
+  const inp = document.createElement('input');
+  inp.type  = 'date';
+  inp.value = currentDate;
+  inp.className = 'date-input-inline';
+
+  tag.replaceWith(inp);
+  inp.focus();
+  try { inp.showPicker(); } catch(err) {}
+
+  function commit() {
+    mon.items[idx].date = inp.value || '';
+    saveState();
+    render();
+  }
+
+  inp.addEventListener('change', () => { commit(); });
+  inp.addEventListener('blur',   () => { setTimeout(commit, 100); });
+  inp.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter')  { inp.blur(); }
+    if (ev.key === 'Escape') { render(); } // annule
+  });
 }
 
 // ══════════════════════════════════════════════
@@ -740,7 +789,7 @@ function deleteCat(idx) { const cats=getCats(); cats.splice(idx,1); saveCats(cat
 // ══════════════════════════════════════════════
 // DÉCALAGE DATES +1 MOIS
 // ══════════════════════════════════════════════
-function shiftAllDates() {
+function shiftAllDates(direction = 1) {
   const mon = ensureMonth();
   const withDate = mon.items.filter(i => i.date);
   if (!withDate.length) { showToast('Aucune date à décaler'); return; }
@@ -748,14 +797,15 @@ function shiftAllDates() {
   mon.items.forEach(item => {
     if (!item.date) return;
     const [y, m, d] = item.date.split('-').map(Number);
-    const shifted = new Date(y, m, d); // m est déjà 0-indexé en JS (m = mois actuel + 0 = mois+1)
-    // en fait m (1-12) passé tel quel dans new Date(y, m, d) donne automatiquement mois+1
+    // new Date(y, m-1+direction, d) : mois JS 0-indexé
+    const shifted = new Date(y, m - 1 + direction, d);
     item.date = shifted.toISOString().slice(0, 10);
   });
 
   saveState();
   render();
-  showToast(`📅 ${withDate.length} date${withDate.length > 1 ? 's' : ''} décalée${withDate.length > 1 ? 's' : ''} de +1 mois`);
+  const sign = direction > 0 ? '+' : '−';
+  showToast(`📅 ${withDate.length} date${withDate.length > 1 ? 's' : ''} décalée${withDate.length > 1 ? 's' : ''} de ${sign}1 mois`);
 }
 
 // ══════════════════════════════════════════════
