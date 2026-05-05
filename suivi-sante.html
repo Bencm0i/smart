@@ -44,6 +44,11 @@
   --sleep-bg:  #eeeaf8;
   --sleep-mid: #9888d8;
 
+  /* Alimentation → medical green */
+  --food:     #1a7a3a;
+  --food-bg:  #eef8f2;
+  --food-mid: #80c8a0;
+
   --shadow: 0 2px 12px rgba(192,40,42,0.08);
   --r:  10px;
   --rs: 6px;
@@ -308,8 +313,9 @@ textarea { resize: none; min-height: 76px; line-height: 1.5; }
 .sym-title.stool  { color: var(--stool); }
 .sym-title.sleep  { color: var(--sleep); }
 
-/* Sleep block */
 .symptom-block.sleep  { background: var(--sleep-bg);  border: 1.5px solid var(--sleep-mid);  border-left: 4px solid var(--sleep); }
+.symptom-block.food   { background: var(--food-bg);   border: 1.5px solid var(--food-mid);   border-left: 4px solid var(--food); }
+.sym-title.food  { color: var(--food); }
 
 .sym-emoji { font-size: 18px; }
 
@@ -977,6 +983,52 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
   </div>
 
+  <!-- ALIMENTATION -->
+  <div class="symptom-block food">
+    <div class="sym-header">
+      <div class="sym-title food"><span class="sym-emoji">🍽️</span>Alimentation</div>
+    </div>
+    <div class="checks-title">Aliments consommés aujourd'hui</div>
+    <div class="checks-grid" id="foodChecks">
+      <div class="chk-item" data-key="puree" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Purée</span>
+      </div>
+      <div class="chk-item" data-key="pate_sg" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Pâtes sans gluten</span>
+      </div>
+      <div class="chk-item" data-key="pate_g" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Pâtes avec gluten</span>
+      </div>
+      <div class="chk-item" data-key="viande" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Viande</span>
+      </div>
+      <div class="chk-item" data-key="riz" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Riz</span>
+      </div>
+      <div class="chk-item" data-key="gaufre_sg" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Gaufre (farine SG)</span>
+      </div>
+      <div class="chk-item" data-key="pizza" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Pizza</span>
+      </div>
+      <div class="chk-item" data-key="biere" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Bière</span>
+      </div>
+      <div class="chk-item" data-key="boisson_gazeuse" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Boisson gazeuse</span>
+      </div>
+      <div class="chk-item" data-key="beurre_cacahouete" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Beurre cacahouète</span>
+      </div>
+      <div class="chk-item" data-key="pate_cacao" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Pâte cacao</span>
+      </div>
+      <div class="chk-item" data-key="yaourt" onclick="toggleChk(this,'food')">
+        <div class="chk-dot"></div><span>Yaourt</span>
+      </div>
+    </div>
+  </div>
+
   <div class="card card-pad">
     <div class="field-group">
       <label>📝 Note libre</label>
@@ -1144,7 +1196,10 @@ const SYM = {
   nausees:'Nausées',brulures:'Brûlures',apres_repas:'Après repas',a_jeun:'À jeun',flatulences:'Flatulences',
   sang:'Sang',mucus:'Mucus',urgence:'Urgence',douleur_evacuation:'Doul. évac.',
   incomplete:'Incomplète',frequente:'+3/jour',
-  insomnie:'Insomnie',reveils_nuit:'Réveils nuit',apnee:'Apnée',cauchemars:'Cauchemars',fatigue_reveil:'Fatigue lever',somnolence_jour:'Somnolence'
+  insomnie:'Insomnie',reveils_nuit:'Réveils nuit',apnee:'Apnée',cauchemars:'Cauchemars',fatigue_reveil:'Fatigue lever',somnolence_jour:'Somnolence',
+  puree:'Purée',pate_sg:'Pâtes SG',pate_g:'Pâtes (gluten)',viande:'Viande',riz:'Riz',
+  gaufre_sg:'Gaufre SG',pizza:'Pizza',biere:'Bière',boisson_gazeuse:'Boisson gazeuse',
+  beurre_cacahouete:'Beurre cacahouète',pate_cacao:'Pâte cacao',yaourt:'Yaourt'
 };
 
 // ── INIT ──
@@ -1241,7 +1296,7 @@ function toggleChk(el, type){
 
 function getChecked(id){
   return [...document.querySelectorAll('#'+id+' .chk-item')]
-    .filter(e=>['checked-sinus','checked-breath','checked-belly','checked-stool','checked-sleep'].some(c=>e.classList.contains(c)))
+    .filter(e=>['checked-sinus','checked-breath','checked-belly','checked-stool','checked-sleep','checked-food'].some(c=>e.classList.contains(c)))
     .map(e=>e.dataset.key);
 }
 
@@ -1298,7 +1353,8 @@ function addEntry(){
       details: stoolAbsent ? [] : getChecked('stoolChecks')
     },
     note: document.getElementById('entryNote').value.trim(),
-    sleep: sleepData
+    sleep: sleepData,
+    food: getChecked('foodChecks')
   };
 
   entries.unshift(entry);
@@ -1329,7 +1385,7 @@ function resetForm(){
     el.querySelector('.chk-dot').textContent = def ? '✓' : '';
     el.classList.toggle('checked-sinus', def);
   });
-  ['breathChecks','bellyChecks','stoolChecks','sleepChecks'].forEach(id=>{
+  ['breathChecks','bellyChecks','stoolChecks','sleepChecks','foodChecks'].forEach(id=>{
     document.querySelectorAll('#'+id+' .chk-item').forEach(el=>{
       el.querySelector('.chk-dot').textContent = '';
       el.className = 'chk-item';
@@ -1503,6 +1559,7 @@ function renderHistory(){
       : '';
     const allTags = [...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[]),...(e.sleep?.symptoms||[])];
     const sleepBadge = e.sleep?.quality ? `<span class="hist-badge sleep">😴 ${e.sleep.quality}/10${e.sleep.bedtime&&e.sleep.wakeup?' · '+calcDur(e.sleep.bedtime,e.sleep.wakeup):''}` + `</span>` : '';
+    const foodBadge = (e.food?.length) ? `<span class="hist-badge" style="background:var(--food-bg);color:var(--food);border:1px solid var(--food-mid);">🍽️ ${e.food.length} aliment(s)</span>` : '';
     return `
     <div class="hist-item">
       <div class="hist-date">${e.date.slice(5).replace('-','/')}<br>${e.time}</div>
@@ -1511,7 +1568,7 @@ function renderHistory(){
           <span class="hist-badge sinus">🫁 ${e.sinus}/10</span>
           <span class="hist-badge breath">💨 ${e.breath}/10</span>
           <span class="hist-badge belly">🫀 ${e.belly||0}/10</span>
-          ${stoolBadge}${sleepBadge}
+          ${stoolBadge}${sleepBadge}${foodBadge}
         </div>
         <div class="hist-tags">
           ${allTags.map(s=>`<span class="tag-pill">${SYM[s]||s}</span>`).join('')}
@@ -1579,7 +1636,27 @@ function exportText(){
   entries.forEach(e=>[...(e.sinusSymptoms||[]),...(e.breathSymptoms||[]),...(e.bellySymptoms||[]),...(e.stool?.details||[])].forEach(s=>{freq[s]=(freq[s]||0)+1;}));
   const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`  - ${SYM[k]||k} : ${v} fois`).join('\n');
 
-  let txt=`RAPPORT SUIVI SANTÉ\nExporté le : ${new Date().toLocaleDateString('fr-FR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}\n${'═'.repeat(45)}\n\nRÉSUMÉ STATISTIQUE\n  Entrées           : ${n}\n  Période           : ${entries[entries.length-1].date} → ${entries[0].date}\n  Score sinus moy.  : ${avgS}/10\n  Score essouf. moy.: ${avgB}/10\n  Score ventre moy. : ${avgBe}/10\n\nSELLES\n  Absentes : ${stoolAbsentCount} jour(s)\n  Types fréquents :\n${topStool||'  (aucun)'}\n\nTOP SYMPTÔMES\n${top||'  Aucun'}\n\n${'═'.repeat(45)}\nJOURNAL DÉTAILLÉ\n${'═'.repeat(45)}\n\n`;
+  const sleepExportEntries = entries.filter(e=>e.sleep?.quality);
+  const avgSleep = sleepExportEntries.length
+    ? (sleepExportEntries.reduce((a,e)=>a+e.sleep.quality,0)/sleepExportEntries.length).toFixed(1)
+    : 'N/A';
+  const avgSleepDur = (() => {
+    const durs = sleepExportEntries.filter(e=>e.sleep.bedtime&&e.sleep.wakeup).map(e=>{
+      const [bh,bm]=e.sleep.bedtime.split(':').map(Number);
+      const [wh,wm]=e.sleep.wakeup.split(':').map(Number);
+      let min=(wh*60+wm)-(bh*60+bm);if(min<0)min+=24*60;return min;
+    });
+    if(!durs.length) return 'N/A';
+    const avg=durs.reduce((a,v)=>a+v,0)/durs.length;
+    return Math.floor(avg/60)+'h'+(avg%60?String(Math.round(avg%60)).padStart(2,'0'):'');
+  })();
+
+  // alimentation frequency
+  const foodFreq = {};
+  entries.forEach(e=>(e.food||[]).forEach(f=>{foodFreq[f]=(foodFreq[f]||0)+1;}));
+  const topFood = Object.entries(foodFreq).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`  - ${SYM[k]||k} : ${v} fois`).join('\n');
+
+  let txt=`RAPPORT SUIVI SANTÉ\nExporté le : ${new Date().toLocaleDateString('fr-FR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}\n${'═'.repeat(45)}\n\nRÉSUMÉ STATISTIQUE\n  Entrées           : ${n}\n  Période           : ${entries[entries.length-1].date} → ${entries[0].date}\n  Score sinus moy.  : ${avgS}/10\n  Score essouf. moy.: ${avgB}/10\n  Score ventre moy. : ${avgBe}/10\n  Score sommeil moy.: ${avgSleep}/10\n  Durée sommeil moy.: ${avgSleepDur}\n\nSELLES\n  Absentes : ${stoolAbsentCount} jour(s)\n  Types fréquents :\n${topStool||'  (aucun)'}\n\nALIMENTATION\n  Aliments consommés (fréquence) :\n${topFood||'  (aucun)'}\n\nTOP SYMPTÔMES\n${top||'  Aucun'}\n\n${'═'.repeat(45)}\nJOURNAL DÉTAILLÉ\n${'═'.repeat(45)}\n\n`;
 
   [...entries].reverse().forEach(e=>{
     txt+=`▸ ${e.date}  ${e.time}\n`;
@@ -1599,6 +1676,13 @@ function exportText(){
         txt+='\n';
       }
     }
+    if(e.sleep?.quality){
+      txt+=`  Sommeil   : ${e.sleep.quality}/10`;
+      if(e.sleep.bedtime&&e.sleep.wakeup) txt+=` | Coucher ${e.sleep.bedtime} – Lever ${e.sleep.wakeup} (${calcDur(e.sleep.bedtime,e.sleep.wakeup)})`;
+      if(e.sleep.symptoms?.length) txt+=` | ${e.sleep.symptoms.map(s=>SYM[s]||s).join(', ')}`;
+      txt+='\n';
+    }
+    if(e.food?.length) txt+=`  Aliments  : ${e.food.map(f=>SYM[f]||f).join(', ')}\n`;
     if(e.note) txt+=`  Note       : ${e.note}\n`;
     txt+='\n';
   });
