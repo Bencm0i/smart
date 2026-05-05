@@ -266,6 +266,37 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
 .hist-stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text);}
 .hist-stat-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
 .hist-empty{text-align:center;padding:24px;color:var(--muted);font-size:12px;}
+
+/* ─── ALERTE NOUVEAU MOIS ─── */
+.newmonth-banner{
+  margin:10px 12px 0;
+  background:rgba(200,168,66,.1);
+  border:1px solid var(--gold);
+  border-radius:10px;
+  padding:11px 14px;
+  display:none;
+  animation:fadeSlideIn .4s ease;
+}
+.newmonth-banner.visible{display:block;}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.newmonth-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.newmonth-body{font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5;}
+.newmonth-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.newmonth-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:7px 13px;border-radius:8px;cursor:pointer;border:1px solid;transition:all .18s;}
+.newmonth-btn.primary{background:var(--gold);border-color:var(--gold);color:#1c1f16;}
+.newmonth-btn.primary:hover{background:#e0bb55;}
+.newmonth-btn.secondary{background:transparent;border-color:var(--border2);color:var(--text2);}
+.newmonth-btn.secondary:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ─── MODAL RÉCURRENCES ─── */
+.recur-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;}
+.recur-chk{width:20px;height:20px;border-radius:5px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;background:var(--surface);color:transparent;user-select:none;transition:all .18s;}
+.recur-chk.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.recur-label{flex:1;font-size:13px;font-weight:500;color:var(--text);}
+.recur-amt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--text2);}
+.recur-cat{font-size:9px;color:var(--accent);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.modal-sheet-tall{background:var(--surface);border:1px solid var(--border);border-radius:18px 18px 0 0;padding:20px 18px 40px;width:100%;max-width:580px;transform:translateY(30px);transition:transform .25s,background .3s;box-shadow:var(--shadow);max-height:85vh;overflow-y:auto;}
+.modal-overlay.open .modal-sheet-tall{transform:translateY(0);}
 </style>
 </head>
 <body>
@@ -280,6 +311,7 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
     </div>
     <button class="hbtn" id="themeBtn" onclick="toggleTheme()">🎨</button>
     <button class="hbtn" onclick="shiftAllDates(1)" title="Décaler toutes les dates de +1 mois">📅 +1M</button>
+    <button class="hbtn" onclick="shiftAllDates(-1)" title="Décaler toutes les dates de -1 mois">📅 -1M</button>
     <button class="hbtn" onclick="openBudgetModal()">⚙</button>
   </div>
 </div>
@@ -296,6 +328,16 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
   <div class="rap-right">
     <div class="rap-count"><span id="rapCount">0</span> en attente</div>
     <div class="rap-paid" id="rapPaid">0 payées</div>
+  </div>
+</div>
+
+<!-- ALERTE NOUVEAU MOIS -->
+<div class="newmonth-banner" id="newMonthBanner">
+  <div class="newmonth-title">🗓 Nouveau mois !</div>
+  <div class="newmonth-body" id="newMonthBody">Bienvenue en <strong id="newMonthName"></strong>. Veux-tu reporter les dépenses récurrentes du mois dernier ?</div>
+  <div class="newmonth-actions">
+    <button class="newmonth-btn primary" onclick="openRecurModal()">♻ Reporter les récurrentes</button>
+    <button class="newmonth-btn secondary" onclick="dismissNewMonth()">Ignorer</button>
   </div>
 </div>
 
@@ -386,6 +428,20 @@ input[type="number"].fi::-webkit-inner-spin-button{-webkit-appearance:none;}
       <input class="modal-inp" id="newCatName" type="text" placeholder="Nom" style="margin-bottom:0;flex:1;">
     </div>
     <button class="modal-save" onclick="addCatFromModal()">Ajouter</button>
+  </div>
+</div>
+
+<!-- MODAL RÉCURRENCES -->
+<div class="modal-overlay" id="recurModal">
+  <div class="modal-sheet-tall">
+    <div class="modal-title">♻ Dépenses récurrentes <button class="modal-close" onclick="closeRecurModal()">✕</button></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.5;" id="recurSubtitle"></div>
+    <div id="recurList"></div>
+    <div id="recurEmpty" style="display:none;" class="hist-empty">📭 Aucune dépense récurrente détectée dans le mois précédent.</div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="modal-save" onclick="importRecurring()" id="recurImportBtn">✓ Importer la sélection</button>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:10px;text-align:center;">Les dépenses importées seront marquées comme non payées dans le mois actuel.</div>
   </div>
 </div>
 
@@ -832,7 +888,7 @@ function addCatFromModal() {
 }
 function deleteCat(idx) { const cats=getCats(); cats.splice(idx,1); saveCats(cats); renderCatList(cats); render(); }
 
-['budgetModal','catModal','histModal'].forEach(id => {
+['budgetModal','catModal','histModal','recurModal'].forEach(id => {
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 
@@ -983,9 +1039,132 @@ function showToast(msg) {
 }
 
 // ══════════════════════════════════════════════
+// NOUVEAU MOIS — RAPPEL & RÉCURRENCES
+// ══════════════════════════════════════════════
+
+// Clé de la dernière dismissal pour ne pas ré-afficher si ignoré ce mois-ci
+const DISMISS_KEY = 'depenses_newmonth_dismiss';
+
+function getPrevMonthKey() {
+  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function checkNewMonth() {
+  const dismissed = localStorage.getItem(DISMISS_KEY);
+  if (dismissed === MONTH_KEY) return; // déjà ignoré ce mois-ci
+
+  const prevKey = getPrevMonthKey();
+  const prevMon = STATE[prevKey];
+  const curMon  = ensureMonth();
+
+  // Affiche le banner si : mois précédent existe ET mois actuel vide
+  if (prevMon && prevMon.items && prevMon.items.length > 0 && curMon.items.length === 0) {
+    document.getElementById('newMonthName').textContent = MONTHS_FR[now.getMonth()] + ' ' + now.getFullYear();
+    document.getElementById('newMonthBanner').classList.add('visible');
+  }
+}
+
+function dismissNewMonth() {
+  localStorage.setItem(DISMISS_KEY, MONTH_KEY);
+  document.getElementById('newMonthBanner').classList.remove('visible');
+}
+
+// Sélection des récurrentes dans le modal
+let recurSelection = new Set();
+
+function detectRecurring(items) {
+  // Heuristique : dépenses qui ont un montant > 0 (tout ce qui vient du mois précédent)
+  // On exclut celles qui avaient un montant nul
+  return items.filter(i => (parseFloat(i.amount) || 0) > 0);
+}
+
+function openRecurModal() {
+  dismissNewMonth();
+  const prevKey   = getPrevMonthKey();
+  const prevMon   = STATE[prevKey];
+  const cats      = getCats();
+  const candidates = prevMon && prevMon.items ? detectRecurring(prevMon.items) : [];
+
+  document.getElementById('recurSubtitle').textContent =
+    `Mois précédent (${monthLabel(prevKey)}) · ${candidates.length} dépense${candidates.length>1?'s':''} trouvée${candidates.length>1?'s':''}.`;
+
+  const listEl  = document.getElementById('recurList');
+  const emptyEl = document.getElementById('recurEmpty');
+  const btnEl   = document.getElementById('recurImportBtn');
+
+  if (!candidates.length) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    btnEl.style.display   = 'none';
+    recurSelection = new Set();
+  } else {
+    emptyEl.style.display = 'none';
+    btnEl.style.display   = 'block';
+    // Tout sélectionné par défaut
+    recurSelection = new Set(candidates.map(i => String(i._id)));
+    listEl.innerHTML = candidates.map(item => {
+      const cat = cats.find(c => c.id === item.cat);
+      return `<div class="recur-item">
+        <div class="recur-chk on" id="rchk_${item._id}" onclick="toggleRecur('${item._id}', this)">✓</div>
+        <div style="flex:1;min-width:0;">
+          <div class="recur-label">${esc(item.label)}</div>
+          ${cat ? `<div class="recur-cat">${cat.icon} ${cat.name}</div>` : ''}
+        </div>
+        <div class="recur-amt">${fmt(item.amount)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('recurModal').classList.add('open');
+}
+
+function toggleRecur(id, el) {
+  if (recurSelection.has(id)) {
+    recurSelection.delete(id);
+    el.classList.remove('on');
+    el.textContent = '';
+  } else {
+    recurSelection.add(id);
+    el.classList.add('on');
+    el.textContent = '✓';
+  }
+}
+
+function closeRecurModal() {
+  document.getElementById('recurModal').classList.remove('open');
+}
+
+function importRecurring() {
+  if (!recurSelection.size) { showToast('Aucune sélection'); return; }
+  const prevKey  = getPrevMonthKey();
+  const prevMon  = STATE[prevKey];
+  const curMon   = ensureMonth();
+  const toImport = (prevMon?.items || []).filter(i => recurSelection.has(String(i._id)));
+
+  toImport.forEach(item => {
+    curMon.items.push({
+      _id:    Date.now() + Math.random(),
+      label:  item.label,
+      amount: item.amount,
+      cat:    item.cat || '',
+      date:   '',   // date remise à zéro (nouveau mois)
+      note:   item.note || '',
+      done:   false
+    });
+  });
+
+  saveState();
+  render();
+  closeRecurModal();
+  showToast(`${toImport.length} dépense${toImport.length>1?'s':''} importée${toImport.length>1?'s':''} ✓`);
+}
+
+// ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
 render();
+checkNewMonth();
 </script>
 </body>
 </html>
