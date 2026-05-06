@@ -533,7 +533,7 @@
       </div>
     </div>
     <div class="section-card">
-      <div class="section-title"><span class="dot" style="background:var(--accent-purple)"></span>Vent — Vitesse & Direction</div>
+      <div class="section-title"><span class="dot" style="background:var(--accent-yellow)"></span>Vent — Vitesse & Direction</div>
       <div class="wind-compass-wrap">
         <div class="compass-container">
           <canvas id="compassChart" width="130" height="130"></canvas>
@@ -541,6 +541,12 @@
         <div style="flex:1; min-width:150px; height:150px; position:relative;">
           <canvas id="windChart"></canvas>
         </div>
+      </div>
+    </div>
+    <div class="section-card full-width">
+      <div class="section-title"><span class="dot" style="background:var(--accent-orange)"></span>Ensoleillement 24h <span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:6px;">min/heure</span></div>
+      <div style="height:110px; position:relative;">
+        <canvas id="sunChart"></canvas>
       </div>
     </div>
     <div class="section-card full-width">
@@ -638,7 +644,7 @@ const WMO_DESC = {
 const DIR_LABELS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
 function degToDir(d){ return DIR_LABELS[Math.round(d/22.5)%16]; }
 
-let tempChartInst = null, windChartInst = null;
+let tempChartInst = null, windChartInst = null, sunChartInst = null;
 let countdownVal = 30;
 let countdownTimer = null;
 let weatherData = null;
@@ -661,7 +667,7 @@ function startCountdown(){
 
 async function fetchWeather(){
   const lat=44.933, lon=4.892;
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,sunshine_duration&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
   const r = await fetch(url);
   return r.json();
 }
@@ -676,6 +682,7 @@ function refreshData(){
     renderKPIs(data);
     renderTempChart(data);
     renderWindChart(data);
+    renderSunChart(data);
     renderCompass(data.current.wind_direction_10m);
     renderForecast(data);
     renderHeating(data.current.temperature_2m, data);
@@ -967,6 +974,56 @@ function renderWindChart(d){
       scales:{
         x:{ticks:{color:tc.tick,font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{color:tc.grid},border:{color:tc.border}},
         y:{ticks:{color:tc.tick,font:{size:10},callback:v=>v+'km/h'},grid:{color:tc.grid},border:{color:tc.border}}
+      }
+    }
+  });
+}
+
+function renderSunChart(d){
+  const labels   = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
+  // sunshine_duration est en secondes par heure → convertir en minutes
+  const sunshine = (d.hourly.sunshine_duration || []).slice(0,24).map(s => Math.round((s||0) / 60));
+  const ctx      = document.getElementById('sunChart').getContext('2d');
+  const tc       = getThemeColors();
+  if(sunChartInst) sunChartInst.destroy();
+
+  // Gradient jaune → orange
+  const grad = ctx.createLinearGradient(0, 0, 0, 110);
+  grad.addColorStop(0,   'rgba(227,179,65,0.85)');
+  grad.addColorStop(1,   'rgba(227,179,65,0.05)');
+
+  sunChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Ensoleillement (min)',
+        data: sunshine,
+        backgroundColor: sunshine.map(v =>
+          v >= 50 ? 'rgba(227,179,65,0.9)' :
+          v >= 20 ? 'rgba(227,179,65,0.55)' :
+                    'rgba(227,179,65,0.2)'
+        ),
+        borderRadius: 2,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      nowTriangle: true,
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg, borderColor: tc.tooltipBorder, borderWidth: 0.5,
+          titleColor: tc.tooltipTitle, bodyColor: tc.tooltipBody, padding: 8,
+          callbacks: {
+            label: item => `☀️ ${item.raw} min/h`
+          }
+        }
+      },
+      scales: {
+        x: { ticks:{color:tc.tick,font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:12}, grid:{color:tc.grid}, border:{color:tc.border} },
+        y: { min:0, max:60, ticks:{color:tc.tick,font:{size:9},callback:v=>v+'min'}, grid:{color:tc.grid}, border:{color:tc.border} }
       }
     }
   });
