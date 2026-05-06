@@ -350,86 +350,6 @@
   [data-theme="beige"] .alert-banner.alert-heat { border-color: rgba(200,40,40,0.4); background: rgba(200,40,40,0.06); }
   [data-theme="beige"] .alert-banner.alert-frost { border-color: rgba(37,99,235,0.4); background: rgba(37,99,235,0.06); }
 
-  /* ── TIMELINE JOUR ── */
-  .day-timeline-wrap {
-    margin-top: 10px;
-    padding: 0 2px;
-    position: relative;
-    user-select: none;
-  }
-  .day-timeline-track {
-    position: relative;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    overflow: visible;
-    margin: 0 10px;
-  }
-  .day-timeline-done {
-    position: absolute;
-    left: 0; top: 0; height: 100%;
-    border-radius: 3px 0 0 3px;
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
-    transition: width 0.5s ease;
-    pointer-events: none;
-  }
-  .day-timeline-cursor {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--accent-orange);
-    border: 2px solid var(--bg);
-    box-shadow: 0 0 6px var(--accent-orange), 0 0 0 1px var(--accent-orange);
-    transition: left 0.5s ease;
-    z-index: 2;
-    pointer-events: none;
-  }
-  .day-timeline-cursor::after {
-    content: attr(data-time);
-    position: absolute;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--accent-orange);
-    white-space: nowrap;
-    background: var(--surface);
-    border: 0.5px solid rgba(212,130,42,0.3);
-    padding: 1px 5px;
-    border-radius: 3px;
-    letter-spacing: 0.04em;
-  }
-  .day-timeline-labels {
-    display: flex;
-    justify-content: space-between;
-    margin: 5px 10px 0;
-    font-size: 9px;
-    font-family: var(--font-mono);
-    color: var(--muted);
-    letter-spacing: 0.04em;
-  }
-  .day-timeline-label-tick {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-  }
-  .day-timeline-label-tick::before {
-    content: '';
-    display: block;
-    width: 1px; height: 4px;
-    background: var(--border);
-    opacity: 0.6;
-  }
-  [data-theme="beige"] .day-timeline-cursor {
-    box-shadow: 0 0 6px rgba(196,98,10,0.6), 0 0 0 1px var(--accent-orange);
-  }
-  [data-theme="beige"] .day-timeline-done {
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
-  }
-
   /* ── GRAPHIQUE ARC SOLAIRE ── */
   .sun-card {
     background: var(--surface);
@@ -629,22 +549,6 @@
     </div>
   </div>
 
-  <!-- ── TIMELINE HEURE DU JOUR ── -->
-  <div class="section-card" style="margin-bottom:8px;">
-    <div class="section-title">
-      <span class="dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span>
-      Heure du jour
-      <span id="timelineTimeLabel" style="margin-left:auto;font-size:12px;font-weight:600;color:var(--accent-orange);font-family:var(--font-head);">—</span>
-    </div>
-    <div class="day-timeline-wrap">
-      <div class="day-timeline-track" id="dayTimelineTrack">
-        <div class="day-timeline-done" id="dayTimelineDone"></div>
-        <div class="day-timeline-cursor" id="dayTimelineCursor" data-time="00:00"></div>
-      </div>
-      <div class="day-timeline-labels" id="dayTimelineLabels"></div>
-    </div>
-  </div>
-
   <div class="heating-section" id="heatingSection">
     <div class="heating-title">
       <span id="heatingIcon">🔥</span>
@@ -654,6 +558,15 @@
     <div class="heat-grid" id="heatGrid"></div>
     <div class="section-title" style="margin-top:4px;"><span class="dot" style="background:var(--accent-yellow)"></span>Recommandations</div>
     <ul class="advice-list" id="adviceList"></ul>
+  </div>
+
+  <!-- ── CONSEIL VÉLO ── -->
+  <div class="heating-section" id="velotafSection" style="border-left-color:var(--accent-orange); margin-top:0;">
+    <div class="heating-title">
+      <span>🚲</span> Conseil Velotaf
+      <span id="velotafBadge" style="margin-left:auto; font-size:10px; padding:2px 8px; border-radius:3px; font-family:var(--font-mono); font-weight:400;">—</span>
+    </div>
+    <div id="velotafContent" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;"></div>
   </div>
 
   <!-- ── CONFIGURATION HOME ASSISTANT ── -->
@@ -766,6 +679,7 @@ function refreshData(){
     renderCompass(data.current.wind_direction_10m);
     renderForecast(data);
     renderHeating(data.current.temperature_2m, data);
+    renderVelotaf(data);
     // Refresh HA sensor
     const cfg = getHAConfig();
     if(cfg.url && cfg.token) fetchJardinSensor(cfg.url, cfg.token);
@@ -851,11 +765,63 @@ function renderKPIs(d){
   checkAlerts(d);
 }
 
-// ── TRIANGLE HEURE ACTUELLE ───────────────────────────────────────────────────
+// ── PLUGIN : ZONES VELOTAF + TRIANGLE HEURE ACTUELLE ─────────────────────────
 const nowTrianglePlugin = {
   id: 'nowTriangle',
+  beforeDraw(chart) {
+    if (!chart.config.options.nowTriangle) return;
+    const xScale = chart.scales['x'];
+    const area   = chart.chartArea;
+    if (!xScale || !area) return;
+    const labels = chart.data.labels; // ["06:00","07:00",...]
+
+    // Zones velotaf : matin 06:00-07:00, soir 15:00-17:00
+    const zones = [
+      { from: 6, to: 7  },
+      { from: 15, to: 17 }
+    ];
+
+    const ctx = chart.ctx;
+    ctx.save();
+
+    zones.forEach(({ from, to }) => {
+      // Trouver l'indice du label correspondant à l'heure de début/fin
+      let idxFrom = -1, idxTo = -1;
+      for (let i = 0; i < labels.length; i++) {
+        const h = parseInt(labels[i].split(':')[0], 10);
+        if (h === from && idxFrom < 0) idxFrom = i;
+        if (h === to   && idxTo   < 0) idxTo   = i;
+      }
+      if (idxFrom < 0) return;
+      // Si pas trouvé la borne de fin, prendre la fin de l'axe
+      const xStart = xScale.getPixelForValue(idxFrom);
+      const xEnd   = idxTo >= 0 ? xScale.getPixelForValue(idxTo) : area.right;
+
+      ctx.fillStyle = 'rgba(212,130,42,0.10)';
+      ctx.fillRect(xStart, area.top, xEnd - xStart, area.bottom - area.top);
+
+      // Bordures verticales pointillées
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = 'rgba(212,130,42,0.45)';
+      ctx.lineWidth = 1;
+      [xStart, xEnd].forEach(x => {
+        ctx.beginPath();
+        ctx.moveTo(x, area.top);
+        ctx.lineTo(x, area.bottom);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // Petite étiquette en haut
+      ctx.font = '500 9px monospace';
+      ctx.fillStyle = 'rgba(212,130,42,0.75)';
+      ctx.textAlign = 'center';
+      ctx.fillText('🚲', (xStart + xEnd) / 2, area.top + 10);
+    });
+
+    ctx.restore();
+  },
   afterDraw(chart) {
-    // Ne s'applique qu'aux charts avec l'option nowTriangle:true
     if (!chart.config.options.nowTriangle) return;
     const xScale = chart.scales['x'];
     const area   = chart.chartArea;
@@ -868,7 +834,6 @@ const nowTrianglePlugin = {
       if (parseInt(labels[i].split(':')[0], 10) === nowH) { idx = i; break; }
     }
     if (idx < 0) return;
-    // Chart.js 4.x : getPixelForValue(index) sur l'axe category
     const x0 = xScale.getPixelForValue(idx);
     const x1 = (idx + 1 < labels.length) ? xScale.getPixelForValue(idx + 1) : x0;
     const px  = x0 + (x1 - x0) * (nowM / 60);
@@ -876,14 +841,13 @@ const nowTrianglePlugin = {
     const col = isDark ? '#d4822a' : '#c06010';
     const pc  = chart.ctx;
     const s   = 6;
-    // Triangle pointe vers le bas, juste AU-DESSUS de area.bottom (dans la zone visible)
     const tipY  = area.bottom - 2;
     const baseY = area.bottom - 2 - s * 1.6;
     pc.save();
     pc.beginPath();
-    pc.moveTo(px,         tipY);
-    pc.lineTo(px - s,     baseY);
-    pc.lineTo(px + s,     baseY);
+    pc.moveTo(px,     tipY);
+    pc.lineTo(px - s, baseY);
+    pc.lineTo(px + s, baseY);
     pc.closePath();
     pc.fillStyle = col;
     pc.fill();
@@ -1028,6 +992,95 @@ function renderForecast(d){
     </div>`;
   }).join('');
   document.getElementById('forecastRow').innerHTML = html;
+}
+
+// ── CONSEIL VELOTAF ───────────────────────────────────────────────────────────
+// Trajet ALLER  : Nord → Sud  → vent du Nord  (dir 315–360 ou 0–45)  = dans le dos ✅
+// Trajet RETOUR : Sud → Nord  → vent du Sud   (dir 135–225)          = dans le dos ✅
+function renderVelotaf(d) {
+  const hourly  = d.hourly;
+  const times   = hourly.time;
+  const speeds  = hourly.wind_speed_10m;
+  const dirs    = hourly.wind_direction_10m;
+  const gusts   = hourly.wind_gusts_10m ?? speeds;
+  const rain    = hourly.precipitation_probability;
+
+  // Créneau aller : 06:00–07:00 | retour : 15:00–17:00
+  const slots = [
+    { label: 'Aller', emoji: '🌅', from: 6,  to: 7,  favorableTest: dir => (dir >= 315 || dir <= 45)  },
+    { label: 'Retour', emoji: '🌆', from: 15, to: 17, favorableTest: dir => (dir >= 135 && dir <= 225) },
+  ];
+
+  const badge  = document.getElementById('velotafBadge');
+  const wrap   = document.getElementById('velotafContent');
+  if (!badge || !wrap) return;
+  wrap.innerHTML = '';
+
+  let globalOk = true;
+
+  slots.forEach(slot => {
+    // Indices correspondant aux heures du créneau
+    const indices = [];
+    times.forEach((t, i) => {
+      const h = parseInt(t.slice(11, 13), 10);
+      if (h >= slot.from && h < slot.to) indices.push(i);
+    });
+    if (!indices.length) return;
+
+    const avgSpeed = Math.round(indices.reduce((s, i) => s + speeds[i], 0) / indices.length);
+    const avgDir   = Math.round(indices.reduce((s, i) => s + dirs[i],   0) / indices.length);
+    const maxGust  = Math.round(Math.max(...indices.map(i => gusts[i])));
+    const maxRain  = Math.round(Math.max(...indices.map(i => rain[i])));
+    const favorable = slot.favorableTest(avgDir);
+
+    // Score global : vent favorable + pas trop fort + peu de pluie
+    const windOk = avgSpeed <= 30 && maxGust <= 50;
+    const rainOk = maxRain  <= 50;
+    const ok     = favorable && windOk && rainOk;
+    if (!ok) globalOk = false;
+
+    // Direction en texte
+    const dirLabel = degToDir(avgDir);
+
+    // Couleurs
+    const colOk  = 'var(--accent-green, #8aa84e)';
+    const colWarn = 'var(--accent-yellow)';
+    const colBad  = 'var(--accent-red, #e05252)';
+    const statusColor = ok ? colOk : (!windOk || !rainOk) ? colBad : colWarn;
+    const statusText  = ok ? '✅ Favorable' : (!windOk) ? '⚠️ Vent fort' : (!rainOk) ? '🌧️ Pluie' : '🔄 Vent de face';
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      flex:1; min-width:140px;
+      background:var(--surface2);
+      border:0.5px solid var(--border);
+      border-left:2px solid ${statusColor};
+      border-radius:5px;
+      padding:8px 10px;
+      font-family:var(--font-mono);
+    `;
+    card.innerHTML = `
+      <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:5px;letter-spacing:.04em;">
+        ${slot.emoji} ${slot.label} <span style="color:var(--muted);font-weight:400;">${slot.from}h–${slot.to}h</span>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${statusColor};margin-bottom:6px;">${statusText}</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.7;">
+        <span title="Vent moyen">💨 ${avgSpeed} km/h (${dirLabel})</span><br>
+        <span title="Rafales max">⚡ Rafales ${maxGust} km/h</span><br>
+        <span title="Probabilité pluie">🌧️ Pluie ${maxRain}%</span><br>
+        <span style="color:${favorable ? colOk : colWarn};">
+          ${favorable ? '🏹 Vent de dos' : '🔄 Vent de face/côté'}
+        </span>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+
+  // Badge global
+  badge.textContent  = globalOk ? '✅ OK' : '⚠️ Attention';
+  badge.style.background = globalOk ? 'rgba(138,168,78,0.12)' : 'rgba(212,130,42,0.12)';
+  badge.style.border     = globalOk ? '0.5px solid rgba(138,168,78,0.3)' : '0.5px solid rgba(212,130,42,0.3)';
+  badge.style.color      = globalOk ? 'var(--accent-green, #8aa84e)' : 'var(--accent-orange)';
 }
 
 function renderHeating(temp, d){
@@ -1338,7 +1391,6 @@ applyTheme(currentTheme);
 function initAll() {
   refreshData();
   initHAUI();
-  renderDayTimeline();
   renderSunArc();
 }
 
@@ -1574,45 +1626,8 @@ setInterval(renderSunArc, 60000);
 
 // Redraw on theme toggle
 const _origToggleTheme = toggleTheme;
-toggleTheme = function() { _origToggleTheme(); renderSunArc(); renderDayTimeline(); };
+toggleTheme = function() { _origToggleTheme(); renderSunArc(); };
 
-// ── TIMELINE JOUR ─────────────────────────────────────────────────────────────
-function renderDayTimeline() {
-  const now    = new Date();
-  const nowH   = now.getHours();
-  const nowM   = now.getMinutes();
-  const totalM = 24 * 60;
-  const pct    = ((nowH * 60 + nowM) / totalM) * 100;
-  const timeStr = String(nowH).padStart(2,'0') + ':' + String(nowM).padStart(2,'0');
-
-  const done   = document.getElementById('dayTimelineDone');
-  const cursor = document.getElementById('dayTimelineCursor');
-  const labels = document.getElementById('dayTimelineLabels');
-
-  if(!done || !cursor || !labels) return;
-
-  done.style.width   = pct + '%';
-  cursor.style.left  = pct + '%';
-  cursor.setAttribute('data-time', timeStr);
-
-  // Update time label in section title
-  const lbl = document.getElementById('timelineTimeLabel');
-  if(lbl) lbl.textContent = timeStr;
-
-  // Build labels (every 3h)
-  if(!labels.children.length) {
-    labels.innerHTML = '';
-    for(let h = 0; h <= 24; h += 3) {
-      const tick = document.createElement('div');
-      tick.className = 'day-timeline-label-tick';
-      tick.textContent = h === 24 ? '24h' : String(h).padStart(2,'0') + 'h';
-      labels.appendChild(tick);
-    }
-  }
-}
-
-// Update every 30 seconds
-setInterval(renderDayTimeline, 30000);
 </script>
 </body>
 </html>
