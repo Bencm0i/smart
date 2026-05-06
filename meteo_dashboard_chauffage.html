@@ -856,6 +856,40 @@ const nowTrianglePlugin = {
 };
 Chart.register(nowTrianglePlugin);
 
+// ── PLUGIN GOUTTES DE PLUIE ───────────────────────────────────────────────────
+const rainDropsPlugin = {
+  id: 'rainDrops',
+  afterDraw(chart) {
+    if (!chart.config.options.rainDrops) return;
+    const xScale  = chart.scales['x'];
+    const y1Scale = chart.scales['y1'];
+    const area    = chart.chartArea;
+    if (!xScale || !y1Scale || !area) return;
+
+    const probs = chart.config.options.rainDrops.data;
+    const ctx   = chart.ctx;
+
+    ctx.save();
+    ctx.font = '10px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    probs.forEach((p, i) => {
+      if (p < 20) return;
+      const x = xScale.getPixelForValue(i);
+      const y = y1Scale.getPixelForValue(p) - 2; // juste au-dessus de la courbe
+
+      const alpha = Math.min(0.35 + (p / 100) * 0.65, 1);
+      ctx.globalAlpha = alpha;
+      ctx.fillText('💧', x, y);
+    });
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+};
+Chart.register(rainDropsPlugin);
+
 function renderTempChart(d){
   const labels = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
   const temps  = d.hourly.temperature_2m.slice(0,24);
@@ -879,6 +913,7 @@ function renderTempChart(d){
     },
     options:{
       nowTriangle: true,
+      rainDrops: { data: probs },
       responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{ legend:{display:false},
