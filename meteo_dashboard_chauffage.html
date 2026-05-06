@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;700;800&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* === THÈME MILITAIRE VERT === */
+    --bg: #0e1208;
+    --surface: #161c0e;
+    --surface2: #1c2412;
+    --border: rgba(138,168,78,0.15);
+    --text: #d4ddb8;
+    --muted: #7a8c5a;
+    --accent-blue: #8aaa4e;      /* vert OD principal */
+    --accent-cyan: #a8c060;      /* vert vif / actif */
+    --accent-orange: #d4822a;    /* ambre/rouille */
+    --accent-yellow: #c8a832;    /* kaki doré */
+    --accent-purple: #6aaa6a;    /* vert forêt */
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --chart-grid: rgba(138,168,78,0.06);
+    --chart-border: rgba(138,168,78,0.12);
+    --chart-tick: #7a8c5a;
+    --tooltip-bg: #1c2412;
+    --tooltip-border: rgba(138,168,78,0.2);
+    --tooltip-title: #d4ddb8;
+    --tooltip-body: #7a8c5a;
+  }
+
+  /* ── THÈME TERRAIN (sable/jour) ── */
+  [data-theme="beige"] {
+    --bg: #e8e0cc;
+    --surface: #ddd5be;
+    --surface2: #d2c9af;
+    --border: rgba(80,70,40,0.18);
+    --text: #2c2a1a;
+    --muted: #6e6642;
+    --accent-blue: #4a6e1a;
+    --accent-cyan: #3d7022;
+    --accent-orange: #c4620a;
+    --accent-yellow: #9a7818;
+    --accent-purple: #4a7048;
+    --chart-grid: rgba(80,70,40,0.07);
+    --chart-border: rgba(80,70,40,0.15);
+    --chart-tick: #6e6642;
+    --tooltip-bg: #ddd5be;
+    --tooltip-border: rgba(80,70,40,0.2);
+    --tooltip-title: #2c2a1a;
+    --tooltip-body: #6e6642;
+  }
+
+  [data-theme="beige"] body { background: transparent; }
+  [data-theme="beige"] .refresh-btn:hover { background: #c8c0aa; }
+  [data-theme="beige"] .kpi-card,
+  [data-theme="beige"] .section-card,
+  [data-theme="beige"] .heating-section {
+    box-shadow: 0 1px 4px rgba(80,70,40,0.12);
+  }
+  [data-theme="beige"] .forecast-item { background: var(--surface2); }
+  [data-theme="beige"] .heat-card.active { border-color: var(--accent-cyan); background: rgba(61,112,34,0.08); }
+  [data-theme="beige"] .heat-card.warm { border-color: var(--accent-orange); background: rgba(196,98,10,0.07); }
+  [data-theme="beige"] .heat-card.secondary { background: var(--surface2); }
+  [data-theme="beige"] .heat-status.on { color: var(--accent-cyan); }
+  [data-theme="beige"] .heat-status.standby { color: var(--accent-yellow); }
+  [data-theme="beige"] .tag-hot { background: rgba(196,98,10,0.12); color: var(--accent-orange); border: 0.5px solid rgba(196,98,10,0.3); }
+  [data-theme="beige"] .tag-cold { background: rgba(74,110,26,0.1); color: var(--accent-blue); border: 0.5px solid rgba(74,110,26,0.3); }
+  [data-theme="beige"] .tag-mild { background: rgba(154,120,24,0.1); color: var(--accent-yellow); border: 0.5px solid rgba(154,120,24,0.3); }
+  [data-theme="beige"] .tag-eco { background: rgba(61,112,34,0.08); color: var(--accent-cyan); border: 0.5px solid rgba(61,112,34,0.3); }
+  [data-theme="beige"] .auto-badge {
+    color: var(--accent-cyan);
+    background: rgba(61,112,34,0.1);
+    border: 0.5px solid rgba(61,112,34,0.3);
+  }
+
+  /* ── THEME TOGGLE BUTTON ── */
+  .theme-toggle-btn {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, border-color 0.2s, color 0.2s;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .theme-toggle-btn:hover { background: var(--surface); border-color: var(--accent-blue); }
+  .theme-toggle-btn .theme-icon { font-size: 13px; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    /* grille militaire subtile */
+    background-image:
+      linear-gradient(rgba(138,168,78,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(138,168,78,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    min-height: 100vh;
+  }
+
+  [data-theme="beige"] body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(rgba(80,70,40,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(80,70,40,0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .dashboard { padding: 0.75rem; max-width: 1400px; margin: 0 auto; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;
+    padding-bottom: 0.75rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .city-name {
+    font-family: var(--font-head); font-size: 20px; font-weight: 800;
+    letter-spacing: 0.04em; color: var(--accent-cyan);
+    text-transform: uppercase;
+  }
+
+  .datetime { font-size: 11px; color: var(--muted); letter-spacing: 0.03em; }
+
+  .refresh-btn {
+    background: var(--surface2); border: 0.5px solid var(--border);
+    color: var(--accent-blue); padding: 6px 14px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 11px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: background 0.15s, border-color 0.15s;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .refresh-btn:hover { background: var(--surface); border-color: var(--accent-blue); }
+
+  .refresh-icon { display: inline-block; font-size: 14px; transition: transform 0.4s; }
+  .refresh-icon.spinning { animation: spin 0.8s linear; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .auto-badge {
+    font-size: 10px; color: var(--accent-cyan);
+    background: rgba(168,192,96,0.08); border: 0.5px solid rgba(168,192,96,0.25);
+    padding: 3px 8px; border-radius: 3px; letter-spacing: 0.04em;
+  }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px; margin-bottom: 1rem;
+  }
+
+  .kpi-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 6px; padding: 12px 14px;
+    border-left: 2px solid var(--accent-blue);
+  }
+
+  .kpi-label { font-size: 10px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .kpi-value { font-family: var(--font-head); font-size: 24px; font-weight: 700; line-height: 1; color: var(--text); }
+  .kpi-unit { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+  .kpi-trend { font-size: 10px; color: var(--muted); margin-top: 5px; letter-spacing: 0.02em; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 8px;
+  }
+
+  .section-card {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-radius: 6px; padding: 14px;
+  }
+
+  .section-title {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-title .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent-blue); display: inline-block;
+    box-shadow: 0 0 4px var(--accent-blue);
+  }
+
+  .full-width { grid-column: 1 / -1; }
+
+  canvas { display: block; }
+
+  .forecast-row {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+  }
+
+  .forecast-item {
+    background: var(--surface2); border-radius: 5px; padding: 8px 6px;
+    text-align: center; border: 0.5px solid var(--border);
+  }
+
+  .forecast-day { font-size: 10px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .forecast-icon { font-size: 18px; margin-bottom: 4px; }
+  .forecast-hi { font-size: 14px; font-weight: 500; color: var(--accent-cyan); }
+  .forecast-lo { font-size: 11px; color: var(--muted); }
+  .forecast-rain { font-size: 10px; color: var(--accent-blue); margin-top: 3px; }
+
+  .heating-section {
+    background: var(--surface); border: 0.5px solid var(--border);
+    border-left: 2px solid var(--accent-orange);
+    border-radius: 6px; padding: 14px; margin-bottom: 8px;
+  }
+
+  .heating-title {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text);
+  }
+
+  .heat-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;
+  }
+
+  .heat-card {
+    border-radius: 5px; padding: 10px;
+    border: 0.5px solid var(--border);
+  }
+
+  .heat-card.active { border-color: var(--accent-cyan); background: rgba(168,192,96,0.06); border-left: 2px solid var(--accent-cyan); }
+  .heat-card.warm { border-color: var(--accent-orange); background: rgba(212,130,42,0.06); border-left: 2px solid var(--accent-orange); }
+  .heat-card.secondary { background: var(--surface2); }
+
+  .heat-name { font-size: 11px; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; letter-spacing: 0.03em; }
+  .heat-status { font-size: 10px; margin-bottom: 7px; letter-spacing: 0.04em; }
+  .heat-status.on { color: var(--accent-cyan); }
+  .heat-status.standby { color: var(--accent-yellow); }
+  .heat-status.off { color: var(--muted); }
+  .heat-hours { font-size: 10px; color: var(--muted); line-height: 1.7; }
+
+  .advice-list { list-style: none; }
+  .advice-list li {
+    font-size: 12px; color: var(--text); padding: 7px 0;
+    border-bottom: 0.5px solid var(--border);
+    display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+  }
+  .advice-list li:last-child { border-bottom: none; }
+  .advice-tag {
+    font-size: 9px; padding: 2px 6px; border-radius: 3px; white-space: nowrap;
+    font-weight: 500; flex-shrink: 0; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .tag-hot { background: rgba(212,130,42,0.15); color: var(--accent-orange); border: 0.5px solid rgba(212,130,42,0.35); }
+  .tag-cold { background: rgba(138,170,78,0.12); color: var(--accent-blue); border: 0.5px solid rgba(138,170,78,0.35); }
+  .tag-mild { background: rgba(200,168,50,0.12); color: var(--accent-yellow); border: 0.5px solid rgba(200,168,50,0.35); }
+  .tag-eco { background: rgba(168,192,96,0.1); color: var(--accent-cyan); border: 0.5px solid rgba(168,192,96,0.35); }
+
+  .wind-compass-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .compass-container { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+
+  .hourly-temp-wrap { position: relative; width: 100%; height: 150px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .full-width { grid-column: 1; }
+    .heat-grid { grid-template-columns: 1fr 1fr; }
+    .forecast-row { grid-template-columns: repeat(4, 1fr); }
+    .wind-compass-wrap { flex-direction: column; align-items: flex-start; }
+    .wind-compass-wrap > div:last-child { width: 100%; }
+  }
+
+  @media (max-width: 550px) {
+    .city-name { font-size: 16px; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .heat-grid { grid-template-columns: 1fr; }
+    .forecast-row { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .forecast-item { padding: 6px 4px; }
+    .forecast-icon { font-size: 15px; }
+    .dashboard { padding: 0.5rem; }
+    .topbar { gap: 8px; }
+    .heating-title { font-size: 10px; flex-wrap: wrap; }
+    .hourly-temp-wrap { height: 130px; }
+    .compass-container { width: 110px; height: 110px; }
+  }
+
+  @media (max-width: 380px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .forecast-row { grid-template-columns: repeat(3, 1fr); }
+    .kpi-value { font-size: 20px; }
+  }
+
+  /* ── ALERTES MÉTÉO ── */
+  .alert-banner {
+    display: none;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid;
+    animation: alertPulse 2s ease-in-out infinite;
+  }
+  .alert-banner.visible { display: block; }
+
+  @keyframes alertPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.82; }
+  }
+
+  .alert-banner.alert-wind {
+    border-color: rgba(212,130,42,0.6);
+    background: rgba(212,130,42,0.08);
+  }
+  .alert-banner.alert-heat {
+    border-color: rgba(220,60,60,0.6);
+    background: rgba(220,60,60,0.08);
+  }
+  .alert-banner.alert-frost {
+    border-color: rgba(96,165,250,0.6);
+    background: rgba(96,165,250,0.08);
+  }
+
+  .alert-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; flex-wrap: wrap;
+  }
+  .alert-icon { font-size: 18px; flex-shrink: 0; }
+  .alert-text { flex: 1; }
+  .alert-title {
+    font-family: var(--font-head); font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;
+  }
+  .alert-detail {
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+  }
+  .alert-banner.alert-wind .alert-title { color: var(--accent-orange); }
+  .alert-banner.alert-heat .alert-title { color: #f87171; }
+  .alert-banner.alert-frost .alert-title { color: #60a5fa; }
+  .alert-banner.alert-wind .alert-detail { color: rgba(212,130,42,0.75); }
+  .alert-banner.alert-heat .alert-detail { color: rgba(220,60,60,0.75); }
+  .alert-banner.alert-frost .alert-detail { color: rgba(96,165,250,0.75); }
+
+  [data-theme="beige"] .alert-banner.alert-wind { border-color: rgba(196,98,10,0.5); background: rgba(196,98,10,0.07); }
+  [data-theme="beige"] .alert-banner.alert-heat { border-color: rgba(200,40,40,0.4); background: rgba(200,40,40,0.06); }
+  [data-theme="beige"] .alert-banner.alert-frost { border-color: rgba(37,99,235,0.4); background: rgba(37,99,235,0.06); }
+
+  /* ── TIMELINE JOUR ── */
+  .day-timeline-wrap {
+    margin-top: 10px;
+    padding: 0 2px;
+    position: relative;
+    user-select: none;
+  }
+  .day-timeline-track {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    overflow: visible;
+    margin: 0 10px;
+  }
+  .day-timeline-done {
+    position: absolute;
+    left: 0; top: 0; height: 100%;
+    border-radius: 3px 0 0 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    transition: width 0.5s ease;
+    pointer-events: none;
+  }
+  .day-timeline-cursor {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent-orange);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 6px var(--accent-orange), 0 0 0 1px var(--accent-orange);
+    transition: left 0.5s ease;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .day-timeline-cursor::after {
+    content: attr(data-time);
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--accent-orange);
+    white-space: nowrap;
+    background: var(--surface);
+    border: 0.5px solid rgba(212,130,42,0.3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+  .day-timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 10px 0;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .day-timeline-label-tick {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .day-timeline-label-tick::before {
+    content: '';
+    display: block;
+    width: 1px; height: 4px;
+    background: var(--border);
+    opacity: 0.6;
+  }
+  [data-theme="beige"] .day-timeline-cursor {
+    box-shadow: 0 0 6px rgba(196,98,10,0.6), 0 0 0 1px var(--accent-orange);
+  }
+  [data-theme="beige"] .day-timeline-done {
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  }
+
+  /* ── GRAPHIQUE ARC SOLAIRE ── */
+  .sun-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px 10px;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sun-card-title {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  .sun-arc-wrap { position: relative; width: 100%; }
+  .sun-arc-wrap canvas { display: block; width: 100%; }
+  .sun-stats {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 6px; flex-wrap: wrap; gap: 6px;
+  }
+  .sun-stat { text-align: center; flex: 1; min-width: 70px; }
+  .sun-stat-val {
+    font-family: var(--font-head); font-size: 16px; font-weight: 700;
+    color: var(--accent-yellow); line-height: 1;
+  }
+  .sun-stat-lbl {
+    font-size: 9px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.07em; margin-top: 3px;
+  }
+  .sun-pct-pill {
+    font-family: var(--font-head); font-size: 13px; font-weight: 700;
+    color: var(--accent-yellow);
+    background: rgba(200,168,50,0.12);
+    border: 0.5px solid rgba(200,168,50,0.3);
+    border-radius: 4px; padding: 2px 8px;
+    margin-left: auto;
+  }
+  [data-theme="beige"] .sun-pct-pill {
+    background: rgba(154,120,24,0.12);
+    border-color: rgba(154,120,24,0.3);
+    color: var(--accent-yellow);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="city-name" id="cityName">Valence, Drôme</div>
+        <div class="datetime" id="datetimeDisplay">—</div>
+      </div>
+      <span class="auto-badge" id="autoBadge">Auto — actualise dans <span id="countdown">30</span>s</span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">
+        <span class="theme-icon" id="themeIcon">🌿</span>
+        <span id="themeLabel">Terrain</span>
+      </button>
+      <button class="refresh-btn" onclick="refreshData()">
+        <span class="refresh-icon" id="refreshIcon">&#8635;</span> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- ── ALERTES MÉTÉO ── -->
+  <div class="alert-banner alert-wind" id="alertWind">
+    <div class="alert-row">
+      <div class="alert-icon">💨</div>
+      <div class="alert-text">
+        <div class="alert-title">⚠ ALERTE VENT — Rafales fortes</div>
+        <div class="alert-detail" id="alertWindDetail">Rafales dépassant 60 km/h détectées</div>
+      </div>
+    </div>
+  </div>
+  <div class="alert-banner alert-heat" id="alertHeat">
+    <div class="alert-row">
+      <div class="alert-icon">🌡️</div>
+      <div class="alert-text">
+        <div class="alert-title">⚠ ALERTE CHALEUR — Température extrême</div>
+        <div class="alert-detail" id="alertHeatDetail">Température supérieure à 37°C</div>
+      </div>
+    </div>
+  </div>
+  <div class="alert-banner alert-frost" id="alertFrost">
+    <div class="alert-row">
+      <div class="alert-icon">❄️</div>
+      <div class="alert-text">
+        <div class="alert-title">⚠ ALERTE GEL — Température négative</div>
+        <div class="alert-detail" id="alertFrostDetail">Température inférieure à 0°C détectée</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ARC SOLAIRE ── -->
+  <div class="sun-card">
+    <div class="sun-card-title">
+      <span class="dot" style="background:var(--accent-yellow);box-shadow:0 0 4px var(--accent-yellow);"></span>
+      Avancement de la journée
+      <span class="sun-pct-pill" id="sunPctPill">—%</span>
+    </div>
+    <div class="sun-arc-wrap">
+      <canvas id="sunArcCanvas" height="110"></canvas>
+    </div>
+    <div class="sun-stats">
+      <div class="sun-stat">
+        <div class="sun-stat-val" id="sunRiseVal">—</div>
+        <div class="sun-stat-lbl">Lever</div>
+      </div>
+      <div class="sun-stat">
+        <div class="sun-stat-val" id="sunNowVal">—</div>
+        <div class="sun-stat-lbl">Maintenant</div>
+      </div>
+      <div class="sun-stat">
+        <div class="sun-stat-val" id="sunLeftVal">—</div>
+        <div class="sun-stat-lbl">Lumière restante</div>
+      </div>
+      <div class="sun-stat">
+        <div class="sun-stat-val" id="sunSetVal">—</div>
+        <div class="sun-stat-lbl">Coucher</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card" style="position:relative;">
+      <div class="kpi-label">Température</div>
+      <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;">
+        <div>
+          <div class="kpi-value" id="kpiTemp">—<span class="kpi-unit">°C</span></div>
+          <div class="kpi-trend" id="kpiFeels">Ressenti —</div>
+        </div>
+        <div style="border-left:1.5px solid rgba(211,145,255,0.35); padding-left:12px;">
+          <div style="font-size:9px; color:#c084fc; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:3px;">🌿 Jardin 2</div>
+          <div class="kpi-value" id="kpiJardin" style="font-size:18px; color:#c084fc;">—<span class="kpi-unit" style="color:#a855f7;">°C</span></div>
+          <div class="kpi-trend" id="kpiJardinTrend" style="color:#a855f7; font-size:9px;">Capteur HA</div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-card" id="kpiJardinCard" style="display:none;"></div>
+    <div class="kpi-card">
+      <div class="kpi-label">Humidité</div>
+      <div class="kpi-value" id="kpiHum">—<span class="kpi-unit">%</span></div>
+      <div class="kpi-trend" id="kpiDewpoint">Point de rosée —</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Vent</div>
+      <div class="kpi-value" id="kpiWind">—<span class="kpi-unit">km/h</span></div>
+      <div class="kpi-trend" id="kpiWindDir">Direction —</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pression</div>
+      <div class="kpi-value" id="kpiPres">—<span class="kpi-unit">hPa</span></div>
+      <div class="kpi-trend" id="kpiPresTrend">Tendance —</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">UV</div>
+      <div class="kpi-value" id="kpiUV">—</div>
+      <div class="kpi-trend" id="kpiUVLabel">Indice UV</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Précipitations</div>
+      <div class="kpi-value" id="kpiRain">—<span class="kpi-unit">mm</span></div>
+      <div class="kpi-trend" id="kpiRainProb">Probabilité —</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Visibilité</div>
+      <div class="kpi-value" id="kpiVis">—<span class="kpi-unit">km</span></div>
+      <div class="kpi-trend" id="kpiSun">Lever/Coucher —</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="section-card">
+      <div class="section-title"><span class="dot" style="background:var(--accent-blue)"></span>Température 24h</div>
+      <div class="hourly-temp-wrap">
+        <canvas id="tempChart"></canvas>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-title"><span class="dot" style="background:var(--accent-purple)"></span>Vent — Vitesse & Direction</div>
+      <div class="wind-compass-wrap">
+        <div class="compass-container">
+          <canvas id="compassChart" width="130" height="130"></canvas>
+        </div>
+        <div style="flex:1; min-width:150px; height:150px; position:relative;">
+          <canvas id="windChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="section-card full-width">
+      <div class="section-title"><span class="dot" style="background:var(--accent-yellow)"></span>Prévisions 7 jours</div>
+      <div class="forecast-row" id="forecastRow"></div>
+    </div>
+  </div>
+
+  <!-- ── TIMELINE HEURE DU JOUR ── -->
+  <div class="section-card" style="margin-bottom:8px;">
+    <div class="section-title">
+      <span class="dot" style="background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange);"></span>
+      Heure du jour
+      <span id="timelineTimeLabel" style="margin-left:auto;font-size:12px;font-weight:600;color:var(--accent-orange);font-family:var(--font-head);">—</span>
+    </div>
+    <div class="day-timeline-wrap">
+      <div class="day-timeline-track" id="dayTimelineTrack">
+        <div class="day-timeline-done" id="dayTimelineDone"></div>
+        <div class="day-timeline-cursor" id="dayTimelineCursor" data-time="00:00"></div>
+      </div>
+      <div class="day-timeline-labels" id="dayTimelineLabels"></div>
+    </div>
+  </div>
+
+  <div class="heating-section" id="heatingSection">
+    <div class="heating-title">
+      <span id="heatingIcon">🔥</span>
+      Conseils chauffage & climatisation
+      <span style="margin-left:auto; font-size:11px; color:var(--muted); font-family:var(--font-mono); font-weight:400;" id="heatingContext"></span>
+    </div>
+    <div class="heat-grid" id="heatGrid"></div>
+    <div class="section-title" style="margin-top:4px;"><span class="dot" style="background:var(--accent-yellow)"></span>Recommandations</div>
+    <ul class="advice-list" id="adviceList"></ul>
+  </div>
+
+  <!-- ── CONFIGURATION HOME ASSISTANT ── -->
+  <div class="heating-section" id="haConfigSection" style="border-left-color:var(--accent-purple); margin-top:0;">
+    <div class="heating-title">
+      <span>🏠</span> Configuration Home Assistant
+      <span id="haStatusBadge" style="margin-left:auto; font-size:10px; padding:2px 8px; border-radius:3px; font-family:var(--font-mono); font-weight:400; background:rgba(138,168,78,0.08); border:0.5px solid rgba(138,168,78,0.2); color:var(--muted);">Non configuré</span>
+    </div>
+    <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:220px;">
+        <div class="kpi-label" style="margin-bottom:5px;">URL Home Assistant</div>
+        <input id="haUrlInput" type="text" placeholder="http://homeassistant.local:8123"
+          style="width:100%; background:var(--surface2); border:0.5px solid var(--border); color:var(--text);
+          padding:7px 10px; border-radius:4px; font-family:var(--font-mono); font-size:12px;
+          outline:none; transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--accent-blue)'"
+          onblur="this.style.borderColor='var(--border)'"
+        />
+      </div>
+      <div style="flex:2; min-width:280px;">
+        <div class="kpi-label" style="margin-bottom:5px;">Token d'accès longue durée (Long-Lived Access Token)</div>
+        <input id="haTokenInput" type="password" placeholder="eyJ0eXAiOiJKV1QiLCJhb..."
+          style="width:100%; background:var(--surface2); border:0.5px solid var(--border); color:var(--text);
+          padding:7px 10px; border-radius:4px; font-family:var(--font-mono); font-size:12px;
+          outline:none; transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--accent-blue)'"
+          onblur="this.style.borderColor='var(--border)'"
+        />
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button onclick="saveHAConfig()" class="refresh-btn" style="padding:7px 16px; color:var(--accent-cyan); border-color:rgba(168,192,96,0.3);">
+          ✓ Enregistrer
+        </button>
+        <button onclick="toggleTokenVisibility()" class="refresh-btn" id="toggleTokenBtn" style="padding:7px 10px;">
+          👁
+        </button>
+      </div>
+    </div>
+    <div style="margin-top:8px; font-size:10px; color:var(--muted); line-height:1.7;">
+      → Profil HA &gt; Sécurité &gt; Tokens d'accès à longue durée &gt; <em>Créer un token</em> · Les données sont stockées localement dans votre navigateur.
+    </div>
+    <div id="haTestResult" style="margin-top:8px; font-size:11px; display:none; padding:6px 10px; border-radius:4px; font-family:var(--font-mono);"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const WMO_ICONS = {
+  0:'☀️',1:'🌤️',2:'⛅',3:'☁️',
+  45:'🌫️',48:'🌫️',
+  51:'🌦️',53:'🌦️',55:'🌧️',
+  61:'🌧️',63:'🌧️',65:'🌧️',
+  71:'🌨️',73:'🌨️',75:'❄️',
+  80:'🌦️',81:'🌧️',82:'⛈️',
+  85:'🌨️',86:'❄️',
+  95:'⛈️',96:'⛈️',99:'⛈️'
+};
+
+const WMO_DESC = {
+  0:'Dégagé',1:'Peu nuageux',2:'Partiellement nuageux',3:'Couvert',
+  45:'Brouillard',48:'Brouillard givrant',
+  51:'Bruine légère',53:'Bruine',55:'Bruine forte',
+  61:'Pluie légère',63:'Pluie',65:'Pluie forte',
+  71:'Neige légère',73:'Neige',75:'Neige forte',
+  80:'Averses légères',81:'Averses',82:'Averses fortes',
+  95:'Orage',99:'Orage violent'
+};
+
+const DIR_LABELS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+function degToDir(d){ return DIR_LABELS[Math.round(d/22.5)%16]; }
+
+let tempChartInst = null, windChartInst = null;
+let countdownVal = 30;
+let countdownTimer = null;
+let weatherData = null;
+
+function updateDatetime(){
+  const now = new Date();
+  const opts = {weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'};
+  document.getElementById('datetimeDisplay').textContent = now.toLocaleDateString('fr-FR',opts);
+}
+
+function startCountdown(){
+  clearInterval(countdownTimer);
+  countdownVal = 30;
+  countdownTimer = setInterval(()=>{
+    countdownVal--;
+    document.getElementById('countdown').textContent = countdownVal;
+    if(countdownVal<=0){ refreshData(); }
+  },1000);
+}
+
+async function fetchWeather(){
+  const lat=44.933, lon=4.892;
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
+  const r = await fetch(url);
+  return r.json();
+}
+
+function refreshData(){
+  const icon = document.getElementById('refreshIcon');
+  icon.classList.add('spinning');
+  setTimeout(()=>icon.classList.remove('spinning'),800);
+  updateDatetime();
+  fetchWeather().then(data=>{
+    weatherData = data;
+    renderKPIs(data);
+    renderTempChart(data);
+    renderWindChart(data);
+    renderCompass(data.current.wind_direction_10m);
+    renderForecast(data);
+    renderHeating(data.current.temperature_2m, data);
+    // Refresh HA sensor
+    const cfg = getHAConfig();
+    if(cfg.url && cfg.token) fetchJardinSensor(cfg.url, cfg.token);
+  }).catch(e=>{
+    console.error(e);
+    renderFallback();
+  });
+  startCountdown();
+}
+
+function checkAlerts(d){
+  const c = d.current;
+  const temp = c.temperature_2m;
+
+  // ── Alerte vent : rafales > 60 km/h
+  // Open-Meteo ne fournit pas les rafales dans /current par défaut, on utilise wind_speed_10m
+  // et on cherche aussi dans les horaires si wind_gusts_10m est présent
+  let gustMax = c.wind_gusts_10m ?? c.wind_speed_10m ?? 0;
+  // Si des rafales horaires sont disponibles
+  if(d.hourly && d.hourly.wind_gusts_10m){
+    const nowH = new Date().getHours();
+    const next6 = d.hourly.wind_gusts_10m.slice(nowH, nowH+6);
+    if(next6.length) gustMax = Math.max(gustMax, ...next6);
+  }
+  const windAlert = document.getElementById('alertWind');
+  if(gustMax > 60){
+    windAlert.classList.add('visible');
+    document.getElementById('alertWindDetail').textContent =
+      `Rafales de ${Math.round(gustMax)} km/h — Direction ${degToDir(c.wind_direction_10m)}`;
+  } else {
+    windAlert.classList.remove('visible');
+  }
+
+  // ── Alerte chaleur : temp > 37°C
+  const heatAlert = document.getElementById('alertHeat');
+  if(temp > 37){
+    heatAlert.classList.add('visible');
+    document.getElementById('alertHeatDetail').textContent =
+      `Température actuelle : ${temp.toFixed(1)}°C (seuil : 37°C)`;
+  } else {
+    heatAlert.classList.remove('visible');
+  }
+
+  // ── Alerte gel : temp < 0°C
+  const frostAlert = document.getElementById('alertFrost');
+  if(temp < 0){
+    frostAlert.classList.add('visible');
+    document.getElementById('alertFrostDetail').textContent =
+      `Température actuelle : ${temp.toFixed(1)}°C — Risque de gel`;
+  } else {
+    frostAlert.classList.remove('visible');
+  }
+}
+
+function renderKPIs(d){
+  const c = d.current;
+  const temp = Math.round(c.temperature_2m);
+  const col = temp > 27 ? 'var(--accent-orange)' : temp < 5 ? 'var(--accent-blue)' : 'var(--text)';
+  document.getElementById('kpiTemp').innerHTML = `${temp}<span class="kpi-unit">°C</span>`;
+  document.getElementById('kpiTemp').style.color = col;
+  document.getElementById('kpiFeels').textContent = `Ressenti ${Math.round(c.apparent_temperature)}°C`;
+  document.getElementById('kpiHum').innerHTML = `${Math.round(c.relative_humidity_2m)}<span class="kpi-unit">%</span>`;
+  const dp = Math.round(c.temperature_2m - (100-c.relative_humidity_2m)/5);
+  document.getElementById('kpiDewpoint').textContent = `Point de rosée ${dp}°C`;
+  document.getElementById('kpiWind').innerHTML = `${Math.round(c.wind_speed_10m)}<span class="kpi-unit">km/h</span>`;
+  document.getElementById('kpiWindDir').textContent = `Direction ${degToDir(c.wind_direction_10m)} ${Math.round(c.wind_direction_10m)}°`;
+  document.getElementById('kpiPres').innerHTML = `${Math.round(c.surface_pressure)}<span class="kpi-unit">hPa</span>`;
+  const trend = c.surface_pressure > 1013 ? '↑ Beau temps' : c.surface_pressure < 1005 ? '↓ Perturbation' : '→ Stable';
+  document.getElementById('kpiPresTrend').textContent = trend;
+  document.getElementById('kpiUV').innerHTML = `${Math.round(c.uv_index||0)}`;
+  const uvLabel = ['Faible','Faible','Modéré','Modéré','Élevé','Élevé','Très élevé','Très élevé','Extrême','Extrême','Extrême','Extrême+'];
+  document.getElementById('kpiUVLabel').textContent = uvLabel[Math.min(Math.round(c.uv_index||0),11)] + ' (UV)';
+  document.getElementById('kpiRain').innerHTML = `${(c.precipitation||0).toFixed(1)}<span class="kpi-unit">mm</span>`;
+  const nowH = new Date().getHours();
+  const prob = d.hourly.precipitation_probability?.[nowH]??0;
+  document.getElementById('kpiRainProb').textContent = `Probabilité ${prob}%`;
+  document.getElementById('kpiVis').innerHTML = `${Math.round((c.visibility||10000)/1000)}<span class="kpi-unit">km</span>`;
+  if(d.daily.sunrise && d.daily.sunset){
+    const sr = new Date(d.daily.sunrise[0]).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const ss = new Date(d.daily.sunset[0]).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('kpiSun').textContent = `Lever ${sr} — Coucher ${ss}`;
+  }
+  checkAlerts(d);
+}
+
+// ── TRIANGLE HEURE ACTUELLE ───────────────────────────────────────────────────
+const nowTrianglePlugin = {
+  id: 'nowTriangle',
+  afterDraw(chart) {
+    // Ne s'applique qu'aux charts avec l'option nowTriangle:true
+    if (!chart.config.options.nowTriangle) return;
+    const xScale = chart.scales['x'];
+    const area   = chart.chartArea;
+    if (!xScale || !area) return;
+    const nowH = new Date().getHours();
+    const nowM = new Date().getMinutes();
+    const labels = chart.data.labels;
+    let idx = -1;
+    for (let i = 0; i < labels.length; i++) {
+      if (parseInt(labels[i].split(':')[0], 10) === nowH) { idx = i; break; }
+    }
+    if (idx < 0) return;
+    // Chart.js 4.x : getPixelForValue(index) sur l'axe category
+    const x0 = xScale.getPixelForValue(idx);
+    const x1 = (idx + 1 < labels.length) ? xScale.getPixelForValue(idx + 1) : x0;
+    const px  = x0 + (x1 - x0) * (nowM / 60);
+    const isDark = currentTheme === 'dark';
+    const col = isDark ? '#d4822a' : '#c06010';
+    const pc  = chart.ctx;
+    const s   = 6;
+    // Triangle pointe vers le bas, juste AU-DESSUS de area.bottom (dans la zone visible)
+    const tipY  = area.bottom - 2;
+    const baseY = area.bottom - 2 - s * 1.6;
+    pc.save();
+    pc.beginPath();
+    pc.moveTo(px,         tipY);
+    pc.lineTo(px - s,     baseY);
+    pc.lineTo(px + s,     baseY);
+    pc.closePath();
+    pc.fillStyle = col;
+    pc.fill();
+    pc.restore();
+  }
+};
+Chart.register(nowTrianglePlugin);
+
+function renderTempChart(d){
+  const labels = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
+  const temps  = d.hourly.temperature_2m.slice(0,24);
+  const probs  = d.hourly.precipitation_probability.slice(0,24);
+  const ctx = document.getElementById('tempChart').getContext('2d');
+  const tc  = getThemeColors();
+  if(tempChartInst) tempChartInst.destroy();
+  tempChartInst = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Temp °C', data:temps, borderColor:tc.tempLine,
+        backgroundColor:tc.tempFill, fill:true, tension:0.4,
+        pointRadius:2, pointHoverRadius:5, borderWidth:2, yAxisID:'y'
+      },{
+        label:'Pluie %', data:probs, borderColor:tc.rainLine,
+        backgroundColor:tc.rainFill, fill:true, tension:0.4,
+        pointRadius:0, borderWidth:1.5, borderDash:[4,4], yAxisID:'y1'
+      }]
+    },
+    options:{
+      nowTriangle: true,
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:false},
+        tooltip:{
+          backgroundColor:tc.tooltipBg, borderColor:tc.tooltipBorder, borderWidth:0.5,
+          titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, padding:10
+        }
+      },
+      scales:{
+        x:{ticks:{color:tc.tick,font:{size:10},maxRotation:0},grid:{color:tc.grid},border:{color:tc.border}},
+        y:{ticks:{color:tc.tick,font:{size:10},callback:v=>v+'°'},grid:{color:tc.grid},border:{color:tc.border},position:'left'},
+        y1:{ticks:{color:tc.rainTick,font:{size:10},callback:v=>v+'%'},grid:{display:false},border:{color:'transparent'},position:'right',min:0,max:100}
+      }
+    }
+  });
+}
+
+function renderWindChart(d){
+  const labels = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
+  const speeds  = d.hourly.wind_speed_10m.slice(0,24);
+  const dirs    = d.hourly.wind_direction_10m.slice(0,24);
+  const ctx = document.getElementById('windChart').getContext('2d');
+  const tc  = getThemeColors();
+  const isDark = currentTheme === 'dark';
+  if(windChartInst) windChartInst.destroy();
+  windChartInst = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Vent km/h', data:speeds,
+        backgroundColor:speeds.map(s=>s>50?(isDark?'rgba(247,129,102,0.7)':'rgba(212,86,10,0.75)'):s>30?(isDark?'rgba(227,179,65,0.6)':'rgba(184,134,11,0.65)'):(isDark?'rgba(188,140,255,0.5)':'rgba(123,94,167,0.5)')),
+        borderRadius:3, borderSkipped:false
+      }]
+    },
+    options:{
+      nowTriangle: true,
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{
+          backgroundColor:tc.tooltipBg, borderColor:tc.tooltipBorder, borderWidth:0.5,
+          titleColor:tc.tooltipTitle, bodyColor:tc.tooltipBody, padding:8,
+          callbacks:{
+            afterBody:(items)=>{
+              const i=items[0].dataIndex;
+              return `Direction: ${degToDir(dirs[i])} (${Math.round(dirs[i])}°)`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:tc.tick,font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:8},grid:{color:tc.grid},border:{color:tc.border}},
+        y:{ticks:{color:tc.tick,font:{size:10},callback:v=>v+'km/h'},grid:{color:tc.grid},border:{color:tc.border}}
+      }
+    }
+  });
+}
+
+function renderCompass(angle){
+  const canvas = document.getElementById('compassChart');
+  const ctx = canvas.getContext('2d');
+  const tc = getThemeColors();
+  const cx=65, cy=65, r=55;
+  ctx.clearRect(0,0,130,130);
+
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle=tc.compassRing1; ctx.lineWidth=1; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r-10,0,Math.PI*2);
+  ctx.strokeStyle=tc.compassRing2; ctx.lineWidth=1; ctx.stroke();
+
+  ['N','E','S','O'].forEach((l,i)=>{
+    const a=(i*90-90)*Math.PI/180;
+    const tx=cx+Math.cos(a)*(r+10), ty=cy+Math.sin(a)*(r+10);
+    ctx.fillStyle= l==='N'?tc.compassN:tc.compassCard;
+    ctx.font='bold 11px DM Mono, monospace';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(l,tx,ty);
+  });
+
+  const rad=(angle-90)*Math.PI/180;
+  const ax=cx+Math.cos(rad)*(r-18), ay=cy+Math.sin(rad)*(r-18);
+  const bx=cx+Math.cos(rad+2.8)*10, by=cy+Math.sin(rad+2.8)*10;
+  const ccx=cx+Math.cos(rad-2.8)*10, ccy=cy+Math.sin(rad-2.8)*10;
+  ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.lineTo(ccx,ccy);
+  ctx.closePath(); ctx.fillStyle=tc.compassArrow; ctx.fill();
+
+  ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2);
+  ctx.fillStyle=tc.compassCenter; ctx.fill();
+
+  ctx.fillStyle=tc.compassLabel;
+  ctx.font='11px DM Mono, monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(degToDir(angle), cx, cy+r-26);
+}
+
+function renderForecast(d){
+  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const today = new Date().getDay();
+  const html = d.daily.weather_code.slice(0,7).map((code,i)=>{
+    const date = new Date(d.daily.time[i]);
+    const dayName = i===0?'Auj.':days[date.getDay()];
+    const icon = WMO_ICONS[code]||'🌡️';
+    const hi = Math.round(d.daily.temperature_2m_max[i]);
+    const lo = Math.round(d.daily.temperature_2m_min[i]);
+    const rain = Math.round(d.daily.precipitation_probability_max[i]||0);
+    return `<div class="forecast-item">
+      <div class="forecast-day">${dayName}</div>
+      <div class="forecast-icon">${icon}</div>
+      <div class="forecast-hi">${hi}°</div>
+      <div class="forecast-lo">${lo}°</div>
+      <div class="forecast-rain">${rain}%</div>
+    </div>`;
+  }).join('');
+  document.getElementById('forecastRow').innerHTML = html;
+}
+
+function renderHeating(temp, d){
+  const nowH = new Date().getHours();
+  const feelsLike = Math.round(d.current.apparent_temperature);
+  const wind = Math.round(d.current.wind_speed_10m);
+  const tomorrowHi = Math.round(d.daily.temperature_2m_max[1]||temp);
+  const tomorrowLo = Math.round(d.daily.temperature_2m_min[1]||temp);
+
+  let icon='🔥', ctx='';
+  let heatingCards='', advices=[];
+
+  if(temp >= 28){
+    icon='🌡️';
+    ctx = `${Math.round(temp)}°C — Chaleur`;
+    heatingCards = `
+      <div class="heat-card warm">
+        <div class="heat-name">❄️ PAC (climatisation)</div>
+        <div class="heat-status on">● Allumer maintenant</div>
+        <div class="heat-hours">Mode froid recommandé<br>Cible : 24-26°C intérieur<br>Plage horaire : 10h–22h</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">🪵 Bois</div>
+        <div class="heat-status off">● Inutile</div>
+        <div class="heat-hours">N'allumez pas le poêle<br>Risque de surchauffe<br>—</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">⚡ Radiateur élec.</div>
+        <div class="heat-status off">● Éteint</div>
+        <div class="heat-hours">À éviter absolument<br>Augmente la chaleur<br>—</div>
+      </div>`;
+    advices=[
+      {tag:'tag-hot',label:'Chaud',text:'Activez la PAC en mode climatisation entre 10h et 22h. Ciblez 24–26°C intérieur.'},
+      {tag:'tag-hot',label:'Chaud',text:'Fermez volets et fenêtres côté soleil le matin. Ventilation naturelle la nuit (avant 7h du matin) si < 22°C dehors.'},
+      {tag:'tag-eco',label:'Éco',text:'Préférez les heures creuses (22h–6h) pour les appareils électriques. Désactivez les sources de chaleur (four, sèche-linge) en journée.'},
+      {tag:'tag-hot',label:'Chaud',text:'Hydratation et ventilation mécanique (VMC) en continu. Évitez les activités physiques intenses entre 12h et 16h.'},
+    ];
+  } else if(temp >= 20){
+    icon='🌤️';
+    ctx = `${Math.round(temp)}°C — Tempéré`;
+    heatingCards = `
+      <div class="heat-card secondary">
+        <div class="heat-name">🪵 Bois</div>
+        <div class="heat-status standby">● Veille</div>
+        <div class="heat-hours">Inutile en journée<br>Possible soirée si < 16°C<br>Plage : 19h–23h</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">❄️ PAC</div>
+        <div class="heat-status off">● En veille</div>
+        <div class="heat-hours">Coupez chauffage PAC<br>Mode off ou 18°C minimum<br>Économies substantielles</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">⚡ Radiateur élec.</div>
+        <div class="heat-status off">● Éteint</div>
+        <div class="heat-hours">Inutile<br>—<br>—</div>
+      </div>`;
+    advices=[
+      {tag:'tag-mild',label:'Tempéré',text:'Aucun chauffage nécessaire en journée. Profitez de l\'apport solaire passif (fenêtres sud ouvertes le matin).'},
+      {tag:'tag-mild',label:'Tempéré',text:'Surveillance nocturne : si T° descend < 14°C, activez 1–2h de bois en soirée (19h–21h).'},
+      {tag:'tag-eco',label:'Éco',text:`Demain : min ${tomorrowLo}°C / max ${tomorrowHi}°C. Préparez le stock de bois si nuit fraîche prévue.`},
+    ];
+  } else if(temp >= 10){
+    icon='🔥';
+    ctx = `${Math.round(temp)}°C — Frais`;
+    heatingCards = `
+      <div class="heat-card active">
+        <div class="heat-name">❄️ PAC (chauffage)</div>
+        <div class="heat-status on">● Recommandée</div>
+        <div class="heat-hours">COP > 3 à ces T°<br>Cible : 19–20°C intérieur<br>Plage : 6h–22h</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">🪵 Bois</div>
+        <div class="heat-status standby">● Complément soirée</div>
+        <div class="heat-hours">Ideal en soirée / week-end<br>Appoint plaisant & économique<br>Plage : 18h–23h</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">⚡ Radiateur élec.</div>
+        <div class="heat-status standby">● Appoint seulement</div>
+        <div class="heat-hours">Pièces non chauffées PAC<br>Heure creuse uniquement<br>Évitez journée pleine</div>
+      </div>`;
+    advices=[
+      {tag:'tag-cold',label:'Frais',text:'La PAC est le choix principal à cette température : son COP est excellent entre 5 et 15°C extérieur. Réglez sur 19–20°C, pas plus.'},
+      {tag:'tag-cold',label:'Frais',text:'Bois en soirée (18h–23h) pour l\'agrément et compléter la PAC dans les grandes pièces. Limitez à 1 flambée (1,5 à 2h).'},
+      {tag:'tag-eco',label:'Éco',text:'Radiateurs électriques uniquement dans les pièces froides (bureau, chambre froide). Programmez sur heures creuses si possible.'},
+      {tag:'tag-cold',label:'Frais',text:`Vent ${wind} km/h — facteur de refroidissement. Vérifiez l'étanchéité des menuiseries. ${wind>30?'Fort vent prévu : rajoutez 1–2°C de consigne PAC.':''}`},
+    ];
+  } else if(temp >= 0){
+    icon='❄️';
+    ctx = `${Math.round(temp)}°C — Froid`;
+    heatingCards = `
+      <div class="heat-card active">
+        <div class="heat-name">🪵 Bois</div>
+        <div class="heat-status on">● Prioritaire</div>
+        <div class="heat-hours">Chauffage principal économique<br>Matin : 6h30–9h<br>Soirée : 17h–22h30</div>
+      </div>
+      <div class="heat-card active">
+        <div class="heat-name">❄️ PAC (chauffage)</div>
+        <div class="heat-status on">● Active — surveiller</div>
+        <div class="heat-hours">COP réduit < 5°C ext.<br>Cible : 20°C, plage 6h–22h<br>Mode antigel la nuit</div>
+      </div>
+      <div class="heat-card secondary">
+        <div class="heat-name">⚡ Radiateur élec.</div>
+        <div class="heat-status standby">● Appoint ciblé</div>
+        <div class="heat-hours">Chambres non couvertes PAC<br>Heure creuse obligatoire<br>2h max par session</div>
+      </div>`;
+    advices=[
+      {tag:'tag-cold',label:'Froid',text:'Bois en priorité matin (6h30–9h) et soirée (17h–22h30). Un bon feu de bois sec couvre facilement 80 m² et économise 40–60% vs électrique.'},
+      {tag:'tag-cold',label:'Froid',text:`PAC en relais automatique. En dessous de ${feelsLike < 0 ? '-2' : '3'}°C ressenti, son COP chute : la combiner avec le bois est optimal. Mode antigel (7°C) pendant les absences.`},
+      {tag:'tag-eco',label:'Éco',text:'Radiateurs électriques uniquement en appoint (chambres, salle de bain), strictement sur heures creuses pour limiter la facture.'},
+      {tag:'tag-cold',label:'Froid',text:`Demain min ${tomorrowLo}°C — ${tomorrowLo < -3 ? 'Vague de froid : préparez 2x le stock de bois, PAC en renfort continu.' : 'Préparez votre bois dès ce soir pour le démarrage matinal.'}`},
+    ];
+  } else {
+    icon='🧊';
+    ctx = `${Math.round(temp)}°C — Grand froid`;
+    heatingCards = `
+      <div class="heat-card active">
+        <div class="heat-name">🪵 Bois</div>
+        <div class="heat-status on">● Fonctionnement continu</div>
+        <div class="heat-hours">Charge max recommandée<br>Toutes les 3–4h<br>Ne jamais laisser s'éteindre</div>
+      </div>
+      <div class="heat-card active">
+        <div class="heat-name">⚡ Radiateur élec.</div>
+        <div class="heat-status on">● Actif en renfort</div>
+        <div class="heat-hours">Chambres & zones froides<br>Consigne : 18°C minimum<br>Heure creuse si possible</div>
+      </div>
+      <div class="heat-card warm">
+        <div class="heat-name">❄️ PAC</div>
+        <div class="heat-status standby">● Surveiller</div>
+        <div class="heat-hours">COP très bas < 0°C<br>Risque gel unité ext.<br>Mode antigel si inutilisée</div>
+      </div>`;
+    advices=[
+      {tag:'tag-cold',label:'Grand froid',text:'Bois en fonctionnement quasi-continu. Rechargez toutes les 3–4h pour maintenir la braise. Utilisez uniquement du bois sec (< 20% d\'humidité).'},
+      {tag:'tag-cold',label:'Grand froid',text:'PAC : son COP est < 1.5 sous 0°C, elle consomme plus qu\'elle ne produit parfois. Risque de gel de l\'unité extérieure — activez le mode antigel, dégivrage automatique.'},
+      {tag:'tag-cold',label:'Grand froid',text:'Radiateurs électriques en renfort continu dans toutes les zones non couvertes. Acceptez la surcoût temporaire plutôt que de risquer le gel des canalisations.'},
+      {tag:'tag-eco',label:'Éco',text:'Réduisez la consigne de 1–2°C la nuit (17–18°C). Isolez fenêtres avec des rideaux épais. Jointez les bas de portes donnant sur l\'extérieur.'},
+    ];
+  }
+
+  document.getElementById('heatingIcon').textContent = icon;
+  document.getElementById('heatingContext').textContent = ctx;
+  document.getElementById('heatGrid').innerHTML = heatingCards;
+  document.getElementById('adviceList').innerHTML = advices.map(a=>
+    `<li><span class="advice-tag ${a.tag}">${a.label}</span>${a.text}</li>`
+  ).join('');
+}
+
+function renderFallback(){
+  const mockTemp = 8;
+  document.getElementById('kpiTemp').innerHTML = `${mockTemp}<span class="kpi-unit">°C</span>`;
+  document.getElementById('kpiFeels').textContent = 'Ressenti 5°C';
+  document.getElementById('kpiHum').innerHTML = `72<span class="kpi-unit">%</span>`;
+  document.getElementById('kpiDewpoint').textContent = 'Point de rosée 3°C';
+  document.getElementById('kpiWind').innerHTML = `18<span class="kpi-unit">km/h</span>`;
+  document.getElementById('kpiWindDir').textContent = 'Direction NO 315°';
+  document.getElementById('kpiPres').innerHTML = `1012<span class="kpi-unit">hPa</span>`;
+  document.getElementById('kpiPresTrend').textContent = '→ Stable';
+  document.getElementById('kpiUV').innerHTML = `2`;
+  document.getElementById('kpiUVLabel').textContent = 'Faible (UV)';
+  document.getElementById('kpiRain').innerHTML = `0.2<span class="kpi-unit">mm</span>`;
+  document.getElementById('kpiRainProb').textContent = 'Probabilité 35%';
+  document.getElementById('kpiVis').innerHTML = `12<span class="kpi-unit">km</span>`;
+  document.getElementById('kpiSun').textContent = 'Lever 07:02 — Coucher 19:48';
+  renderCompass(315);
+  renderHeating(mockTemp, {current:{apparent_temperature:5,wind_speed_10m:18},daily:{temperature_2m_max:[10,11,9,13,15,8,7],temperature_2m_min:[3,4,2,5,6,1,0],time:Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i);return d.toISOString().split('T')[0];}),weather_code:[2,3,61,1,2,3,61],precipitation_probability_max:[20,40,80,10,25,50,70],sunrise:['2026-04-04T07:02'],sunset:['2026-04-04T19:48']},hourly:{time:[],temperature_2m:[],precipitation_probability:[],wind_speed_10m:[],wind_direction_10m:[]}});
+  const days=['Auj.','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const icons=['⛅','☁️','🌧️','☀️','⛅','☁️','🌧️'];
+  const hiArr=[10,11,9,13,15,8,7], loArr=[3,4,2,5,6,1,0], rainArr=[20,40,80,10,25,50,70];
+  document.getElementById('forecastRow').innerHTML = days.map((d,i)=>
+    `<div class="forecast-item"><div class="forecast-day">${d}</div><div class="forecast-icon">${icons[i]}</div><div class="forecast-hi">${hiArr[i]}°</div><div class="forecast-lo">${loArr[i]}°</div><div class="forecast-rain">${rainArr[i]}%</div></div>`
+  ).join('');
+}
+
+let currentTheme = localStorage.getItem('meteo-theme') || 'dark';
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'beige') {
+    root.setAttribute('data-theme', 'beige');
+    document.getElementById('themeIcon').textContent = '🌑';
+    document.getElementById('themeLabel').textContent = 'Nuit';
+  } else {
+    root.removeAttribute('data-theme');
+    document.getElementById('themeIcon').textContent = '🌿';
+    document.getElementById('themeLabel').textContent = 'Terrain';
+  }
+  // Redraw charts with new colors
+  if (weatherData) {
+    renderTempChart(weatherData);
+    renderWindChart(weatherData);
+    renderCompass(weatherData.current.wind_direction_10m);
+  }
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'beige' : 'dark';
+  localStorage.setItem('meteo-theme', currentTheme);
+  applyTheme(currentTheme);
+}
+
+function getThemeColors() {
+  const isDark = currentTheme === 'dark';
+  return {
+    tick: isDark ? '#7a8c5a' : '#6e6642',
+    grid: isDark ? 'rgba(138,168,78,0.06)' : 'rgba(80,70,40,0.07)',
+    border: isDark ? 'rgba(138,168,78,0.12)' : 'rgba(80,70,40,0.15)',
+    tooltipBg: isDark ? '#1c2412' : '#ddd5be',
+    tooltipBorder: isDark ? 'rgba(138,168,78,0.2)' : 'rgba(80,70,40,0.2)',
+    tooltipTitle: isDark ? '#d4ddb8' : '#2c2a1a',
+    tooltipBody: isDark ? '#7a8c5a' : '#6e6642',
+    tempLine: isDark ? '#8aaa4e' : '#4a6e1a',
+    tempFill: isDark ? 'rgba(138,170,78,0.1)' : 'rgba(74,110,26,0.09)',
+    rainLine: isDark ? 'rgba(168,192,96,0.65)' : 'rgba(61,112,34,0.6)',
+    rainFill: isDark ? 'rgba(168,192,96,0.05)' : 'rgba(61,112,34,0.05)',
+    rainTick: isDark ? 'rgba(168,192,96,0.75)' : 'rgba(61,112,34,0.75)',
+    compassN: isDark ? '#d4822a' : '#c4620a',
+    compassCard: isDark ? 'rgba(212,221,184,0.5)' : 'rgba(44,42,26,0.5)',
+    compassArrow: isDark ? '#a8c060' : '#3d7022',
+    compassCenter: isDark ? 'rgba(138,170,78,0.3)' : 'rgba(44,42,26,0.25)',
+    compassLabel: isDark ? 'rgba(212,221,184,0.75)' : 'rgba(44,42,26,0.7)',
+    compassRing1: isDark ? 'rgba(138,168,78,0.18)' : 'rgba(80,70,40,0.22)',
+    compassRing2: isDark ? 'rgba(138,168,78,0.07)' : 'rgba(80,70,40,0.1)',
+  };
+}
+
+// ── HOME ASSISTANT CONFIG ──────────────────────────────────────────────────
+
+function getHAConfig(){
+  return {
+    url: localStorage.getItem('ha-url') || '',
+    token: localStorage.getItem('ha-token') || ''
+  };
+}
+
+function saveHAConfig(){
+  const url = document.getElementById('haUrlInput').value.trim().replace(/\/$/, '');
+  const token = document.getElementById('haTokenInput').value.trim();
+  if(!url || !token){ showHATestResult('⚠ Veuillez remplir l\'URL et le token.', false); return; }
+  localStorage.setItem('ha-url', url);
+  localStorage.setItem('ha-token', token);
+  showHATestResult('⏳ Test de connexion…', null);
+  fetchJardinSensor(url, token);
+}
+
+function toggleTokenVisibility(){
+  const inp = document.getElementById('haTokenInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function showHATestResult(msg, ok){
+  const el = document.getElementById('haTestResult');
+  el.style.display = 'block';
+  el.textContent = msg;
+  if(ok === true)  { el.style.background='rgba(138,192,96,0.1)'; el.style.color='var(--accent-cyan)'; el.style.border='0.5px solid rgba(138,192,96,0.3)'; }
+  else if(ok===false){ el.style.background='rgba(212,130,42,0.1)'; el.style.color='var(--accent-orange)'; el.style.border='0.5px solid rgba(212,130,42,0.3)'; }
+  else             { el.style.background='rgba(138,168,78,0.05)'; el.style.color='var(--muted)'; el.style.border='0.5px solid var(--border)'; }
+}
+
+function updateHAStatusBadge(ok, text){
+  const badge = document.getElementById('haStatusBadge');
+  badge.textContent = text;
+  if(ok){ badge.style.background='rgba(138,192,96,0.12)'; badge.style.color='var(--accent-cyan)'; badge.style.borderColor='rgba(138,192,96,0.3)'; }
+  else  { badge.style.background='rgba(212,130,42,0.1)';  badge.style.color='var(--accent-orange)'; badge.style.borderColor='rgba(212,130,42,0.3)'; }
+}
+
+async function fetchJardinSensor(url, token){
+  try {
+    const r = await fetch(`${url}/api/states/sensor.jardin2_temperature`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    });
+    if(!r.ok){ throw new Error(`HTTP ${r.status}`); }
+    const data = await r.json();
+    const val = parseFloat(data.state);
+    const unit = data.attributes?.unit_of_measurement || '°C';
+    const lastUpdated = data.last_updated ? new Date(data.last_updated).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    document.getElementById('kpiJardin').innerHTML = `${isNaN(val)?'—':val.toFixed(1)}<span class="kpi-unit">${unit}</span>`;
+    document.getElementById('kpiJardinTrend').textContent = `Màj ${lastUpdated}`;
+    // Color tint on jardin value
+    const jardinVal = document.getElementById('kpiJardin');
+    if(!isNaN(val)){
+      jardinVal.style.color = val > 28 ? 'var(--accent-orange)' : val < 5 ? '#60a5fa' : '#c084fc';
+    }
+    showHATestResult(`✓ Capteur jardin2 : ${isNaN(val)?data.state:val.toFixed(1)} ${unit} — connexion OK`, true);
+    updateHAStatusBadge(true, '● Connecté');
+  } catch(e){
+    document.getElementById('kpiJardin').innerHTML = `<span style="font-size:14px;color:var(--accent-orange)">Err</span>`;
+    document.getElementById('kpiJardinTrend').textContent = 'Capteur HA';
+    showHATestResult(`✗ Erreur : ${e.message} — vérifiez l'URL et le token.`, false);
+    updateHAStatusBadge(false, '● Erreur');
+  }
+}
+
+function initHAUI(){
+  const cfg = getHAConfig();
+  if(cfg.url) document.getElementById('haUrlInput').value = cfg.url;
+  if(cfg.token) document.getElementById('haTokenInput').value = cfg.token;
+  if(cfg.url && cfg.token){
+    updateHAStatusBadge(null, '⏳ Chargement…');
+    fetchJardinSensor(cfg.url, cfg.token);
+  }
+}
+
+updateDatetime();
+applyTheme(currentTheme);
+
+// ── INIT DIFFÉRÉ — compatible iframe HA ───────────────────────────────────────
+// Dans une iframe HA, les canvas ont width=0 au chargement.
+// On attend que le layout soit vraiment calculé avant de rendre les charts.
+function initAll() {
+  refreshData();
+  initHAUI();
+  renderDayTimeline();
+  renderSunArc();
+}
+
+function deferredInit() {
+  // Vérifie que le canvas principal a une largeur réelle
+  const canvas = document.getElementById('tempChart');
+  if (canvas && canvas.offsetWidth > 0) {
+    initAll();
+  } else {
+    // Réessaie dans 200ms (max 20 tentatives = 4s)
+    let tries = 0;
+    const poll = setInterval(() => {
+      tries++;
+      const c = document.getElementById('tempChart');
+      if ((c && c.offsetWidth > 0) || tries >= 20) {
+        clearInterval(poll);
+        initAll();
+      }
+    }, 200);
+  }
+}
+
+if (document.readyState === 'complete') {
+  requestAnimationFrame(deferredInit);
+} else {
+  window.addEventListener('load', () => requestAnimationFrame(deferredInit));
+}
+
+// ── ARC SOLAIRE ───────────────────────────────────────────────────────────────
+
+function calcSunTimes(date) {
+  const lat = 44.933, lon = 4.892;
+  const toRad = d => d * Math.PI / 180;
+  const toDeg = r => r * 180 / Math.PI;
+  const Y = date.getFullYear(), M = date.getMonth()+1, D = date.getDate();
+  const JD = 367*Y - Math.floor(7*(Y+Math.floor((M+9)/12))/4) + Math.floor(275*M/9) + D + 1721013.5;
+  const n = JD - 2451545.0;
+  const L = (280.460 + 0.9856474*n) % 360;
+  const g = toRad((357.528 + 0.9856003*n) % 360);
+  const lam = toRad(L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g));
+  const eps = toRad(23.439 - 0.0000004*n);
+  const dec = Math.asin(Math.sin(eps)*Math.sin(lam));
+  const latR = toRad(lat);
+  const cosH = (Math.sin(toRad(-0.833)) - Math.sin(latR)*Math.sin(dec)) / (Math.cos(latR)*Math.cos(dec));
+  if(Math.abs(cosH) > 1) return null;
+  const H = toDeg(Math.acos(cosH));
+  const EoT = (L - toDeg(lam)) * 4;
+  const noon = 12 - lon/15 - EoT/60;
+  return { rise: noon - H/15, noon, set: noon + H/15 };
+}
+
+function hToHHMM(h) {
+  const hh = Math.floor(h), mm = Math.round((h - hh)*60);
+  return String(hh).padStart(2,'0') + ':' + String(mm < 60 ? mm : 59).padStart(2,'0');
+}
+
+function renderSunArc() {
+  const canvas = document.getElementById('sunArcCanvas');
+  if(!canvas) return;
+  const isDark = currentTheme === 'dark';
+
+  // Calc times
+  const now = new Date();
+  const times = calcSunTimes(now);
+  if(!times) return;
+  const { rise, noon, set } = times;
+  const nowH = now.getHours() + now.getMinutes()/60;
+
+  // Clamp pct
+  const pct = Math.max(0, Math.min(1, (nowH - rise) / (set - rise)));
+  const isDay = nowH >= rise && nowH <= set;
+
+  // Stats
+  document.getElementById('sunRiseVal').textContent = hToHHMM(rise);
+  document.getElementById('sunSetVal').textContent = hToHHMM(set);
+  document.getElementById('sunNowVal').textContent = hToHHMM(nowH);
+  const leftH = Math.max(0, set - nowH);
+  const leftMin = Math.round(leftH * 60);
+  document.getElementById('sunLeftVal').textContent =
+    leftMin <= 0 ? '0min' : leftMin < 60 ? leftMin+'min' : Math.floor(leftMin/60)+'h'+String(leftMin%60).padStart(2,'0');
+  const pctDisp = isDay ? Math.round(pct*100) : (nowH < rise ? 0 : 100);
+  document.getElementById('sunPctPill').textContent = pctDisp + '%';
+
+  // Canvas sizing
+  const W = canvas.offsetWidth || 560;
+  canvas.width = W;
+  canvas.height = 110;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, 110);
+
+  const padL = 18, padR = 18;
+  const arcW = W - padL - padR;
+  const cx = padL + arcW/2;
+  const cy = 100;
+  const rx = arcW/2;
+  const ry = 88;
+
+  // Colors
+  const skyStroke  = isDark ? 'rgba(138,168,78,0.13)' : 'rgba(80,70,40,0.12)';
+  const doneStroke = isDark ? '#c8a832' : '#a07010';
+  const doneFill   = isDark ? 'rgba(200,168,50,0.07)' : 'rgba(160,112,16,0.07)';
+  const leftStroke = isDark ? 'rgba(138,168,78,0.18)' : 'rgba(80,70,40,0.15)';
+  const glowCol    = isDark ? 'rgba(200,168,50,0.22)' : 'rgba(245,180,30,0.28)';
+  const sunFill    = isDark ? '#c8a832' : '#f0a800';
+  const rayCol     = isDark ? 'rgba(200,168,50,0.55)' : 'rgba(240,168,0,0.6)';
+  const horizCol   = isDark ? 'rgba(138,168,78,0.2)' : 'rgba(80,70,40,0.18)';
+  const labelCol   = isDark ? 'rgba(212,221,184,0.4)' : 'rgba(44,42,26,0.4)';
+  const nightFill  = isDark ? 'rgba(20,30,10,0.0)' : 'rgba(0,0,0,0.0)';
+
+  // Helper: angle on ellipse (0=right, PI=left, angle from left end → right end = PI→0)
+  // We map pct 0..1 → angle PI..0 (sunrise=left, sunset=right)
+  function sunAngle(p) { return Math.PI * (1 - p); }
+  function ellipPt(p) {
+    const a = sunAngle(p);
+    return { x: cx + rx * Math.cos(a), y: cy - ry * Math.sin(a) };
+  }
+
+  // Draw arc (full dashed — future)
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0, false);
+  ctx.strokeStyle = leftStroke;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 5]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw arc (done — solid + fill)
+  if(pct > 0.001) {
+    const aStart = Math.PI;
+    const aEnd = sunAngle(Math.min(pct, 1));
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, aStart, aEnd, false);
+    ctx.lineTo(cx + rx * Math.cos(aEnd) * 0.001 + cx, cy); // close to baseline
+    ctx.strokeStyle = doneStroke;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Filled area under done arc
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, aStart, aEnd, false);
+    ctx.lineTo(ellipPt(0).x, cy);
+    ctx.lineTo(ellipPt(1).x, cy);
+    ctx.closePath();
+    ctx.fillStyle = doneFill;
+    ctx.fill();
+  }
+
+  // Horizon line
+  ctx.beginPath();
+  ctx.moveTo(padL - 4, cy);
+  ctx.lineTo(W - padR + 4, cy);
+  ctx.strokeStyle = horizCol;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Tick marks: sunrise + sunset
+  [[0, hToHHMM(rise)], [1, hToHHMM(set)]].forEach(([p, lbl]) => {
+    const pt = ellipPt(p);
+    ctx.beginPath();
+    ctx.moveTo(pt.x, cy - 4);
+    ctx.lineTo(pt.x, cy + 4);
+    ctx.strokeStyle = labelCol;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.font = `500 9px 'DM Mono', monospace`;
+    ctx.fillStyle = labelCol;
+    ctx.textAlign = p === 0 ? 'left' : 'right';
+    ctx.fillText(lbl, pt.x + (p === 0 ? 3 : -3), cy + 13);
+  });
+
+  // Noon tick
+  const noonPt = ellipPt(0.5);
+  ctx.beginPath();
+  ctx.moveTo(noonPt.x, cy - 3);
+  ctx.lineTo(noonPt.x, cy + 3);
+  ctx.strokeStyle = labelCol;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.font = `400 9px 'DM Mono', monospace`;
+  ctx.fillStyle = labelCol;
+  ctx.textAlign = 'center';
+  ctx.fillText('midi', noonPt.x, cy + 13);
+
+  // Sun position
+  if(isDay) {
+    const sp = ellipPt(pct);
+    // Glow
+    const grd = ctx.createRadialGradient(sp.x, sp.y, 2, sp.x, sp.y, 22);
+    grd.addColorStop(0, glowCol);
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, 22, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Rays
+    const nRays = 8;
+    for(let i = 0; i < nRays; i++) {
+      const a = (i / nRays) * Math.PI * 2;
+      const r1 = 9, r2 = 15;
+      ctx.beginPath();
+      ctx.moveTo(sp.x + Math.cos(a)*r1, sp.y + Math.sin(a)*r1);
+      ctx.lineTo(sp.x + Math.cos(a)*r2, sp.y + Math.sin(a)*r2);
+      ctx.strokeStyle = rayCol;
+      ctx.lineWidth = 1.5;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    // Sun core
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, 7, 0, Math.PI*2);
+    ctx.fillStyle = sunFill;
+    ctx.fill();
+    // Inner highlight
+    ctx.beginPath();
+    ctx.arc(sp.x - 2, sp.y - 2, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = isDark ? 'rgba(255,235,150,0.6)' : 'rgba(255,255,200,0.7)';
+    ctx.fill();
+  } else {
+    // Moon / nuit
+    const moonX = nowH < rise ? padL : W - padR;
+    const moonY = cy + 2;
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, 6, 0, Math.PI*2);
+    ctx.fillStyle = isDark ? 'rgba(180,190,210,0.5)' : 'rgba(120,130,160,0.4)';
+    ctx.fill();
+  }
+}
+
+// Redraw arc every minute
+setInterval(renderSunArc, 60000);
+
+// Redraw on theme toggle
+const _origToggleTheme = toggleTheme;
+toggleTheme = function() { _origToggleTheme(); renderSunArc(); renderDayTimeline(); };
+
+// ── TIMELINE JOUR ─────────────────────────────────────────────────────────────
+function renderDayTimeline() {
+  const now    = new Date();
+  const nowH   = now.getHours();
+  const nowM   = now.getMinutes();
+  const totalM = 24 * 60;
+  const pct    = ((nowH * 60 + nowM) / totalM) * 100;
+  const timeStr = String(nowH).padStart(2,'0') + ':' + String(nowM).padStart(2,'0');
+
+  const done   = document.getElementById('dayTimelineDone');
+  const cursor = document.getElementById('dayTimelineCursor');
+  const labels = document.getElementById('dayTimelineLabels');
+
+  if(!done || !cursor || !labels) return;
+
+  done.style.width   = pct + '%';
+  cursor.style.left  = pct + '%';
+  cursor.setAttribute('data-time', timeStr);
+
+  // Update time label in section title
+  const lbl = document.getElementById('timelineTimeLabel');
+  if(lbl) lbl.textContent = timeStr;
+
+  // Build labels (every 3h)
+  if(!labels.children.length) {
+    labels.innerHTML = '';
+    for(let h = 0; h <= 24; h += 3) {
+      const tick = document.createElement('div');
+      tick.className = 'day-timeline-label-tick';
+      tick.textContent = h === 24 ? '24h' : String(h).padStart(2,'0') + 'h';
+      labels.appendChild(tick);
+    }
+  }
+}
+
+// Update every 30 seconds
+setInterval(renderDayTimeline, 30000);
+</script>
+</body>
+</html>
