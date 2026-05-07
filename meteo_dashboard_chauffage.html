@@ -454,8 +454,8 @@
       Avancement de la journée
       <span class="sun-pct-pill" id="sunPctPill">—%</span>
     </div>
-    <div class="sun-arc-wrap">
-      <canvas id="sunArcCanvas" height="110"></canvas>
+    <div class="sun-arc-wrap" style="padding:6px 0 2px;">
+      <canvas id="sunArcCanvas" height="72"></canvas>
     </div>
     <div class="sun-stats">
       <div class="sun-stat">
@@ -493,6 +493,22 @@
       </div>
     </div>
     <div class="kpi-card" id="kpiJardinCard" style="display:none;"></div>
+    <div class="kpi-card" style="text-align:center;">
+      <div class="kpi-label" style="text-align:left;">Météo actuelle</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0;">
+        <div style="text-align:center;">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:2px;">Maint.</div>
+          <div id="kpiWeatherIcon" style="font-size:30px;line-height:1.1;">—</div>
+          <div id="kpiWeatherDesc" style="font-size:9px;color:var(--muted);margin-top:3px;">—</div>
+        </div>
+        <div style="width:0.5px;height:38px;background:var(--border);flex-shrink:0;"></div>
+        <div style="text-align:center;">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:2px;">+1h</div>
+          <div id="kpiWeatherIcon1h" style="font-size:30px;line-height:1.1;">—</div>
+          <div id="kpiWeatherDesc1h" style="font-size:9px;color:var(--muted);margin-top:3px;">—</div>
+        </div>
+      </div>
+    </div>
     <div class="kpi-card">
       <div class="kpi-label">Humidité</div>
       <div class="kpi-value" id="kpiHum">—<span class="kpi-unit">%</span></div>
@@ -667,7 +683,7 @@ function startCountdown(){
 
 async function fetchWeather(){
   const lat=44.933, lon=4.892;
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,sunshine_duration&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,sunshine_duration,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
   const r = await fetch(url);
   return r.json();
 }
@@ -747,6 +763,23 @@ function renderKPIs(d){
   const col = temp > 27 ? 'var(--accent-orange)' : temp < 5 ? 'var(--accent-blue)' : 'var(--text)';
   document.getElementById('kpiTemp').innerHTML = `${temp}<span class="kpi-unit">°C</span>`;
   document.getElementById('kpiTemp').style.color = col;
+  // Icône météo actuelle
+  const wCode = c.weather_code ?? 0;
+  const wIcon = WMO_ICONS[wCode] || '🌡️';
+  const wDesc = WMO_DESC[wCode]  || '';
+  const iconEl = document.getElementById('kpiWeatherIcon');
+  const descEl = document.getElementById('kpiWeatherDesc');
+  if (iconEl) { iconEl.textContent = wIcon; iconEl.title = wDesc; }
+  if (descEl) descEl.textContent = wDesc;
+  // Icône météo dans 1h (depuis les données horaires)
+  const nowHour = new Date().getHours();
+  const todayStr2 = new Date().toISOString().slice(0, 10);
+  const idx1h = d.hourly.time.findIndex(t => t.slice(0,10) === todayStr2 && parseInt(t.slice(11,13),10) === ((nowHour + 1) % 24));
+  const wCode1h = idx1h >= 0 && d.hourly.weathercode ? d.hourly.weathercode[idx1h] : (idx1h >= 0 && d.hourly.weather_code ? d.hourly.weather_code[idx1h] : null);
+  const icon1hEl = document.getElementById('kpiWeatherIcon1h');
+  const desc1hEl = document.getElementById('kpiWeatherDesc1h');
+  if (icon1hEl) icon1hEl.textContent = wCode1h != null ? (WMO_ICONS[wCode1h] || '🌡️') : '—';
+  if (desc1hEl) desc1hEl.textContent = wCode1h != null ? (WMO_DESC[wCode1h]  || '') : '—';
   document.getElementById('kpiFeels').textContent = `Ressenti ${Math.round(c.apparent_temperature)}°C`;
   document.getElementById('kpiHum').innerHTML = `${Math.round(c.relative_humidity_2m)}<span class="kpi-unit">%</span>`;
   const dp = Math.round(c.temperature_2m - (100-c.relative_humidity_2m)/5);
@@ -1097,6 +1130,9 @@ function renderVelotaf(d) {
   const gusts   = hourly.wind_gusts_10m ?? speeds;
   const rain    = hourly.precipitation_probability;
 
+  // Date du jour au format YYYY-MM-DD pour filtrer uniquement les heures d'aujourd'hui
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   // Créneau aller : 06:00–07:00 | retour : 15:00–17:00
   const slots = [
     { label: 'Aller', emoji: '🌅', from: 6,  to: 7,  favorableTest: dir => (dir >= 315 || dir <= 45)  },
@@ -1111,11 +1147,12 @@ function renderVelotaf(d) {
   let globalOk = true;
 
   slots.forEach(slot => {
-    // Indices correspondant aux heures du créneau
+    // Indices correspondant aux heures du créneau AUJOURD'HUI uniquement
     const indices = [];
     times.forEach((t, i) => {
-      const h = parseInt(t.slice(11, 13), 10);
-      if (h >= slot.from && h < slot.to) indices.push(i);
+      const dateStr = t.slice(0, 10);   // "YYYY-MM-DD"
+      const h       = parseInt(t.slice(11, 13), 10);
+      if (dateStr === todayStr && h >= slot.from && h < slot.to) indices.push(i);
     });
     if (!indices.length) return;
 
@@ -1487,12 +1524,13 @@ function initAll() {
 }
 
 function deferredInit() {
-  // Vérifie que le canvas principal a une largeur réelle
+  // Vérifie que les canvas principaux ont une largeur réelle
   const canvas = document.getElementById('tempChart');
   if (canvas && canvas.offsetWidth > 0) {
     initAll();
+    // Re-render sun arc après un court délai pour s'assurer que le layout est stable
+    setTimeout(renderSunArc, 100);
   } else {
-    // Réessaie dans 200ms (max 20 tentatives = 4s)
     let tries = 0;
     const poll = setInterval(() => {
       tries++;
@@ -1500,6 +1538,7 @@ function deferredInit() {
       if ((c && c.offsetWidth > 0) || tries >= 20) {
         clearInterval(poll);
         initAll();
+        setTimeout(renderSunArc, 100);
       }
     }, 200);
   }
@@ -1511,7 +1550,7 @@ if (document.readyState === 'complete') {
   window.addEventListener('load', () => requestAnimationFrame(deferredInit));
 }
 
-// ── ARC SOLAIRE ───────────────────────────────────────────────────────────────
+// ── GRADIENT SOLAIRE (option 3) ──────────────────────────────────────────────
 
 function calcSunTimes(date) {
   const lat = 44.933, lon = 4.892;
@@ -1544,176 +1583,141 @@ function renderSunArc() {
   if(!canvas) return;
   const isDark = currentTheme === 'dark';
 
-  // Calc times
-  const now = new Date();
+  const now   = new Date();
   const times = calcSunTimes(now);
   if(!times) return;
   const { rise, noon, set } = times;
-  const nowH = now.getHours() + now.getMinutes()/60;
-
-  // Clamp pct
-  const pct = Math.max(0, Math.min(1, (nowH - rise) / (set - rise)));
+  const nowH  = now.getHours() + now.getMinutes()/60;
+  const pct   = Math.max(0, Math.min(1, (nowH - rise) / (set - rise)));
   const isDay = nowH >= rise && nowH <= set;
 
   // Stats
-  document.getElementById('sunRiseVal').textContent = hToHHMM(rise);
-  document.getElementById('sunSetVal').textContent = hToHHMM(set);
-  document.getElementById('sunNowVal').textContent = hToHHMM(nowH);
-  const leftH = Math.max(0, set - nowH);
-  const leftMin = Math.round(leftH * 60);
-  document.getElementById('sunLeftVal').textContent =
+  document.getElementById('sunRiseVal').textContent  = hToHHMM(rise);
+  document.getElementById('sunSetVal').textContent   = hToHHMM(set);
+  document.getElementById('sunNowVal').textContent   = hToHHMM(nowH);
+  const leftMin = Math.round(Math.max(0, set - nowH) * 60);
+  document.getElementById('sunLeftVal').textContent  =
     leftMin <= 0 ? '0min' : leftMin < 60 ? leftMin+'min' : Math.floor(leftMin/60)+'h'+String(leftMin%60).padStart(2,'0');
   const pctDisp = isDay ? Math.round(pct*100) : (nowH < rise ? 0 : 100);
-  document.getElementById('sunPctPill').textContent = pctDisp + '%';
+  document.getElementById('sunPctPill').textContent  = pctDisp + '%';
 
-  // Canvas sizing
-  const W = canvas.offsetWidth || 560;
-  canvas.width = W;
-  canvas.height = 110;
+  // Canvas sizing — remonte au parent si le canvas lui-même n'a pas encore de largeur
+  const W  = canvas.offsetWidth || canvas.parentElement?.offsetWidth || canvas.closest('.sun-card')?.offsetWidth || 560;
+  const CH = 72;
+  canvas.width  = W;
+  canvas.height = CH;
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, W, 110);
+  ctx.clearRect(0, 0, W, CH);
 
-  const padL = 18, padR = 18;
-  const arcW = W - padL - padR;
-  const cx = padL + arcW/2;
-  const cy = 100;
-  const rx = arcW/2;
-  const ry = 88;
+  const padL = 14, padR = 14;
+  const barW = W - padL - padR;
+  const barY = 26, barH = 22, barR = 5;
 
-  // Colors
-  const skyStroke  = isDark ? 'rgba(138,168,78,0.13)' : 'rgba(80,70,40,0.12)';
-  const doneStroke = isDark ? '#c8a832' : '#a07010';
-  const doneFill   = isDark ? 'rgba(200,168,50,0.07)' : 'rgba(160,112,16,0.07)';
-  const leftStroke = isDark ? 'rgba(138,168,78,0.18)' : 'rgba(80,70,40,0.15)';
-  const glowCol    = isDark ? 'rgba(200,168,50,0.22)' : 'rgba(245,180,30,0.28)';
-  const sunFill    = isDark ? '#c8a832' : '#f0a800';
-  const rayCol     = isDark ? 'rgba(200,168,50,0.55)' : 'rgba(240,168,0,0.6)';
-  const horizCol   = isDark ? 'rgba(138,168,78,0.2)' : 'rgba(80,70,40,0.18)';
-  const labelCol   = isDark ? 'rgba(212,221,184,0.4)' : 'rgba(44,42,26,0.4)';
-  const nightFill  = isDark ? 'rgba(20,30,10,0.0)' : 'rgba(0,0,0,0.0)';
-
-  // Helper: angle on ellipse (0=right, PI=left, angle from left end → right end = PI→0)
-  // We map pct 0..1 → angle PI..0 (sunrise=left, sunset=right)
-  function sunAngle(p) { return Math.PI * (1 - p); }
-  function ellipPt(p) {
-    const a = sunAngle(p);
-    return { x: cx + rx * Math.cos(a), y: cy - ry * Math.sin(a) };
+  // ── Gradient atmosphérique nuit→aube→jour→crépuscule→nuit
+  const g = ctx.createLinearGradient(padL, 0, padL + barW, 0);
+  if(isDark) {
+    g.addColorStop(0,    '#0a0e18');
+    g.addColorStop(0.20, '#151e38');
+    g.addColorStop(rise/24 - 0.01, '#1a2040');
+    g.addColorStop(rise/24,        '#c06820');
+    g.addColorStop(rise/24 + 0.06, '#e09030');
+    g.addColorStop(noon/24,        '#f0d060');
+    g.addColorStop(set/24 - 0.06,  '#e09020');
+    g.addColorStop(set/24,         '#c05010');
+    g.addColorStop(set/24 + 0.01,  '#151e38');
+    g.addColorStop(1,    '#0a0e18');
+  } else {
+    g.addColorStop(0,    '#6070a0');
+    g.addColorStop(rise/24 - 0.01, '#8090b8');
+    g.addColorStop(rise/24,        '#f0a060');
+    g.addColorStop(rise/24 + 0.06, '#f8c870');
+    g.addColorStop(noon/24,        '#ffe898');
+    g.addColorStop(set/24 - 0.06,  '#f8c060');
+    g.addColorStop(set/24,         '#f09050');
+    g.addColorStop(set/24 + 0.01,  '#8090b8');
+    g.addColorStop(1,    '#6070a0');
   }
-
-  // Draw arc (full dashed — future)
+  ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, 0, false);
-  ctx.strokeStyle = leftStroke;
-  ctx.lineWidth = 2;
-  ctx.setLineDash([4, 5]);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.roundRect(padL, barY, barW, barH, barR);
+  ctx.fill();
 
-  // Draw arc (done — solid + fill)
-  if(pct > 0.001) {
-    const aStart = Math.PI;
-    const aEnd = sunAngle(Math.min(pct, 1));
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, 0, aStart, aEnd, false);
-    ctx.lineTo(cx + rx * Math.cos(aEnd) * 0.001 + cx, cy); // close to baseline
-    ctx.strokeStyle = doneStroke;
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
+  // Masque nuit gauche (avant lever)
+  const riseX = padL + (rise/24)*barW;
+  const setX  = padL + (set/24)*barW;
+  ctx.fillStyle = isDark ? 'rgba(4,6,14,0.72)' : 'rgba(15,20,50,0.38)';
+  ctx.beginPath();
+  ctx.roundRect(padL, barY, riseX - padL, barH, [barR, 0, 0, barR]);
+  ctx.fill();
 
-    // Filled area under done arc
+  // Masque nuit droite (après coucher)
+  ctx.beginPath();
+  ctx.roundRect(setX, barY, padL + barW - setX, barH, [0, barR, barR, 0]);
+  ctx.fill();
+
+  // Portion déjà écoulée — overlay sombre
+  if(isDay) {
+    const nowX = padL + (nowH/24)*barW;
+    ctx.fillStyle = isDark ? 'rgba(0,0,0,0.38)' : 'rgba(0,0,0,0.18)';
     ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, 0, aStart, aEnd, false);
-    ctx.lineTo(ellipPt(0).x, cy);
-    ctx.lineTo(ellipPt(1).x, cy);
-    ctx.closePath();
-    ctx.fillStyle = doneFill;
+    ctx.roundRect(riseX, barY, nowX - riseX, barH, [0, 0, 0, 0]);
     ctx.fill();
   }
 
-  // Horizon line
-  ctx.beginPath();
-  ctx.moveTo(padL - 4, cy);
-  ctx.lineTo(W - padR + 4, cy);
-  ctx.strokeStyle = horizCol;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  // Tick marks: sunrise + sunset
-  [[0, hToHHMM(rise)], [1, hToHHMM(set)]].forEach(([p, lbl]) => {
-    const pt = ellipPt(p);
+  // Ticks heures
+  const mutedCol = isDark ? 'rgba(180,190,160,0.45)' : 'rgba(40,38,28,0.45)';
+  [0,3,6,9,12,15,18,21,24].forEach(h => {
+    const x = padL + (h/24)*barW;
+    ctx.strokeStyle = mutedCol;
+    ctx.lineWidth   = 0.5;
     ctx.beginPath();
-    ctx.moveTo(pt.x, cy - 4);
-    ctx.lineTo(pt.x, cy + 4);
-    ctx.strokeStyle = labelCol;
-    ctx.lineWidth = 1;
+    ctx.moveTo(x, barY + barH + 2);
+    ctx.lineTo(x, barY + barH + 5);
     ctx.stroke();
-    ctx.font = `500 9px 'DM Mono', monospace`;
-    ctx.fillStyle = labelCol;
-    ctx.textAlign = p === 0 ? 'left' : 'right';
-    ctx.fillText(lbl, pt.x + (p === 0 ? 3 : -3), cy + 13);
+    ctx.fillStyle  = mutedCol;
+    ctx.font       = '9px DM Mono, monospace';
+    ctx.textAlign  = 'center';
+    ctx.fillText(h + 'h', x, barY + barH + 14);
   });
 
-  // Noon tick
-  const noonPt = ellipPt(0.5);
-  ctx.beginPath();
-  ctx.moveTo(noonPt.x, cy - 3);
-  ctx.lineTo(noonPt.x, cy + 3);
-  ctx.strokeStyle = labelCol;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.font = `400 9px 'DM Mono', monospace`;
-  ctx.fillStyle = labelCol;
+  // Label lever
+  ctx.fillStyle = isDark ? '#e0a040' : '#c07010';
+  ctx.font      = 'bold 9px DM Mono, monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('midi', noonPt.x, cy + 13);
+  ctx.fillText('↑ ' + hToHHMM(rise), riseX, barY - 8);
 
-  // Sun position
-  if(isDay) {
-    const sp = ellipPt(pct);
-    // Glow
-    const grd = ctx.createRadialGradient(sp.x, sp.y, 2, sp.x, sp.y, 22);
-    grd.addColorStop(0, glowCol);
-    grd.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.arc(sp.x, sp.y, 22, 0, Math.PI*2);
-    ctx.fillStyle = grd;
-    ctx.fill();
+  // Label coucher
+  ctx.fillStyle = isDark ? '#d07030' : '#b05010';
+  ctx.textAlign = 'center';
+  ctx.fillText('↓ ' + hToHHMM(set), setX, barY - 8);
 
-    // Rays
-    const nRays = 8;
-    for(let i = 0; i < nRays; i++) {
-      const a = (i / nRays) * Math.PI * 2;
-      const r1 = 9, r2 = 15;
-      ctx.beginPath();
-      ctx.moveTo(sp.x + Math.cos(a)*r1, sp.y + Math.sin(a)*r1);
-      ctx.lineTo(sp.x + Math.cos(a)*r2, sp.y + Math.sin(a)*r2);
-      ctx.strokeStyle = rayCol;
-      ctx.lineWidth = 1.5;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-    }
-
-    // Sun core
-    ctx.beginPath();
-    ctx.arc(sp.x, sp.y, 7, 0, Math.PI*2);
-    ctx.fillStyle = sunFill;
-    ctx.fill();
-    // Inner highlight
-    ctx.beginPath();
-    ctx.arc(sp.x - 2, sp.y - 2, 2.5, 0, Math.PI*2);
-    ctx.fillStyle = isDark ? 'rgba(255,235,150,0.6)' : 'rgba(255,255,200,0.7)';
-    ctx.fill();
-  } else {
-    // Moon / nuit
-    const moonX = nowH < rise ? padL : W - padR;
-    const moonY = cy + 2;
-    ctx.beginPath();
-    ctx.arc(moonX, moonY, 6, 0, Math.PI*2);
-    ctx.fillStyle = isDark ? 'rgba(180,190,210,0.5)' : 'rgba(120,130,160,0.4)';
-    ctx.fill();
-  }
+  // Curseur "maintenant" — ligne + losange
+  const nowX   = padL + (nowH/24)*barW;
+  const nowCol = isDark ? '#a8c060' : '#4a7e18';
+  ctx.strokeStyle = nowCol;
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(nowX, barY - 4);
+  ctx.lineTo(nowX, barY + barH + 2);
+  ctx.stroke();
+  // Losange
+  ctx.fillStyle = nowCol;
+  ctx.beginPath();
+  ctx.moveTo(nowX,     barY - 9);
+  ctx.lineTo(nowX + 5, barY - 4);
+  ctx.lineTo(nowX,     barY + 1);
+  ctx.lineTo(nowX - 5, barY - 4);
+  ctx.closePath();
+  ctx.fill();
+  // Label heure actuelle
+  const lblX = Math.max(padL + 20, Math.min(nowX, W - padR - 20));
+  ctx.fillStyle = nowCol;
+  ctx.font      = 'bold 9px DM Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(hToHHMM(nowH), lblX, barY - 13);
 }
 
-// Redraw arc every minute
+// Redraw every minute
 setInterval(renderSunArc, 60000);
 
 // Redraw on theme toggle
