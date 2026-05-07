@@ -570,6 +570,62 @@
   [data-theme="beige"] .alert-banner.alert-heat { border-color: rgba(200,40,40,0.4); background: rgba(200,40,40,0.06); }
   [data-theme="beige"] .alert-banner.alert-frost { border-color: rgba(37,99,235,0.4); background: rgba(37,99,235,0.06); }
 
+  /* ── SLIDER FENÊTRE TEMPORELLE ── */
+  .chart-time-ctrl {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .time-window-btns {
+    display: flex; gap: 4px;
+  }
+  .tw-btn {
+    font-family: var(--font-mono); font-size: 10px;
+    padding: 3px 9px; border-radius: 3px;
+    border: 0.5px solid var(--border);
+    background: var(--surface2); color: var(--muted);
+    cursor: pointer; letter-spacing: 0.05em;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .tw-btn.active {
+    background: rgba(138,168,78,0.15);
+    color: var(--accent-cyan);
+    border-color: rgba(138,168,78,0.45);
+  }
+  [data-theme="nightops"] .tw-btn.active {
+    background: rgba(0,255,65,0.1);
+    color: #00ff41;
+    border-color: rgba(0,255,65,0.4);
+  }
+  [data-theme="beige"] .tw-btn.active {
+    background: rgba(74,110,26,0.12);
+    color: var(--accent-cyan);
+    border-color: rgba(74,110,26,0.4);
+  }
+  .tw-slider-wrap {
+    flex: 1; min-width: 80px; display: flex; align-items: center; gap: 6px;
+  }
+  .tw-slider-lbl { font-size: 9px; color: var(--muted); white-space: nowrap; min-width: 34px; text-align: right; }
+  input[type="range"].tw-slider {
+    flex: 1; height: 3px; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    background: var(--border); border-radius: 2px; outline: none;
+  }
+  input[type="range"].tw-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent-blue);
+    border: 1.5px solid var(--surface);
+    box-shadow: 0 0 4px rgba(138,168,78,0.3);
+    cursor: pointer;
+  }
+  input[type="range"].tw-slider::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent-blue); border: 1.5px solid var(--surface);
+    cursor: pointer;
+  }
+  [data-theme="nightops"] input[type="range"].tw-slider::-webkit-slider-thumb {
+    background: #00ff41; box-shadow: 0 0 6px rgba(0,255,65,0.5);
+  }
+
   /* ── GRAPHIQUE ARC SOLAIRE ── */
   .sun-card {
     background: var(--surface);
@@ -763,7 +819,20 @@
 
   <div class="main-grid">
     <div class="section-card">
-      <div class="section-title"><span class="dot" style="background:var(--accent-blue)"></span>Température 24h</div>
+      <div class="section-title"><span class="dot" style="background:var(--accent-blue)"></span>Température <span id="chartWindowLabel" style="margin-left:4px;color:var(--accent-cyan);">24h</span></div>
+      <!-- Contrôles fenêtre temporelle -->
+      <div class="chart-time-ctrl">
+        <div class="time-window-btns">
+          <button class="tw-btn" data-w="6" onclick="setTimeWindow(6)">6h</button>
+          <button class="tw-btn" data-w="12" onclick="setTimeWindow(12)">12h</button>
+          <button class="tw-btn active" data-w="24" onclick="setTimeWindow(24)">24h</button>
+        </div>
+        <div class="tw-slider-wrap" id="twSliderWrap" style="display:none;">
+          <span class="tw-slider-lbl" id="twSliderLbl">00h</span>
+          <input type="range" class="tw-slider" id="twSlider" min="0" max="0" value="0" oninput="onTimeSlide(this.value)">
+          <span class="tw-slider-lbl" id="twSliderEnd">—</span>
+        </div>
+      </div>
       <div class="hourly-temp-wrap">
         <canvas id="tempChart"></canvas>
       </div>
@@ -1089,6 +1158,7 @@ const nowTrianglePlugin = {
     const nowH = new Date().getHours();
     const nowM = new Date().getMinutes();
     const labels = chart.data.labels;
+    // Ajustement offset : l'index dans les labels = heure - twOffset
     let idx = -1;
     for (let i = 0; i < labels.length; i++) {
       if (parseInt(labels[i].split(':')[0], 10) === nowH) { idx = i; break; }
@@ -1150,10 +1220,75 @@ const rainDropsPlugin = {
 };
 Chart.register(rainDropsPlugin);
 
+// ── GESTION FENÊTRE TEMPORELLE ────────────────────────────────────────────────
+let twWindow   = 24;  // heures affichées (6, 12 ou 24)
+let twOffset   = 0;   // index de départ dans les 24 labels
+
+function setTimeWindow(w) {
+  twWindow = w;
+  // Activer le bon bouton
+  document.querySelectorAll('.tw-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.w) === w);
+  });
+  // Afficher/masquer le slider de navigation
+  const wrap   = document.getElementById('twSliderWrap');
+  const slider = document.getElementById('twSlider');
+  if (w < 24) {
+    const maxOffset = 24 - w;
+    slider.max   = maxOffset;
+    // Centrer sur l'heure actuelle
+    const nowH = new Date().getHours();
+    const centered = Math.max(0, Math.min(Math.round(nowH - w / 2), maxOffset));
+    slider.value = centered;
+    twOffset = centered;
+    wrap.style.display = 'flex';
+    // Màj labels slider
+    if (weatherData) {
+      const allLabels = weatherData.hourly.time.slice(0, 24).map(t => t.slice(11, 16));
+      document.getElementById('twSliderLbl').textContent = allLabels[twOffset] || '00h';
+      document.getElementById('twSliderEnd').textContent = allLabels[Math.min(twOffset + w - 1, 23)] || '';
+    }
+  } else {
+    twOffset = 0;
+    slider.value = 0;
+    wrap.style.display = 'none';
+  }
+  document.getElementById('chartWindowLabel').textContent = w + 'h';
+  // Re-render avec les données déjà chargées
+  if (weatherData) {
+    renderTempChart(weatherData);
+    renderWindChart(weatherData);
+    renderSunChart(weatherData);
+  }
+}
+
+function onTimeSlide(val) {
+  twOffset = parseInt(val);
+  const slider = document.getElementById('twSlider');
+  const max    = parseInt(slider.max);
+  // Labels début/fin
+  if (weatherData) {
+    const allLabels = weatherData.hourly.time.slice(0, 24).map(t => t.slice(11, 16));
+    const start = allLabels[twOffset] || '00:00';
+    const end   = allLabels[Math.min(twOffset + twWindow - 1, 23)] || '';
+    document.getElementById('twSliderLbl').textContent = start;
+    document.getElementById('twSliderEnd').textContent = end;
+  }
+  if (weatherData) {
+    renderTempChart(weatherData);
+    renderWindChart(weatherData);
+    renderSunChart(weatherData);
+  }
+}
+
+function getTimeSlice(arr24) {
+  return arr24.slice(twOffset, twOffset + twWindow);
+}
+
 function renderTempChart(d){
-  const labels = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
-  const temps  = d.hourly.temperature_2m.slice(0,24);
-  const probs  = d.hourly.precipitation_probability.slice(0,24);
+  const labels = getTimeSlice(d.hourly.time.slice(0,24).map(t=>t.slice(11,16)));
+  const temps  = getTimeSlice(d.hourly.temperature_2m.slice(0,24));
+  const probs  = getTimeSlice(d.hourly.precipitation_probability.slice(0,24));
   const ctx = document.getElementById('tempChart').getContext('2d');
   const tc  = getThemeColors();
   if(tempChartInst) tempChartInst.destroy();
@@ -1192,9 +1327,9 @@ function renderTempChart(d){
 }
 
 function renderWindChart(d){
-  const labels = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
-  const speeds  = d.hourly.wind_speed_10m.slice(0,24);
-  const dirs    = d.hourly.wind_direction_10m.slice(0,24);
+  const labels = getTimeSlice(d.hourly.time.slice(0,24).map(t=>t.slice(11,16)));
+  const speeds  = getTimeSlice(d.hourly.wind_speed_10m.slice(0,24));
+  const dirs    = getTimeSlice(d.hourly.wind_direction_10m.slice(0,24));
   const ctx = document.getElementById('windChart').getContext('2d');
   const tc  = getThemeColors();
   const isDark = currentTheme === 'dark';
@@ -1233,9 +1368,9 @@ function renderWindChart(d){
 }
 
 function renderSunChart(d){
-  const labels   = d.hourly.time.slice(0,24).map(t=>t.slice(11,16));
+  const labels   = getTimeSlice(d.hourly.time.slice(0,24).map(t=>t.slice(11,16)));
   // sunshine_duration est en secondes par heure → convertir en minutes
-  const sunshine = (d.hourly.sunshine_duration || []).slice(0,24).map(s => Math.round((s||0) / 60));
+  const sunshine = getTimeSlice((d.hourly.sunshine_duration || []).slice(0,24).map(s => Math.round((s||0) / 60)));
   const ctx      = document.getElementById('sunChart').getContext('2d');
   const tc       = getThemeColors();
   if(sunChartInst) sunChartInst.destroy();
