@@ -32,6 +32,226 @@
     --tooltip-body: #7a8c5a;
   }
 
+  /* ── THÈME NIGHT OPS (phosphore vert CRT) ── */
+  [data-theme="nightops"] {
+    --bg: #000a00;
+    --surface: #000f00;
+    --surface2: #001500;
+    --border: rgba(0,255,65,0.12);
+    --text: #00ff41;
+    --muted: #007a20;
+    --accent-blue: #00cc33;
+    --accent-cyan: #00ff65;
+    --accent-orange: #00ff41;
+    --accent-yellow: #39ff14;
+    --accent-purple: #00e855;
+    --font-head: 'DM Mono', monospace;
+    --font-mono: 'DM Mono', monospace;
+    --chart-grid: rgba(0,255,65,0.05);
+    --chart-border: rgba(0,255,65,0.1);
+    --chart-tick: #007a20;
+    --tooltip-bg: #000f00;
+    --tooltip-border: rgba(0,255,65,0.25);
+    --tooltip-title: #00ff41;
+    --tooltip-body: #007a20;
+  }
+
+  /* Effet CRT global */
+  [data-theme="nightops"] body {
+    background-color: #000a00;
+    background-image:
+      linear-gradient(rgba(0,255,65,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,65,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    position: relative;
+  }
+
+  /* Scanlines overlay via pseudo-element sur le dashboard */
+  [data-theme="nightops"] .dashboard::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.18) 2px,
+      rgba(0,0,0,0.18) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Vignette CRT */
+  [data-theme="nightops"] .dashboard::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,10,0,0.65) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* Lueur verte sur les cartes */
+  [data-theme="nightops"] .kpi-card,
+  [data-theme="nightops"] .section-card,
+  [data-theme="nightops"] .heating-section {
+    box-shadow: 0 0 8px rgba(0,255,65,0.06), inset 0 0 20px rgba(0,255,65,0.02);
+    border-color: rgba(0,255,65,0.12);
+  }
+
+  [data-theme="nightops"] .kpi-card:hover,
+  [data-theme="nightops"] .section-card:hover {
+    box-shadow: 0 0 16px rgba(0,255,65,0.12), inset 0 0 20px rgba(0,255,65,0.03);
+    border-color: rgba(0,255,65,0.25);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+
+  /* Ville — effet phosphore lumineux */
+  [data-theme="nightops"] .city-name {
+    color: #00ff41;
+    text-shadow: 0 0 8px rgba(0,255,65,0.8), 0 0 20px rgba(0,255,65,0.4), 0 0 40px rgba(0,255,65,0.15);
+    animation: phosphorFlicker 8s ease-in-out infinite;
+  }
+
+  @keyframes phosphorFlicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.94; }
+    97% { opacity: 1; }
+    98% { opacity: 0.97; }
+  }
+
+  /* Dot indicators — lueur pulsante */
+  [data-theme="nightops"] .section-title .dot,
+  [data-theme="nightops"] .sun-card-title .dot {
+    background: #00ff41 !important;
+    box-shadow: 0 0 6px #00ff41, 0 0 14px rgba(0,255,65,0.6);
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { box-shadow: 0 0 4px #00ff41, 0 0 10px rgba(0,255,65,0.5); }
+    50% { box-shadow: 0 0 8px #00ff41, 0 0 20px rgba(0,255,65,0.8), 0 0 30px rgba(0,255,65,0.3); }
+  }
+
+  /* Texte principal — lueur douce */
+  [data-theme="nightops"] .kpi-value {
+    color: #00ff41;
+    text-shadow: 0 0 6px rgba(0,255,65,0.5);
+  }
+
+  /* Border left des KPI cards */
+  [data-theme="nightops"] .kpi-card {
+    border-left: 2px solid #00cc33;
+    box-shadow: -2px 0 8px rgba(0,204,51,0.3), 0 0 8px rgba(0,255,65,0.05);
+  }
+
+  /* Heating section */
+  [data-theme="nightops"] .heating-section {
+    border-left-color: #00ff41;
+    box-shadow: -2px 0 12px rgba(0,255,65,0.2), 0 0 8px rgba(0,255,65,0.05);
+  }
+
+  [data-theme="nightops"] .heat-card.active {
+    border-color: #00ff41;
+    background: rgba(0,255,65,0.04);
+    border-left: 2px solid #00ff41;
+    box-shadow: -2px 0 8px rgba(0,255,65,0.25);
+  }
+
+  [data-theme="nightops"] .heat-card.warm {
+    border-color: #39ff14;
+    background: rgba(57,255,20,0.04);
+    border-left: 2px solid #39ff14;
+  }
+
+  [data-theme="nightops"] .heat-card.secondary { background: var(--surface2); }
+  [data-theme="nightops"] .heat-status.on { color: #00ff41; text-shadow: 0 0 6px rgba(0,255,65,0.6); }
+  [data-theme="nightops"] .heat-status.standby { color: #39ff14; }
+
+  /* Tags */
+  [data-theme="nightops"] .tag-hot { background: rgba(0,255,65,0.08); color: #39ff14; border: 0.5px solid rgba(57,255,20,0.35); }
+  [data-theme="nightops"] .tag-cold { background: rgba(0,204,51,0.08); color: #00cc33; border: 0.5px solid rgba(0,204,51,0.35); }
+  [data-theme="nightops"] .tag-mild { background: rgba(0,255,65,0.06); color: #00ff41; border: 0.5px solid rgba(0,255,65,0.3); }
+  [data-theme="nightops"] .tag-eco { background: rgba(0,255,65,0.07); color: #00ff65; border: 0.5px solid rgba(0,255,65,0.3); }
+
+  /* Auto badge */
+  [data-theme="nightops"] .auto-badge {
+    color: #00ff41;
+    background: rgba(0,255,65,0.06);
+    border: 0.5px solid rgba(0,255,65,0.2);
+    text-shadow: 0 0 4px rgba(0,255,65,0.4);
+  }
+
+  /* Forecast items */
+  [data-theme="nightops"] .forecast-item {
+    background: var(--surface2);
+    border-color: rgba(0,255,65,0.1);
+  }
+
+  [data-theme="nightops"] .forecast-hi { color: #00ff65; text-shadow: 0 0 4px rgba(0,255,65,0.4); }
+
+  /* Refresh + theme buttons */
+  [data-theme="nightops"] .refresh-btn,
+  [data-theme="nightops"] .theme-toggle-btn {
+    background: #000f00;
+    border-color: rgba(0,255,65,0.2);
+    color: #00cc33;
+  }
+  [data-theme="nightops"] .refresh-btn:hover,
+  [data-theme="nightops"] .theme-toggle-btn:hover {
+    border-color: #00ff41;
+    box-shadow: 0 0 8px rgba(0,255,65,0.25);
+    color: #00ff41;
+  }
+
+  /* Sun stats */
+  [data-theme="nightops"] .sun-stat-val {
+    color: #00ff41;
+    text-shadow: 0 0 6px rgba(0,255,65,0.5);
+  }
+
+  [data-theme="nightops"] .sun-pct-pill {
+    color: #00ff41;
+    background: rgba(0,255,65,0.07);
+    border-color: rgba(0,255,65,0.25);
+    text-shadow: 0 0 6px rgba(0,255,65,0.5);
+  }
+
+  /* Alertes */
+  [data-theme="nightops"] .alert-banner.alert-wind {
+    border-color: rgba(0,255,65,0.4);
+    background: rgba(0,255,65,0.05);
+  }
+  [data-theme="nightops"] .alert-banner.alert-heat {
+    border-color: rgba(57,255,20,0.5);
+    background: rgba(57,255,20,0.05);
+  }
+  [data-theme="nightops"] .alert-banner.alert-frost {
+    border-color: rgba(0,200,80,0.5);
+    background: rgba(0,200,80,0.05);
+  }
+
+  /* Inputs HA */
+  [data-theme="nightops"] input[type="text"],
+  [data-theme="nightops"] input[type="password"] {
+    background: #000a00 !important;
+    border-color: rgba(0,255,65,0.2) !important;
+    color: #00ff41 !important;
+  }
+
+  [data-theme="nightops"] input[type="text"]:focus,
+  [data-theme="nightops"] input[type="password"]:focus {
+    border-color: #00ff41 !important;
+    box-shadow: 0 0 8px rgba(0,255,65,0.2) !important;
+    outline: none;
+  }
+
+  /* Topbar separator */
+  [data-theme="nightops"] .topbar {
+    border-bottom-color: rgba(0,255,65,0.12);
+  }
+
   /* ── THÈME TERRAIN (sable/jour) ── */
   [data-theme="beige"] {
     --bg: #e8e0cc;
@@ -1390,10 +1610,14 @@ function applyTheme(theme) {
     root.setAttribute('data-theme', 'beige');
     document.getElementById('themeIcon').textContent = '🌑';
     document.getElementById('themeLabel').textContent = 'Nuit';
-  } else {
-    root.removeAttribute('data-theme');
+  } else if (theme === 'nightops') {
+    root.setAttribute('data-theme', 'nightops');
     document.getElementById('themeIcon').textContent = '🌿';
     document.getElementById('themeLabel').textContent = 'Terrain';
+  } else {
+    root.removeAttribute('data-theme');
+    document.getElementById('themeIcon').textContent = '🟢';
+    document.getElementById('themeLabel').textContent = 'Night Ops';
   }
   // Redraw charts with new colors
   if (weatherData) {
@@ -1404,13 +1628,37 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
-  currentTheme = currentTheme === 'dark' ? 'beige' : 'dark';
+  if (currentTheme === 'dark') currentTheme = 'nightops';
+  else if (currentTheme === 'nightops') currentTheme = 'beige';
+  else currentTheme = 'dark';
   localStorage.setItem('meteo-theme', currentTheme);
   applyTheme(currentTheme);
 }
 
 function getThemeColors() {
   const isDark = currentTheme === 'dark';
+  const isNightOps = currentTheme === 'nightops';
+  if (isNightOps) return {
+    tick: '#007a20',
+    grid: 'rgba(0,255,65,0.05)',
+    border: 'rgba(0,255,65,0.1)',
+    tooltipBg: '#000f00',
+    tooltipBorder: 'rgba(0,255,65,0.25)',
+    tooltipTitle: '#00ff41',
+    tooltipBody: '#007a20',
+    tempLine: '#00ff41',
+    tempFill: 'rgba(0,255,65,0.07)',
+    rainLine: 'rgba(0,255,100,0.65)',
+    rainFill: 'rgba(0,255,65,0.04)',
+    rainTick: 'rgba(0,255,65,0.75)',
+    compassN: '#39ff14',
+    compassCard: 'rgba(0,255,65,0.45)',
+    compassArrow: '#00ff41',
+    compassCenter: 'rgba(0,255,65,0.25)',
+    compassLabel: 'rgba(0,255,65,0.7)',
+    compassRing1: 'rgba(0,255,65,0.15)',
+    compassRing2: 'rgba(0,255,65,0.06)',
+  };
   return {
     tick: isDark ? '#7a8c5a' : '#6e6642',
     grid: isDark ? 'rgba(138,168,78,0.06)' : 'rgba(80,70,40,0.07)',
@@ -1581,7 +1829,8 @@ function hToHHMM(h) {
 function renderSunArc() {
   const canvas = document.getElementById('sunArcCanvas');
   if(!canvas) return;
-  const isDark = currentTheme === 'dark';
+  const isDark = currentTheme === 'dark' || currentTheme === 'nightops';
+  const isNightOps = currentTheme === 'nightops';
 
   const now   = new Date();
   const times = calcSunTimes(now);
@@ -1615,7 +1864,18 @@ function renderSunArc() {
 
   // ── Gradient atmosphérique nuit→aube→jour→crépuscule→nuit
   const g = ctx.createLinearGradient(padL, 0, padL + barW, 0);
-  if(isDark) {
+  if(isNightOps) {
+    // Phosphore vert — créneau nuit → signal actif → veille
+    g.addColorStop(0,    '#000a00');
+    g.addColorStop(rise/24 - 0.01, '#001400');
+    g.addColorStop(rise/24,        '#004010');
+    g.addColorStop(rise/24 + 0.06, '#008820');
+    g.addColorStop(noon/24,        '#00ff41');
+    g.addColorStop(set/24 - 0.06,  '#009930');
+    g.addColorStop(set/24,         '#004010');
+    g.addColorStop(set/24 + 0.01,  '#001400');
+    g.addColorStop(1,    '#000a00');
+  } else if(isDark) {
     g.addColorStop(0,    '#0a0e18');
     g.addColorStop(0.20, '#151e38');
     g.addColorStop(rise/24 - 0.01, '#1a2040');
@@ -1645,7 +1905,7 @@ function renderSunArc() {
   // Masque nuit gauche (avant lever)
   const riseX = padL + (rise/24)*barW;
   const setX  = padL + (set/24)*barW;
-  ctx.fillStyle = isDark ? 'rgba(4,6,14,0.72)' : 'rgba(15,20,50,0.38)';
+  ctx.fillStyle = isNightOps ? 'rgba(0,10,0,0.78)' : isDark ? 'rgba(4,6,14,0.72)' : 'rgba(15,20,50,0.38)';
   ctx.beginPath();
   ctx.roundRect(padL, barY, riseX - padL, barH, [barR, 0, 0, barR]);
   ctx.fill();
@@ -1665,7 +1925,7 @@ function renderSunArc() {
   }
 
   // Ticks heures
-  const mutedCol = isDark ? 'rgba(180,190,160,0.45)' : 'rgba(40,38,28,0.45)';
+  const mutedCol = isNightOps ? 'rgba(0,200,50,0.4)' : isDark ? 'rgba(180,190,160,0.45)' : 'rgba(40,38,28,0.45)';
   [0,3,6,9,12,15,18,21,24].forEach(h => {
     const x = padL + (h/24)*barW;
     ctx.strokeStyle = mutedCol;
@@ -1681,27 +1941,33 @@ function renderSunArc() {
   });
 
   // Label lever
-  ctx.fillStyle = isDark ? '#e0a040' : '#c07010';
+  ctx.fillStyle = isNightOps ? '#00cc33' : isDark ? '#e0a040' : '#c07010';
   ctx.font      = 'bold 9px DM Mono, monospace';
   ctx.textAlign = 'center';
   ctx.fillText('↑ ' + hToHHMM(rise), riseX, barY - 8);
 
   // Label coucher
-  ctx.fillStyle = isDark ? '#d07030' : '#b05010';
+  ctx.fillStyle = isNightOps ? '#009922' : isDark ? '#d07030' : '#b05010';
   ctx.textAlign = 'center';
   ctx.fillText('↓ ' + hToHHMM(set), setX, barY - 8);
 
   // Curseur "maintenant" — ligne + losange
   const nowX   = padL + (nowH/24)*barW;
-  const nowCol = isDark ? '#a8c060' : '#4a7e18';
+  const nowCol = isNightOps ? '#00ff41' : isDark ? '#a8c060' : '#4a7e18';
   ctx.strokeStyle = nowCol;
-  ctx.lineWidth   = 1.5;
+  ctx.lineWidth   = isNightOps ? 2 : 1.5;
+  if (isNightOps) {
+    ctx.shadowColor = '#00ff41';
+    ctx.shadowBlur = 8;
+  }
   ctx.beginPath();
   ctx.moveTo(nowX, barY - 4);
   ctx.lineTo(nowX, barY + barH + 2);
   ctx.stroke();
+  ctx.shadowBlur = 0;
   // Losange
   ctx.fillStyle = nowCol;
+  if (isNightOps) { ctx.shadowColor = '#00ff41'; ctx.shadowBlur = 10; }
   ctx.beginPath();
   ctx.moveTo(nowX,     barY - 9);
   ctx.lineTo(nowX + 5, barY - 4);
@@ -1709,6 +1975,7 @@ function renderSunArc() {
   ctx.lineTo(nowX - 5, barY - 4);
   ctx.closePath();
   ctx.fill();
+  ctx.shadowBlur = 0;
   // Label heure actuelle
   const lblX = Math.max(padL + 20, Math.min(nowX, W - padR - 20));
   ctx.fillStyle = nowCol;
