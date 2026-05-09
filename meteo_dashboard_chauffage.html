@@ -670,6 +670,118 @@
     color: var(--accent-yellow);
   }
 
+  /* ── TIMELINE MÉTÉO ─────────────────────────────────────────────────────── */
+  .weather-timeline {
+    display: flex;
+    gap: 1.5px;
+    border-radius: 5px;
+    overflow: hidden;
+    height: 72px;
+    margin-bottom: 6px;
+  }
+
+  .tl-seg {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 1px 3px;
+    cursor: default;
+    position: relative;
+    transition: filter 0.15s;
+    overflow: hidden;
+  }
+
+  .tl-seg:hover { filter: brightness(1.18); z-index: 2; }
+
+  .tl-seg.tl-now::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    outline: 2px solid rgba(255,255,255,0.55);
+    outline-offset: -2px;
+    border-radius: 3px;
+    pointer-events: none;
+  }
+
+  .tl-seg-hour {
+    font-size: 7.5px;
+    font-family: var(--font-mono);
+    color: rgba(0,0,0,0.55);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .tl-seg-icon {
+    font-size: 14px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+  }
+
+  .tl-seg-temp {
+    font-size: 8px;
+    font-family: var(--font-mono);
+    color: rgba(0,0,0,0.65);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Barre de probabilité pluie en bas de chaque segment */
+  .tl-seg-rain {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(40,100,220,0.75);
+    transition: width 0.3s;
+  }
+
+  /* NightOps : on garde les icônes mais on teinte tout en phosphore */
+  [data-theme="nightops"] .tl-seg {
+    background: #000f00 !important;
+    border-right: 0.5px solid rgba(0,255,65,0.06);
+  }
+  [data-theme="nightops"] .tl-seg.tl-now::after {
+    outline-color: rgba(0,255,65,0.7);
+  }
+  [data-theme="nightops"] .tl-seg-hour,
+  [data-theme="nightops"] .tl-seg-temp {
+    color: rgba(0,255,65,0.6);
+  }
+  [data-theme="nightops"] .tl-seg-icon {
+    filter: grayscale(1) brightness(2) drop-shadow(0 0 3px rgba(0,255,65,0.5));
+  }
+  [data-theme="nightops"] .tl-seg-rain {
+    background: rgba(0,255,65,0.5);
+  }
+
+  .tl-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 14px;
+  }
+
+  .tl-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.03em;
+  }
+
+  .tl-legend-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    border: 0.5px solid rgba(0,0,0,0.12);
+  }
+
 </style>
 </head>
 <body>
@@ -753,6 +865,21 @@
     </div>
   </div>
 
+  <!-- ── TIMELINE MÉTÉO ── -->
+  <div class="sun-card" style="padding-bottom:10px;">
+    <div class="sun-card-title">
+      <span class="dot" style="background:var(--accent-cyan);box-shadow:0 0 4px var(--accent-cyan);"></span>
+      Timeline météo — aujourd'hui heure par heure
+      <div class="time-window-btns" style="margin-left:auto;">
+        <button class="tw-btn" data-w="6" onclick="setTimeWindow(6)">6h</button>
+        <button class="tw-btn" data-w="12" onclick="setTimeWindow(12)">12h</button>
+        <button class="tw-btn active" data-w="24" onclick="setTimeWindow(24)">24h</button>
+      </div>
+    </div>
+    <div class="weather-timeline" id="weatherTimeline"></div>
+    <div class="tl-legend" id="tlLegend"></div>
+  </div>
+
   <div class="kpi-row" id="kpiRow">
     <div class="kpi-card" style="position:relative;">
       <div class="kpi-label">Température</div>
@@ -826,11 +953,6 @@
           <button class="tw-btn" data-w="6" onclick="setTimeWindow(6)">6h</button>
           <button class="tw-btn" data-w="12" onclick="setTimeWindow(12)">12h</button>
           <button class="tw-btn active" data-w="24" onclick="setTimeWindow(24)">24h</button>
-        </div>
-        <div class="tw-slider-wrap" id="twSliderWrap" style="display:none;">
-          <span class="tw-slider-lbl" id="twSliderLbl">00h</span>
-          <input type="range" class="tw-slider" id="twSlider" min="0" max="0" value="0" oninput="onTimeSlide(this.value)">
-          <span class="tw-slider-lbl" id="twSliderEnd">—</span>
         </div>
       </div>
       <div class="hourly-temp-wrap">
@@ -990,6 +1112,7 @@ function refreshData(){
     renderSunChart(data);
     renderCompass(data.current.wind_direction_10m);
     renderForecast(data);
+    renderTimeline(data);
     renderHeating(data.current.temperature_2m, data);
     renderVelotaf(data);
     // Refresh HA sensor
@@ -1226,60 +1349,28 @@ let twOffset   = 0;   // index de départ dans les 24 labels
 
 function setTimeWindow(w) {
   twWindow = w;
-  // Activer le bon bouton
+  // Centrer sur l'heure actuelle quand fenêtre < 24h
+  if (w < 24) {
+    const nowH = new Date().getHours();
+    twOffset = Math.max(0, Math.min(Math.round(nowH - w / 2), 24 - w));
+  } else {
+    twOffset = 0;
+  }
+  // Activer le bon bouton (tous les groupes partagent .tw-btn)
   document.querySelectorAll('.tw-btn').forEach(b => {
     b.classList.toggle('active', parseInt(b.dataset.w) === w);
   });
-  // Afficher/masquer le slider de navigation
-  const wrap   = document.getElementById('twSliderWrap');
-  const slider = document.getElementById('twSlider');
-  if (w < 24) {
-    const maxOffset = 24 - w;
-    slider.max   = maxOffset;
-    // Centrer sur l'heure actuelle
-    const nowH = new Date().getHours();
-    const centered = Math.max(0, Math.min(Math.round(nowH - w / 2), maxOffset));
-    slider.value = centered;
-    twOffset = centered;
-    wrap.style.display = 'flex';
-    // Màj labels slider
-    if (weatherData) {
-      const allLabels = weatherData.hourly.time.slice(0, 24).map(t => t.slice(11, 16));
-      document.getElementById('twSliderLbl').textContent = allLabels[twOffset] || '00h';
-      document.getElementById('twSliderEnd').textContent = allLabels[Math.min(twOffset + w - 1, 23)] || '';
-    }
-  } else {
-    twOffset = 0;
-    slider.value = 0;
-    wrap.style.display = 'none';
-  }
   document.getElementById('chartWindowLabel').textContent = w + 'h';
-  // Re-render avec les données déjà chargées
+  // Re-render
   if (weatherData) {
     renderTempChart(weatherData);
     renderWindChart(weatherData);
     renderSunChart(weatherData);
+    renderTimeline(weatherData);
   }
 }
 
-function onTimeSlide(val) {
-  twOffset = parseInt(val);
-  const slider = document.getElementById('twSlider');
-  const max    = parseInt(slider.max);
-  // Labels début/fin
-  if (weatherData) {
-    const allLabels = weatherData.hourly.time.slice(0, 24).map(t => t.slice(11, 16));
-    const start = allLabels[twOffset] || '00:00';
-    const end   = allLabels[Math.min(twOffset + twWindow - 1, 23)] || '';
-    document.getElementById('twSliderLbl').textContent = start;
-    document.getElementById('twSliderEnd').textContent = end;
-  }
-  if (weatherData) {
-    renderTempChart(weatherData);
-    renderWindChart(weatherData);
-    renderSunChart(weatherData);
-  }
-}
+function onTimeSlide(val) {}
 
 function getTimeSlice(arr24) {
   return arr24.slice(twOffset, twOffset + twWindow);
@@ -1474,7 +1565,74 @@ function renderForecast(d){
   document.getElementById('forecastRow').innerHTML = html;
 }
 
-// ── CONSEIL VELOTAF ───────────────────────────────────────────────────────────
+// ── TIMELINE MÉTÉO ────────────────────────────────────────────────────────────
+function wmoTimelineColor(code) {
+  if (code === 0)              return { bg: 'rgba(245,197,28,0.82)',   label: 'Ensoleillé'     };
+  if (code <= 2)               return { bg: 'rgba(230,185,65,0.60)',   label: 'Peu nuageux'    };
+  if (code === 3)              return { bg: 'rgba(145,155,130,0.58)',  label: 'Couvert'        };
+  if (code <= 48)              return { bg: 'rgba(180,188,168,0.52)',  label: 'Brouillard'     };
+  if (code <= 55)              return { bg: 'rgba(115,175,218,0.72)',  label: 'Bruine'         };
+  if (code <= 65)              return { bg: 'rgba(55,115,210,0.82)',   label: 'Pluie'          };
+  if (code <= 75)              return { bg: 'rgba(185,218,248,0.82)',  label: 'Neige'          };
+  if (code <= 82)              return { bg: 'rgba(75,105,200,0.78)',   label: 'Averses'        };
+  return                              { bg: 'rgba(125,58,178,0.82)',   label: 'Orage'          };
+}
+
+function renderTimeline(d) {
+  const container = document.getElementById('weatherTimeline');
+  const legendEl  = document.getElementById('tlLegend');
+  if (!container) return;
+
+  const nowH     = new Date().getHours();
+
+  // Aligne sur le même découpage que les graphiques (24 premiers créneaux = aujourd'hui)
+  const allHours = d.hourly.time.slice(0, 24).map((t, i) => ({
+    hour: parseInt(t.slice(11, 13), 10),
+    code: (d.hourly.weather_code ?? d.hourly.weathercode ?? [])[i] ?? 0,
+    temp: Math.round((d.hourly.temperature_2m ?? [])[i] ?? 0),
+    rain: (d.hourly.precipitation_probability ?? [])[i] ?? 0,
+  }));
+  const hours = getTimeSlice(allHours);
+
+  if (!hours.length) {
+    container.innerHTML = '<span style="color:var(--muted);font-size:11px;">Données indisponibles</span>';
+    return;
+  }
+
+  // Segments colorés
+  const legendKeys = new Map(); // key → {bg, label}
+  const html = hours.map(h => {
+    const col  = wmoTimelineColor(h.code);
+    const icon = WMO_ICONS[h.code] || '🌡️';
+    const desc = WMO_DESC[h.code]  || '';
+    const isNow = h.hour === nowH;
+    const rainW = h.rain; // pourcentage → largeur %
+    legendKeys.set(col.label, col.bg);
+    return `<div class="tl-seg${isNow ? ' tl-now' : ''}"
+         style="background:${col.bg};"
+         title="${String(h.hour).padStart(2,'0')}h — ${desc} — ${h.temp}°C — Pluie ${h.rain}%">
+      <span class="tl-seg-hour">${String(h.hour).padStart(2,'0')}h</span>
+      <span class="tl-seg-icon">${icon}</span>
+      <span class="tl-seg-temp">${h.temp}°</span>
+      <div class="tl-seg-rain" style="width:${rainW}%;"></div>
+    </div>`;
+  }).join('');
+  container.innerHTML = html;
+
+  // Légende (uniquement les types présents)
+  if (legendEl) {
+    legendEl.innerHTML = [...legendKeys.entries()].map(([label, bg]) =>
+      `<div class="tl-legend-item">
+        <div class="tl-legend-dot" style="background:${bg};"></div>
+        <span>${label}</span>
+      </div>`
+    ).join('') +
+    `<div class="tl-legend-item" style="margin-left:auto;">
+      <div class="tl-legend-dot" style="background:rgba(40,100,220,0.7);"></div>
+      <span>Barre basse = prob. pluie</span>
+    </div>`;
+  }
+}
 // Trajet ALLER  : Nord → Sud  → vent du Nord  (dir 315–360 ou 0–45)  = dans le dos ✅
 // Trajet RETOUR : Sud → Nord  → vent du Sud   (dir 135–225)          = dans le dos ✅
 function renderVelotaf(d) {
