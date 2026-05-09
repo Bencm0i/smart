@@ -871,9 +871,10 @@
       <span class="dot" style="background:var(--accent-cyan);box-shadow:0 0 4px var(--accent-cyan);"></span>
       Timeline météo — aujourd'hui heure par heure
       <div class="time-window-btns" style="margin-left:auto;">
-        <button class="tw-btn" data-w="6" onclick="setTimeWindow(6)">6h</button>
-        <button class="tw-btn" data-w="12" onclick="setTimeWindow(12)">12h</button>
-        <button class="tw-btn active" data-w="24" onclick="setTimeWindow(24)">24h</button>
+        <button class="tw-btn" data-w="am"  onclick="setTimeSlot('am')">0h–12h</button>
+        <button class="tw-btn" data-w="mid" onclick="setTimeSlot('mid')">6h–18h</button>
+        <button class="tw-btn" data-w="pm"  onclick="setTimeSlot('pm')">18h–02h</button>
+        <button class="tw-btn active" data-w="all" onclick="setTimeSlot('all')">Tous</button>
       </div>
     </div>
     <div class="weather-timeline" id="weatherTimeline"></div>
@@ -946,13 +947,14 @@
 
   <div class="main-grid">
     <div class="section-card">
-      <div class="section-title"><span class="dot" style="background:var(--accent-blue)"></span>Température <span id="chartWindowLabel" style="margin-left:4px;color:var(--accent-cyan);">24h</span></div>
+      <div class="section-title"><span class="dot" style="background:var(--accent-blue)"></span>Température <span id="chartWindowLabel" style="margin-left:4px;color:var(--accent-cyan);">Tous</span></div>
       <!-- Contrôles fenêtre temporelle -->
       <div class="chart-time-ctrl">
         <div class="time-window-btns">
-          <button class="tw-btn" data-w="6" onclick="setTimeWindow(6)">6h</button>
-          <button class="tw-btn" data-w="12" onclick="setTimeWindow(12)">12h</button>
-          <button class="tw-btn active" data-w="24" onclick="setTimeWindow(24)">24h</button>
+          <button class="tw-btn" data-w="am"  onclick="setTimeSlot('am')">0h–12h</button>
+          <button class="tw-btn" data-w="mid" onclick="setTimeSlot('mid')">6h–18h</button>
+          <button class="tw-btn" data-w="pm"  onclick="setTimeSlot('pm')">18h–02h</button>
+          <button class="tw-btn active" data-w="all" onclick="setTimeSlot('all')">Tous</button>
         </div>
       </div>
       <div class="hourly-temp-wrap">
@@ -1344,23 +1346,27 @@ const rainDropsPlugin = {
 Chart.register(rainDropsPlugin);
 
 // ── GESTION FENÊTRE TEMPORELLE ────────────────────────────────────────────────
-let twWindow   = 24;  // heures affichées (6, 12 ou 24)
-let twOffset   = 0;   // index de départ dans les 24 labels
+let twWindow   = 24;  // heures affichées
+let twOffset   = 0;   // index de départ
 
-function setTimeWindow(w) {
-  twWindow = w;
-  // Centrer sur l'heure actuelle quand fenêtre < 24h
-  if (w < 24) {
-    const nowH = new Date().getHours();
-    twOffset = Math.max(0, Math.min(Math.round(nowH - w / 2), 24 - w));
-  } else {
-    twOffset = 0;
-  }
+const TIME_SLOTS = {
+  am:  { offset: 0,  window: 12, label: '0h–12h'  },
+  mid: { offset: 6,  window: 12, label: '6h–18h'  },
+  pm:  { offset: 18, window: 8,  label: '18h–02h' },
+  all: { offset: 0,  window: 24, label: 'Tous'    },
+};
+let currentSlot = 'all';
+
+function setTimeSlot(slot) {
+  currentSlot = slot;
+  const s = TIME_SLOTS[slot];
+  twOffset = s.offset;
+  twWindow = s.window;
   // Activer le bon bouton (tous les groupes partagent .tw-btn)
   document.querySelectorAll('.tw-btn').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.w) === w);
+    b.classList.toggle('active', b.dataset.w === slot);
   });
-  document.getElementById('chartWindowLabel').textContent = w + 'h';
+  document.getElementById('chartWindowLabel').textContent = s.label;
   // Re-render
   if (weatherData) {
     renderTempChart(weatherData);
@@ -1377,9 +1383,9 @@ function getTimeSlice(arr24) {
 }
 
 function renderTempChart(d){
-  const labels = getTimeSlice(d.hourly.time.slice(0,24).map(t=>t.slice(11,16)));
-  const temps  = getTimeSlice(d.hourly.temperature_2m.slice(0,24));
-  const probs  = getTimeSlice(d.hourly.precipitation_probability.slice(0,24));
+  const labels = getTimeSlice(d.hourly.time.slice(0,26).map(t=>t.slice(11,16)));
+  const temps  = getTimeSlice(d.hourly.temperature_2m.slice(0,26));
+  const probs  = getTimeSlice(d.hourly.precipitation_probability.slice(0,26));
   const ctx = document.getElementById('tempChart').getContext('2d');
   const tc  = getThemeColors();
   if(tempChartInst) tempChartInst.destroy();
@@ -1418,9 +1424,9 @@ function renderTempChart(d){
 }
 
 function renderWindChart(d){
-  const labels = getTimeSlice(d.hourly.time.slice(0,24).map(t=>t.slice(11,16)));
-  const speeds  = getTimeSlice(d.hourly.wind_speed_10m.slice(0,24));
-  const dirs    = getTimeSlice(d.hourly.wind_direction_10m.slice(0,24));
+  const labels = getTimeSlice(d.hourly.time.slice(0,26).map(t=>t.slice(11,16)));
+  const speeds  = getTimeSlice(d.hourly.wind_speed_10m.slice(0,26));
+  const dirs    = getTimeSlice(d.hourly.wind_direction_10m.slice(0,26));
   const ctx = document.getElementById('windChart').getContext('2d');
   const tc  = getThemeColors();
   const isDark = currentTheme === 'dark';
@@ -1459,9 +1465,9 @@ function renderWindChart(d){
 }
 
 function renderSunChart(d){
-  const labels   = getTimeSlice(d.hourly.time.slice(0,24).map(t=>t.slice(11,16)));
+  const labels   = getTimeSlice(d.hourly.time.slice(0,26).map(t=>t.slice(11,16)));
   // sunshine_duration est en secondes par heure → convertir en minutes
-  const sunshine = getTimeSlice((d.hourly.sunshine_duration || []).slice(0,24).map(s => Math.round((s||0) / 60)));
+  const sunshine = getTimeSlice((d.hourly.sunshine_duration || []).slice(0,26).map(s => Math.round((s||0) / 60)));
   const ctx      = document.getElementById('sunChart').getContext('2d');
   const tc       = getThemeColors();
   if(sunChartInst) sunChartInst.destroy();
@@ -1585,8 +1591,8 @@ function renderTimeline(d) {
 
   const nowH     = new Date().getHours();
 
-  // Aligne sur le même découpage que les graphiques (24 premiers créneaux = aujourd'hui)
-  const allHours = d.hourly.time.slice(0, 24).map((t, i) => ({
+  // Aligne sur le même découpage que les graphiques (26 premiers créneaux = aujourd'hui + 2h lendemain)
+  const allHours = d.hourly.time.slice(0, 26).map((t, i) => ({
     hour: parseInt(t.slice(11, 13), 10),
     code: (d.hourly.weather_code ?? d.hourly.weathercode ?? [])[i] ?? 0,
     temp: Math.round((d.hourly.temperature_2m ?? [])[i] ?? 0),
