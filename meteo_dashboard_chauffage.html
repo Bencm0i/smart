@@ -973,8 +973,8 @@
       </div>
     </div>
     <div class="section-card full-width">
-      <div class="section-title"><span class="dot" style="background:var(--accent-orange)"></span>Ensoleillement 24h <span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:6px;">min/heure</span></div>
-      <div style="height:110px; position:relative;">
+      <div class="section-title"><span class="dot" style="background:var(--accent-orange)"></span>Ensoleillement 24h <span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:6px;">min/heure</span><span style="font-size:9px;color:rgba(180,60,220,0.8);font-weight:400;margin-left:10px;">— UV (axe droit)</span></div>
+      <div style="height:130px; position:relative;">
         <canvas id="sunChart"></canvas>
       </div>
     </div>
@@ -1096,7 +1096,7 @@ function startCountdown(){
 
 async function fetchWeather(){
   const lat=44.933, lon=4.892;
-  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,sunshine_duration,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,precipitation,visibility&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_direction_10m,wind_gusts_10m,sunshine_duration,weather_code,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FParis&forecast_days=7`;
   const r = await fetch(url);
   return r.json();
 }
@@ -1466,16 +1466,15 @@ function renderWindChart(d){
 
 function renderSunChart(d){
   const labels   = getTimeSlice(d.hourly.time.slice(0,26).map(t=>t.slice(11,16)));
-  // sunshine_duration est en secondes par heure → convertir en minutes
   const sunshine = getTimeSlice((d.hourly.sunshine_duration || []).slice(0,26).map(s => Math.round((s||0) / 60)));
+  const uvData   = getTimeSlice((d.hourly.uv_index || []).slice(0,26).map(v => v != null ? Math.round(v * 10) / 10 : 0));
   const ctx      = document.getElementById('sunChart').getContext('2d');
   const tc       = getThemeColors();
   if(sunChartInst) sunChartInst.destroy();
 
-  // Gradient jaune → orange
-  const grad = ctx.createLinearGradient(0, 0, 0, 110);
-  grad.addColorStop(0,   'rgba(227,179,65,0.85)');
-  grad.addColorStop(1,   'rgba(227,179,65,0.05)');
+  const isNightOps = currentTheme === 'nightops';
+  const uvColor    = isNightOps ? 'rgba(0,255,65,0.9)' : 'rgba(180,60,220,0.9)';
+  const uvFill     = isNightOps ? 'rgba(0,255,65,0.07)' : 'rgba(180,60,220,0.08)';
 
   sunChartInst = new Chart(ctx, {
     type: 'bar',
@@ -1491,24 +1490,49 @@ function renderSunChart(d){
         ),
         borderRadius: 2,
         borderSkipped: false,
+        yAxisID: 'y',
+        order: 2,
+      },{
+        label: 'Indice UV',
+        data: uvData,
+        type: 'line',
+        borderColor: uvColor,
+        backgroundColor: uvFill,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+        borderWidth: 2,
+        yAxisID: 'yUV',
+        order: 1,
       }]
     },
     options: {
       nowTriangle: true,
       responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
           backgroundColor: tc.tooltipBg, borderColor: tc.tooltipBorder, borderWidth: 0.5,
           titleColor: tc.tooltipTitle, bodyColor: tc.tooltipBody, padding: 8,
           callbacks: {
-            label: item => `☀️ ${item.raw} min/h`
+            label: item => item.datasetIndex === 0
+              ? `\u2600\ufe0f ${item.raw} min/h`
+              : `\ud83d\udfe3 UV ${item.raw}`
           }
         }
       },
       scales: {
         x: { ticks:{color:tc.tick,font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:12}, grid:{color:tc.grid}, border:{color:tc.border} },
-        y: { min:0, max:60, ticks:{color:tc.tick,font:{size:9},callback:v=>v+'min'}, grid:{color:tc.grid}, border:{color:tc.border} }
+        y: { min:0, max:60, ticks:{color:tc.tick,font:{size:9},callback:v=>v+'min'}, grid:{color:tc.grid}, border:{color:tc.border}, position:'left' },
+        yUV: {
+          min: 0, max: 12,
+          ticks: { color: isNightOps ? 'rgba(0,255,65,0.7)' : 'rgba(180,60,220,0.8)', font:{size:9}, callback: v => 'UV'+v },
+          grid: { display: false },
+          border: { color: 'transparent' },
+          position: 'right'
+        }
       }
     }
   });
