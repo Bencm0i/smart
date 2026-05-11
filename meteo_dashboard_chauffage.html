@@ -419,20 +419,91 @@
 
   canvas { display: block; }
 
+  /* ── FORECAST TIMELINE VERTICAL ── */
   .forecast-row {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+    display: flex; flex-direction: column; gap: 4px;
   }
 
   .forecast-item {
-    background: var(--surface2); border-radius: 5px; padding: 8px 6px;
-    text-align: center; border: 0.5px solid var(--border);
+    display: grid;
+    grid-template-columns: 52px 26px 90px 1fr 72px 48px;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2); border-radius: 5px;
+    padding: 7px 10px;
+    border: 0.5px solid var(--border);
+    transition: background 0.12s;
+  }
+  .forecast-item:hover { background: var(--surface); }
+  .forecast-item.fc-today {
+    border-color: rgba(138,168,78,0.35);
+    background: rgba(138,168,78,0.05);
+  }
+  [data-theme="nightops"] .forecast-item.fc-today {
+    border-color: rgba(0,255,65,0.3);
+    background: rgba(0,255,65,0.04);
   }
 
-  .forecast-day { font-size: 10px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .forecast-icon { font-size: 18px; margin-bottom: 4px; }
-  .forecast-hi { font-size: 14px; font-weight: 500; color: var(--accent-cyan); }
+  .forecast-day {
+    font-size: 11px; font-weight: 500; color: var(--text);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+  .forecast-day .fc-date {
+    display: block; font-size: 9px; color: var(--muted);
+    font-weight: 400; text-transform: none; letter-spacing: 0.02em;
+    margin-top: 1px;
+  }
+  .forecast-icon { font-size: 18px; text-align: center; }
+  .forecast-desc {
+    font-size: 10px; color: var(--muted); letter-spacing: 0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Barre temp min-max */
+  .fc-bar-wrap {
+    position: relative; height: 8px;
+    background: var(--chart-grid); border-radius: 4px;
+  }
+  .fc-bar {
+    position: absolute; height: 8px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  }
+
+  /* Températures */
+  .fc-temps {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 4px;
+  }
   .forecast-lo { font-size: 11px; color: var(--muted); }
-  .forecast-rain { font-size: 10px; color: var(--accent-blue); margin-top: 3px; }
+  .forecast-hi { font-size: 13px; font-weight: 500; color: var(--accent-cyan); }
+
+  /* Pluie */
+  .fc-rain-wrap { display: flex; align-items: center; gap: 5px; }
+  .fc-rain-bar-bg {
+    flex: 1; height: 4px; background: var(--chart-grid);
+    border-radius: 2px; overflow: hidden; min-width: 24px;
+  }
+  .fc-rain-bar {
+    height: 100%; border-radius: 2px;
+    background: rgba(80,140,220,0.7);
+  }
+  .forecast-rain {
+    font-size: 10px; color: var(--accent-blue);
+    white-space: nowrap; min-width: 28px; text-align: right;
+  }
+
+  @media (max-width: 550px) {
+    .forecast-item {
+      grid-template-columns: 44px 22px 1fr 80px 40px;
+    }
+    .forecast-desc { display: none; }
+    .fc-temps { flex-direction: column; gap: 0; align-items: flex-end; }
+  }
+  @media (max-width: 380px) {
+    .forecast-item { grid-template-columns: 40px 20px 1fr 60px; }
+    .fc-rain-wrap { display: none; }
+  }
 
   .heating-section {
     background: var(--surface); border: 0.5px solid var(--border);
@@ -492,7 +563,6 @@
     .main-grid { grid-template-columns: 1fr; }
     .full-width { grid-column: 1; }
     .heat-grid { grid-template-columns: 1fr 1fr; }
-    .forecast-row { grid-template-columns: repeat(4, 1fr); }
     .wind-compass-wrap { flex-direction: column; align-items: flex-start; }
     .wind-compass-wrap > div:last-child { width: 100%; }
   }
@@ -501,9 +571,6 @@
     .city-name { font-size: 16px; }
     .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
     .heat-grid { grid-template-columns: 1fr; }
-    .forecast-row { grid-template-columns: repeat(4, 1fr); gap: 4px; }
-    .forecast-item { padding: 6px 4px; }
-    .forecast-icon { font-size: 15px; }
     .dashboard { padding: 0.5rem; }
     .topbar { gap: 8px; }
     .heating-title { font-size: 10px; flex-wrap: wrap; }
@@ -513,7 +580,6 @@
 
   @media (max-width: 380px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
-    .forecast-row { grid-template-columns: repeat(3, 1fr); }
     .kpi-value { font-size: 20px; }
   }
 
@@ -872,8 +938,8 @@
       Timeline météo — aujourd'hui heure par heure
       <div class="time-window-btns" style="margin-left:auto;">
         <button class="tw-btn" data-w="am"  onclick="setTimeSlot('am')">0h–12h</button>
-        <button class="tw-btn" data-w="mid" onclick="setTimeSlot('mid')">6h–18h</button>
-        <button class="tw-btn" data-w="pm"  onclick="setTimeSlot('pm')">18h–02h</button>
+        <button class="tw-btn" data-w="mid" onclick="setTimeSlot('mid')">6h–19h</button>
+        <button class="tw-btn" data-w="pm"  onclick="setTimeSlot('pm')">17h–02h</button>
         <button class="tw-btn active" data-w="all" onclick="setTimeSlot('all')">Tous</button>
       </div>
     </div>
@@ -952,8 +1018,8 @@
       <div class="chart-time-ctrl">
         <div class="time-window-btns">
           <button class="tw-btn" data-w="am"  onclick="setTimeSlot('am')">0h–12h</button>
-          <button class="tw-btn" data-w="mid" onclick="setTimeSlot('mid')">6h–18h</button>
-          <button class="tw-btn" data-w="pm"  onclick="setTimeSlot('pm')">18h–02h</button>
+          <button class="tw-btn" data-w="mid" onclick="setTimeSlot('mid')">6h–19h</button>
+          <button class="tw-btn" data-w="pm"  onclick="setTimeSlot('pm')">17h–02h</button>
           <button class="tw-btn active" data-w="all" onclick="setTimeSlot('all')">Tous</button>
         </div>
       </div>
@@ -1351,8 +1417,8 @@ let twOffset   = 0;   // index de départ
 
 const TIME_SLOTS = {
   am:  { offset: 0,  window: 12, label: '0h–12h'  },
-  mid: { offset: 6,  window: 12, label: '6h–18h'  },
-  pm:  { offset: 18, window: 8,  label: '18h–02h' },
+  mid: { offset: 6,  window: 13, label: '6h–19h'  },
+  pm:  { offset: 17, window: 9,  label: '17h–02h' },
   all: { offset: 0,  window: 24, label: 'Tous'    },
 };
 let currentSlot = 'all';
@@ -1575,21 +1641,55 @@ function renderCompass(angle){
 }
 
 function renderForecast(d){
-  const days=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  const today = new Date().getDay();
-  const html = d.daily.weather_code.slice(0,7).map((code,i)=>{
+  const DAYS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const MONTHS = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+  const codes  = d.daily.weather_code.slice(0,7);
+  const maxArr = d.daily.temperature_2m_max.slice(0,7).map(Math.round);
+  const minArr = d.daily.temperature_2m_min.slice(0,7).map(Math.round);
+  const rainArr = d.daily.precipitation_probability_max.slice(0,7).map(v=>Math.round(v||0));
+
+  const globalMin = Math.min(...minArr) - 1;
+  const globalMax = Math.max(...maxArr) + 1;
+  const range = globalMax - globalMin || 1;
+
+  const html = codes.map((code, i) => {
     const date = new Date(d.daily.time[i]);
-    const dayName = i===0?'Auj.':days[date.getDay()];
-    const icon = WMO_ICONS[code]||'🌡️';
-    const hi = Math.round(d.daily.temperature_2m_max[i]);
-    const lo = Math.round(d.daily.temperature_2m_min[i]);
-    const rain = Math.round(d.daily.precipitation_probability_max[i]||0);
-    return `<div class="forecast-item">
-      <div class="forecast-day">${dayName}</div>
+    const dayName = i === 0 ? 'Auj.' : DAYS[date.getDay()];
+    const dateStr = `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+    const icon = WMO_ICONS[code] || '🌡️';
+    const desc = WMO_DESC[code] || '';
+    const hi = maxArr[i], lo = minArr[i], rain = rainArr[i];
+
+    const barLeft  = ((lo - globalMin) / range * 100).toFixed(1);
+    const barWidth = ((hi - lo) / range * 100).toFixed(1);
+
+    const barColor = hi >= 28
+      ? 'linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))'
+      : hi >= 18
+        ? 'linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))'
+        : hi >= 8
+          ? 'linear-gradient(90deg,var(--muted),var(--accent-blue))'
+          : 'linear-gradient(90deg,rgba(96,165,250,0.6),rgba(147,197,253,0.8))';
+
+    const rainColor = rain >= 70 ? 'rgba(55,115,210,0.9)'
+                    : rain >= 40 ? 'rgba(80,140,220,0.7)'
+                    : 'rgba(100,160,230,0.45)';
+
+    return `<div class="forecast-item${i===0?' fc-today':''}">
+      <div class="forecast-day">${dayName}<span class="fc-date">${dateStr}</span></div>
       <div class="forecast-icon">${icon}</div>
-      <div class="forecast-hi">${hi}°</div>
-      <div class="forecast-lo">${lo}°</div>
-      <div class="forecast-rain">${rain}%</div>
+      <div class="forecast-desc">${desc}</div>
+      <div class="fc-bar-wrap">
+        <div class="fc-bar" style="left:${barLeft}%;width:${barWidth}%;background:${barColor};"></div>
+      </div>
+      <div class="fc-temps">
+        <span class="forecast-lo">${lo}°</span>
+        <span class="forecast-hi">${hi}°</span>
+      </div>
+      <div class="fc-rain-wrap">
+        <div class="fc-rain-bar-bg"><div class="fc-rain-bar" style="width:${rain}%;background:${rainColor};"></div></div>
+        <span class="forecast-rain">💧${rain}%</span>
+      </div>
     </div>`;
   }).join('');
   document.getElementById('forecastRow').innerHTML = html;
@@ -1917,12 +2017,26 @@ function renderFallback(){
   document.getElementById('kpiSun').textContent = 'Lever 07:02 — Coucher 19:48';
   renderCompass(315);
   renderHeating(mockTemp, {current:{apparent_temperature:5,wind_speed_10m:18},daily:{temperature_2m_max:[10,11,9,13,15,8,7],temperature_2m_min:[3,4,2,5,6,1,0],time:Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()+i);return d.toISOString().split('T')[0];}),weather_code:[2,3,61,1,2,3,61],precipitation_probability_max:[20,40,80,10,25,50,70],sunrise:['2026-04-04T07:02'],sunset:['2026-04-04T19:48']},hourly:{time:[],temperature_2m:[],precipitation_probability:[],wind_speed_10m:[],wind_direction_10m:[]}});
-  const days=['Auj.','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  const icons=['⛅','☁️','🌧️','☀️','⛅','☁️','🌧️'];
+  const mockDays=['Auj.','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const mockDates=['','','','','','',''].map((_,i)=>{const d=new Date();d.setDate(d.getDate()+i);return d.getDate()+' '+['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'][d.getMonth()];});
+  const mockIcons=['⛅','☁️','🌧️','☀️','⛅','☁️','🌧️'];
+  const mockDescs=['Peu nuageux','Couvert','Pluie','Dégagé','Peu nuageux','Couvert','Pluie légère'];
   const hiArr=[10,11,9,13,15,8,7], loArr=[3,4,2,5,6,1,0], rainArr=[20,40,80,10,25,50,70];
-  document.getElementById('forecastRow').innerHTML = days.map((d,i)=>
-    `<div class="forecast-item"><div class="forecast-day">${d}</div><div class="forecast-icon">${icons[i]}</div><div class="forecast-hi">${hiArr[i]}°</div><div class="forecast-lo">${loArr[i]}°</div><div class="forecast-rain">${rainArr[i]}%</div></div>`
-  ).join('');
+  const gMin=Math.min(...loArr)-1, gMax=Math.max(...hiArr)+1, gRange=gMax-gMin||1;
+  document.getElementById('forecastRow').innerHTML = mockDays.map((day,i)=>{
+    const barLeft=((loArr[i]-gMin)/gRange*100).toFixed(1);
+    const barWidth=((hiArr[i]-loArr[i])/gRange*100).toFixed(1);
+    const barColor=hiArr[i]>=18?'linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))':'linear-gradient(90deg,var(--muted),var(--accent-blue))';
+    const rc=rainArr[i]>=70?'rgba(55,115,210,0.9)':rainArr[i]>=40?'rgba(80,140,220,0.7)':'rgba(100,160,230,0.45)';
+    return `<div class="forecast-item${i===0?' fc-today':''}">
+      <div class="forecast-day">${day}<span class="fc-date">${mockDates[i]}</span></div>
+      <div class="forecast-icon">${mockIcons[i]}</div>
+      <div class="forecast-desc">${mockDescs[i]}</div>
+      <div class="fc-bar-wrap"><div class="fc-bar" style="left:${barLeft}%;width:${barWidth}%;background:${barColor};"></div></div>
+      <div class="fc-temps"><span class="forecast-lo">${loArr[i]}°</span><span class="forecast-hi">${hiArr[i]}°</span></div>
+      <div class="fc-rain-wrap"><div class="fc-rain-bar-bg"><div class="fc-rain-bar" style="width:${rainArr[i]}%;background:${rc};"></div></div><span class="forecast-rain">💧${rainArr[i]}%</span></div>
+    </div>`;
+  }).join('');
 }
 
 let currentTheme = localStorage.getItem('meteo-theme') || 'dark';
