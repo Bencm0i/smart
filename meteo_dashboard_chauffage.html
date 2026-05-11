@@ -848,6 +848,109 @@
     border: 0.5px solid rgba(0,0,0,0.12);
   }
 
+
+  /* ══════════════════════════════════════════════════════
+     NIGHTOPS — ANIMATION CALIBRE (sélecteur tactique)
+  ══════════════════════════════════════════════════════ */
+
+  /* Recoil : enfoncement mécanique puis rebond */
+  @keyframes noCalRecoil {
+    0%   { transform: scale(1)    translateY(0);   box-shadow: 0 0 0 transparent; }
+    12%  { transform: scale(0.86) translateY(1px); box-shadow: none; }
+    32%  { transform: scale(1.06) translateY(-1px);
+           box-shadow: 0 0 16px rgba(0,255,65,0.7), inset 0 0 10px rgba(0,255,65,0.25); }
+    55%  { transform: scale(0.98) translateY(0); }
+    100% { transform: scale(1)    translateY(0); }
+  }
+
+  /* Verrouillage phosphore sur le bouton actif */
+  @keyframes noCalLock {
+    0%   { box-shadow: 0 0 4px rgba(0,255,65,0.3);  border-color: rgba(0,255,65,0.4); color: #00ff41; }
+    18%  { box-shadow: 0 0 28px rgba(0,255,65,1),
+                       0 0 55px rgba(0,255,65,0.55),
+                       inset 0 0 14px rgba(0,255,65,0.35);
+           border-color: #00ff41; color: #fff;
+           text-shadow: 0 0 8px #00ff41, 0 0 20px rgba(0,255,65,0.8); }
+    50%  { box-shadow: 0 0 10px rgba(0,255,65,0.55), inset 0 0 6px rgba(0,255,65,0.18); }
+    100% { box-shadow: 0 0 6px rgba(0,255,65,0.35); border-color: rgba(0,255,65,0.4); }
+  }
+
+  /* Décharge des autres boutons (désactivation) */
+  @keyframes noCalDim {
+    0%   { opacity: 1;    filter: none; }
+    18%  { opacity: 0.18; filter: saturate(0) brightness(0.4); }
+    70%  { opacity: 0.6;  filter: saturate(0.3); }
+    100% { opacity: 1;    filter: none; }
+  }
+
+  /* Scintillement CRT global */
+  @keyframes noCalFlicker {
+    0%   { filter: brightness(1); }
+    6%   { filter: brightness(0.65); }
+    13%  { filter: brightness(1.18); }
+    22%  { filter: brightness(0.82); }
+    34%  { filter: brightness(1.06); }
+    48%  { filter: brightness(0.93); }
+    65%  { filter: brightness(1.02); }
+    100% { filter: brightness(1); }
+  }
+
+  /* Sweep horizontal (barre de sélection qui traverse) */
+  @keyframes noCalSweep {
+    0%   { left: -6px; opacity: 0; }
+    6%   { opacity: 1; }
+    92%  { opacity: 0.9; }
+    100% { left: calc(100% + 6px); opacity: 0; }
+  }
+
+  /* Tag LOCK qui apparaît puis disparaît */
+  @keyframes noCalLockTag {
+    0%   { opacity: 0; transform: translateY(4px) scaleX(0.6); letter-spacing: 0em; }
+    14%  { opacity: 1; transform: translateY(0)   scaleX(1);   letter-spacing: 0.22em; }
+    65%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-3px); }
+  }
+
+  /* Discharge flash pour refresh / theme toggle */
+  @keyframes noCalDischarge {
+    0%   { box-shadow: 0 0 0 transparent; transform: scale(1); }
+    10%  { box-shadow: 0 0 22px rgba(0,255,65,0.9), inset 0 0 8px rgba(0,255,65,0.3);
+           transform: scale(0.90); }
+    28%  { box-shadow: 0 0 8px rgba(0,255,65,0.5); transform: scale(1.04); }
+    100% { box-shadow: 0 0 4px rgba(0,255,65,0.2); transform: scale(1); }
+  }
+
+  /* Classes appliquées dynamiquement */
+  [data-theme="nightops"] .no-recoil  { animation: noCalRecoil   0.32s cubic-bezier(.22,.68,0,1.4) forwards; }
+  [data-theme="nightops"] .no-lock    { animation: noCalLock     0.65s ease-out forwards; }
+  [data-theme="nightops"] .no-dim     { animation: noCalDim      0.55s ease-out forwards; }
+  [data-theme="nightops"] .no-flicker { animation: noCalFlicker  0.48s linear forwards; }
+  [data-theme="nightops"] .no-discharge { animation: noCalDischarge 0.35s cubic-bezier(.22,.68,0,1.3) forwards; }
+
+  /* Barre de sweep */
+  [data-theme="nightops"] .no-sweep {
+    position: absolute; top: 0; left: -6px;
+    width: 3px; height: 100%;
+    background: linear-gradient(180deg,
+      transparent 0%, rgba(0,255,65,0.9) 40%,
+      rgba(57,255,20,1) 50%, rgba(0,255,65,0.9) 60%, transparent 100%);
+    box-shadow: 0 0 8px rgba(0,255,65,0.8), 0 0 18px rgba(0,255,65,0.4);
+    pointer-events: none; z-index: 99;
+    animation: noCalSweep 0.30s linear forwards;
+  }
+
+  /* Tag ■ LOCK */
+  [data-theme="nightops"] .no-lock-tag {
+    position: absolute; bottom: calc(100% + 5px); left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 500;
+    color: #00ff41; white-space: nowrap;
+    text-shadow: 0 0 6px rgba(0,255,65,0.9);
+    background: rgba(0,10,0,0.85); border: 0.5px solid rgba(0,255,65,0.5);
+    padding: 2px 6px; border-radius: 2px; pointer-events: none; z-index: 100;
+    animation: noCalLockTag 0.85s ease-out forwards;
+  }
+
 </style>
 </head>
 <body>
@@ -1113,7 +1216,8 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js">
+</script>
 <script>
 const WMO_ICONS = {
   0:'☀️',1:'🌤️',2:'⛅',3:'☁️',
@@ -2429,5 +2533,97 @@ const _origToggleTheme = toggleTheme;
 toggleTheme = function() { _origToggleTheme(); renderSunArc(); };
 
 </script>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  NIGHTOPS — ANIMATION CALIBRE (doit tourner après tout le reste)
+// ══════════════════════════════════════════════════════
+(function() {
+
+  function addAnimClass(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+  }
+
+  function calibreSelect(clickedBtn) {
+    if (document.documentElement.getAttribute('data-theme') !== 'nightops') return;
+
+    const group = clickedBtn.closest('.time-window-btns');
+    const peers = group ? [...group.querySelectorAll('.tw-btn')] : [];
+
+    // Recoil mécanique
+    addAnimClass(clickedBtn, 'no-recoil');
+    // Phosphore lock (légère latence)
+    setTimeout(() => addAnimClass(clickedBtn, 'no-lock'), 55);
+    // Décharge des autres boutons
+    peers.forEach(b => { if (b !== clickedBtn) addAnimClass(b, 'no-dim'); });
+
+    // Sweep de sélection à travers le groupe
+    if (group) {
+      group.querySelectorAll('.no-sweep').forEach(s => s.remove());
+      const savedPos = group.style.position;
+      const savedOvf = group.style.overflow;
+      group.style.position = 'relative';
+      group.style.overflow  = 'hidden';
+      const sweep = document.createElement('div');
+      sweep.className = 'no-sweep';
+      group.appendChild(sweep);
+      sweep.addEventListener('animationend', () => {
+        sweep.remove();
+        group.style.position = savedPos;
+        group.style.overflow  = savedOvf;
+      }, { once: true });
+    }
+
+    // Scintillement CRT
+    const db = document.querySelector('.dashboard');
+    if (db) addAnimClass(db, 'no-flicker');
+
+    // Tag ■ LOCK au-dessus du bouton
+    clickedBtn.querySelectorAll('.no-lock-tag').forEach(t => t.remove());
+    const tag = document.createElement('span');
+    tag.className  = 'no-lock-tag';
+    tag.textContent = '■ LOCK';
+    clickedBtn.style.position = 'relative';
+    clickedBtn.appendChild(tag);
+    tag.addEventListener('animationend', () => tag.remove(), { once: true });
+  }
+
+  function calibreDischarge(btn) {
+    if (document.documentElement.getAttribute('data-theme') !== 'nightops') return;
+    addAnimClass(btn, 'no-discharge');
+    const db = document.querySelector('.dashboard');
+    if (db) addAnimClass(db, 'no-flicker');
+  }
+
+  // Patch setTimeSlot
+  const _orig_sts = window.setTimeSlot;
+  window.setTimeSlot = function(slot) {
+    _orig_sts(slot);
+    const btn = document.querySelector(`.tw-btn[data-w="${slot}"]`);
+    if (btn) calibreSelect(btn);
+  };
+
+  // Patch refreshData
+  const _orig_rd = window.refreshData;
+  window.refreshData = function() {
+    const btn = document.querySelector('.refresh-btn');
+    if (btn) calibreDischarge(btn);
+    return _orig_rd();
+  };
+
+  // Patch toggleTheme (run last pour ne pas casser la chaîne sun arc)
+  const _orig_tt = window.toggleTheme;
+  window.toggleTheme = function() {
+    const btn = document.getElementById('themeToggleBtn');
+    if (btn) calibreDischarge(btn);
+    return _orig_tt();
+  };
+
+})();
+</script>
+
 </body>
 </html>
