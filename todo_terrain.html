@@ -122,7 +122,14 @@ body {
   touch-action: pan-y;
   border-left: 3px solid var(--sand-dark);
 }
-.todo-item.pinned { border-left-color: var(--orange); background: var(--pinned-bg); }
+.todo-item.pinned {
+  border-left-color: var(--red-alert);
+  border-left-width: 5px;
+  background: var(--pinned-bg);
+  box-shadow: 0 2px 10px rgba(192,57,43,0.18);
+}
+.todo-item.pinned .item-title { color: var(--red-alert); font-weight: 500; }
+.todo-item.pinned .check-btn { border-color: var(--red-alert); }
 .todo-item.someday { border-left-color: var(--muted); background: var(--someday-bg); opacity: .85; }
 .todo-item.done { opacity: .5; }
 .todo-item.done .item-title { text-decoration: line-through; color: var(--muted); }
@@ -173,7 +180,7 @@ body {
 }
 .item-budget-tag {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 10px; color: var(--orange);
+  font-size: 13px; font-weight: 500; color: var(--orange);
 }
 .item-note {
   font-size: 11px; color: var(--muted); margin-top: 3px;
@@ -410,7 +417,7 @@ body {
 }
 .kpi-value {
   font-family: 'Oswald', sans-serif;
-  font-size: 18px; font-weight: 700;
+  font-size: 24px; font-weight: 700;
   color: var(--orange-light); line-height: 1;
 }
 .kpi-value.green { color: #8ec46a; }
@@ -711,7 +718,9 @@ function filteredTodos() {
   if (activeCat !== 'all') items = items.filter(t=>t.cat===activeCat);
   items.sort((a,b)=>{
     const order = {pinned:0, normal:1, someday:2};
-    return (order[a.type]||1)-(order[b.type]||1);
+    const oa = a.type==='pinned' ? 0 : (order[a.type]||1);
+    const ob = b.type==='pinned' ? 0 : (order[b.type]||1);
+    return oa - ob;
   });
   return items;
 }
@@ -733,7 +742,7 @@ function renderList() {
       lastSection = section;
       const lbl = document.createElement('div');
       lbl.className = 'section-label';
-      lbl.textContent = section==='pinned'?'⚑ ÉPINGLÉS' : section==='someday'?'◌ UN JOUR' : section==='done'?'✓ TERMINÉS' : '● MISSIONS';
+      lbl.textContent = section==='pinned'?'🔴 ÉPINGLÉS — PRIORITÉ' : section==='someday'?'◌ UN JOUR' : section==='done'?'✓ TERMINÉS' : '● MISSIONS';
       container.appendChild(lbl);
     }
     container.appendChild(buildItem(todo));
