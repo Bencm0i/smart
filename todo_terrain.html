@@ -72,34 +72,6 @@ body {
 }
 .btn-add-header:active { background: var(--orange-light); }
 
-/* BUDGET STRIP */
-.budget-strip {
-  background: var(--ink);
-  padding: 8px 16px;
-  display: flex; gap: 8px; overflow-x: auto;
-  scrollbar-width: none; -webkit-overflow-scrolling: touch;
-}
-.budget-strip::-webkit-scrollbar { display:none; }
-.budget-chip {
-  flex-shrink: 0;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(200,184,154,0.25);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 10px;
-  color: var(--sand);
-  display: flex; flex-direction: column; align-items:center; gap:1px;
-  cursor: pointer;
-  transition: background .15s;
-}
-.budget-chip.active { background: var(--orange); border-color: var(--orange); color: #fff; }
-.budget-chip .chip-cat { font-size: 9px; text-transform: uppercase; letter-spacing:1px; opacity:.7; }
-.budget-chip .chip-budget { font-size: 12px; font-weight: 500; color: var(--orange-light); }
-.budget-chip.active .chip-budget { color: #fff; }
-.budget-chip .chip-spent { font-size: 9px; }
-.budget-chip .chip-left { font-size: 9px; color: var(--green-ok); }
-
 /* FILTER TABS */
 .filter-bar {
   display: flex; gap: 0;
@@ -388,6 +360,150 @@ body {
 
 /* cat color dots */
 .cat-dot { width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:3px; }
+
+/* CAT FILTER BAR */
+.cat-filter-bar {
+  background: var(--canvas);
+  display: flex; gap: 6px; padding: 7px 10px;
+  overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.cat-filter-bar::-webkit-scrollbar { display: none; }
+.cat-pill {
+  flex-shrink: 0;
+  padding: 4px 10px; border-radius: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  border: 1.5px solid var(--border);
+  background: transparent; color: var(--ink-mid);
+  cursor: pointer; transition: all .15s;
+  white-space: nowrap;
+}
+.cat-pill.active {
+  color: #fff; border-color: transparent;
+}
+.cat-pill[data-cat="all"].active { background: var(--olive); }
+.cat-pill[data-cat="maison"].active { background: #7a6e5a; }
+.cat-pill[data-cat="admin"].active  { background: #4a6a7a; }
+.cat-pill[data-cat="brico"].active  { background: #6a5a3a; }
+.cat-pill[data-cat="sante"].active  { background: #7a4a4a; }
+.cat-pill[data-cat="divers"].active { background: #5a6a4a; }
+
+/* KPI STRIP */
+.kpi-strip {
+  background: var(--ink-mid);
+  display: flex; gap: 0;
+  border-bottom: 2px solid var(--sand-dark);
+}
+.kpi-card {
+  flex: 1;
+  padding: 8px 6px 7px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  border-right: 1px solid rgba(200,184,154,0.15);
+  position: relative;
+}
+.kpi-card:last-child { border-right: none; }
+.kpi-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--sand); opacity: .65;
+}
+.kpi-value {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--orange-light); line-height: 1;
+}
+.kpi-value.green { color: #8ec46a; }
+.kpi-value.red { color: #e05a4a; }
+.kpi-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: var(--muted);
+}
+
+/* ANALYSE VIEW */
+.analyse-wrap { padding: 12px; }
+.analyse-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 3px;
+  color: var(--muted);
+  padding: 14px 0 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.analyse-section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* donut wrapper */
+.donut-wrap {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px;
+  margin-bottom: 12px;
+}
+.donut-legend { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.legend-row {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'Share Tech Mono', monospace; font-size: 10px;
+  color: var(--ink-mid);
+}
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.legend-val { margin-left: auto; color: var(--orange); font-weight: 500; }
+
+/* bar chart cards */
+.cat-analyse-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; margin-bottom: 10px;
+  border-left: 3px solid var(--sand-dark);
+}
+.cat-analyse-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cat-analyse-name {
+  font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--ink);
+}
+.cat-analyse-stats {
+  display: flex; gap: 10px; margin-bottom: 8px;
+}
+.cat-stat {
+  flex: 1; text-align: center;
+  background: var(--bg); border-radius: 4px; padding: 5px 4px;
+}
+.cat-stat-val {
+  font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 700;
+  color: var(--orange-light);
+}
+.cat-stat-lbl {
+  font-family: 'Share Tech Mono', monospace; font-size: 8px;
+  text-transform: uppercase; color: var(--muted); letter-spacing: 1px;
+}
+.cat-bar-outer {
+  height: 8px; background: var(--sand); border-radius: 4px; overflow: hidden;
+}
+.cat-bar-fill {
+  height: 100%; border-radius: 4px; transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.cat-bar-label {
+  display: flex; justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace; font-size: 9px;
+  color: var(--muted); margin-top: 3px;
+}
+
+/* taux completion */
+.completion-ring-wrap {
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; margin-bottom: 10px;
+}
+.ring-stats { display: flex; flex-direction: column; gap: 8px; }
+.ring-stat-row {
+  font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--ink-mid);
+  display: flex; align-items: center; gap: 8px;
+}
+.ring-stat-num {
+  font-family: 'Oswald', sans-serif; font-size: 20px; font-weight: 700;
+  color: var(--orange-light);
+}
 </style>
 </head>
 <body>
@@ -402,7 +518,24 @@ body {
   </div>
 </div>
 
-<div class="budget-strip" id="budgetStrip"></div>
+<!-- KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi-card">
+    <span class="kpi-label">Coût total</span>
+    <span class="kpi-value" id="kpiCout">0€</span>
+    <span class="kpi-sub" id="kpiCoutSub">—</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Tâches</span>
+    <span class="kpi-value" id="kpiTotal">0</span>
+    <span class="kpi-sub" id="kpiTotalSub">en cours</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Terminées</span>
+    <span class="kpi-value green" id="kpiFait">0</span>
+    <span class="kpi-sub" id="kpiFaitSub">0%</span>
+  </div>
+</div>
 
 <div class="filter-bar" id="filterBar">
   <button class="filter-tab active" data-filter="all">Tout</button>
@@ -412,12 +545,25 @@ body {
   <button class="filter-tab" data-filter="done">✓ Faits</button>
 </div>
 
+<div class="cat-filter-bar" id="catFilterBar">
+  <button class="cat-pill active" data-cat="all">🗂 Toutes</button>
+  <button class="cat-pill" data-cat="maison">🏠 Maison</button>
+  <button class="cat-pill" data-cat="admin">📋 Admin</button>
+  <button class="cat-pill" data-cat="brico">🔧 Brico</button>
+  <button class="cat-pill" data-cat="sante">❤️ Santé</button>
+  <button class="cat-pill" data-cat="divers">📦 Divers</button>
+</div>
+
 <div id="mainView" class="view-section active">
   <div id="listContainer"></div>
 </div>
 
 <div id="budgetView" class="view-section">
   <div class="budget-settings" id="budgetSettings"></div>
+</div>
+
+<div id="analyseView" class="view-section">
+  <div class="analyse-wrap" id="analyseContainer"></div>
 </div>
 
 <!-- MODAL AJOUT/EDIT -->
@@ -479,6 +625,10 @@ body {
     <span class="nav-icon">💰</span>
     <span>Budget</span>
   </button>
+  <button class="nav-btn" id="navAnalyse" onclick="switchView('analyse')">
+    <span class="nav-icon">📊</span>
+    <span>Analyse</span>
+  </button>
   <button class="nav-btn" onclick="exportJSON()">
     <span class="nav-icon">💾</span>
     <span>Export</span>
@@ -504,6 +654,7 @@ const CATS = {
 let todos = [];
 let budgets = { maison:0, admin:0, brico:0, sante:0, divers:0 };
 let activeFilter = 'all';
+let activeCat = 'all';
 let editingId = null;
 let lastDeleted = null;
 let undoTimer = null;
@@ -523,41 +674,31 @@ function save() {
 }
 function genId() { return 'tid_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
 
-// ─── RENDER ─────────────────────────────────────────────────────────────────
+// ─── KPI STRIP ───────────────────────────────────────────────────────────────
+function renderKPI() {
+  const total = todos.length;
+  const done = todos.filter(t=>t.done).length;
+  const active = total - done;
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+
+  const totalBudget = Object.values(budgets).reduce((s,v)=>s+parseFloat(v||0),0);
+  const totalSpent = todos.filter(t=>t.budget>0).reduce((s,t)=>s+t.budget,0);
+  const over = totalBudget > 0 && totalSpent > totalBudget;
+
+  document.getElementById('kpiCout').textContent = totalSpent >= 1000
+    ? (totalSpent/1000).toFixed(1)+'k€' : totalSpent.toFixed(0)+'€';
+  document.getElementById('kpiCout').className = 'kpi-value' + (over?' red':'');
+  document.getElementById('kpiCoutSub').textContent = totalBudget>0
+    ? `/ ${totalBudget.toFixed(0)}€ alloué` : 'sans plafond';
+
+  document.getElementById('kpiTotal').textContent = active;
+  document.getElementById('kpiTotalSub').textContent = `${done} terminée${done>1?'s':''}`;
+
+  document.getElementById('kpiFait').textContent = done;
+  document.getElementById('kpiFaitSub').textContent = `${pct}% taux`;
+}
 function spentByCat(cat) {
   return todos.filter(t=>t.cat===cat && !t.done && t.budget>0).reduce((s,t)=>s+t.budget,0);
-}
-
-function renderBudgetStrip() {
-  const strip = document.getElementById('budgetStrip');
-  const allSpent = Object.values(budgets).reduce((s,v)=>s+v,0); // not used
-  strip.innerHTML = '';
-  // Global chip
-  const totalBudget = Object.values(budgets).reduce((s,v)=>s+parseFloat(v||0),0);
-  const totalSpent = Object.keys(CATS).reduce((s,k)=>s+spentByCat(k),0);
-  const globalChip = document.createElement('div');
-  globalChip.className = 'budget-chip active';
-  globalChip.innerHTML = `<span class="chip-cat">TOTAL</span><span class="chip-budget">${totalBudget.toFixed(0)}€</span><span class="chip-spent">${totalSpent.toFixed(0)}€ dépensé</span><span class="chip-left">${Math.max(0,totalBudget-totalSpent).toFixed(0)}€ restant</span>`;
-  strip.appendChild(globalChip);
-
-  Object.entries(CATS).forEach(([key, c]) => {
-    const budget = parseFloat(budgets[key]||0);
-    const spent = spentByCat(key);
-    const chip = document.createElement('div');
-    chip.className = 'budget-chip';
-    chip.innerHTML = `<span class="chip-cat">${c.emoji} ${c.label}</span><span class="chip-budget">${budget.toFixed(0)}€</span><span class="chip-spent">${spent.toFixed(0)}€</span><span class="chip-left" style="color:${spent>budget&&budget>0?'var(--red-alert)':'var(--green-ok)'}">${(budget-spent).toFixed(0)}€</span>`;
-    chip.onclick = () => {
-      activeFilter = 'all';
-      document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
-      document.querySelector('.filter-tab[data-filter="all"]').classList.add('active');
-      switchView('main');
-      setTimeout(()=>{
-        const first = document.querySelector(`.todo-item[data-cat="${key}"]`);
-        if(first) first.scrollIntoView({behavior:'smooth',block:'center'});
-      },100);
-    };
-    strip.appendChild(chip);
-  });
 }
 
 function filteredTodos() {
@@ -566,8 +707,8 @@ function filteredTodos() {
   else if (activeFilter === 'normal') items = items.filter(t=>t.type==='normal');
   else if (activeFilter === 'someday') items = items.filter(t=>t.type==='someday');
   else if (activeFilter === 'done') items = items.filter(t=>t.done);
-  else items = items.filter(t=>!t.done); // 'all' hides done
-  // Sort: pinned first, then someday last
+  else items = items.filter(t=>!t.done);
+  if (activeCat !== 'all') items = items.filter(t=>t.cat===activeCat);
   items.sort((a,b)=>{
     const order = {pinned:0, normal:1, someday:2};
     return (order[a.type]||1)-(order[b.type]||1);
@@ -782,14 +923,26 @@ document.querySelectorAll('.filter-tab').forEach(btn => {
   };
 });
 
+document.querySelectorAll('.cat-pill').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.cat-pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    renderList();
+  };
+});
+
 // ─── VIEWS ───────────────────────────────────────────────────────────────────
 function switchView(view) {
   currentView = view;
   document.getElementById('mainView').classList.toggle('active', view==='main');
   document.getElementById('budgetView').classList.toggle('active', view==='budget');
+  document.getElementById('analyseView').classList.toggle('active', view==='analyse');
   document.getElementById('navTodo').classList.toggle('active', view==='main');
   document.getElementById('navBudget').classList.toggle('active', view==='budget');
+  document.getElementById('navAnalyse').classList.toggle('active', view==='analyse');
   if (view==='budget') renderBudgetSettings();
+  if (view==='analyse') renderAnalyse();
 }
 
 function renderBudgetSettings() {
@@ -816,6 +969,154 @@ function renderBudgetSettings() {
       save(); renderBudgetStrip();
     });
   });
+}
+
+// ─── ANALYSE VIEW ─────────────────────────────────────────────────────────────
+const CAT_COLORS = {
+  maison:'#c8783a', admin:'#4a8a9a', brico:'#8a6a2a', sante:'#b04a4a', divers:'#6a8a4a'
+};
+
+function renderAnalyse() {
+  const c = document.getElementById('analyseContainer');
+  c.innerHTML = '';
+
+  const total = todos.length;
+  const done = todos.filter(t=>t.done).length;
+  const active = total - done;
+  const pct = total>0 ? Math.round((done/total)*100) : 0;
+
+  // ── Section 1 : Taux de complétion ──
+  c.insertAdjacentHTML('beforeend','<div class="analyse-section-title">Complétion</div>');
+  const ringWrap = document.createElement('div');
+  ringWrap.className = 'completion-ring-wrap';
+  const svgSize = 100;
+  const r = 38; const cx = 50; const cy = 50;
+  const circ = 2*Math.PI*r;
+  const dash = circ * (pct/100);
+  ringWrap.innerHTML = `
+    <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 100 100">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--sand)" stroke-width="10"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--orange)" stroke-width="10"
+        stroke-dasharray="${dash} ${circ}" stroke-linecap="round"
+        transform="rotate(-90 ${cx} ${cy})" style="transition:stroke-dasharray .6s"/>
+      <text x="50" y="54" text-anchor="middle" font-family="Oswald,sans-serif" font-size="20" fill="var(--orange-light)" font-weight="700">${pct}%</text>
+    </svg>
+    <div class="ring-stats">
+      <div class="ring-stat-row"><span class="ring-stat-num">${total}</span> total</div>
+      <div class="ring-stat-row"><span class="ring-stat-num" style="color:#8ec46a">${done}</span> terminées</div>
+      <div class="ring-stat-row"><span class="ring-stat-num" style="color:var(--orange-light)">${active}</span> en cours</div>
+    </div>`;
+  c.appendChild(ringWrap);
+
+  // ── Section 2 : Répartition budget (donut SVG) ──
+  c.insertAdjacentHTML('beforeend','<div class="analyse-section-title">Répartition Budget</div>');
+  const totalBudget = Object.values(budgets).reduce((s,v)=>s+parseFloat(v||0),0);
+  if (totalBudget > 0) {
+    const donutWrap = document.createElement('div');
+    donutWrap.className = 'donut-wrap';
+    // build donut
+    let offset = 0;
+    const segments = Object.entries(CATS).map(([key]) => {
+      const v = parseFloat(budgets[key]||0);
+      const pctV = totalBudget>0 ? v/totalBudget : 0;
+      return { key, v, pctV };
+    }).filter(s=>s.v>0);
+
+    const donutR = 32; const donutCx = 45; const donutCy = 45;
+    const donutCirc = 2*Math.PI*donutR;
+    let svgPaths = segments.map(s => {
+      const dash = donutCirc * s.pctV;
+      const gap = donutCirc - dash;
+      const off = offset;
+      offset += dash;
+      return `<circle cx="${donutCx}" cy="${donutCy}" r="${donutR}" fill="none" stroke="${CAT_COLORS[s.key]}" stroke-width="14"
+        stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-off}"
+        transform="rotate(-90 ${donutCx} ${donutCy})"/>`;
+    }).join('');
+
+    let legendHTML = segments.map(s =>
+      `<div class="legend-row"><span class="legend-dot" style="background:${CAT_COLORS[s.key]}"></span>${CATS[s.key].emoji} ${CATS[s.key].label}<span class="legend-val">${s.v.toFixed(0)}€</span></div>`
+    ).join('');
+
+    donutWrap.innerHTML = `
+      <svg width="90" height="90" viewBox="0 0 90 90" style="flex-shrink:0">
+        <circle cx="${donutCx}" cy="${donutCy}" r="${donutR}" fill="none" stroke="var(--sand)" stroke-width="14"/>
+        ${svgPaths}
+        <text x="${donutCx}" y="${donutCy+5}" text-anchor="middle" font-family="Oswald" font-size="11" fill="var(--orange-light)" font-weight="700">${totalBudget.toFixed(0)}€</text>
+      </svg>
+      <div class="donut-legend">${legendHTML}</div>`;
+    c.appendChild(donutWrap);
+  } else {
+    c.insertAdjacentHTML('beforeend','<div class="empty-state" style="padding:20px"><div>Aucun budget défini</div></div>');
+  }
+
+  // ── Section 3 : Détail par catégorie ──
+  c.insertAdjacentHTML('beforeend','<div class="analyse-section-title">Détail par catégorie</div>');
+  Object.entries(CATS).forEach(([key, cat]) => {
+    const catTodos = todos.filter(t=>t.cat===key);
+    const catDone = catTodos.filter(t=>t.done).length;
+    const catTotal = catTodos.length;
+    const catSpent = catTodos.reduce((s,t)=>s+t.budget,0);
+    const catBudget = parseFloat(budgets[key]||0);
+    const pctBudget = catBudget>0 ? Math.min(100,(catSpent/catBudget)*100) : 0;
+    const pctDone = catTotal>0 ? Math.round((catDone/catTotal)*100) : 0;
+    const over = catBudget>0 && catSpent>catBudget;
+
+    const card = document.createElement('div');
+    card.className = 'cat-analyse-card';
+    card.style.borderLeftColor = CAT_COLORS[key];
+    card.innerHTML = `
+      <div class="cat-analyse-header">
+        <span class="cat-analyse-name">${cat.emoji} ${cat.label}</span>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:${over?'var(--red-alert)':'var(--muted)'}">
+          ${catSpent.toFixed(0)}€ / ${catBudget>0?catBudget.toFixed(0)+'€':'—'}
+        </span>
+      </div>
+      <div class="cat-analyse-stats">
+        <div class="cat-stat">
+          <div class="cat-stat-val">${catTotal}</div>
+          <div class="cat-stat-lbl">tâches</div>
+        </div>
+        <div class="cat-stat">
+          <div class="cat-stat-val" style="color:#8ec46a">${catDone}</div>
+          <div class="cat-stat-lbl">faites</div>
+        </div>
+        <div class="cat-stat">
+          <div class="cat-stat-val">${pctDone}%</div>
+          <div class="cat-stat-lbl">complétion</div>
+        </div>
+        <div class="cat-stat">
+          <div class="cat-stat-val" style="color:${over?'var(--red-alert)':'var(--orange-light)'}">${catSpent.toFixed(0)}€</div>
+          <div class="cat-stat-lbl">alloué</div>
+        </div>
+      </div>
+      ${catBudget>0?`
+      <div class="cat-bar-outer">
+        <div class="cat-bar-fill" style="width:${pctBudget}%;background:${over?'var(--red-alert)':CAT_COLORS[key]}"></div>
+      </div>
+      <div class="cat-bar-label">
+        <span>0€</span><span>${over?'⚠ DÉPASSÉ':pctBudget.toFixed(0)+'%'}</span><span>${catBudget.toFixed(0)}€</span>
+      </div>`:''}`;
+    c.appendChild(card);
+  });
+
+  // ── Section 4 : Top coûts ──
+  const topTodos = [...todos].filter(t=>t.budget>0).sort((a,b)=>b.budget-a.budget).slice(0,5);
+  if (topTodos.length) {
+    c.insertAdjacentHTML('beforeend','<div class="analyse-section-title">Top coûts</div>');
+    topTodos.forEach((t,i) => {
+      const cat = CATS[t.cat]||CATS.divers;
+      c.insertAdjacentHTML('beforeend',`
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border-left:3px solid ${CAT_COLORS[t.cat]||'#888'}">
+          <span style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--muted);width:18px">${'①②③④⑤'[i]}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'DM Mono',monospace;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${t.done?'text-decoration:line-through;color:var(--muted)':''}">${escHtml(t.title)}</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted)">${cat.emoji} ${cat.label}</div>
+          </div>
+          <span style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--orange)">${t.budget.toFixed(0)}€</span>
+        </div>`);
+    });
+  }
 }
 
 // ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
@@ -848,7 +1149,7 @@ document.getElementById('importInput').onchange = e => {
 
 // ─── FULL RENDER ─────────────────────────────────────────────────────────────
 function renderAll() {
-  renderBudgetStrip();
+  renderKPI();
   renderList();
 }
 
