@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Cuisine — Tâches</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F0E8;
+  --surface: #FDFAF5;
+  --card: #FFFFFF;
+  --border: #D8CFC0;
+  --text: #2A2118;
+  --muted: #7A6E60;
+  --accent: #C4521A;
+  --accent-light: #F5E0D3;
+  --ok: #3B6D11;
+  --ok-light: #EAF3DE;
+  --warn: #BA7517;
+  --warn-light: #FAEEDA;
+  --danger: #A32D2D;
+  --danger-light: #FCEBEB;
+  --mono: 'DM Mono', monospace;
+  --serif: 'Fraunces', Georgia, serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--mono); background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+header {
+  background: var(--accent);
+  color: #fff;
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+header h1 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+header .subtitle {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-top: 2px;
+  font-family: var(--mono);
+}
+.header-right { display: flex; gap: 10px; align-items: center; }
+.btn-add {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-add:active { background: rgba(255,255,255,0.35); }
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.stat {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.stat .val { font-size: 20px; font-weight: 500; font-family: var(--serif); }
+.stat .lbl { font-size: 10px; color: var(--muted); margin-top: 1px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat.danger { background: var(--danger-light); border-color: #E8B0B0; }
+.stat.danger .val { color: var(--danger); }
+.stat.warn { background: var(--warn-light); border-color: #F0CE90; }
+.stat.warn .val { color: var(--warn); }
+.stat.ok { background: var(--ok-light); border-color: #B0D090; }
+.stat.ok .val { color: var(--ok); }
+
+.filter-bar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--surface);
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.tasks-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+.task-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.1s;
+  cursor: pointer;
+}
+.task-card:active { transform: scale(0.99); }
+.task-card.overdue { border-color: #E8B0B0; border-left: 4px solid var(--danger); }
+.task-card.due-soon { border-color: #F0CE90; border-left: 4px solid var(--warn); }
+.task-card.ok { border-left: 4px solid var(--ok); }
+.task-card.done-today { opacity: 0.6; }
+
+.task-inner { padding: 14px 14px 12px; }
+.task-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.task-name {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  flex: 1;
+}
+.task-cat {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--accent-light);
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-family: var(--mono);
+}
+.task-meta { display: flex; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.task-freq { font-size: 11px; color: var(--muted); }
+.task-freq span { font-weight: 500; color: var(--text); }
+.task-status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: var(--mono);
+}
+.status-ok { background: var(--ok-light); color: var(--ok); }
+.status-warn { background: var(--warn-light); color: var(--warn); }
+.status-danger { background: var(--danger-light); color: var(--danger); }
+
+.task-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+.btn-done {
+  flex: 1;
+  padding: 8px;
+  background: var(--ok);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-done:active { background: #27500A; }
+.btn-done.already { background: var(--muted); cursor: default; }
+.btn-edit-task, .btn-del-task {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.btn-edit-task:active { background: var(--border); }
+.btn-del-task:active { background: var(--danger-light); color: var(--danger); }
+
+/* MODAL */
+.overlay {
+  position: fixed; inset: 0; background: rgba(42,33,24,0.55);
+  z-index: 200; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 36px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  transform: translateY(40px);
+  transition: transform 0.25s;
+}
+.overlay.open .modal { transform: translateY(0); }
+.modal h2 {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--muted);
+}
+.modal { position: relative; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-save {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.btn-save:active { background: #9E3D11; }
+
+/* NOTIF */
+.notif {
+  position: fixed;
+  top: 16px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  background: var(--danger);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: var(--mono);
+  z-index: 300;
+  transition: transform 0.3s ease;
+  max-width: 90%;
+  text-align: center;
+  pointer-events: none;
+}
+.notif.show { transform: translateX(-50%) translateY(0); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+.empty .icon { font-size: 40px; margin-bottom: 12px; }
+
+/* HISTORY section */
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  padding: 4px 16px 0;
+  font-family: var(--mono);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🍳 Cuisine</h1>
+    <div class="subtitle">Tâches récurrentes</div>
+  </div>
+  <div class="header-right">
+    <button class="btn-add" onclick="openModal()">+ Ajouter</button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat danger" id="stat-overdue">
+    <div class="val" id="cnt-overdue">0</div>
+    <div class="lbl">En retard</div>
+  </div>
+  <div class="stat warn" id="stat-soon">
+    <div class="val" id="cnt-soon">0</div>
+    <div class="lbl">Bientôt</div>
+  </div>
+  <div class="stat ok" id="stat-ok">
+    <div class="val" id="cnt-ok">0</div>
+    <div class="lbl">À jour</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="chip active" data-filter="all">Toutes</div>
+  <div class="chip" data-filter="overdue">🔴 En retard</div>
+  <div class="chip" data-filter="soon">🟡 Bientôt</div>
+  <div class="chip" data-filter="ok">🟢 À jour</div>
+  <div class="chip" data-filter="Hygiène">Hygiène</div>
+  <div class="chip" data-filter="Équipement">Équipement</div>
+  <div class="chip" data-filter="Stocks">Stocks</div>
+  <div class="chip" data-filter="Cuisine">Cuisine</div>
+</div>
+
+<div class="tasks-list" id="tasks-list"></div>
+
+<!-- Notification -->
+<div class="notif" id="notif"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="closeModalIfBg(event)">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal()">✕</div>
+    <h2 id="modal-title">Nouvelle tâche</h2>
+    <div class="field">
+      <label>Nom de la tâche</label>
+      <input type="text" id="f-name" placeholder="Ex: Nettoyer le four" />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Catégorie</label>
+        <select id="f-cat">
+          <option>Hygiène</option>
+          <option>Équipement</option>
+          <option>Stocks</option>
+          <option>Cuisine</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Fréquence</label>
+        <select id="f-unit">
+          <option value="day">Jours</option>
+          <option value="week">Semaines</option>
+          <option value="month">Mois</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Tous les…</label>
+        <input type="number" id="f-freq" value="7" min="1" max="365" />
+      </div>
+      <div class="field">
+        <label>Alerte (jours avant)</label>
+        <input type="number" id="f-alert" value="1" min="0" max="30" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optionnel)</label>
+      <input type="text" id="f-notes" placeholder="Ex: Avec dégraissant" />
+    </div>
+    <button class="btn-save" id="btn-save" onclick="saveTask()">💾 Enregistrer</button>
+  </div>
+</div>
+
+<script>
+const LS_KEY = 'cuisine_tasks_v2';
+let tasks = [];
+let editId = null;
+let currentFilter = 'all';
+
+const DEFAULTS = [
+  { id: uid(), name: "Nettoyer le four", cat: "Hygiène", freq: 14, unit: "day", alert: 2, notes: "Dégraissant + essuie-tout", lastDone: null },
+  { id: uid(), name: "Dégivrer le congélateur", cat: "Équipement", freq: 3, unit: "month", alert: 7, notes: "", lastDone: null },
+  { id: uid(), name: "Vérifier DLC frigo", cat: "Stocks", freq: 7, unit: "day", alert: 1, notes: "Tous les lundis matin", lastDone: null },
+  { id: uid(), name: "Nettoyer hotte + filtres", cat: "Hygiène", freq: 1, unit: "month", alert: 5, notes: "Filtre graisse dans lave-vaisselle", lastDone: null },
+  { id: uid(), name: "Nettoyer joints réfrigérateur", cat: "Hygiène", freq: 2, unit: "month", alert: 3, notes: "", lastDone: null },
+  { id: uid(), name: "Commander épices", cat: "Stocks", freq: 3, unit: "month", alert: 7, notes: "Vérifier sel, poivre, curcuma", lastDone: null },
+  { id: uid(), name: "Nettoyer plaque de cuisson", cat: "Hygiène", freq: 3, unit: "day", alert: 1, notes: "", lastDone: daysAgo(5) },
+  { id: uid(), name: "Détartrer cafetière", cat: "Équipement", freq: 1, unit: "month", alert: 3, notes: "Vinaigre blanc 50/50", lastDone: daysAgo(35) },
+];
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function freqToDays(freq, unit) {
+  if (unit === 'day') return freq;
+  if (unit === 'week') return freq * 7;
+  if (unit === 'month') return freq * 30;
+  return freq;
+}
+
+function getStatus(task) {
+  if (!task.lastDone) return 'overdue';
+  const days = freqToDays(task.freq, task.unit);
+  const last = new Date(task.lastDone);
+  const now = new Date();
+  const elapsed = Math.floor((now - last) / 86400000);
+  const remaining = days - elapsed;
+  if (remaining < 0) return 'overdue';
+  if (remaining <= task.alert) return 'soon';
+  return 'ok';
+}
+
+function getNextDue(task) {
+  if (!task.lastDone) return 'Jamais fait';
+  const days = freqToDays(task.freq, task.unit);
+  const last = new Date(task.lastDone);
+  const now = new Date();
+  const elapsed = Math.floor((now - last) / 86400000);
+  const remaining = days - elapsed;
+  if (remaining < 0) return `${Math.abs(remaining)}j de retard`;
+  if (remaining === 0) return 'Aujourd\'hui';
+  return `dans ${remaining}j`;
+}
+
+function freqLabel(freq, unit) {
+  const u = { day: 'j', week: 'sem', month: 'mois' }[unit] || unit;
+  return `Tous les ${freq} ${u}`;
+}
+
+function doneTodayCheck(task) {
+  return task.lastDone === today();
+}
+
+function load() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (raw) { try { tasks = JSON.parse(raw); } catch(e) { tasks = [...DEFAULTS]; } }
+  else { tasks = [...DEFAULTS]; save(); }
+}
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(tasks)); }
+
+function render() {
+  const list = document.getElementById('tasks-list');
+  let filtered = tasks.filter(t => {
+    const st = getStatus(t);
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'overdue') return st === 'overdue';
+    if (currentFilter === 'soon') return st === 'soon';
+    if (currentFilter === 'ok') return st === 'ok';
+    return t.cat === currentFilter;
+  });
+
+  filtered.sort((a, b) => {
+    const order = { overdue: 0, soon: 1, ok: 2 };
+    return (order[getStatus(a)] || 0) - (order[getStatus(b)] || 0);
+  });
+
+  let over = tasks.filter(t => getStatus(t) === 'overdue').length;
+  let soon = tasks.filter(t => getStatus(t) === 'soon').length;
+  let ok = tasks.filter(t => getStatus(t) === 'ok').length;
+  document.getElementById('cnt-overdue').textContent = over;
+  document.getElementById('cnt-soon').textContent = soon;
+  document.getElementById('cnt-ok').textContent = ok;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty"><div class="icon">🍽️</div>Aucune tâche ici</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(t => {
+    const st = getStatus(t);
+    const doneToday = doneTodayCheck(t);
+    const cls = doneToday ? 'done-today' : (st === 'overdue' ? 'overdue' : st === 'soon' ? 'due-soon' : 'ok');
+    const badge = st === 'overdue'
+      ? `<span class="task-status-badge status-danger">⚠ ${getNextDue(t)}</span>`
+      : st === 'soon'
+      ? `<span class="task-status-badge status-warn">⏰ ${getNextDue(t)}</span>`
+      : `<span class="task-status-badge status-ok">✓ ${getNextDue(t)}</span>`;
+
+    const doneBtnLabel = doneToday ? '✓ Fait aujourd\'hui' : '✓ Marquer fait';
+    return `
+    <div class="task-card ${cls}" onclick="toggleExpand('${t.id}')">
+      <div class="task-inner">
+        <div class="task-top">
+          <div class="task-name">${esc(t.name)}</div>
+          <div class="task-cat">${esc(t.cat)}</div>
+        </div>
+        <div class="task-meta">
+          <span class="task-freq">${freqLabel(t.freq, t.unit)}</span>
+          ${badge}
+        </div>
+        ${t.notes ? `<div style="margin-top:6px;font-size:11px;color:var(--muted)">📝 ${esc(t.notes)}</div>` : ''}
+        <div class="task-bottom">
+          <button class="btn-done ${doneToday ? 'already' : ''}" onclick="markDone('${t.id}',event)">${doneBtnLabel}</button>
+          <button class="btn-edit-task" onclick="openEdit('${t.id}',event)" title="Modifier">✏️</button>
+          <button class="btn-del-task" onclick="delTask('${t.id}',event)" title="Supprimer">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function markDone(id, e) {
+  e.stopPropagation();
+  const t = tasks.find(x => x.id === id);
+  if (!t || doneTodayCheck(t)) return;
+  t.lastDone = today();
+  save(); render();
+  showNotif(`✓ "${t.name}" marqué fait !`, 'ok');
+}
+
+function delTask(id, e) {
+  e.stopPropagation();
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  if (!confirm(`Supprimer "${t.name}" ?`)) return;
+  tasks = tasks.filter(x => x.id !== id);
+  save(); render();
+}
+
+function openEdit(id, e) {
+  e.stopPropagation();
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  editId = id;
+  document.getElementById('modal-title').textContent = 'Modifier la tâche';
+  document.getElementById('f-name').value = t.name;
+  document.getElementById('f-cat').value = t.cat;
+  document.getElementById('f-freq').value = t.freq;
+  document.getElementById('f-unit').value = t.unit;
+  document.getElementById('f-alert').value = t.alert;
+  document.getElementById('f-notes').value = t.notes || '';
+  openModal();
+}
+
+function openModal() {
+  if (!editId) {
+    document.getElementById('modal-title').textContent = 'Nouvelle tâche';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-cat').value = 'Hygiène';
+    document.getElementById('f-freq').value = 7;
+    document.getElementById('f-unit').value = 'day';
+    document.getElementById('f-alert').value = 1;
+    document.getElementById('f-notes').value = '';
+  }
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 300);
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  editId = null;
+}
+function closeModalIfBg(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+function saveTask() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showNotif('⚠ Nom requis'); return; }
+  const t = {
+    id: editId || uid(),
+    name,
+    cat: document.getElementById('f-cat').value,
+    freq: parseInt(document.getElementById('f-freq').value) || 7,
+    unit: document.getElementById('f-unit').value,
+    alert: parseInt(document.getElementById('f-alert').value) || 1,
+    notes: document.getElementById('f-notes').value.trim(),
+    lastDone: editId ? (tasks.find(x => x.id === editId) || {}).lastDone || null : null,
+  };
+  if (editId) { const i = tasks.findIndex(x => x.id === editId); if (i >= 0) tasks[i] = t; }
+  else tasks.push(t);
+  save(); render(); closeModal();
+  showNotif(`✓ "${name}" enregistré`, 'ok');
+}
+
+let notifTimer;
+function showNotif(msg, type) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.style.background = type === 'ok' ? 'var(--ok)' : 'var(--danger)';
+  n.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => n.classList.remove('show'), 2800);
+}
+
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    currentFilter = c.dataset.filter;
+    render();
+  });
+});
+
+function checkOverdueNotifications() {
+  const overdue = tasks.filter(t => getStatus(t) === 'overdue');
+  if (overdue.length > 0) {
+    const names = overdue.map(t => t.name).slice(0, 2).join(', ');
+    const extra = overdue.length > 2 ? ` +${overdue.length - 2} autres` : '';
+    showNotif(`⚠ En retard : ${names}${extra}`, 'danger');
+  }
+}
+
+function toggleExpand(id) {}
+
+load();
+render();
+setTimeout(checkOverdueNotifications, 800);
+
+// Check every minute for new overdue tasks
+setInterval(() => { render(); }, 60000);
+
+// Notification push si supporté
+if ('Notification' in window && Notification.permission === 'default') {
+  setTimeout(() => {
+    const overdue = tasks.filter(t => getStatus(t) === 'overdue');
+    if (overdue.length) Notification.requestPermission().then(p => {
+      if (p === 'granted') new Notification('🍳 Cuisine — Tâches en retard', {
+        body: overdue.map(t => t.name).join(', '),
+        icon: '🍳'
+      });
+    });
+  }, 2000);
+}
+</script>
+</body>
+</html>
