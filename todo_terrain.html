@@ -824,7 +824,7 @@ function renderKPI() {
     ? (totalSpent/1000).toFixed(1)+'k€' : totalSpent.toFixed(0)+'€';
   document.getElementById('kpiCout').className = 'kpi-value' + (over?' red':'');
   document.getElementById('kpiCoutSub').textContent = totalBudget>0
-    ? `/ ${totalBudget.toFixed(0)}€ alloué` : 'sans plafond';
+    ? `/ ${totalBudget.toFixed(0)}€ coût total` : 'sans plafond';
 
   document.getElementById('kpiTotal').textContent = active;
   document.getElementById('kpiTotalSub').textContent = `${done} terminée${done>1?'s':''}`;
@@ -1105,7 +1105,7 @@ function renderText() {
     <span><strong>${active.length}</strong> actives</span>
     <span><strong>${pinned.length}</strong> épinglées</span>
     <span><strong>${done.length}</strong> faites</span>
-    ${totalBudget>0?`<span><strong>${totalBudget.toFixed(0)}€</strong> alloués</span>`:''}
+    ${totalBudget>0?`<span><strong>${totalBudget.toFixed(0)}€</strong> coût total</span>`:''}
   </div>`);
 
   if (!active.length && !done.length) {
@@ -1155,7 +1155,7 @@ document.getElementById('btnDark').onclick = () => {
 
 function calcEpargne() {
   const precaution = depensesMens * 6;
-  const projets = Object.values(budgets).reduce((s,v)=>s+parseFloat(v||0), 0);
+  const projets = todos.filter(t => !t.done && t.budget > 0).reduce((s, t) => s + parseFloat(t.budget || 0), 0);
   return { precaution, projets, total: precaution + projets };
 }
 
@@ -1182,7 +1182,7 @@ function renderBudgetSettings() {
           <span data-epargne="precaution" style="font-family:'Oswald',monospace;font-size:14px;font-weight:600;color:var(--ink-mid)">${precaution.toLocaleString('fr-FR')} €</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)">🗂️ Projets <span style="color:var(--ink-mid)">(budgets alloués)</span></span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)">🗂️ Projets <span style="color:var(--ink-mid)">(coûts totaux)</span></span>
           <span data-epargne="projets" style="font-family:'Oswald',monospace;font-size:14px;font-weight:600;color:var(--ink-mid)">${projets.toLocaleString('fr-FR')} €</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:8px;margin-top:2px">
@@ -1224,9 +1224,6 @@ function renderBudgetSettings() {
     inp.addEventListener('input', () => {
       budgets[inp.dataset.cat] = parseFloat(inp.value)||0;
       save(); renderBudgetStrip();
-      const { projets, total } = calcEpargne();
-      container.querySelector('[data-epargne="projets"]').textContent = projets.toLocaleString('fr-FR') + ' €';
-      container.querySelector('[data-epargne="total"]').textContent   = total.toLocaleString('fr-FR') + ' €';
     });
   });
 }
@@ -1348,7 +1345,7 @@ function renderAnalyse() {
         </div>
         <div class="cat-stat">
           <div class="cat-stat-val" style="color:${over?'var(--red-alert)':'var(--orange-light)'}">${catSpent.toFixed(0)}€</div>
-          <div class="cat-stat-lbl">alloué</div>
+          <div class="cat-stat-lbl">coût total</div>
         </div>
       </div>
       ${catBudget>0?`
