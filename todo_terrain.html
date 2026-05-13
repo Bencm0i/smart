@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>OPÉRATIONS // TODO</title>
+<title>GESTION TERRAIN // AVENTECH</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='10' fill='%235a5e3a'/><text y='48' x='8' font-size='44'>📋</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -783,6 +784,7 @@ const CATS = {
 
 let todos = [];
 let budgets = { maison:0, admin:0, brico:0, sante:0, vehicule:0, habillement:0, divers:0 };
+let depensesMens = 0;
 let activeFilter = 'all';
 let activeCat = 'all';
 let editingId = null;
@@ -796,11 +798,14 @@ function load() {
     if (t) todos = JSON.parse(t);
     const b = localStorage.getItem('todo_terrain_budgets');
     if (b) budgets = { ...budgets, ...JSON.parse(b) };
+    const d = localStorage.getItem('todo_terrain_depenses_mens');
+    if (d) depensesMens = parseFloat(d)||0;
   } catch(e) {}
 }
 function save() {
   localStorage.setItem('todo_terrain_tasks', JSON.stringify(todos));
   localStorage.setItem('todo_terrain_budgets', JSON.stringify(budgets));
+  localStorage.setItem('todo_terrain_depenses_mens', depensesMens);
 }
 function genId() { return 'tid_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
 
@@ -1148,9 +1153,47 @@ document.getElementById('btnDark').onclick = () => {
   document.getElementById('btnDark').textContent = isDark ? '☀️' : '🌙';
 };
 
+function calcEpargne() {
+  const precaution = depensesMens * 6;
+  const projets = Object.values(budgets).reduce((s,v)=>s+parseFloat(v||0), 0);
+  return { precaution, projets, total: precaution + projets };
+}
+
 function renderBudgetSettings() {
   const container = document.getElementById('budgetSettings');
-  container.innerHTML = `<div class="section-label">BUDGET PAR CATÉGORIE</div>`;
+  const { precaution, projets, total } = calcEpargne();
+
+  container.innerHTML = `
+    <div style="margin:16px 12px 8px;background:var(--card);border:2px solid var(--orange);border-radius:10px;padding:14px 16px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:12px">
+        📊 Épargne disponible à avoir
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <label style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;min-width:90px">Dépenses/mois</label>
+        <input id="depensesMensInput" type="number" min="0" step="50" value="${depensesMens||''}" placeholder="ex: 2000"
+          style="flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--ink);outline:none;-webkit-appearance:none">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted)">€</span>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)">🛡️ Précaution <span style="color:var(--ink-mid)">(×6 mois)</span></span>
+          <span data-epargne="precaution" style="font-family:'Oswald',monospace;font-size:14px;font-weight:600;color:var(--ink-mid)">${precaution.toLocaleString('fr-FR')} €</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)">🗂️ Projets <span style="color:var(--ink-mid)">(budgets alloués)</span></span>
+          <span data-epargne="projets" style="font-family:'Oswald',monospace;font-size:14px;font-weight:600;color:var(--ink-mid)">${projets.toLocaleString('fr-FR')} €</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:8px;margin-top:2px">
+          <span style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--orange)">TOTAL À GARDER</span>
+          <span data-epargne="total" style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--orange)">${total.toLocaleString('fr-FR')} €</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:4px">BUDGET PAR CATÉGORIE</div>`;
+
   Object.entries(CATS).forEach(([key, c]) => {
     const spent = spentByCat(key);
     const budget = parseFloat(budgets[key]||0);
@@ -1166,10 +1209,24 @@ function renderBudgetSettings() {
       </div>`;
     container.appendChild(row);
   });
+
+  // Dépenses mensuelle input
+  container.querySelector('#depensesMensInput').addEventListener('input', e => {
+    depensesMens = parseFloat(e.target.value)||0;
+    save();
+    const { precaution, projets, total } = calcEpargne();
+    container.querySelector('[data-epargne="precaution"]').textContent = precaution.toLocaleString('fr-FR') + ' €';
+    container.querySelector('[data-epargne="projets"]').textContent   = projets.toLocaleString('fr-FR') + ' €';
+    container.querySelector('[data-epargne="total"]').textContent     = total.toLocaleString('fr-FR') + ' €';
+  });
+
   container.querySelectorAll('.budget-input').forEach(inp => {
     inp.addEventListener('input', () => {
       budgets[inp.dataset.cat] = parseFloat(inp.value)||0;
       save(); renderBudgetStrip();
+      const { projets, total } = calcEpargne();
+      container.querySelector('[data-epargne="projets"]').textContent = projets.toLocaleString('fr-FR') + ' €';
+      container.querySelector('[data-epargne="total"]').textContent   = total.toLocaleString('fr-FR') + ' €';
     });
   });
 }
