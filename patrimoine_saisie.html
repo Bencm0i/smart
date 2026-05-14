@@ -1274,6 +1274,13 @@ button, input, select { touch-action: manipulation; }
       <p style="font-size:11px;color:var(--muted);">Enregistre les pics patrimoniaux successifs.</p>
     </div>
   </div>
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">📅 Suivi DCA</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDCAEntry()">＋ Versement</button>
+    </div>
+    <div class="section-body" id="body-dca"></div>
+  </div>
 </div>
 
 <!-- ═══ PANEL : DÉPENSES ═══ -->
@@ -1647,7 +1654,6 @@ function switchTab(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   if (name === 'kpi') { if (typeof renderKPIPanel === 'function') renderKPIPanel(); }
-  if (name === 'depenses') { if (typeof renderDepenses === 'function') renderDepenses(); }
 }
 
 // ─── RENDER BANK ROWS ──────────────────────────────────────────────────────
