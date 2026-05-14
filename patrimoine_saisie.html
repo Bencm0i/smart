@@ -842,6 +842,120 @@ button, input, select { touch-action: manipulation; }
 }
 .kpi-ratio-bar-wrap { width: 80px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; flex-shrink:0; }
 .kpi-ratio-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+/* ═══ CARTE DÉPLOYABLE RESTE À INVESTIR ═══ */
+.investir-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.investir-card.accent-green { border-top: 3px solid var(--green); }
+.investir-head {
+  background: var(--surface2);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.investir-head:hover { background: var(--surface); }
+.investir-head-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.investir-head-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.investir-head-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--green);
+}
+.investir-toggle {
+  font-size: 16px;
+  transition: transform 0.3s;
+  color: var(--muted);
+}
+.investir-card.expanded .investir-toggle { transform: rotate(180deg); }
+.investir-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: var(--surface);
+}
+.investir-card.expanded .investir-body { max-height: 600px; }
+.investir-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.investir-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.investir-field label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.investir-field input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.18s;
+  text-align: right;
+}
+.investir-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(90,171,122,0.15);
+}
+.investir-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.investir-summary {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.investir-summary-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.investir-summary-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--green);
+}
+
 .pmv-row {
   display: flex;
   align-items: center;
@@ -1274,13 +1388,7 @@ button, input, select { touch-action: manipulation; }
       <p style="font-size:11px;color:var(--muted);">Enregistre les pics patrimoniaux successifs.</p>
     </div>
   </div>
-  <div class="section accent-blue">
-    <div class="section-head">
-      <div class="section-title">📅 Suivi DCA</div>
-      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDCAEntry()">＋ Versement</button>
-    </div>
-    <div class="section-body" id="body-dca"></div>
-  </div>
+
 </div>
 
 <!-- ═══ PANEL : DÉPENSES ═══ -->
@@ -1396,6 +1504,41 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
 <div class="panel" id="panel-kpi">
+
+  <!-- CARTE DÉPLOYABLE : RESTE À INVESTIR -->
+  <div class="investir-card accent-green" id="investir-card">
+    <div class="investir-head" onclick="toggleInvestirCard()">
+      <div class="investir-head-content">
+        <span style="font-size:20px;">💰</span>
+        <div class="investir-head-title">Reste à investir</div>
+      </div>
+      <div class="investir-head-value" id="investir-total">0 €</div>
+      <div class="investir-toggle">▼</div>
+    </div>
+    <div class="investir-body">
+      <div class="investir-content">
+        <div class="investir-grid">
+          <div class="investir-field">
+            <label>Budget total (€)</label>
+            <input type="number" id="budget-total" min="0" step="1000" placeholder="0" 
+              oninput="updateResteInvestir()" autocomplete="off">
+          </div>
+          <div class="investir-field">
+            <label>Montant investi (€)</label>
+            <input type="number" id="budget-investi" min="0" step="1000" placeholder="0" 
+              oninput="updateResteInvestir()" autocomplete="off">
+          </div>
+        </div>
+        <div class="investir-summary">
+          <span class="investir-summary-label">💵 Reste à investir</span>
+          <span class="investir-summary-value" id="investir-reste">0 €</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+          📝 Entrez votre budget total et le montant déjà investi pour voir le reste à placer.
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- KPI CARDS ROW -->
   <div class="kpi-grid" id="kpi-cards"></div>
@@ -1575,6 +1718,8 @@ let DATA = {
   especeCache:0,
   revenuMensuelNet:0,
   impotAnnee:0,
+  budgetTotal:0,
+  budgetInvesti:0,
   ath:[],
   dca:[],
   depenses:{
@@ -2307,6 +2452,39 @@ function bindMobiliteEvents() {
     const e = document.getElementById(id);
     if(e) e.addEventListener('input', () => { DATA[id] = parseFloat(e.value)||0; autoSave(); });
   });
+}
+
+// ─── TOGGLER CARTE RESTE À INVESTIR ────────────────────────────────────────
+function toggleInvestirCard() {
+  const card = document.getElementById('investir-card');
+  if (card) {
+    card.classList.toggle('expanded');
+  }
+}
+
+// ─── CALCULER ET METTRE À JOUR RESTE À INVESTIR ────────────────────────────
+function updateResteInvestir() {
+  const budgetTotal = parseFloat(document.getElementById('budget-total')?.value) || 0;
+  const budgetInvesti = parseFloat(document.getElementById('budget-investi')?.value) || 0;
+  const reste = Math.max(0, budgetTotal - budgetInvesti);
+  
+  // Sauvegarder dans DATA
+  DATA.budgetTotal = budgetTotal;
+  DATA.budgetInvesti = budgetInvesti;
+  
+  // Mettre à jour l'affichage
+  const fmtPrice = (n) => new Intl.NumberFormat('fr-FR', {style:'currency', currency:'EUR', maximumFractionDigits:0}).format(n);
+  document.getElementById('investir-total').textContent = fmtPrice(reste);
+  document.getElementById('investir-reste').textContent = fmtPrice(reste);
+  
+  autoSave();
+}
+
+// ─── CHARGER LES DONNÉES RESTE À INVESTIR ──────────────────────────────────
+function loadResteInvestir() {
+  document.getElementById('budget-total').value = DATA.budgetTotal || 0;
+  document.getElementById('budget-investi').value = DATA.budgetInvesti || 0;
+  updateResteInvestir();
 }
 
 // ─── AUTO-SAVE ─────────────────────────────────────────────────────────────
@@ -3783,6 +3961,24 @@ function doReset() {
   showToast('✓ Données locales effacées — rechargement…');
   setTimeout(() => location.reload(), 1200);
 }
+
+// ─── INITIALISATION RESTE À INVESTIR ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (document.getElementById('budget-total')) {
+      loadResteInvestir();
+    }
+  }, 100);
+});
+
+// Charger aussi au changement d'onglet KPI
+const origSwitchTab = window.switchTab;
+window.switchTab = function(name) {
+  if (typeof origSwitchTab === 'function') origSwitchTab(name);
+  if (name === 'kpi' && document.getElementById('budget-total')) {
+    setTimeout(() => loadResteInvestir(), 50);
+  }
+};
 
 </script>
 </body>
