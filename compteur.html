@@ -1,0 +1,471 @@
+
+<style>
+/* ── THEME BEIGE / ORANGE ── */
+:root {
+  --color-background-primary:   #F5EFE6;
+  --color-background-secondary: #EDE3D5;
+  --color-border-secondary:     #D4B896;
+  --color-border-tertiary:      #C9A97A;
+  --color-text-primary:         #3A2A18;
+  --color-text-secondary:       #7A5C3A;
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
+  --border-radius-lg: 16px;
+  --border-radius-md: 10px;
+}
+body { background: #EDE3D5; }
+</style>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font-sans); }
+.app { max-width: 380px; margin: 0 auto; padding: 12px; }
+.display-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 20px 16px 16px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.counter-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+#counter-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  text-align: center;
+  width: 100%;
+  outline: none;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--color-border-secondary);
+  padding-bottom: 4px;
+}
+.counter-value {
+  font-size: 72px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1;
+  margin: 8px 0;
+  transition: transform 0.08s ease;
+  font-variant-numeric: tabular-nums;
+}
+.counter-value.bump { transform: scale(1.08); }
+.goal-bar-wrap { margin: 8px 0 4px; height: 6px; background: var(--color-background-secondary); border-radius: 99px; overflow: hidden; }
+.goal-bar { height: 100%; background: #E07820; border-radius: 99px; transition: width 0.25s ease; }
+.goal-info { font-size: 11px; color: var(--color-text-secondary); }
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.stat-card {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 8px 6px;
+  text-align: center;
+}
+.stat-label { font-size: 10px; color: var(--color-text-secondary); }
+.stat-val { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.main-btn {
+  width: 100%;
+  height: 100px;
+  border-radius: 20px;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  font-size: 40px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.07s, background 0.1s;
+  user-select: none;
+  margin-bottom: 10px;
+}
+.main-btn:active { transform: scale(0.96); background: var(--color-background-secondary); }
+.btn-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.btn-sm {
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  border-radius: var(--border-radius-md);
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background 0.1s, transform 0.07s;
+  user-select: none;
+}
+.btn-sm:active { transform: scale(0.95); background: var(--color-background-secondary); }
+.btn-sm.danger { color: #B03020; border-color: #E8A090; }
+.btn-sm.success { color: #7A6010; border-color: #E0B840; }
+.btn-sm.info { color: #5A4030; border-color: #C4956A; }
+.btn-sm.warn { color: #C06010; border-color: #F0A840; }
+.section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 14px; margin-bottom: 10px; }
+.section-title { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.row label { font-size: 13px; color: var(--color-text-secondary); min-width: 70px; }
+.row input[type=number], .row input[type=text], .row select {
+  flex: 1; font-size: 13px; padding: 6px 8px;
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+.row input[type=range] { flex: 1; }
+.row .val { font-size: 13px; font-weight: 500; min-width: 28px; text-align: right; color: var(--color-text-primary); }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.toggle-label { font-size: 13px; color: var(--color-text-secondary); }
+.toggle { width: 40px; height: 22px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); position: relative; cursor: pointer; transition: background 0.2s; }
+.toggle.on { background: #E07820; border-color: #E07820; }
+.toggle::after { content:''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: left 0.2s; }
+.toggle.on::after { left: 21px; }
+.history-list { max-height: 120px; overflow-y: auto; }
+.hist-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+.hist-item:last-child { border: none; }
+.color-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
+.color-dot:active { transform: scale(0.9); }
+.color-dot.active { border-color: var(--color-text-primary); }
+.vibro-feedback { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); background: rgba(0,0,0,0.5); color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 20px; font-weight: 500; pointer-events: none; transition: transform 0.12s, opacity 0.2s; opacity: 0; z-index: 99; }
+.vibro-feedback.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+</style>
+
+<h2 class="sr-only">Compteur manuel avec options avancées</h2>
+<div class="app">
+
+<div class="display-card">
+  <input id="counter-name" value="Mon compteur" maxlength="24" />
+  <div class="counter-value" id="display">0</div>
+  <div class="goal-bar-wrap" id="goal-wrap" style="display:none">
+    <div class="goal-bar" id="goal-bar" style="width:0%"></div>
+  </div>
+  <div class="goal-info" id="goal-info"></div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-label">session</div><div class="stat-val" id="stat-session">0</div></div>
+  <div class="stat-card"><div class="stat-label">vitesse/min</div><div class="stat-val" id="stat-rate">0</div></div>
+  <div class="stat-card"><div class="stat-label">max</div><div class="stat-val" id="stat-max">0</div></div>
+</div>
+
+<button class="main-btn" id="main-btn" aria-label="Incrémenter">
+  <i class="ti ti-plus" aria-hidden="true"></i>
+</button>
+
+<div class="btn-row">
+  <button class="btn-sm danger" id="btn-dec" aria-label="Décrémenter"><i class="ti ti-minus" aria-hidden="true"></i> &minus;Pas</button>
+  <button class="btn-sm warn" id="btn-undo" aria-label="Annuler"><i class="ti ti-arrow-back-up" aria-hidden="true"></i> Annuler</button>
+  <button class="btn-sm danger" id="btn-reset" aria-label="Réinitialiser"><i class="ti ti-refresh" aria-hidden="true"></i> Reset</button>
+</div>
+<div class="btn-row">
+  <button class="btn-sm info" id="btn-lap" aria-label="Tour"><i class="ti ti-flag" aria-hidden="true"></i> Tour</button>
+  <button class="btn-sm success" id="btn-save" aria-label="Sauvegarder"><i class="ti ti-device-floppy" aria-hidden="true"></i> Sauver</button>
+  <button class="btn-sm" id="btn-share" aria-label="Partager"><i class="ti ti-copy" aria-hidden="true"></i> Copier</button>
+</div>
+
+<div class="section">
+  <div class="section-title">Paramètres</div>
+  <div class="row">
+    <label>Départ</label>
+    <input type="number" id="inp-start" value="0" min="-99999" max="99999" />
+  </div>
+  <div class="row">
+    <label>Pas</label>
+    <input type="range" id="inp-step" min="1" max="100" value="1" step="1" />
+    <span class="val" id="step-lbl">1</span>
+  </div>
+  <div class="row">
+    <label>Min</label>
+    <input type="number" id="inp-min" value="" placeholder="aucun" />
+  </div>
+  <div class="row">
+    <label>Max</label>
+    <input type="number" id="inp-max" value="" placeholder="aucun" />
+  </div>
+  <div class="row">
+    <label>Objectif</label>
+    <input type="number" id="inp-goal" value="" placeholder="aucun" />
+  </div>
+  <div class="row">
+    <label>Mode</label>
+    <select id="sel-mode">
+      <option value="normal">Normal</option>
+      <option value="loop">Boucle</option>
+      <option value="countdown">Compte à rebours</option>
+    </select>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Affichage & Son</div>
+  <div class="toggle-row">
+    <span class="toggle-label">Vibration</span>
+    <div class="toggle on" id="tog-vibro" role="switch" aria-checked="true" tabindex="0"></div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Son clique</span>
+    <div class="toggle" id="tog-sound" role="switch" aria-checked="false" tabindex="0"></div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Afficher l'historique</span>
+    <div class="toggle on" id="tog-hist" role="switch" aria-checked="true" tabindex="0"></div>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">Gros bouton plein écran</span>
+    <div class="toggle" id="tog-big" role="switch" aria-checked="false" tabindex="0"></div>
+  </div>
+  <div style="margin-top:8px">
+    <div class="section-title" style="margin-bottom:8px">Couleur accent</div>
+    <div class="color-grid" id="color-grid"></div>
+  </div>
+</div>
+
+<div class="section" id="hist-section">
+  <div class="section-title">Historique des actions</div>
+  <div class="history-list" id="hist-list"><div style="font-size:12px;color:var(--color-text-secondary)">Aucune action</div></div>
+</div>
+
+</div>
+<div class="vibro-feedback" id="feedback"></div>
+
+<script>
+const COLORS = [
+  {hex:'#E07820',name:'Orange'},
+  {hex:'#D85A30',name:'Corail'},
+  {hex:'#BA7517',name:'Ambre'},
+  {hex:'#639922',name:'Vert'},
+  {hex:'#378ADD',name:'Bleu'},
+  {hex:'#7F77DD',name:'Violet'},
+  {hex:'#D4537E',name:'Rose'},
+  {hex:'#888780',name:'Gris'},
+];
+let accentColor = COLORS[0].hex;
+const colorGrid = document.getElementById('color-grid');
+COLORS.forEach((c,i) => {
+  const d = document.createElement('div');
+  d.className = 'color-dot' + (i===0?' active':'');
+  d.style.background = c.hex;
+  d.title = c.name;
+  d.onclick = () => {
+    accentColor = c.hex;
+    document.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('active'));
+    d.classList.add('active');
+    document.querySelector('.goal-bar').style.background = accentColor;
+    document.querySelector('.main-btn').style.color = accentColor;
+    document.querySelector('.main-btn').style.borderColor = accentColor;
+  };
+  colorGrid.appendChild(d);
+});
+document.querySelector('.main-btn').style.color = accentColor;
+document.querySelector('.main-btn').style.borderColor = accentColor;
+
+let count = 0;
+let history = [];
+let laps = [];
+let sessionStart = Date.now();
+let clicks = [];
+let maxVal = 0;
+let sessionCount = 0;
+
+const display = document.getElementById('display');
+const statSession = document.getElementById('stat-session');
+const statRate = document.getElementById('stat-rate');
+const statMax = document.getElementById('stat-max');
+const goalBar = document.getElementById('goal-bar');
+const goalWrap = document.getElementById('goal-wrap');
+const goalInfo = document.getElementById('goal-info');
+const histList = document.getElementById('hist-list');
+const feedback = document.getElementById('feedback');
+
+function getStep() { return parseInt(document.getElementById('inp-step').value)||1; }
+function getMin() { const v=document.getElementById('inp-min').value; return v===''?null:parseInt(v); }
+function getMax() { const v=document.getElementById('inp-max').value; return v===''?null:parseInt(v); }
+function getGoal() { const v=document.getElementById('inp-goal').value; return v===''?null:parseInt(v); }
+function getMode() { return document.getElementById('sel-mode').value; }
+
+function updateDisplay() {
+  display.textContent = count;
+  display.classList.add('bump');
+  setTimeout(()=>display.classList.remove('bump'),80);
+  if(count>maxVal) maxVal=count;
+  statMax.textContent = maxVal;
+  statSession.textContent = sessionCount;
+  const goal = getGoal();
+  if(goal!==null) {
+    goalWrap.style.display='block';
+    const pct = Math.min(100, Math.round(count/goal*100));
+    goalBar.style.width = pct+'%';
+    goalBar.style.background = accentColor;
+    goalInfo.textContent = count+' / '+goal+' ('+pct+'%)';
+    if(count>=goal) showFeedback('🎯 Objectif atteint !');
+  } else {
+    goalWrap.style.display='none';
+    goalInfo.textContent='';
+  }
+}
+
+function calcRate() {
+  const now = Date.now();
+  clicks = clicks.filter(t => now-t < 60000);
+  return clicks.length;
+}
+
+setInterval(()=>{ statRate.textContent = calcRate(); },1000);
+
+function vibrate() {
+  if(document.getElementById('tog-vibro').classList.contains('on') && navigator.vibrate) navigator.vibrate(30);
+}
+
+let audioCtx = null;
+function playClick() {
+  if(!document.getElementById('tog-sound').classList.contains('on')) return;
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.value = 880;
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.07);
+    o.start(); o.stop(audioCtx.currentTime+0.07);
+  } catch(e){}
+}
+
+function showFeedback(msg) {
+  feedback.textContent = msg;
+  feedback.classList.add('show');
+  setTimeout(()=>feedback.classList.remove('show'),900);
+}
+
+function addHistory(action) {
+  if(!document.getElementById('tog-hist').classList.contains('on')) return;
+  const now = new Date();
+  const t = now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  history.unshift({action, val: count, time: t});
+  if(history.length>30) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  if(!history.length){ histList.innerHTML='<div style="font-size:12px;color:var(--color-text-secondary)">Aucune action</div>'; return; }
+  histList.innerHTML = history.map(h=>`<div class="hist-item"><span>${h.action}</span><span>${h.val} — ${h.time}</span></div>`).join('');
+}
+
+function increment() {
+  const step = getStep();
+  const mode = getMode();
+  const maxV = getMax();
+  const minV = getMin();
+  history.push({});
+  if(mode==='countdown') {
+    if(minV!==null && count-step < minV){ showFeedback('⛔ Minimum atteint'); return; }
+    count -= step;
+  } else {
+    if(maxV!==null && count+step > maxV) {
+      if(mode==='loop') { count = minV!==null?minV:0; showFeedback('🔁 Boucle'); }
+      else { showFeedback('⛔ Maximum atteint'); return; }
+    } else count += step;
+  }
+  sessionCount++;
+  clicks.push(Date.now());
+  vibrate(); playClick();
+  addHistory('+'+(mode==='countdown'?'-':'')+step);
+  updateDisplay();
+}
+
+document.getElementById('main-btn').addEventListener('click', increment);
+
+document.getElementById('btn-dec').onclick = () => {
+  const step = getStep();
+  const minV = getMin();
+  if(minV!==null && count-step < minV){ showFeedback('⛔ Minimum atteint'); return; }
+  history.push({_undo: count});
+  count -= step;
+  vibrate(); playClick();
+  addHistory('-'+step);
+  updateDisplay();
+};
+
+document.getElementById('btn-undo').onclick = () => {
+  if(history.length && history[history.length-1]._undo!==undefined) {
+    count = history.pop()._undo;
+    sessionCount = Math.max(0, sessionCount-1);
+    showFeedback('↩ Annulé');
+    addHistory('annulé');
+    updateDisplay();
+  } else showFeedback('Rien à annuler');
+};
+
+document.getElementById('btn-reset').onclick = () => {
+  const start = parseInt(document.getElementById('inp-start').value)||0;
+  history = [];
+  count = start; sessionCount=0; maxVal=start; clicks=[];
+  addHistory('reset');
+  updateDisplay();
+  showFeedback('🔄 Remis à zéro');
+};
+
+document.getElementById('btn-lap').onclick = () => {
+  laps.push(count);
+  showFeedback('🚩 Tour #'+laps.length+' : '+count);
+  addHistory('tour #'+laps.length);
+};
+
+document.getElementById('btn-save').onclick = () => {
+  const data = JSON.stringify({name:document.getElementById('counter-name').value, value:count, laps, saved:new Date().toLocaleString('fr-FR')});
+  localStorage.setItem('counter_save', data);
+  showFeedback('💾 Sauvegardé');
+};
+
+document.getElementById('btn-share').onclick = () => {
+  const txt = `${document.getElementById('counter-name').value} : ${count}`;
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>showFeedback('📋 Copié !'));
+  else showFeedback('📋 '+txt);
+};
+
+const stepSlider = document.getElementById('inp-step');
+const stepLbl = document.getElementById('step-lbl');
+stepSlider.oninput = () => stepLbl.textContent = stepSlider.value;
+
+document.getElementById('inp-start').onchange = function() {
+  count = parseInt(this.value)||0;
+  updateDisplay();
+};
+
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('on');
+  el.setAttribute('aria-checked', el.classList.contains('on'));
+}
+
+['tog-vibro','tog-sound','tog-hist','tog-big'].forEach(id => {
+  const el = document.getElementById(id);
+  el.onclick = () => {
+    toggle(id);
+    if(id==='tog-hist') {
+      document.getElementById('hist-section').style.display = el.classList.contains('on')?'':'none';
+    }
+    if(id==='tog-big') {
+      const btn = document.getElementById('main-btn');
+      btn.style.height = el.classList.contains('on') ? '160px' : '100px';
+      btn.querySelector('i').style.fontSize = el.classList.contains('on') ? '60px' : '40px';
+    }
+  };
+  el.onkeydown = e => { if(e.key===' '||e.key==='Enter') el.click(); };
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowUp'||e.key===' ') { e.preventDefault(); increment(); }
+  if(e.key==='ArrowDown') { document.getElementById('btn-dec').click(); }
+  if(e.key==='z'&&(e.ctrlKey||e.metaKey)) { document.getElementById('btn-undo').click(); }
+});
+
+updateDisplay();
+</script>
