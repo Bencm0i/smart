@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Notes</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111110;
+      --surface: #1a1a18;
+      --surface2: #242422;
+      --border: #2e2e2c;
+      --text: #e8e4dc;
+      --muted: #7a7870;
+      --accent: #e8a020;
+      --danger: #c04040;
+      --font-ui: 'Syne', sans-serif;
+      --font-note: 'JetBrains Mono', monospace;
+      --r: 6px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+
+    #app {
+      max-width: 480px; margin: 0 auto;
+      height: 100dvh; display: flex; flex-direction: column; overflow: hidden; position: relative;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg); flex-shrink: 0;
+    }
+    .back-btn {
+      background: none; border: none; color: var(--accent);
+      font-size: 22px; cursor: pointer; padding: 4px 8px 4px 0; display: none; line-height: 1;
+    }
+    .header-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; flex: 1; }
+    .note-count { font-size: 13px; color: var(--muted); font-weight: 400; }
+    .header-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); width: 36px; height: 36px; border-radius: var(--r);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; transition: background 0.15s; line-height: 1;
+    }
+    .icon-btn:active { background: var(--accent); border-color: var(--accent); color: #000; }
+
+    /* ── List view ── */
+    #list-view { flex: 1; overflow-y: auto; padding: 12px 16px 80px; }
+    .note-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .note-card:active { border-color: var(--accent); background: var(--surface2); }
+    .card-title { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-preview { font-family: var(--font-note); font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-date { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .empty {
+      text-align: center; padding: 64px 20px; color: var(--muted);
+    }
+    .empty .mark { font-size: 48px; margin-bottom: 14px; line-height: 1; }
+    .empty p { font-size: 14px; line-height: 1.6; }
+
+    /* ── FAB ── */
+    .fab {
+      position: absolute; bottom: 24px; right: 20px;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--accent); color: #000; border: none;
+      font-size: 30px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 24px rgba(232,160,32,0.35);
+      transition: transform 0.15s; z-index: 10; line-height: 1;
+    }
+    .fab:active { transform: scale(0.92); }
+
+    /* ── Edit view ── */
+    #edit-view { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    #edit-view.active { display: flex; }
+
+    #note-title {
+      background: transparent; border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-ui);
+      font-size: 19px; font-weight: 700; padding: 16px 20px;
+      outline: none; width: 100%; flex-shrink: 0;
+    }
+    #note-title::placeholder { color: var(--muted); }
+
+    #note-body {
+      flex: 1; background: transparent; border: none;
+      color: var(--text); font-family: var(--font-note);
+      font-size: 14px; line-height: 1.75; padding: 16px 20px;
+      outline: none; resize: none; width: 100%;
+    }
+    #note-body::placeholder { color: var(--muted); }
+
+    /* ── Edit toolbar ── */
+    .toolbar {
+      display: flex; gap: 8px; padding: 10px 16px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--bg); flex-shrink: 0;
+    }
+    .tb {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-ui);
+      font-size: 11px; font-weight: 700; padding: 10px 4px;
+      border-radius: var(--r); cursor: pointer;
+      letter-spacing: 0.8px; text-align: center;
+      transition: background 0.12s; white-space: nowrap;
+    }
+    .tb:active { background: var(--surface); }
+    .tb.save { background: var(--accent); border-color: var(--accent); color: #000; }
+    .tb.save:active { opacity: 0.85; }
+    .tb.del { border-color: var(--danger); color: var(--danger); }
+    .tb.del:active { background: var(--danger); color: #fff; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 88px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-ui); font-size: 13px;
+      padding: 8px 18px; border-radius: 20px;
+      opacity: 0; transition: opacity 0.2s, transform 0.2s;
+      z-index: 100; pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    input[type="file"] { display: none; }
+
+    /* Scrollbar minimal */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <div class="header">
+    <button class="back-btn" id="back-btn">←</button>
+    <div class="header-title" id="header-title">
+      Notes <span class="note-count" id="note-count"></span>
+    </div>
+    <div class="header-actions" id="list-actions">
+      <button class="icon-btn" id="import-btn" title="Importer JSON">⇪</button>
+      <button class="icon-btn" id="export-btn" title="Exporter JSON">⇩</button>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div id="list-view">
+    <div class="empty" id="empty-state" style="display:none">
+      <div class="mark">✦</div>
+      <p>Aucune note.<br>Tape <strong>+</strong> pour commencer.</p>
+    </div>
+    <div id="notes-list"></div>
+  </div>
+
+  <!-- EDIT VIEW -->
+  <div id="edit-view">
+    <input type="text" id="note-title" placeholder="Titre..." autocomplete="off" spellcheck="false">
+    <textarea id="note-body" placeholder="Écris ici..." spellcheck="true"></textarea>
+    <div class="toolbar">
+      <button class="tb save" id="save-btn">SAUVER</button>
+      <button class="tb" id="copy-btn">COPIER</button>
+      <button class="tb" id="paste-btn">COLLER</button>
+      <button class="tb del" id="delete-btn">SUPPR</button>
+    </div>
+  </div>
+
+  <button class="fab" id="new-btn">+</button>
+  <div class="toast" id="toast"></div>
+  <input type="file" id="file-input" accept=".json">
+</div>
+
+<script>
+  const KEY = 'notes_app_v1';
+  let notes = [];
+  let currentId = null;
+
+  // ── Storage ──
+  function loadNotes() {
+    try { notes = JSON.parse(localStorage.getItem(KEY)) || []; } catch { notes = []; }
+  }
+  function saveNotes() {
+    localStorage.setItem(KEY, JSON.stringify(notes));
+  }
+
+  // ── Utils ──
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function fmt(ts) {
+    return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  // ── Render list ──
+  function renderList() {
+    const list = document.getElementById('notes-list');
+    const empty = document.getElementById('empty-state');
+    const count = document.getElementById('note-count');
+    list.innerHTML = '';
+    count.textContent = notes.length ? `(${notes.length})` : '';
+    if (!notes.length) { empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    [...notes].sort((a, b) => b.updated - a.updated).forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'note-card';
+      el.innerHTML = `
+        <div class="card-title">${esc(n.title || 'Sans titre')}</div>
+        <div class="card-preview">${esc(n.body.slice(0, 90)) || '—'}</div>
+        <div class="card-date">${fmt(n.updated)}</div>
+      `;
+      el.addEventListener('click', () => openNote(n.id));
+      list.appendChild(el);
+    });
+  }
+
+  // ── View switching ──
+  function showList() {
+    document.getElementById('list-view').style.display = '';
+    document.getElementById('edit-view').classList.remove('active');
+    document.getElementById('new-btn').style.display = '';
+    document.getElementById('back-btn').style.display = 'none';
+    document.getElementById('list-actions').style.display = '';
+    document.getElementById('header-title').innerHTML = `Notes <span class="note-count">${notes.length ? '('+notes.length+')' : ''}</span>`;
+    currentId = null;
+    renderList();
+  }
+  function showEdit(note) {
+    document.getElementById('list-view').style.display = 'none';
+    document.getElementById('edit-view').classList.add('active');
+    document.getElementById('new-btn').style.display = 'none';
+    document.getElementById('back-btn').style.display = '';
+    document.getElementById('list-actions').style.display = 'none';
+    document.getElementById('header-title').innerHTML = note.id ? 'Modifier' : 'Nouvelle note';
+    document.getElementById('note-title').value = note.title || '';
+    document.getElementById('note-body').value = note.body || '';
+    setTimeout(() => document.getElementById('note-body').focus(), 50);
+  }
+
+  // ── CRUD ──
+  function openNote(id) {
+    currentId = id;
+    showEdit(notes.find(n => n.id === id) || {});
+  }
+  function newNote() {
+    currentId = null;
+    showEdit({});
+  }
+  function saveNote() {
+    const title = document.getElementById('note-title').value.trim();
+    const body = document.getElementById('note-body').value;
+    if (!title && !body.trim()) { toast('Note vide — rien sauvé.'); return; }
+    if (currentId) {
+      const i = notes.findIndex(n => n.id === currentId);
+      if (i >= 0) notes[i] = { ...notes[i], title, body, updated: Date.now() };
+    } else {
+      const n = { id: uid(), title, body, created: Date.now(), updated: Date.now() };
+      currentId = n.id;
+      notes.push(n);
+    }
+    saveNotes();
+    document.getElementById('header-title').innerHTML = 'Modifier';
+    toast('✓ Sauvé');
+  }
+  function deleteNote() {
+    if (currentId && !confirm('Supprimer cette note ?')) return;
+    if (currentId) { notes = notes.filter(n => n.id !== currentId); saveNotes(); }
+    showList();
+  }
+
+  // ── Clipboard ──
+  async function copyNote() {
+    const title = document.getElementById('note-title').value;
+    const body = document.getElementById('note-body').value;
+    const txt = (title ? title + '\n\n' : '') + body;
+    if (!txt.trim()) { toast('Rien à copier.'); return; }
+    try {
+      await navigator.clipboard.writeText(txt);
+      toast('✓ Copié');
+    } catch { toast('⚠ Accès presse-papiers refusé'); }
+  }
+  async function pasteIntoNote() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) { toast('Presse-papiers vide.'); return; }
+      const ta = document.getElementById('note-body');
+      const s = ta.selectionStart, e = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+      ta.selectionStart = ta.selectionEnd = s + text.length;
+      ta.focus();
+      toast('✓ Collé');
+    } catch { toast('⚠ Accès presse-papiers refusé'); }
+  }
+
+  // ── JSON Export ──
+  function exportJson() {
+    if (!notes.length) { toast('Aucune note à exporter.'); return; }
+    const data = { app: 'notes', exported: new Date().toISOString(), count: notes.length, notes };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `notes_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(`✓ ${notes.length} note(s) exportée(s)`);
+  }
+
+  // ── JSON Import ──
+  function importJson(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const raw = JSON.parse(e.target.result);
+        const imported = Array.isArray(raw) ? raw : (raw.notes || []);
+        if (!imported.length) { toast('Aucune note dans ce fichier.'); return; }
+        const ids = new Set(notes.map(n => n.id));
+        let added = 0;
+        imported.forEach(n => { if (n.id && !ids.has(n.id)) { notes.push(n); added++; } });
+        saveNotes();
+        renderList();
+        toast(`✓ ${added} note(s) importée(s)`);
+      } catch { toast('⚠ JSON invalide'); }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── Auto-save on blur ──
+  document.getElementById('note-body').addEventListener('blur', () => {
+    if (document.getElementById('edit-view').classList.contains('active')) {
+      const body = document.getElementById('note-body').value;
+      const title = document.getElementById('note-title').value;
+      if (body.trim() || title.trim()) saveNote();
+    }
+  });
+
+  // ── Events ──
+  document.getElementById('new-btn').addEventListener('click', newNote);
+  document.getElementById('back-btn').addEventListener('click', showList);
+  document.getElementById('save-btn').addEventListener('click', saveNote);
+  document.getElementById('copy-btn').addEventListener('click', copyNote);
+  document.getElementById('paste-btn').addEventListener('click', pasteIntoNote);
+  document.getElementById('delete-btn').addEventListener('click', deleteNote);
+  document.getElementById('export-btn').addEventListener('click', exportJson);
+  document.getElementById('import-btn').addEventListener('click', () => document.getElementById('file-input').click());
+  document.getElementById('file-input').addEventListener('change', e => {
+    if (e.target.files[0]) importJson(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  // ── Init ──
+  loadNotes();
+  renderList();
+</script>
+</body>
+</html>
