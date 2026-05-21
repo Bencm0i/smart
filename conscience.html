@@ -731,8 +731,8 @@
       <h1>CONSCIENCE<br><span>CORE</span> CONTEXT</h1>
     </div>
     <div class="header-meta">
-      <span><span class="status-dot"></span>AUTOSAVE ACTIF</span>
-      <span id="last-saved">—</span>
+      <span><span class="status-dot" style="background:var(--amber)"></span>SESSION — NON PERSISTÉ</span>
+      <span id="last-saved" style="color:var(--amber);font-size:0.6rem;">Exporte avant de fermer</span>
       <span id="completion-display">0 / 0 sections remplies</span>
     </div>
   </div>
@@ -979,7 +979,7 @@
 </main>
 
 <footer>
-  <span>CONSCIENCE CORE // fichier local — non transmis</span>
+  <span>CONSCIENCE CORE // session uniquement — aucune écriture locale</span>
   <span id="footer-stats">0 mots au total</span>
 </footer>
 
@@ -1023,7 +1023,6 @@
 <script>
 
 // ── DATA ──
-const STORAGE_KEY = 'conscience_v1';
 let saveTimer = null;
 let currentExportText = '';
 let currentExportFilename = '';
@@ -1035,44 +1034,26 @@ const SECTIONS = [
 
 // ── INIT ──
 function init() {
-  loadFromStorage();
   updateAll();
+  // Avertissement si on ferme sans exporter
+  window.addEventListener('beforeunload', e => {
+    const hasContent = [...document.querySelectorAll('textarea[data-key]')]
+      .some(ta => ta.value.trim().length > 0) || dialogues.length > 0;
+    if (hasContent) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
 }
 
-// ── STORAGE ──
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    document.querySelectorAll('textarea[data-key]').forEach(ta => {
-      const val = data[ta.dataset.key];
-      if (val !== undefined) ta.value = val;
-    });
-    if (data._lastSaved) {
-      document.getElementById('last-saved').textContent =
-        'Sauvé le ' + new Date(data._lastSaved).toLocaleString('fr-FR', {
-          day:'2-digit', month:'2-digit', year:'numeric',
-          hour:'2-digit', minute:'2-digit'
-        });
-    }
-  } catch(e) { console.error('Load error:', e); }
-}
+// ── STORAGE : session uniquement, rien sur disque ──
+function loadFromStorage() { /* désactivé — pas de localStorage */ }
 
 function saveToStorage() {
-  const data = { _lastSaved: new Date().toISOString() };
-  document.querySelectorAll('textarea[data-key]').forEach(ta => {
-    data[ta.dataset.key] = ta.value;
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  const now = new Date().toLocaleString('fr-FR', {
-    day:'2-digit', month:'2-digit', year:'numeric',
-    hour:'2-digit', minute:'2-digit'
-  });
-  document.getElementById('last-saved').textContent = 'Sauvé le ' + now;
+  // Aucune écriture locale — l'export chiffré est la seule persistance
   const ind = document.getElementById('save-indicator');
   ind.classList.add('visible');
-  setTimeout(() => ind.classList.remove('visible'), 2000);
+  setTimeout(() => ind.classList.remove('visible'), 1500);
 }
 
 // ── INPUT HANDLER ──
@@ -1080,8 +1061,6 @@ function handleInput(ta) {
   updateWordCount(ta);
   updateProgress();
   updateFooterStats();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveToStorage, 800);
 }
 
 // ── WORD COUNTS ──
@@ -1240,8 +1219,7 @@ function showToast(msg) {
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
-    saveToStorage();
-    showToast('Sauvegardé');
+    showToast('Utilise Export Chiffré pour sauvegarder');
   }
   if (e.key === 'Escape') closeModal();
 });
@@ -1556,44 +1534,14 @@ function scheduleSave() {
 // ── PATCH STORAGE TO INCLUDE DIALOGUES ──
 const _origSave = saveToStorage;
 saveToStorage = function() {
-  const data = { _lastSaved: new Date().toISOString(), _dialogues: dialogues };
-  document.querySelectorAll('textarea[data-key]').forEach(ta => {
-    data[ta.dataset.key] = ta.value;
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  const now = new Date().toLocaleString('fr-FR', {
-    day:'2-digit', month:'2-digit', year:'numeric',
-    hour:'2-digit', minute:'2-digit'
-  });
-  document.getElementById('last-saved').textContent = 'Sauvé le ' + now;
+  // Session uniquement — aucune écriture locale
   const ind = document.getElementById('save-indicator');
   ind.classList.add('visible');
-  setTimeout(() => ind.classList.remove('visible'), 2000);
+  setTimeout(() => ind.classList.remove('visible'), 1500);
 };
 
 const _origLoad = loadFromStorage;
-loadFromStorage = function() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    document.querySelectorAll('textarea[data-key]').forEach(ta => {
-      const val = data[ta.dataset.key];
-      if (val !== undefined) ta.value = val;
-    });
-    if (data._lastSaved) {
-      document.getElementById('last-saved').textContent =
-        'Sauvé le ' + new Date(data._lastSaved).toLocaleString('fr-FR', {
-          day:'2-digit', month:'2-digit', year:'numeric',
-          hour:'2-digit', minute:'2-digit'
-        });
-    }
-    if (Array.isArray(data._dialogues)) {
-      data._dialogues.forEach(d => { dialogues.push(d); renderDialogue(d); });
-      updateGlobalDialogueWC();
-    }
-  } catch(e) { console.error('Load error:', e); }
-};
+loadFromStorage = function() { /* désactivé */ };
 
 // Patch encrypted import/export to carry dialogues
 const _origDecrypt = doDecryptedImport;
