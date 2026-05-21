@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONSCIENCE // CORE CONTEXT FILE</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #050810;
+    --bg2:       #080d18;
+    --bg3:       #0d1526;
+    --cyan:      #00e5ff;
+    --cyan-dim:  #007a8a;
+    --amber:     #ffb300;
+    --red:       #ff3b5c;
+    --green:     #00ff9d;
+    --text:      #c8d8e8;
+    --text-dim:  #556a80;
+    --border:    #1a2a3a;
+    --border-hl: #00e5ff44;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-head: 'Syncopate', sans-serif;
+    --font-body: 'Rajdhani', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scan lines overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.012) 2px,
+      rgba(0,229,255,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Ambient glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -30vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80vw;
+    height: 60vh;
+    background: radial-gradient(ellipse, rgba(0,229,255,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 3rem 2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #060b16 0%, var(--bg) 100%);
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .header-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .tag-line {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(1.2rem, 3vw, 1.9rem);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  h1 span { color: var(--cyan); }
+
+  .header-meta {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    padding-top: 0.5rem;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+    margin-right: 0.4rem;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(5,8,16,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    margin-right: auto;
+  }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border: 1px solid;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+  }
+
+  .btn-cyan {
+    color: var(--cyan);
+    border-color: var(--cyan-dim);
+  }
+  .btn-cyan:hover {
+    background: rgba(0,229,255,0.08);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0,229,255,0.2);
+  }
+
+  .btn-amber {
+    color: var(--amber);
+    border-color: rgba(255,179,0,0.4);
+  }
+  .btn-amber:hover {
+    background: rgba(255,179,0,0.08);
+    border-color: var(--amber);
+    box-shadow: 0 0 12px rgba(255,179,0,0.2);
+  }
+
+  .btn-red {
+    color: var(--red);
+    border-color: rgba(255,59,92,0.3);
+  }
+  .btn-red:hover {
+    background: rgba(255,59,92,0.08);
+    border-color: var(--red);
+  }
+
+  .save-indicator {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--green);
+    opacity: 0;
+    transition: opacity 0.3s;
+    letter-spacing: 0.1em;
+  }
+
+  .save-indicator.visible { opacity: 1; }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg2);
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent, var(--cyan));
+    opacity: 0.6;
+  }
+
+  .section:focus-within {
+    border-color: var(--border-hl);
+    box-shadow: 0 0 20px rgba(0,229,255,0.05);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-icon {
+    font-size: 1rem;
+    width: 1.4rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+    flex: 1;
+  }
+
+  .section-id {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .section-toggle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+  }
+
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+
+  .section-body {
+    padding: 1rem 1.2rem 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .section.collapsed .section-body { display: none; }
+
+  .section-desc {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    border-left: 2px solid var(--border);
+    padding-left: 0.8rem;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.7;
+    padding: 0.8rem 1rem;
+    resize: vertical;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  textarea::placeholder {
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  textarea:focus {
+    border-color: var(--cyan-dim);
+    background: #0a1422;
+  }
+
+  .field-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .word-count {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+  }
+
+  /* Sub-fields */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    .field-group { grid-template-columns: 1fr; }
+  }
+
+  .field-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+
+  /* Accent colors per section */
+  .section[data-accent="amber"]::before  { background: var(--amber); }
+  .section[data-accent="green"]::before  { background: var(--green); }
+  .section[data-accent="red"]::before    { background: var(--red); }
+  .section[data-accent="cyan"]::before   { background: var(--cyan); }
+
+  /* ── FOOTER ── */
+  footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 3rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-green {
+    color: var(--green);
+    border-color: rgba(0,255,157,0.4);
+  }
+  .btn-green:hover {
+    background: rgba(0,255,157,0.08);
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(0,255,157,0.2);
+  }
+
+  .btn-green-dim {
+    color: #5fffbe;
+    border-color: rgba(0,255,157,0.2);
+  }
+  .btn-green-dim:hover {
+    background: rgba(0,255,157,0.06);
+    border-color: rgba(0,255,157,0.5);
+  }
+
+  /* Crypto modal */
+  .crypto-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 600;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .crypto-modal-overlay.open { display: flex; }
+  .crypto-modal {
+    background: var(--bg2);
+    border: 1px solid var(--green);
+    border-radius: 3px;
+    width: 100%;
+    max-width: 420px;
+    padding: 1.8rem;
+    box-shadow: 0 0 40px rgba(0,255,157,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .crypto-modal-title {
+    font-family: var(--font-head);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+  .crypto-modal p {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .crypto-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    padding: 0.7rem 1rem;
+    outline: none;
+    letter-spacing: 0.05em;
+    transition: border-color 0.15s;
+  }
+  .crypto-input:focus { border-color: var(--green); }
+  .crypto-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+  .crypto-error {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--red);
+    display: none;
+  }
+  .crypto-error.visible { display: block; }
+  .strength-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .strength-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 0.2s, background 0.2s;
+    width: 0%;
+    background: var(--red);
+  }
+  .strength-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-align: right;
+  }
+  /* ── DIALOGUE ENTRIES ── */
+  .dialogue-entry {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--bg3);
+    margin-bottom: 0.8rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .dialogue-entry:focus-within { border-color: rgba(255,179,0,0.3); }
+  .dialogue-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.8rem;
+    background: rgba(255,179,0,0.04);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .dialogue-date {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 7rem;
+  }
+  .dialogue-topic {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text);
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    min-width: 8rem;
+  }
+  .dialogue-topic::placeholder,
+  .dialogue-date::placeholder { color: var(--text-dim); }
+  .dialogue-tags {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 9rem;
+  }
+  .dialogue-del {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 0.3rem;
+    transition: color 0.15s;
+    margin-left: auto;
+  }
+  .dialogue-del:hover { color: var(--red); }
+  .dialogue-body { padding: 0.6rem 0.8rem; }
+  .dialogue-content {
+    width: 100%;
+    min-height: 100px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.65;
+    padding: 0;
+    resize: vertical;
+    outline: none;
+  }
+  .dialogue-content::placeholder { color: var(--text-dim); font-style: italic; }
+  .dialogue-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--border);
+  }
+  .dialogue-wc {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+  }
+  .dialogue-signal {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .signal-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .signal-btn:hover, .signal-btn.active { color: var(--amber); border-color: rgba(255,179,0,0.5); background: rgba(255,179,0,0.06); }
+  .signal-btn.active-biais { color: var(--red); border-color: rgba(255,59,92,0.4); background: rgba(255,59,92,0.06); }
+  .signal-btn.active-decision { color: var(--green); border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.06); }
+
+  #toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    background: var(--bg3);
+    border: 1px solid var(--cyan-dim);
+    color: var(--cyan);
+    padding: 0.6rem 1.2rem;
+    border-radius: 2px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(0,229,255,0.15);
+  }
+
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── MODAL EXPORT ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--cyan-dim);
+    border-radius: 3px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 60px rgba(0,229,255,0.1);
+  }
+
+  .modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .modal-title {
+    font-family: var(--font-head);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    flex: 1;
+  }
+
+  .modal-body {
+    flex: 1;
+    overflow: auto;
+    padding: 1.2rem 1.5rem;
+  }
+
+  .modal-body pre {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+  }
+
+  .modal-footer {
+    padding: 0.8rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    transition: width 0.4s ease;
+  }
+
+  .completion-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-align: right;
+    padding: 0.3rem 0 0;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="tag-line">// Fichier de contexte personnel — v1.0</span>
+      <h1>CONSCIENCE<br><span>CORE</span> CONTEXT</h1>
+    </div>
+    <div class="header-meta">
+      <span><span class="status-dot"></span>AUTOSAVE ACTIF</span>
+      <span id="last-saved">—</span>
+      <span id="completion-display">0 / 0 sections remplies</span>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <span class="toolbar-label">// ACTIONS</span>
+  <span class="save-indicator" id="save-indicator">✓ SAUVEGARDÉ</span>
+  <button class="btn btn-cyan" onclick="exportPrompt()">⬡ Export Prompt</button>
+  <button class="btn btn-amber" onclick="exportJSON()">⬡ Export JSON</button>
+  <button class="btn btn-red" onclick="clearAll()">⬡ Reset</button>
+  <div style="width:1px;height:1.2rem;background:var(--border);margin:0 0.25rem;"></div>
+  <button class="btn btn-green" onclick="exportEncrypted()">⬡ Export Chiffré</button>
+  <button class="btn btn-green-dim" onclick="triggerImport()">⬡ Importer</button>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importEncrypted(this)">
+</div>
+
+<main id="main-content">
+
+  <!-- PROGRESSION -->
+  <div style="padding: 0.2rem 0 0.5rem;">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="completion-label" id="completion-label">Taux de complétion : 0%</div>
+  </div>
+
+  <!-- ── SECTION 1 : IDENTITÉ ── -->
+  <div class="section" data-accent="cyan" data-id="identite">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Identité & ancrage</span>
+      <span class="section-id">NODE_01</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Qui tu es, ton background, ta formation, ton métier, ton pays. Le socle stable que l'IA utilise pour contextualiser tout le reste.</p>
+      <div class="field-group">
+        <div>
+          <div class="field-label">Prénom / identifiant</div>
+          <textarea rows="2" placeholder="Ex : Guillaume, 30-40 ans, France…" data-key="identite_nom" oninput="handleInput(this)"></textarea>
+        </div>
+        <div>
+          <div class="field-label">Métier actuel</div>
+          <textarea rows="2" placeholder="Ex : Dessinateur industriel, 10 ans d'expérience…" data-key="identite_metier" oninput="handleInput(this)"></textarea>
+        </div>
+      </div>
+      <div class="field-label">Biographie synthétique</div>
+      <textarea rows="5" placeholder="Formation, parcours, ce qui t'a amené là où tu es. Pas un CV — une trajectoire." data-key="identite_bio" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-identite_bio">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2 : MODÈLES MENTAUX ── -->
+  <div class="section" data-accent="cyan" data-id="mental">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Modèles mentaux & façon de penser</span>
+      <span class="section-id">NODE_02</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Comment tu structures un problème. Tes heuristiques naturelles. L'IA doit modéliser ta cognition, pas juste tes faits.</p>
+      <div class="field-label">Approche par défaut face à un problème complexe</div>
+      <textarea rows="4" placeholder="Ex : je décompose d'abord en blocs, je cherche les analogies structurelles, je suis à l'aise avec l'incertitude mais pas avec le flou, etc." data-key="mental_approche" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ce que tu optimises naturellement (souvent sans t'en rendre compte)</div>
+      <textarea rows="3" placeholder="Ex : clarté, élégance de la solution, efficience énergétique personnelle…" data-key="mental_opti" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Cadres de référence favoris (si tu en as)</div>
+      <textarea rows="3" placeholder="Ex : first principles, design thinking, systémique, stoïcisme, etc." data-key="mental_cadres" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-mental_cadres">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3 : VALEURS & PRIORITÉS ── -->
+  <div class="section" data-accent="amber" data-id="valeurs">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Valeurs & priorités de vie</span>
+      <span class="section-id">NODE_03</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Ce qui dirige tes décisions à long terme. Pas ce que tu voudrais valoriser — ce que tu valorises réellement, même si c'est inconfortable à formuler.</p>
+      <div class="field-label">Valeurs non négociables</div>
+      <textarea rows="3" placeholder="Ex : autonomie, honnêteté, qualité du travail, indépendance financière…" data-key="valeurs_core" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ce que tu refuses systématiquement</div>
+      <textarea rows="3" placeholder="Ex : le bullshit, la pression sociale, l'urgence artificielle…" data-key="valeurs_refus" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ton rapport au risque et à l'incertitude</div>
+      <textarea rows="3" placeholder="Ex : tolérant à long terme, inconfortable à court terme, calcule beaucoup avant d'agir…" data-key="valeurs_risque" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-valeurs_risque">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4 : PROJETS ACTIFS ── -->
+  <div class="section" data-accent="green" data-id="projets">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Projets actifs</span>
+      <span class="section-id">NODE_04</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Ce sur quoi tu travailles. L'IA doit pouvoir reprendre n'importe quel projet sans briefing. Sois précis sur l'état d'avancement et les blocages.</p>
+      <div class="field-label">Projet professionnel principal</div>
+      <textarea rows="5" placeholder="Nom, objectif, état actuel, prochaine étape, blocage principal…" data-key="projets_pro" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Projet créatif / personnel</div>
+      <textarea rows="5" placeholder="Ex : saga SF, roman en cours — personnages, arc narratif, avancement, ce qui bloque…" data-key="projets_creatif" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Projet financier / long terme</div>
+      <textarea rows="4" placeholder="Objectifs passif, horizon, véhicules en place, prochaine action…" data-key="projets_finance" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Projets tech / hobby</div>
+      <textarea rows="3" placeholder="Ex : distribution Linux, setup, etc." data-key="projets_tech" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-projets_tech">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5 : DOMAINES DE COMPÉTENCE ── -->
+  <div class="section" data-accent="cyan" data-id="competences">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Domaines de compétence</span>
+      <span class="section-id">NODE_05</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Ce que tu maîtrises. L'IA doit savoir à quel niveau de profondeur elle peut aller sur chaque sujet sans t'expliquer les bases.</p>
+      <div class="field-group">
+        <div>
+          <div class="field-label">Maîtrise expert (ne pas ré-expliquer)</div>
+          <textarea rows="6" placeholder="Ex : dessin industriel, CAO, lecture de plans, normes ISO, mécanique générale…" data-key="competences_expert" oninput="handleInput(this)"></textarea>
+        </div>
+        <div>
+          <div class="field-label">Maîtrise intermédiaire (contexte apprécié)</div>
+          <textarea rows="6" placeholder="Ex : finance personnelle, rédaction technique, design thinking…" data-key="competences_inter" oninput="handleInput(this)"></textarea>
+        </div>
+      </div>
+      <div class="field-label">Zones en apprentissage actif</div>
+      <textarea rows="3" placeholder="Ex : Linux avancé, prompt engineering, investissement immobilier…" data-key="competences_appren" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-competences_appren">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 6 : ANGLES MORTS & BIAIS ── -->
+  <div class="section" data-accent="red" data-id="biais">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Angles morts & biais connus</span>
+      <span class="section-id">NODE_06</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">La section la plus utile pour une IA qui doit être un miroir critique. Sois honnête ici — c'est le nœud qui rend le reste exploitable.</p>
+      <div class="field-label">Tendances cognitives dont tu es conscient</div>
+      <textarea rows="4" placeholder="Ex : sur-analyse avant de décider, tendance au perfectionnisme, réticence au changement rapide, doute de soi récurrent…" data-key="biais_cognitifs" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Zones où tu as besoin qu'on te challenge</div>
+      <textarea rows="4" placeholder="Ex : je tends à rationaliser mes inactions, je confonds inconfort et danger, je sous-estime mes capacités…" data-key="biais_challenge" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Sujets sur lesquels tu es émotionnellement peu objectif</div>
+      <textarea rows="3" placeholder="Ex : mon rapport au travail, certaines décisions financières, etc." data-key="biais_emotion" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-biais_emotion">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 7 : STYLE DE COMMUNICATION ── -->
+  <div class="section" data-accent="amber" data-id="style">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Style de communication attendu</span>
+      <span class="section-id">NODE_07</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Comment l'IA doit s'adresser à toi. Ce que tu tolères, ce que tu ne supportes pas, ce qui est efficace pour toi.</p>
+      <div class="field-label">Ton préféré</div>
+      <textarea rows="3" placeholder="Ex : direct, sans rembourrage, humour sec bienvenu, pas de condescendance…" data-key="style_ton" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Format de réponse idéal</div>
+      <textarea rows="3" placeholder="Ex : sections claires, raisonnement visible, exemples concrets plutôt qu'abstractions, pas de listes à puces quand une phrase suffit…" data-key="style_format" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ce que tu n'aimes pas</div>
+      <textarea rows="3" placeholder="Ex : les paraphrases inutiles, l'excès de précautions verbales, les réponses qui noient l'essentiel…" data-key="style_pas" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Instructions spéciales / triggers</div>
+      <textarea rows="3" placeholder="Ex : si je dis 'traduis', donner uniquement le texte en anglais sans explication…" data-key="style_triggers" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-style_triggers">0 mots</span></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 8 : CONTEXTE SITUATIONNEL ── -->
+  <div class="section" data-accent="green" data-id="situation">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Contexte situationnel actuel</span>
+      <span class="section-id">NODE_08</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Ce qui est vrai maintenant, et qui ne sera peut-être plus vrai dans six mois. À mettre à jour régulièrement.</p>
+      <div class="field-label">Ce sur quoi tu es en train de trancher / décider</div>
+      <textarea rows="4" placeholder="Ex : reconversion professionnelle, changement de rythme de travail, stratégie d'investissement à revoir…" data-key="situation_decisions" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ce qui te prend de l'énergie inutilement en ce moment</div>
+      <textarea rows="3" placeholder="Ex : tâches ingrates au travail, frictions administratives, doutes récurrents sur X…" data-key="situation_energie" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ce que tu veux prioritairement construire dans les 6 prochains mois</div>
+      <textarea rows="4" placeholder="Sois précis. Une cible claire vaut mieux que cinq vagues intentions." data-key="situation_cible" oninput="handleInput(this)"></textarea>
+      <div class="field-footer">
+        <span class="word-count" id="wc-situation_cible">0 mots</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 10 : DIALOGUES PASSÉS ── -->
+  <div class="section" data-accent="amber" data-id="dialogues">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Traces de dialogues IA</span>
+      <span class="section-id">NODE_10</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">Extraits de conversations passées à valeur diagnostique — décisions, raisonnements, contradictions mises à jour. Ce corpus vaut plus que n'importe quelle déclaration.</p>
+      <div id="dialogues-list"></div>
+      <button class="btn btn-amber" onclick="addDialogue()" style="margin-top:0.5rem;">+ Ajouter un échange</button>
+      <div class="field-footer" style="margin-top:0.5rem;">
+        <span class="word-count" id="wc-dialogues">0 mots</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 9 : MÉTA — INSTRUCTIONS POUR L'IA ── -->
+  <div class="section" data-accent="cyan" data-id="meta">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-icon">◈</span>
+      <span class="section-title">Méta-instructions pour l'IA</span>
+      <span class="section-id">NODE_09</span>
+      <span class="section-toggle">▾</span>
+    </div>
+    <div class="section-body">
+      <p class="section-desc">La couche de contrôle. Ce fichier lui-même expliqué à l'IA — comment l'utiliser, ce qu'elle doit et ne doit pas en faire.</p>
+      <div class="field-label">Comment utiliser ce document</div>
+      <textarea rows="5" placeholder="Ex : ce fichier est mon contexte permanent. Utilise-le pour calibrer ton niveau de détail, ton ton, et comprendre d'où viennent mes questions. Ne le paraphrase pas, ne me le cite pas — agis simplement comme si tu le savais déjà." data-key="meta_usage" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Ce que tu attends de l'IA en général</div>
+      <textarea rows="4" placeholder="Ex : miroir de pensée, sparring partenaire intellectuel, exécutant sur demande — mais jamais un assistant complaisant." data-key="meta_role" oninput="handleInput(this)"></textarea>
+      <div class="field-label">Règles absolues (que l'IA ne doit jamais enfreindre)</div>
+      <textarea rows="3" placeholder="Ex : ne jamais me ménager si ma logique est bancale, ne jamais supposer que j'ai tort sans argument, toujours signaler les incohérences." data-key="meta_regles" oninput="handleInput(this)"></textarea>
+      <div class="field-footer"><span class="word-count" id="wc-meta_regles">0 mots</span></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>CONSCIENCE CORE // fichier local — non transmis</span>
+  <span id="footer-stats">0 mots au total</span>
+</footer>
+
+<div id="toast"></div>
+
+<!-- MODAL EXPORT -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">// EXPORT</span>
+      <button class="btn btn-red" onclick="closeModal()" style="padding:0.3rem 0.7rem;">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="modal-content"></pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cyan" onclick="copyModal()">⬡ Copier</button>
+      <button class="btn btn-amber" onclick="downloadModal()">⬡ Télécharger</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRYPTO MODAL -->
+<div class="crypto-modal-overlay" id="crypto-modal">
+  <div class="crypto-modal">
+    <div class="crypto-modal-title" id="crypto-modal-title">// EXPORT CHIFFRÉ</div>
+    <p id="crypto-modal-desc">Choisit un mot de passe fort. Sans lui, le fichier est irrécupérable.</p>
+    <input class="crypto-input" type="password" id="crypto-password"
+      placeholder="Mot de passe…" autocomplete="new-password"
+      oninput="evalStrength(this.value)" onkeydown="cryptoKeydown(event)">
+    <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+    <div class="strength-label" id="strength-label">—</div>
+    <div class="crypto-error" id="crypto-error"></div>
+    <div class="crypto-modal-actions">
+      <button class="btn btn-red" onclick="closeCryptoModal()">Annuler</button>
+      <button class="btn btn-green" id="crypto-confirm-btn" onclick="cryptoConfirm()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── DATA ──
+const STORAGE_KEY = 'conscience_v1';
+let saveTimer = null;
+let currentExportText = '';
+let currentExportFilename = '';
+
+const SECTIONS = [
+  'identite', 'mental', 'valeurs', 'projets',
+  'competences', 'biais', 'style', 'situation', 'meta'
+];
+
+// ── INIT ──
+function init() {
+  loadFromStorage();
+  updateAll();
+}
+
+// ── STORAGE ──
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    document.querySelectorAll('textarea[data-key]').forEach(ta => {
+      const val = data[ta.dataset.key];
+      if (val !== undefined) ta.value = val;
+    });
+    if (data._lastSaved) {
+      document.getElementById('last-saved').textContent =
+        'Sauvé le ' + new Date(data._lastSaved).toLocaleString('fr-FR', {
+          day:'2-digit', month:'2-digit', year:'numeric',
+          hour:'2-digit', minute:'2-digit'
+        });
+    }
+  } catch(e) { console.error('Load error:', e); }
+}
+
+function saveToStorage() {
+  const data = { _lastSaved: new Date().toISOString() };
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    data[ta.dataset.key] = ta.value;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const now = new Date().toLocaleString('fr-FR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+  document.getElementById('last-saved').textContent = 'Sauvé le ' + now;
+  const ind = document.getElementById('save-indicator');
+  ind.classList.add('visible');
+  setTimeout(() => ind.classList.remove('visible'), 2000);
+}
+
+// ── INPUT HANDLER ──
+function handleInput(ta) {
+  updateWordCount(ta);
+  updateProgress();
+  updateFooterStats();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToStorage, 800);
+}
+
+// ── WORD COUNTS ──
+function wordCount(str) {
+  return str.trim() === '' ? 0 : str.trim().split(/\s+/).length;
+}
+
+function updateWordCount(ta) {
+  const wcEl = document.getElementById('wc-' + ta.dataset.key);
+  if (wcEl) wcEl.textContent = wordCount(ta.value) + ' mots';
+}
+
+function updateAll() {
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    updateWordCount(ta);
+  });
+  updateProgress();
+  updateFooterStats();
+}
+
+// ── PROGRESS ──
+function updateProgress() {
+  const all = document.querySelectorAll('textarea[data-key]');
+  let filled = 0;
+  all.forEach(ta => { if (ta.value.trim().length > 10) filled++; });
+  const pct = Math.round((filled / all.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('completion-label').textContent =
+    'Taux de complétion : ' + pct + '%';
+  document.getElementById('completion-display').textContent =
+    filled + ' / ' + all.length + ' champs remplis';
+}
+
+function updateFooterStats() {
+  let total = 0;
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    total += wordCount(ta.value);
+  });
+  document.getElementById('footer-stats').textContent = total + ' mots au total';
+}
+
+// ── SECTION TOGGLE ──
+function toggleSection(header) {
+  const section = header.closest('.section');
+  section.classList.toggle('collapsed');
+}
+
+// ── EXPORT PROMPT ──
+function exportPrompt() {
+  const sections = {
+    'Identité & ancrage': ['identite_nom','identite_metier','identite_bio'],
+    'Modèles mentaux': ['mental_approche','mental_opti','mental_cadres'],
+    'Valeurs & priorités': ['valeurs_core','valeurs_refus','valeurs_risque'],
+    'Projets actifs': ['projets_pro','projets_creatif','projets_finance','projets_tech'],
+    'Compétences': ['competences_expert','competences_inter','competences_appren'],
+    'Angles morts & biais': ['biais_cognitifs','biais_challenge','biais_emotion'],
+    'Style de communication': ['style_ton','style_format','style_pas','style_triggers'],
+    'Contexte situationnel': ['situation_decisions','situation_energie','situation_cible'],
+    'Méta-instructions': ['meta_usage','meta_role','meta_regles'],
+  };
+
+  const labels = {
+    identite_nom: 'Identifiant', identite_metier: 'Métier', identite_bio: 'Bio',
+    mental_approche: 'Approche problèmes', mental_opti: 'Optimise naturellement', mental_cadres: 'Cadres de référence',
+    valeurs_core: 'Valeurs non négociables', valeurs_refus: 'Refus systématiques', valeurs_risque: 'Rapport au risque',
+    projets_pro: 'Projet pro', projets_creatif: 'Projet créatif', projets_finance: 'Projet financier', projets_tech: 'Projet tech',
+    competences_expert: 'Expert', competences_inter: 'Intermédiaire', competences_appren: 'En apprentissage',
+    biais_cognitifs: 'Tendances cognitives', biais_challenge: 'À challenger', biais_emotion: 'Zones émotionnelles',
+    style_ton: 'Ton', style_format: 'Format', style_pas: "Ce qu'il ne faut pas faire", style_triggers: 'Triggers spéciaux',
+    situation_decisions: 'Décisions en cours', situation_energie: 'Drains d\'énergie', situation_cible: 'Cible 6 mois',
+    meta_usage: 'Utilisation du document', meta_role: 'Rôle attendu', meta_regles: 'Règles absolues',
+  };
+
+  let out = '# CONTEXTE PERSONNEL — FICHIER DE CONSCIENCE\n';
+  out += '# Généré le ' + new Date().toLocaleDateString('fr-FR') + '\n\n';
+
+  for (const [title, keys] of Object.entries(sections)) {
+    let hasContent = keys.some(k => {
+      const ta = document.querySelector(`textarea[data-key="${k}"]`);
+      return ta && ta.value.trim().length > 0;
+    });
+    if (!hasContent) continue;
+    out += `## ${title}\n\n`;
+    keys.forEach(k => {
+      const ta = document.querySelector(`textarea[data-key="${k}"]`);
+      if (ta && ta.value.trim()) {
+        out += `### ${labels[k] || k}\n${ta.value.trim()}\n\n`;
+      }
+    });
+  }
+
+  currentExportText = out;
+  currentExportFilename = 'conscience_prompt_' + Date.now() + '.md';
+  document.getElementById('modal-title').textContent = '// EXPORT — PROMPT TEXTE';
+  document.getElementById('modal-content').textContent = out;
+  document.getElementById('modal').classList.add('open');
+}
+
+// ── EXPORT JSON ──
+function exportJSON() {
+  const data = {};
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    if (ta.value.trim()) data[ta.dataset.key] = ta.value.trim();
+  });
+  data._exported = new Date().toISOString();
+  const out = JSON.stringify(data, null, 2);
+  currentExportText = out;
+  currentExportFilename = 'conscience_' + Date.now() + '.json';
+  document.getElementById('modal-title').textContent = '// EXPORT — JSON';
+  document.getElementById('modal-content').textContent = out;
+  document.getElementById('modal').classList.add('open');
+}
+
+// ── MODAL ──
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function copyModal() {
+  navigator.clipboard.writeText(currentExportText).then(() => {
+    showToast('Copié dans le presse-papier');
+  });
+}
+
+function downloadModal() {
+  const blob = new Blob([currentExportText], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = currentExportFilename;
+  a.click();
+  showToast('Fichier téléchargé');
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── CLEAR ──
+function clearAll() {
+  if (!confirm('Effacer tout le contenu ? Cette action est irréversible.')) return;
+  document.querySelectorAll('textarea[data-key]').forEach(ta => ta.value = '');
+  localStorage.removeItem(STORAGE_KEY);
+  updateAll();
+  showToast('Contenu effacé');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveToStorage();
+    showToast('Sauvegardé');
+  }
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── CRYPTO ──
+let cryptoMode = null; // 'export' | 'import'
+let pendingImportData = null;
+
+const ALGO     = { name: 'AES-GCM', length: 256 };
+const KDF_ITER = 200_000;
+const FILE_TAG = 'CONSCIENCE_ENC_V1';
+
+function b64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function fromb64(s) {
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMat = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: KDF_ITER, hash: 'SHA-256' },
+    keyMat, ALGO, false, ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptData(password, plaintext) {
+  const salt = crypto.getRandomValues(new Uint8Array(32));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt);
+  const enc  = new TextEncoder();
+  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(plaintext));
+  return JSON.stringify({
+    _tag: FILE_TAG,
+    _algo: 'AES-GCM-256 / PBKDF2-SHA256 / 200k',
+    _date: new Date().toISOString(),
+    salt: b64(salt), iv: b64(iv), data: b64(ct)
+  });
+}
+
+async function decryptData(password, json) {
+  let parsed;
+  try { parsed = JSON.parse(json); } catch { throw new Error('Fichier JSON invalide'); }
+  if (parsed._tag !== FILE_TAG) throw new Error('Fichier non reconnu ou corrompu');
+  const salt = fromb64(parsed.salt);
+  const iv   = fromb64(parsed.iv);
+  const ct   = fromb64(parsed.data);
+  const key  = await deriveKey(password, salt);
+  let pt;
+  try {
+    pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  } catch {
+    throw new Error('Mot de passe incorrect ou fichier altéré');
+  }
+  return new TextDecoder().decode(pt);
+}
+
+// ── STRENGTH METER ──
+function evalStrength(pw) {
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 14) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const pct   = (score / 5) * 100;
+  const colors = ['#ff3b5c','#ff8c00','#ffb300','#7fff00','#00ff9d'];
+  const labels = ['Très faible','Faible','Moyen','Fort','Très fort'];
+  const fill   = document.getElementById('strength-fill');
+  const label  = document.getElementById('strength-label');
+  fill.style.width = pct + '%';
+  fill.style.background = colors[Math.max(0, score - 1)] || colors[0];
+  label.textContent = pw.length === 0 ? '—' : labels[Math.min(score, 4)];
+}
+
+// ── MODAL CONTROL ──
+function openCryptoModal(mode, desc) {
+  cryptoMode = mode;
+  document.getElementById('crypto-modal-title').textContent =
+    mode === 'export' ? '// EXPORT CHIFFRÉ' : '// IMPORTER & DÉCHIFFRER';
+  document.getElementById('crypto-modal-desc').textContent = desc;
+  document.getElementById('crypto-password').value = '';
+  document.getElementById('crypto-error').textContent = '';
+  document.getElementById('crypto-error').classList.remove('visible');
+  document.getElementById('strength-fill').style.width = '0%';
+  document.getElementById('strength-label').textContent = '—';
+  document.getElementById('crypto-modal').classList.add('open');
+  setTimeout(() => document.getElementById('crypto-password').focus(), 100);
+}
+
+function closeCryptoModal() {
+  document.getElementById('crypto-modal').classList.remove('open');
+  pendingImportData = null;
+  cryptoMode = null;
+}
+
+function setCryptoError(msg) {
+  const el = document.getElementById('crypto-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function cryptoKeydown(e) {
+  if (e.key === 'Enter') cryptoConfirm();
+  if (e.key === 'Escape') closeCryptoModal();
+}
+
+async function cryptoConfirm() {
+  const pw = document.getElementById('crypto-password').value;
+  if (!pw) { setCryptoError('Mot de passe requis.'); return; }
+
+  const btn = document.getElementById('crypto-confirm-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  try {
+    if (cryptoMode === 'export') {
+      await doEncryptedExport(pw);
+    } else if (cryptoMode === 'import') {
+      await doDecryptedImport(pw);
+    }
+    closeCryptoModal();
+  } catch(err) {
+    setCryptoError(err.message);
+  } finally {
+    btn.textContent = 'Confirmer';
+    btn.disabled = false;
+  }
+}
+
+// ── EXPORT CHIFFRÉ ──
+function exportEncrypted() {
+  openCryptoModal('export',
+    'Le fichier sera chiffré avec AES-256-GCM. Sans ce mot de passe, le contenu est irrécupérable — même pour toi.');
+}
+
+async function doEncryptedExport(password) {
+  const raw = {};
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    if (ta.value.trim()) raw[ta.dataset.key] = ta.value.trim();
+  });
+  raw._exported = new Date().toISOString();
+  const plaintext = JSON.stringify(raw, null, 2);
+  const encrypted = await encryptData(password, plaintext);
+  const blob = new Blob([encrypted], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'conscience_enc_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('Fichier chiffré téléchargé');
+}
+
+// ── IMPORT CHIFFRÉ ──
+function triggerImport() {
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-file').click();
+}
+
+function importEncrypted(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingImportData = e.target.result;
+    openCryptoModal('import',
+      `Fichier : ${file.name}\nSaisis le mot de passe pour déchiffrer et charger le contenu.`);
+  };
+  reader.readAsText(file);
+}
+
+async function doDecryptedImport(password) {
+  const plaintext = await decryptData(password, pendingImportData);
+  const data = JSON.parse(plaintext);
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    const val = data[ta.dataset.key];
+    if (val !== undefined) ta.value = val;
+    updateWordCount(ta);
+  });
+  saveToStorage();
+  updateAll();
+  showToast('Données importées et déchiffrées');
+}
+
+// ── DIALOGUES ──
+let dialogues = []; // [{id, date, topic, tags, content, signals:[]}]
+
+function genId() {
+  return 'dlg_' + Math.random().toString(36).slice(2, 9);
+}
+
+function addDialogue(data) {
+  const entry = data || {
+    id: genId(),
+    date: new Date().toISOString().slice(0, 10),
+    topic: '',
+    tags: '',
+    content: '',
+    signals: []
+  };
+  if (!data) dialogues.push(entry);
+  renderDialogue(entry);
+  scheduleSave();
+}
+
+function renderDialogue(entry) {
+  const list = document.getElementById('dialogues-list');
+  const el = document.createElement('div');
+  el.className = 'dialogue-entry';
+  el.dataset.id = entry.id;
+
+  const sigClass = s => {
+    const active = entry.signals.includes(s);
+    const cls = s === 'biais' ? 'active-biais' : s === 'décision' ? 'active-decision' : (active ? 'active' : '');
+    return `signal-btn ${active ? cls : ''}`;
+  };
+
+  el.innerHTML = `
+    <div class="dialogue-entry-header">
+      <input class="dialogue-date" type="date" value="${entry.date}" title="Date"
+        onchange="updateDialogueField('${entry.id}','date',this.value)">
+      <input class="dialogue-topic" type="text" value="${escHtml(entry.topic)}"
+        placeholder="Sujet / titre court…"
+        oninput="updateDialogueField('${entry.id}','topic',this.value)">
+      <input class="dialogue-tags" type="text" value="${escHtml(entry.tags)}"
+        placeholder="tags : finance, roman, pivot…"
+        oninput="updateDialogueField('${entry.id}','tags',this.value)">
+      <button class="dialogue-del" title="Supprimer" onclick="removeDialogue('${entry.id}')">✕</button>
+    </div>
+    <div class="dialogue-body">
+      <textarea class="dialogue-content" placeholder="Colle ici l'extrait de dialogue (format libre — [Moi] / [IA] ou brut). L'essentiel : ce que tu as dit, décidé, ou contredit." rows="6"
+        oninput="updateDialogueContent('${entry.id}',this)">${escHtml(entry.content)}</textarea>
+      <div class="dialogue-meta">
+        <span class="dialogue-wc" id="dwc-${entry.id}">0 mots</span>
+        <div class="dialogue-signal">
+          <span>Signal :</span>
+          <button class="${sigClass('biais')}" id="sig-biais-${entry.id}"
+            onclick="toggleSignal('${entry.id}','biais')">⬡ biais</button>
+          <button class="${sigClass('décision')}" id="sig-décision-${entry.id}"
+            onclick="toggleSignal('${entry.id}','décision')">⬡ décision</button>
+          <button class="${sigClass('contradiction')}" id="sig-contradiction-${entry.id}"
+            onclick="toggleSignal('${entry.id}','contradiction')">⬡ contradiction</button>
+        </div>
+      </div>
+    </div>`;
+
+  list.appendChild(el);
+  updateDialogueWC(entry.id, entry.content);
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updateDialogueField(id, field, val) {
+  const entry = dialogues.find(d => d.id === id);
+  if (entry) { entry[field] = val; scheduleSave(); }
+}
+
+function updateDialogueContent(id, ta) {
+  const entry = dialogues.find(d => d.id === id);
+  if (entry) { entry.content = ta.value; }
+  updateDialogueWC(id, ta.value);
+  updateFooterStats();
+  scheduleSave();
+}
+
+function updateDialogueWC(id, text) {
+  const el = document.getElementById('dwc-' + id);
+  if (el) el.textContent = wordCount(text || '') + ' mots';
+  updateGlobalDialogueWC();
+}
+
+function updateGlobalDialogueWC() {
+  const total = dialogues.reduce((n, d) => n + wordCount(d.content || ''), 0);
+  const el = document.getElementById('wc-dialogues');
+  if (el) el.textContent = total + ' mots — ' + dialogues.length + ' échange' + (dialogues.length > 1 ? 's' : '');
+}
+
+function toggleSignal(id, signal) {
+  const entry = dialogues.find(d => d.id === id);
+  if (!entry) return;
+  const idx = entry.signals.indexOf(signal);
+  if (idx === -1) entry.signals.push(signal); else entry.signals.splice(idx, 1);
+  const active = entry.signals.includes(signal);
+  const btn = document.getElementById(`sig-${signal}-${id}`);
+  if (btn) {
+    const cls = signal === 'biais' ? 'active-biais' : signal === 'décision' ? 'active-decision' : 'active';
+    btn.className = `signal-btn ${active ? cls : ''}`;
+  }
+  scheduleSave();
+}
+
+function removeDialogue(id) {
+  if (!confirm('Supprimer cet échange ?')) return;
+  dialogues = dialogues.filter(d => d.id !== id);
+  const el = document.querySelector(`.dialogue-entry[data-id="${id}"]`);
+  if (el) el.remove();
+  updateGlobalDialogueWC();
+  updateFooterStats();
+  scheduleSave();
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToStorage, 800);
+}
+
+// ── PATCH STORAGE TO INCLUDE DIALOGUES ──
+const _origSave = saveToStorage;
+saveToStorage = function() {
+  const data = { _lastSaved: new Date().toISOString(), _dialogues: dialogues };
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    data[ta.dataset.key] = ta.value;
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const now = new Date().toLocaleString('fr-FR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+  document.getElementById('last-saved').textContent = 'Sauvé le ' + now;
+  const ind = document.getElementById('save-indicator');
+  ind.classList.add('visible');
+  setTimeout(() => ind.classList.remove('visible'), 2000);
+};
+
+const _origLoad = loadFromStorage;
+loadFromStorage = function() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    document.querySelectorAll('textarea[data-key]').forEach(ta => {
+      const val = data[ta.dataset.key];
+      if (val !== undefined) ta.value = val;
+    });
+    if (data._lastSaved) {
+      document.getElementById('last-saved').textContent =
+        'Sauvé le ' + new Date(data._lastSaved).toLocaleString('fr-FR', {
+          day:'2-digit', month:'2-digit', year:'numeric',
+          hour:'2-digit', minute:'2-digit'
+        });
+    }
+    if (Array.isArray(data._dialogues)) {
+      data._dialogues.forEach(d => { dialogues.push(d); renderDialogue(d); });
+      updateGlobalDialogueWC();
+    }
+  } catch(e) { console.error('Load error:', e); }
+};
+
+// Patch encrypted import/export to carry dialogues
+const _origDecrypt = doDecryptedImport;
+doDecryptedImport = async function(password) {
+  const plaintext = await decryptData(password, pendingImportData);
+  const data = JSON.parse(plaintext);
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    const val = data[ta.dataset.key];
+    if (val !== undefined) ta.value = val;
+    updateWordCount(ta);
+  });
+  if (Array.isArray(data._dialogues)) {
+    dialogues = [];
+    document.getElementById('dialogues-list').innerHTML = '';
+    data._dialogues.forEach(d => { dialogues.push(d); renderDialogue(d); });
+    updateGlobalDialogueWC();
+  }
+  saveToStorage();
+  updateAll();
+  showToast('Données importées et déchiffrées');
+};
+
+// Patch encrypted export to include dialogues
+const _origEncExport = doEncryptedExport;
+doEncryptedExport = async function(password) {
+  const raw = { _dialogues: dialogues };
+  document.querySelectorAll('textarea[data-key]').forEach(ta => {
+    if (ta.value.trim()) raw[ta.dataset.key] = ta.value.trim();
+  });
+  raw._exported = new Date().toISOString();
+  const plaintext = JSON.stringify(raw, null, 2);
+  const encrypted = await encryptData(password, plaintext);
+  const blob = new Blob([encrypted], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'conscience_enc_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('Fichier chiffré téléchargé');
+};
+
+// Patch prompt export to include dialogues
+const _origExportPrompt = exportPrompt;
+exportPrompt = function() {
+  const sections = {
+    'Identité & ancrage': ['identite_nom','identite_metier','identite_bio'],
+    'Modèles mentaux': ['mental_approche','mental_opti','mental_cadres'],
+    'Valeurs & priorités': ['valeurs_core','valeurs_refus','valeurs_risque'],
+    'Projets actifs': ['projets_pro','projets_creatif','projets_finance','projets_tech'],
+    'Compétences': ['competences_expert','competences_inter','competences_appren'],
+    'Angles morts & biais': ['biais_cognitifs','biais_challenge','biais_emotion'],
+    'Style de communication': ['style_ton','style_format','style_pas','style_triggers'],
+    'Contexte situationnel': ['situation_decisions','situation_energie','situation_cible'],
+    'Méta-instructions': ['meta_usage','meta_role','meta_regles'],
+  };
+  const labels = {
+    identite_nom:'Identifiant',identite_metier:'Métier',identite_bio:'Bio',
+    mental_approche:'Approche problèmes',mental_opti:'Optimise naturellement',mental_cadres:'Cadres de référence',
+    valeurs_core:'Valeurs non négociables',valeurs_refus:'Refus systématiques',valeurs_risque:'Rapport au risque',
+    projets_pro:'Projet pro',projets_creatif:'Projet créatif',projets_finance:'Projet financier',projets_tech:'Projet tech',
+    competences_expert:'Expert',competences_inter:'Intermédiaire',competences_appren:'En apprentissage',
+    biais_cognitifs:'Tendances cognitives',biais_challenge:'À challenger',biais_emotion:'Zones émotionnelles',
+    style_ton:'Ton',style_format:'Format',style_pas:"Ce qu'il ne faut pas faire",style_triggers:'Triggers spéciaux',
+    situation_decisions:'Décisions en cours',situation_energie:"Drains d'énergie",situation_cible:'Cible 6 mois',
+    meta_usage:'Utilisation du document',meta_role:'Rôle attendu',meta_regles:'Règles absolues',
+  };
+  let out = '# CONTEXTE PERSONNEL — FICHIER DE CONSCIENCE\n# Généré le ' + new Date().toLocaleDateString('fr-FR') + '\n\n';
+  for (const [title, keys] of Object.entries(sections)) {
+    if (!keys.some(k => { const ta = document.querySelector(`textarea[data-key="${k}"]`); return ta && ta.value.trim(); })) continue;
+    out += `## ${title}\n\n`;
+    keys.forEach(k => { const ta = document.querySelector(`textarea[data-key="${k}"]`); if (ta && ta.value.trim()) out += `### ${labels[k]||k}\n${ta.value.trim()}\n\n`; });
+  }
+  if (dialogues.length) {
+    out += `## Traces de dialogues IA\n\n`;
+    dialogues.forEach((d, i) => {
+      const sigs = d.signals && d.signals.length ? ` [${d.signals.join(', ')}]` : '';
+      out += `### Échange ${i+1} — ${d.date || '?'} — ${d.topic || 'sans titre'}${sigs}\n`;
+      if (d.tags) out += `Tags : ${d.tags}\n`;
+      out += `${d.content || ''}\n\n`;
+    });
+  }
+  currentExportText = out;
+  currentExportFilename = 'conscience_prompt_' + Date.now() + '.md';
+  document.getElementById('modal-title').textContent = '// EXPORT — PROMPT TEXTE';
+  document.getElementById('modal-content').textContent = out;
+  document.getElementById('modal').classList.add('open');
+};
+
+// ── PATCH updateFooterStats for dialogues ──
+const _origStats = updateFooterStats;
+updateFooterStats = function() {
+  let total = 0;
+  document.querySelectorAll('textarea[data-key]').forEach(ta => { total += wordCount(ta.value); });
+  dialogues.forEach(d => { total += wordCount(d.content || ''); });
+  document.getElementById('footer-stats').textContent = total + ' mots au total';
+};
+
+// ── START ──
+
+
+init();
+</script>
+</body>
+</html>
