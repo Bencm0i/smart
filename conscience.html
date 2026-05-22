@@ -7,18 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #050810;
-    --bg2:       #080d18;
-    --bg3:       #0d1526;
-    --cyan:      #00e5ff;
-    --cyan-dim:  #007a8a;
-    --amber:     #ffb300;
-    --red:       #ff3b5c;
-    --green:     #00ff9d;
-    --text:      #c8d8e8;
-    --text-dim:  #556a80;
-    --border:    #1a2a3a;
-    --border-hl: #00e5ff44;
+    --bg:        #f5f0e8;
+    --bg2:       #ede8df;
+    --bg3:       #e4ddd2;
+    --cyan:      #c2410c;
+    --cyan-dim:  #9a3412;
+    --amber:     #b45309;
+    --red:       #dc2626;
+    --green:     #15803d;
+    --text:      #292524;
+    --text-dim:  #78716c;
+    --border:    #d4cabf;
+    --border-hl: #c2410c44;
     --font-mono: 'Share Tech Mono', monospace;
     --font-head: 'Syncopate', sans-serif;
     --font-body: 'Rajdhani', sans-serif;
@@ -38,23 +38,10 @@
     overflow-x: hidden;
   }
 
-  /* Scan lines overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,229,255,0.012) 2px,
-      rgba(0,229,255,0.012) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
+  /* Ambient glow — désactivé en thème clair */
+  body::before { display: none; }
 
-  /* Ambient glow */
+  /* Ambient warm tint */
   body::after {
     content: '';
     position: fixed;
@@ -63,7 +50,7 @@
     transform: translateX(-50%);
     width: 80vw;
     height: 60vh;
-    background: radial-gradient(ellipse, rgba(0,229,255,0.04) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(194,65,12,0.04) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
   }
@@ -73,7 +60,7 @@
     position: relative;
     padding: 3rem 2rem 2rem;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #060b16 0%, var(--bg) 100%);
+    background: linear-gradient(180deg, #ece5d8 0%, var(--bg) 100%);
     overflow: hidden;
   }
 
@@ -151,7 +138,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(5,8,16,0.92);
+    background: rgba(245,240,232,0.94);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 0.6rem 2rem;
@@ -341,7 +328,7 @@
 
   textarea:focus {
     border-color: var(--cyan-dim);
-    background: #0a1422;
+    background: #f0e9de;
   }
 
   .field-footer {
@@ -398,21 +385,21 @@
 
   .btn-green {
     color: var(--green);
-    border-color: rgba(0,255,157,0.4);
+    border-color: rgba(21,128,61,0.4);
   }
   .btn-green:hover {
-    background: rgba(0,255,157,0.08);
+    background: rgba(21,128,61,0.08);
     border-color: var(--green);
-    box-shadow: 0 0 12px rgba(0,255,157,0.2);
+    box-shadow: 0 0 12px rgba(21,128,61,0.15);
   }
 
   .btn-green-dim {
-    color: #5fffbe;
-    border-color: rgba(0,255,157,0.2);
+    color: #166534;
+    border-color: rgba(21,128,61,0.25);
   }
   .btn-green-dim:hover {
-    background: rgba(0,255,157,0.06);
-    border-color: rgba(0,255,157,0.5);
+    background: rgba(21,128,61,0.06);
+    border-color: rgba(21,128,61,0.5);
   }
 
   /* Selective export modal */
@@ -420,7 +407,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.88);
+    background: rgba(41,37,36,0.65);
     z-index: 550;
     align-items: center;
     justify-content: center;
@@ -456,9 +443,9 @@
   .sel-label strong { color: var(--text); font-weight: 600; display: block; font-size: 0.78rem; }
   .sel-label small { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-dim); }
   .sel-dlg-signal { font-family: var(--font-mono); font-size: 0.58rem; padding: 0.1rem 0.35rem; border-radius: 2px; margin-left: 0.3rem; }
-  .sig-biais { background: rgba(255,59,92,0.15); color: var(--red); }
-  .sig-décision { background: rgba(0,255,157,0.1); color: var(--green); }
-  .sig-contradiction { background: rgba(255,179,0,0.1); color: var(--amber); }
+  .sig-biais { background: rgba(220,38,38,0.1); color: #b91c1c; }
+  .sig-décision { background: rgba(21,128,61,0.1); color: #15803d; }
+  .sig-contradiction { background: rgba(180,83,9,0.1); color: #b45309; }
   .sel-modal-footer { padding: 0.8rem 1.5rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
   .sel-counter { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim); flex: 1; }
   .sel-quickbtns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
@@ -470,7 +457,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(41,37,36,0.7);
     z-index: 600;
     align-items: center;
     justify-content: center;
@@ -688,7 +675,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(41,37,36,0.6);
     z-index: 500;
     align-items: center;
     justify-content: center;
