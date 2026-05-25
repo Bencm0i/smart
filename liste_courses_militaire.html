@@ -439,6 +439,139 @@ body {
   flex-shrink: 0;
 }
 
+/* EDIT MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,8,0.82);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-hi);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 0 0 env(safe-area-inset-bottom, 0);
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border-hi);
+  border-radius: 2px;
+  margin: 10px auto 14px;
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--orange);
+  padding: 0 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-body { padding: 14px 16px; }
+.modal-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.modal-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-hi);
+  padding: 10px 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 14px;
+}
+.modal-input:focus { border-color: var(--olive); }
+.modal-row { display: flex; gap: 10px; margin-bottom: 14px; }
+.modal-qty {
+  width: 80px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--orange);
+  padding: 10px 8px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  text-align: center;
+  outline: none;
+}
+.modal-qty:focus { border-color: var(--orange); }
+.modal-prio-row { display: flex; gap: 6px; margin-bottom: 16px; }
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px 16px;
+  border-top: 1px solid var(--border);
+}
+.modal-cancel {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  color: var(--text-dim);
+  padding: 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.modal-cancel:hover { color: var(--text); }
+.modal-save {
+  flex: 2;
+  background: var(--olive);
+  border: none;
+  border-radius: 8px;
+  color: var(--beige-hi);
+  padding: 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.modal-save:hover { background: var(--olive-hi); }
+.modal-save:active { transform: scale(0.98); }
+
+/* Edit button on items */
+.item-edit-btn {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--beige-lo);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.item-edit-btn:hover { border-color: var(--orange); color: var(--orange-hi); background: var(--orange-lo); }
+
 /* Qty qty badge in add row */
 .qty-input {
   width: 52px;
@@ -579,6 +712,37 @@ body {
     </div>
   </div>
 
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ MODIFIER L'ARTICLE</div>
+    <div class="modal-body">
+      <div class="modal-label">TEXTE</div>
+      <input class="modal-input" id="edit-text" maxlength="100" />
+
+      <div class="modal-row">
+        <div style="flex:1">
+          <div class="modal-label">QUANTITÉ (optionnel)</div>
+          <input class="modal-qty" id="edit-qty" placeholder="—" maxlength="6" />
+        </div>
+        <div style="flex:1" id="edit-prio-block">
+          <div class="modal-label">PRIORITÉ</div>
+          <div class="modal-prio-row" style="margin-bottom:0">
+            <button class="prio-btn selected-high" id="eprio-high" onclick="setEditPrio('high')" style="flex:1;padding:8px 2px">▲</button>
+            <button class="prio-btn" id="eprio-med" onclick="setEditPrio('med')" style="flex:1;padding:8px 2px">●</button>
+            <button class="prio-btn" id="eprio-low" onclick="setEditPrio('low')" style="flex:1;padding:8px 2px">▽</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeEditModal()">ANNULER</button>
+      <button class="modal-save" onclick="saveEdit()">💾 ENREGISTRER</button>
+    </div>
+  </div>
 </div>
 
 <!-- UNDO TOAST -->
@@ -738,9 +902,12 @@ function renderList(listId) {
         ${listId === 2 && item.prio ? `<div class="item-priority p-${item.prio}"></div>` : ''}
         <div class="item-text">${escHtml(item.text)}</div>
         ${item.qty ? `<div class="item-qty">×${item.qty}</div>` : ''}
+        <div class="item-edit-btn" title="Modifier">✏️</div>
       </div>
     `;
     const itemEl = wrapper.querySelector('.item');
+    const editBtn = wrapper.querySelector('.item-edit-btn');
+    editBtn.addEventListener('click', e => { e.stopPropagation(); openEditModal(listId, item.id); });
     itemEl.addEventListener('click', () => toggleItem(listId, item.id));
     setupSwipe(wrapper, itemEl, listId, item.id);
     container.appendChild(wrapper);
@@ -922,6 +1089,72 @@ function renderKpi() {
     </div>
   `;
 }
+
+let editContext = null; // { listId, itemId }
+let editPrio = 'med';
+
+function openEditModal(listId, itemId) {
+  const item = LISTS[listId].items.find(i => i.id === itemId);
+  if (!item) return;
+  editContext = { listId, itemId };
+  editPrio = item.prio || 'med';
+
+  document.getElementById('edit-text').value = item.text;
+  document.getElementById('edit-qty').value = item.qty || '';
+
+  // show/hide priority block
+  const prioBlock = document.getElementById('edit-prio-block');
+  prioBlock.style.display = listId === 2 ? 'block' : 'none';
+
+  if (listId === 2) {
+    ['high','med','low'].forEach(x => {
+      const btn = document.getElementById('eprio-' + x);
+      btn.className = 'prio-btn' + (x === editPrio ? ' selected-' + x : '');
+    });
+  }
+
+  document.getElementById('edit-modal').classList.add('open');
+  setTimeout(() => document.getElementById('edit-text').focus(), 100);
+}
+
+function closeEditModal(e) {
+  if (e && e.target !== document.getElementById('edit-modal')) return;
+  document.getElementById('edit-modal').classList.remove('open');
+  editContext = null;
+}
+
+function setEditPrio(p) {
+  editPrio = p;
+  ['high','med','low'].forEach(x => {
+    const btn = document.getElementById('eprio-' + x);
+    btn.className = 'prio-btn' + (x === p ? ' selected-' + x : '');
+  });
+}
+
+function saveEdit() {
+  if (!editContext) return;
+  const { listId, itemId } = editContext;
+  const item = LISTS[listId].items.find(i => i.id === itemId);
+  if (!item) return;
+
+  const newText = document.getElementById('edit-text').value.trim();
+  const newQty = document.getElementById('edit-qty').value.trim();
+  if (!newText) return;
+
+  item.text = newText;
+  item.qty = newQty || null;
+  if (listId === 2) item.prio = editPrio;
+
+  save(listId);
+  renderList(listId);
+  document.getElementById('edit-modal').classList.remove('open');
+  editContext = null;
+}
+
+// close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { document.getElementById('edit-modal').classList.remove('open'); editContext = null; }
+});
 
 function switchTab(idx) {
   currentTab = idx;
