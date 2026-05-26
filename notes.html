@@ -163,6 +163,7 @@
   <div class="topbar">
     <div class="app-name">Buffer</div>
     <div class="meta">
+      <button id="kbd-toggle" onclick="toggleKbd()" style="font-family:var(--font-mono);font-size:11px;background:none;border:1px solid var(--line);color:var(--mid);padding:2px 7px;cursor:pointer;letter-spacing:0.5px;border-radius:2px;">123</button>
       <span id="char-count">0c</span>
       <div class="unsaved-dot" id="dot"></div>
     </div>
@@ -241,6 +242,18 @@
   function updateMeta() {
     const n = ta.value.length;
     cc.textContent = n > 999 ? (n/1000).toFixed(1)+'k' : n+'c';
+  }
+
+  // ── Keyboard toggle ──
+  let kbdMode = 'numeric';
+  function toggleKbd() {
+    kbdMode = kbdMode === 'numeric' ? 'text' : 'numeric';
+    ta.inputMode = kbdMode;
+    const btn = document.getElementById('kbd-toggle');
+    btn.textContent = kbdMode === 'numeric' ? '123' : 'ABC';
+    btn.style.color = kbdMode === 'numeric' ? 'var(--mid)' : 'var(--acc)';
+    ta.blur();
+    setTimeout(() => ta.focus(), 50);
   }
 
   // ── Actions ──
