@@ -782,8 +782,122 @@ body {
   font-size: 10px;
   color: var(--beige-lo);
   flex-shrink: 0;
+  background: var(--bg-input);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
 }
-.due-badge.overdue { color: var(--danger); }
+.due-badge.overdue {
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+  animation: badgePulse 1.5s infinite;
+}
+.due-badge.due-soon {
+  color: var(--orange-hi);
+  border-color: var(--orange);
+}
+
+/* Due date alarm (same style as urgent alarm) */
+.alarm-overlay-due {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(60, 30, 0, 0.6);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  animation: alarmFadeBg 0.3s ease;
+}
+.alarm-overlay-due.open { display: flex; }
+
+.alarm-box-due {
+  background: #1a0f00;
+  border: 2px solid var(--orange);
+  border-radius: 14px;
+  width: calc(100% - 40px);
+  max-width: 400px;
+  overflow: hidden;
+  animation: alarmPop 0.25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow: 0 0 40px rgba(212,114,42,0.5);
+}
+.alarm-header-due {
+  background: var(--orange-lo);
+  border-bottom: 2px solid var(--orange);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: duePulse 1.2s infinite;
+}
+@keyframes duePulse {
+  0%, 100% { background: #8a4618; }
+  50%       { background: #a05020; }
+}
+.alarm-item-due-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffd8a0;
+  line-height: 1.4;
+}
+.alarm-item-due-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--orange-hi);
+  background: var(--orange-lo);
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.alarm-btn-due-dismiss {
+  flex: 1;
+  background: var(--orange-lo);
+  border: 1px solid var(--orange);
+  border-radius: 8px;
+  color: var(--orange-hi);
+  padding: 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s;
+}
+.alarm-btn-due-dismiss:hover { background: var(--orange); color: #fff; }
+.alarm-btn-due-goto {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--orange);
+  border-radius: 8px;
+  color: var(--orange-hi);
+  padding: 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+.alarm-btn-due-goto:hover { background: rgba(212,114,42,.2); }
+
+/* Modal due date input */
+.modal-due {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--orange-hi);
+  padding: 10px 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 14px;
+  color-scheme: dark;
+}
+.modal-due:focus { border-color: var(--orange); }
 </style>
 </head>
 <body>
@@ -890,6 +1004,10 @@ body {
           </div>
         </div>
       </div>
+      <div id="edit-due-block" style="display:none">
+        <div class="modal-label">⏰ DATE D'ÉCHÉANCE (optionnel)</div>
+        <input class="modal-due" id="edit-due" type="date" />
+      </div>
     </div>
     <div class="modal-footer">
       <button class="modal-cancel" onclick="closeEditModal()">ANNULER</button>
@@ -910,6 +1028,22 @@ body {
     <div class="alarm-footer">
       <button class="alarm-btn-goto" onclick="alarmGoto()">📋 VOIR TODO</button>
       <button class="alarm-btn-dismiss" onclick="alarmDismiss()">✓ COMPRIS</button>
+    </div>
+  </div>
+</div>
+
+<!-- DUE DATE ALARM POPUP -->
+<div class="alarm-overlay-due" id="alarm-due-overlay">
+  <div class="alarm-box-due">
+    <div class="alarm-header-due">
+      <div class="alarm-header-icon">⏰</div>
+      <div class="alarm-header-title" style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#ffd8a0;flex:1">ÉCHÉANCES DÉPASSÉES</div>
+      <div class="alarm-header-count" id="alarm-due-count" style="font-family:'Share Tech Mono',monospace;font-size:22px;font-weight:bold;color:#ffd8a0;background:rgba(0,0,0,0.25);width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center">0</div>
+    </div>
+    <div class="alarm-body" id="alarm-due-body" style="padding:14px 16px;max-height:50vh;overflow-y:auto"></div>
+    <div class="alarm-footer" style="padding:12px 16px;border-top:1px solid #3a2000;display:flex;gap:8px">
+      <button class="alarm-btn-due-goto" onclick="alarmDueGoto()">📋 VOIR TODO</button>
+      <button class="alarm-btn-due-dismiss" onclick="alarmDueDismiss()">✓ COMPRIS</button>
     </div>
   </div>
 </div>
@@ -1072,6 +1206,14 @@ function renderList(listId) {
         ${listId === 2 && item.prio ? `<div class="item-priority p-${item.prio}"></div>` : ''}
         <div class="item-text">${escHtml(item.text)}</div>
         ${item.qty ? `<div class="item-qty">×${item.qty}</div>` : ''}
+        ${listId === 2 && item.due && !item.done ? (() => {
+          const today = new Date(); today.setHours(0,0,0,0);
+          const d = new Date(item.due + 'T00:00:00');
+          const diff = Math.round((d - today) / 86400000);
+          const label = diff < 0 ? `EXPIRÉ ${Math.abs(diff)}j` : diff === 0 ? 'AUJOURD\'HUI' : `J-${diff}`;
+          const cls = diff < 0 ? 'overdue' : diff <= 2 ? 'due-soon' : '';
+          return `<div class="due-badge ${cls}">⏰${label}</div>`;
+        })() : ''}
         <div class="item-edit-btn" title="Modifier">✏️</div>
       </div>
     `;
@@ -1311,6 +1453,13 @@ function openEditModal(listId, itemId) {
   const prioBlock = document.getElementById('edit-prio-block');
   prioBlock.style.display = listId === 2 ? 'block' : 'none';
 
+  // show/hide due date block
+  const dueBlock = document.getElementById('edit-due-block');
+  dueBlock.style.display = listId === 2 ? 'block' : 'none';
+  if (listId === 2) {
+    document.getElementById('edit-due').value = item.due || '';
+  }
+
   if (listId === 2) {
     ['high','med','low'].forEach(x => {
       const btn = document.getElementById('eprio-' + x);
@@ -1348,7 +1497,10 @@ function saveEdit() {
 
   item.text = newText;
   item.qty = newQty || null;
-  if (listId === 2) item.prio = editPrio;
+  if (listId === 2) {
+    item.prio = editPrio;
+    item.due = document.getElementById('edit-due').value || null;
+  }
 
   save(listId);
   renderList(listId);
@@ -1412,6 +1564,46 @@ function alarmGoto() {
   switchTab(2);
 }
 
+// ─── ALARME ÉCHÉANCE ─────────────────────────────────────
+function getOverduePending() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return LISTS[2].items.filter(i => {
+    if (i.done || !i.due) return false;
+    const d = new Date(i.due + 'T00:00:00');
+    return d <= today;
+  });
+}
+
+function checkDueAlarm() {
+  const overdues = getOverduePending();
+  if (overdues.length === 0) return;
+  document.getElementById('alarm-due-count').textContent = overdues.length;
+  document.getElementById('alarm-due-body').innerHTML = overdues.map(item => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const d = new Date(item.due + 'T00:00:00');
+    const diff = Math.round((d - today) / 86400000);
+    const dateLabel = diff === 0 ? "AUJOURD'HUI" : `IL Y A ${Math.abs(diff)} JOUR${Math.abs(diff)>1?'S':''}`;
+    return `
+      <div class="alarm-item">
+        <div class="alarm-item-dot" style="background:var(--orange)"></div>
+        <div class="alarm-item-due-text">${escHtml(item.text)}</div>
+        <div class="alarm-item-due-date">${dateLabel}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('alarm-due-overlay').classList.add('open');
+  if (navigator.vibrate) navigator.vibrate([80, 60, 80, 60, 150]);
+}
+
+function alarmDueDismiss() {
+  document.getElementById('alarm-due-overlay').classList.remove('open');
+}
+
+function alarmDueGoto() {
+  document.getElementById('alarm-due-overlay').classList.remove('open');
+  switchTab(2);
+}
+
 // Enter key
 [0, 1, 2].forEach(id => {
   document.getElementById('input-' + id).addEventListener('keydown', e => {
@@ -1424,6 +1616,7 @@ load();
 [0, 1, 2].forEach(id => renderList(id));
 updateUrgentBadge();
 setTimeout(checkAlarm, 600);
+setTimeout(checkDueAlarm, 1400);
 </script>
 </body>
 </html>
