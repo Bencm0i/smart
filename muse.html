@@ -601,16 +601,34 @@ function setupAudioContext(){
 }
 
 function startViz(){
+  analyser.smoothingTimeConstant=0.75;
   const data=new Uint8Array(analyser.frequencyBinCount);
+  let smooth=0;
   function draw(){
     requestAnimationFrame(draw);
     analyser.getByteFrequencyData(data);
+
+    // Spectre horizontal
     const step=Math.floor(data.length/specBars.length);
-    specBars.forEach((b,i)=>{const h=Math.max(3,(data[i*step]||0)/255*22);b.style.height=h+'px';b.style.animationPlayState='paused';});
+    specBars.forEach((b,i)=>{b.style.height=Math.max(3,(data[i*step]||0)/255*22)+'px';b.style.animationPlayState='paused';});
+
+    // Spectre latéral
     const stepH=Math.floor(data.length/specBarsH.length);
-    specBarsH.forEach((b,i)=>{const w=Math.max(4,(data[i*stepH]||0)/255*28);b.style.width=w+'px';b.style.animationPlayState='paused';});
-    const avg=data.slice(0,20).reduce((s,v)=>s+v,0)/20;
-    updateVU('vuL',avg); updateVU('vuR',avg+(Math.random()-.5)*15);
+    specBarsH.forEach((b,i)=>{b.style.width=Math.max(4,(data[i*stepH]||0)/255*28)+'px';b.style.animationPlayState='paused';});
+
+    // Niveau global (basses)
+    const bass=data.slice(0,16).reduce((s,v)=>s+v,0)/16;
+    smooth=smooth*0.6+bass*0.4;
+
+    // VU-mètres
+    updateVU('vuL',smooth);
+    updateVU('vuR',smooth*0.9+data.slice(16,32).reduce((s,v)=>s+v,0)/16*0.1);
+
+    // Vitesse animation haut-parleurs selon le niveau
+    if(isPlaying){
+      const spd=Math.max(0.06,0.28-smooth/255*0.22);
+      document.querySelectorAll('.mr,.dc').forEach(el=>el.style.setProperty('--ms',spd.toFixed(3)+'s'));
+    }
   }
   draw();
 }
@@ -618,11 +636,10 @@ function startViz(){
 function updateVU(id,avg){
   const segs=document.querySelectorAll(`#${id} .vu-seg`);
   segs.forEach((s,i)=>{
-    const threshold=((segs.length-1-i)/segs.length)*200;
+    const threshold=(i/segs.length)*90;
     const active=avg>threshold;
     s.style.opacity=active?'1':'.15';
-    s.style.height=active?(5+i*1.5)+'px':'3px';
-    s.style.animationPlayState='paused';
+    s.style.height=active?(4+i*1.2)+'px':'3px';
   });
 }
 
@@ -688,6 +705,8 @@ function selectTrack(i){
 function playAudio(){
   setupAudioContext();
   if(audioCtx.state==='suspended')audioCtx.resume();
+  // Si la src n'est plus chargée (après stop complet), recharger
+  if(audio.readyState===0&&current>=0)audio.src=tracks[current].url;
   audio.play().then(()=>{
     isPlaying=true; updatePlayBtn(); setAnim(true);
     document.getElementById('modeDisp').textContent='PLAY';
@@ -701,7 +720,7 @@ function pauseAudio(){
   document.getElementById('statusTxt').textContent='PAUSE';
 }
 function stopAudio(){
-  audio.pause(); audio.currentTime=0; isPlaying=false; updatePlayBtn(); setAnim(false);
+  audio.pause(); audio.currentTime=0; audio.src=''; isPlaying=false; updatePlayBtn(); setAnim(false);
   document.getElementById('modeDisp').textContent='STOP';
   document.getElementById('statusTxt').textContent='STOP';
   document.getElementById('bigTime').textContent='00:00';
@@ -748,7 +767,7 @@ pb.addEventListener('touchend',()=>sd=false);
 document.getElementById('btnPlay').addEventListener('click',()=>{
   if(!tracks.length){document.getElementById('fileInput').click();return;}
   if(current===-1){selectTrack(0);return;}
-  isPlaying?pauseAudio():playAudio();
+  if(isPlaying){pauseAudio();}else{playAudio();}
 });
 document.getElementById('btnStop').addEventListener('click',stopAudio);
 document.getElementById('btnPrev').addEventListener('click',()=>{
