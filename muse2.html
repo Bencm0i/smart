@@ -420,32 +420,35 @@ input[type=range]::-moz-range-thumb { width:13px; height:13px; background:radial
       <div class="prog-times"><span id="timeEl">0:00</span><span id="timeRem">-0:00</span></div>
     </div>
 
-    <div class="controls-row">
-      <div class="controls">
-        <button class="btn btn-shuf" id="btnShuf">⇄</button>
-        <button class="btn btn-sm"   id="btnPrev">⏮</button>
-        <button class="btn btn-sm"   id="btnStop">⏹</button>
-        <button class="btn btn-pl"   id="btnPlay">▶</button>
-        <button class="btn btn-sm"   id="btnNext">⏭</button>
-        <button class="btn btn-rep"  id="btnRep">↺</button>
-      </div>
-      <div class="sep"></div>
-      <div class="track-center">
-        <div>
-          <div class="track-num-big" id="trackNum">00</div>
-          <div class="track-num-total">/ <span id="trackTotal">00</span></div>
+    <div class="controls-row" style="flex-direction:column;gap:5px;padding:5px 8px;">
+      <div style="display:flex;align-items:center;gap:8px;width:100%;">
+        <div class="controls">
+          <button class="btn btn-shuf" id="btnShuf">⇄</button>
+          <button class="btn btn-sm"   id="btnPrev">⏮</button>
+          <button class="btn btn-sm"   id="btnStop">⏹</button>
+          <button class="btn btn-pl"   id="btnPlay">▶</button>
+          <button class="btn btn-sm"   id="btnNext">⏭</button>
+          <button class="btn btn-rep"  id="btnRep">↺</button>
         </div>
-        <div class="mode-disp" id="modeDisp">STOP</div>
-      </div>
-      <div class="sep"></div>
-      <div class="sliders-inline">
-        <div class="sl-group">
-          <div class="sl-row"><div class="sl-lbl">VOLUME</div><div class="sl-val" id="volVal">80%</div></div>
-          <input type="range" id="volSlider" min="0" max="100" value="80">
+        <div class="sep"></div>
+        <div class="track-center">
+          <div>
+            <div class="track-num-big" id="trackNum">00</div>
+            <div class="track-num-total">/ <span id="trackTotal">00</span></div>
+          </div>
+          <div class="mode-disp" id="modeDisp">STOP</div>
         </div>
-        <div class="sl-group">
-          <div class="sl-row"><div class="sl-lbl">BALANCE</div><div class="sl-val" id="balVal">C</div></div>
-          <input type="range" id="balSlider" min="-1" max="1" step="0.05" value="0">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;width:100%;">
+        <div class="sliders-inline" style="flex:1;">
+          <div class="sl-group">
+            <div class="sl-row"><div class="sl-lbl">VOLUME</div><div class="sl-val" id="volVal">80%</div></div>
+            <input type="range" id="volSlider" min="0" max="100" value="80">
+          </div>
+          <div class="sl-group">
+            <div class="sl-row"><div class="sl-lbl">BALANCE</div><div class="sl-val" id="balVal">C</div></div>
+            <input type="range" id="balSlider" min="-1" max="1" step="0.05" value="0">
+          </div>
         </div>
       </div>
     </div>
