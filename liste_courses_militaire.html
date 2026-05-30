@@ -1285,6 +1285,9 @@ function setupSwipe(wrapper, itemEl, listId, itemId) {
   const main = document.querySelector('.main');
   let tx = 0, ty = 0, decided = false, isTabSwipe = false;
   main.addEventListener('touchstart', e => {
+    // swipe d'onglet uniquement si le touch démarre sur la barre d'ajout
+    const onAddForm = e.target.closest('.add-form, .priority-row, .hint');
+    if (!onAddForm) { decided = true; isTabSwipe = false; return; }
     tx = e.touches[0].clientX;
     ty = e.touches[0].clientY;
     decided = false; isTabSwipe = false;
