@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Droits de succession</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f0b;
+    --surface: #161810;
+    --surface2: #1e2118;
+    --border: #2e3328;
+    --border2: #3d4435;
+    --olive: #6b7a3e;
+    --olive-light: #8a9e4f;
+    --khaki: #b5a96a;
+    --rust: #c45c2e;
+    --rust-light: #e06b38;
+    --text: #d4d8c8;
+    --text-muted: #7a8068;
+    --text-dim: #4a5040;
+    --green-ok: #4e9e5f;
+    --red-bad: #c44040;
+    --amber: #c48a2e;
+    --mono: 'Share Tech Mono', monospace;
+    --cond: 'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
+  body {
+    font-family: var(--cond);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-icon {
+    width: 36px; height: 36px;
+    background: var(--rust);
+    display: flex; align-items: center; justify-content: center;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .header-title { font-size: 18px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text); }
+  .header-sub { font-size: 11px; color: var(--text-muted); letter-spacing: .08em; font-family: var(--mono); margin-top: 1px; }
+
+  /* Sections */
+  .section {
+    margin: 12px 12px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .section-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--olive-light);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .section-body { padding: 14px; }
+
+  /* Slider */
+  .param-row { margin-bottom: 16px; }
+  .param-row:last-child { margin-bottom: 0; }
+  .param-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .param-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--khaki);
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border2);
+    border-radius: 0;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    background: var(--rust);
+    border: 2px solid var(--rust-light);
+    border-radius: 0;
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    background: var(--rust);
+    border: 2px solid var(--rust-light);
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .range-limits {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Select */
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--cond);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 12px;
+    border-radius: 2px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a3e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  /* Enfants buttons */
+  .nb-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .nb-btn {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text-muted);
+    font-family: var(--cond);
+    font-size: 18px;
+    font-weight: 700;
+    padding: 10px 0;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .nb-btn.active {
+    background: var(--rust);
+    border-color: var(--rust-light);
+    color: #fff;
+  }
+
+  /* Metrics grid */
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 12px 12px 0;
+  }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 12px 10px;
+    border-radius: 2px;
+  }
+  .metric.full { grid-column: 1/-1; }
+  .metric.accent-red { border-left: 3px solid var(--red-bad); }
+  .metric.accent-green { border-left: 3px solid var(--green-ok); }
+  .metric.accent-amber { border-left: 3px solid var(--amber); }
+  .metric.accent-olive { border-left: 3px solid var(--olive-light); }
+  .metric-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-family: var(--mono);
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text);
+  }
+  .metric.accent-red .metric-value { color: #e06060; }
+  .metric.accent-green .metric-value { color: #5ec47a; }
+  .metric.accent-amber .metric-value { color: var(--khaki); }
+  .metric-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: var(--mono);
+  }
+
+  /* Progress bar */
+  .taux-bar-wrap { margin-top: 8px; }
+  .taux-bar-bg {
+    height: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .taux-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-ok), var(--amber), var(--red-bad));
+    transition: width 0.4s ease;
+  }
+
+  /* Tranches table */
+  .tranches { margin: 12px 12px 0; }
+  .tranche-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  .tranche-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tranche-range { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: .03em; }
+  .tranche-tag {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 2px 10px;
+    border-radius: 2px;
+    font-weight: 400;
+  }
+  .tag-low { background: #1a2e1e; color: var(--green-ok); border: 1px solid #2a4a2e; }
+  .tag-mid { background: #2e2318; color: var(--khaki); border: 1px solid #4a3820; }
+  .tag-high { background: #2e1818; color: #e06060; border: 1px solid #4a2020; }
+  .tranche-bottom {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .tranche-col { flex: 1; }
+  .tranche-col-label { font-size: 10px; color: var(--text-dim); letter-spacing: .08em; text-transform: uppercase; font-family: var(--mono); }
+  .tranche-col-val { font-family: var(--mono); font-size: 14px; color: var(--text); margin-top: 2px; }
+  .tranche-bar-wrap { padding: 0 12px 10px; }
+  .tranche-bar-bg { height: 3px; background: var(--surface2); border: 1px solid var(--border); }
+  .tranche-bar-fill { height: 3px; background: var(--olive-light); transition: width 0.4s; }
+
+  /* Barème */
+  .bareme-grid { display: flex; flex-direction: column; gap: 4px; }
+  .bareme-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 10px;
+    background: var(--surface2);
+    border-left: 2px solid var(--border2);
+    font-size: 13px;
+  }
+  .bareme-row.active-row { border-left-color: var(--rust); background: #1e1510; }
+  .bareme-range { color: var(--text-muted); flex: 1; }
+  .bareme-taux { font-family: var(--mono); font-size: 13px; color: var(--khaki); min-width: 40px; text-align: right; }
+  .bareme-row.active-row .bareme-range { color: var(--text); }
+  .bareme-row.active-row .bareme-taux { color: var(--rust-light); }
+
+  /* Exo card */
+  .exo-card {
+    background: #0f1e12;
+    border: 1px solid #2a4a2e;
+    border-radius: 2px;
+    padding: 20px;
+    text-align: center;
+    margin: 8px 0;
+  }
+  .exo-card .exo-icon { font-size: 28px; margin-bottom: 8px; }
+  .exo-card .exo-text { font-size: 15px; color: var(--green-ok); font-weight: 600; letter-spacing: .05em; }
+  .exo-card .exo-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: var(--mono); }
+
+  /* Footer note */
+  .footer-note {
+    margin: 16px 12px 0;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--olive);
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    line-height: 1.6;
+  }
+
+  /* Table 50k */
+  .t50 { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
+  .t50 thead tr { background: var(--surface2); border-bottom: 1px solid var(--border2); }
+  .t50 th { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: .08em; text-transform: uppercase; padding: 7px 8px; text-align: right; font-weight: 400; }
+  .t50 th:first-child { text-align: left; }
+  .t50 td { padding: 7px 8px; border-bottom: 1px solid var(--border); text-align: right; font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+  .t50 td:first-child { text-align: left; color: var(--text); font-size: 13px; }
+  .t50 tr.t50-zero td { color: var(--text-dim); }
+  .t50 tr.t50-active { background: #1e1510; }
+  .t50 tr.t50-active td { color: var(--text); }
+  .t50 tr.t50-active td.t50-droits { color: #e06060; }
+  .t50 tr.t50-active td.t50-taux { color: var(--khaki); }
+  .t50 tr.t50-active td:first-child { color: var(--rust-light); font-weight: 600; }
+  .t50 td.t50-droits { color: #c06060; }
+  .t50 td.t50-taux { color: var(--olive-light); }
+  .t50-marker { display: inline-block; width: 6px; height: 6px; background: var(--rust); margin-right: 5px; vertical-align: middle; }
+
+  .sep { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; }
+  .sep-line { flex: 1; height: 1px; background: var(--border); }
+  .sep-text { font-size: 10px; color: var(--text-dim); font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #1e1510;
+    border: 1px solid #3a2820;
+    border-left: 3px solid var(--rust);
+    margin-top: 8px;
+    border-radius: 2px;
+  }
+  .total-line-label { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; font-family: var(--mono); }
+  .total-line-val { font-family: var(--mono); font-size: 16px; color: #e06060; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">⚖</div>
+  <div>
+    <div class="header-title">Succession</div>
+    <div class="header-sub">SIMULATEUR DROITS // FRANCE 2025</div>
+  </div>
+</div>
+
+<!-- PARAMÈTRES -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-label">// PARAM — actif &amp; héritiers</div>
+  </div>
+  <div class="section-body">
+    <div class="param-row">
+      <div class="param-label">
+        <span>Actif successoral brut</span>
+        <span class="param-value" id="valActif">500 000 €</span>
+      </div>
+      <input type="range" id="sliderActif" min="0" max="3000000" step="10000" value="500000">
+      <div class="range-limits"><span>0 €</span><span>3 000 000 €</span></div>
+    </div>
+
+    <div class="param-row">
+      <div class="param-label">
+        <span>Dettes / passif</span>
+        <span class="param-value" id="valDettes">0 €</span>
+      </div>
+      <input type="range" id="sliderDettes" min="0" max="500000" step="5000" value="0">
+      <div class="range-limits"><span>0 €</span><span>500 000 €</span></div>
+    </div>
+
+    <div class="param-row" style="margin-bottom:0">
+      <div class="param-label"><span>Lien de parenté</span></div>
+      <select id="selectLien">
+        <option value="enfant">Enfants — ligne directe</option>
+        <option value="conjoint">Conjoint / partenaire PACS</option>
+        <option value="frere">Frères &amp; sœurs</option>
+        <option value="neveu">Neveux / nièces</option>
+        <option value="autre">Tiers / autres</option>
+      </select>
+    </div>
+
+    <div id="rowEnfants">
+      <div class="sep"><div class="sep-line"></div><span class="sep-text" id="nbLabel">nombre d'héritiers</span><div class="sep-line"></div></div>
+      <div class="nb-row" id="nbBtns">
+        <button class="nb-btn" data-n="1">1</button>
+        <button class="nb-btn active" data-n="2">2</button>
+        <button class="nb-btn" data-n="3">3</button>
+        <button class="nb-btn" data-n="4">4</button>
+        <button class="nb-btn" data-n="5">5</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARTE PRINCIPALE PAR HÉRITIER -->
+<div style="margin:12px 12px 0">
+  <div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--rust);border-radius:2px;padding:16px 14px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--rust-light);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px">// RÉSULTAT PAR HÉRITIER</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Part brute reçue</div>
+        <div style="font-family:var(--mono);font-size:22px;color:var(--text)" id="mPart">—</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Abattement légal</div>
+        <div style="font-family:var(--mono);font-size:22px;color:var(--green-ok)" id="mAbattH">—</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:#c06060;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">⚠ Impôts à payer</div>
+        <div style="font-family:var(--mono);font-size:26px;color:#e06060;font-weight:400" id="mDroitsH">—</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:2px" id="mTauxH">—</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--olive-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">✓ Net encaissé</div>
+        <div style="font-family:var(--mono);font-size:26px;color:var(--green-ok)" id="mNetH">—</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);margin-top:2px" id="mNetPct">—</div>
+      </div>
+    </div>
+    <div class="taux-bar-wrap" style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:4px">
+        <span>0 %</span><span id="tauxLabel">taux effectif</span><span>50 %</span>
+      </div>
+      <div class="taux-bar-bg"><div class="taux-bar-fill" id="tauxBar" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MÉTRIQUES secondaires -->
+<div class="metrics" style="margin-top:8px">
+  <div class="metric accent-olive">
+    <div class="metric-label">Actif net taxable</div>
+    <div class="metric-value" id="mActifNet">—</div>
+  </div>
+  <div class="metric accent-red">
+    <div class="metric-label">Droits totaux</div>
+    <div class="metric-value" id="mImpot">—</div>
+    <div class="metric-sub" id="mImpotSub">—</div>
+  </div>
+  <div class="metric accent-green">
+    <div class="metric-label">Abattement total</div>
+    <div class="metric-value" id="mAbatt">—</div>
+    <div class="metric-sub" id="mAbattSub">—</div>
+  </div>
+  <div class="metric accent-amber">
+    <div class="metric-label">Base imposable</div>
+    <div class="metric-value" id="mBase">—</div>
+    <div class="metric-sub">/ héritier</div>
+  </div>
+</div>
+
+<!-- TRANCHES -->
+<div class="tranches">
+  <div class="section-header" style="margin:0 0 8px;background:var(--surface);border:1px solid var(--border);padding:8px 14px">
+    <div class="section-label">// DETAIL — tranches d'imposition / héritier</div>
+  </div>
+  <div id="trancheContainer"></div>
+</div>
+
+<!-- BARÈME -->
+<div class="section" style="margin-top:12px">
+  <div class="section-header">
+    <div class="section-label" id="baremeTitle">// BARÈME applicable</div>
+  </div>
+  <div class="section-body" style="padding:10px 12px">
+    <div class="bareme-grid" id="baremeGrid"></div>
+  </div>
+</div>
+
+<!-- TABLE RÉCAP 50k€ -->
+<div class="section" style="margin-top:12px" id="sectionTable50">
+  <div class="section-header">
+    <div class="section-label">// DROITS PAR HÉRITIER — pas de 50 000 €</div>
+  </div>
+  <div class="section-body" style="padding:10px 12px 4px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">
+      Abattement 100 000 € par enfant — renouvelable tous les 15 ans (donations comprises)
+    </div>
+    <div id="table50container"></div>
+  </div>
+</div>
+
+<div class="footer-note">
+  ⚠ Simulation indicative — barème 2025. Ne tient pas compte des donations antérieures, de l'assurance-vie (art. 990-I/757-B), du démembrement de propriété, ni des réductions locales. Consultez un notaire pour un calcul définitif.
+</div>
+
+<script>
+const BAREMES = {
+  enfant: {
+    label: 'ENFANTS — LIGNE DIRECTE',
+    abattement: 100000,
+    tranches: [
+      { max: 8072,    taux: 0.05 },
+      { max: 12109,   taux: 0.10 },
+      { max: 15932,   taux: 0.15 },
+      { max: 552324,  taux: 0.20 },
+      { max: 902838,  taux: 0.30 },
+      { max: 1805677, taux: 0.45 },
+      { max: Infinity,taux: 0.45 },
+    ],
+  },
+  conjoint: {
+    label: 'CONJOINT / PACS',
+    abattement: 999999999,
+    tranches: [],
+    exonere: true,
+  },
+  frere: {
+    label: 'FRÈRES & SŒURS',
+    abattement: 15932,
+    tranches: [
+      { max: 24430,   taux: 0.35 },
+      { max: Infinity,taux: 0.45 },
+    ],
+  },
+  neveu: {
+    label: 'NEVEUX / NIÈCES',
+    abattement: 7967,
+    tranches: [
+      { max: Infinity, taux: 0.55 },
+    ],
+  },
+  autre: {
+    label: 'TIERS / AUTRES',
+    abattement: 1594,
+    tranches: [
+      { max: Infinity, taux: 0.60 },
+    ],
+  },
+};
+
+function fmt(n) {
+  return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(n));
+}
+
+function calcDroitsEnfant(part) {
+  const abatt = Math.min(100000, part);
+  const base = Math.max(0, part - abatt);
+  if (base === 0) return { droits: 0, taux: 0 };
+  const tranches = BAREMES.enfant.tranches;
+  let rem = base, total = 0, prev = 0;
+  for (const t of tranches) {
+    if (rem <= 0) break;
+    const span = t.max === Infinity ? rem : Math.min(rem, t.max - prev);
+    total += Math.max(0, span) * t.taux;
+    rem -= Math.max(0, span);
+    prev = t.max;
+  }
+  return { droits: total, taux: total / part };
+}
+
+function renderTable50(currentPart) {
+  const cont = document.getElementById('table50container');
+  const steps = [50000,100000,150000,200000,250000,300000,350000,400000,500000,600000,750000,1000000,1500000,2000000];
+  let html = `<table class="t50"><thead><tr><th>Part reçue</th><th>Droits</th><th>Taux eff.</th><th>Net reçu</th></tr></thead><tbody>`;
+  for (const p of steps) {
+    const { droits, taux } = calcDroitsEnfant(p);
+    const isActive = currentPart > 0 && Math.abs(p - Math.round(currentPart/50000)*50000) < 25001 && Math.round(currentPart/50000)*50000 === p;
+    const isZero = droits === 0;
+    const rowClass = isActive ? 't50-active' : isZero ? 't50-zero' : '';
+    const marker = isActive ? '<span class="t50-marker"></span>' : '';
+    html += `<tr class="${rowClass}">
+      <td>${marker}${fmt(p)}</td>
+      <td class="t50-droits">${isZero ? '—' : fmt(droits)}</td>
+      <td class="t50-taux">${isZero ? '0 %' : (taux*100).toFixed(1)+' %'}</td>
+      <td>${fmt(p - droits)}</td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+  cont.innerHTML = html;
+}
+
+
+function calcDroits(base, tranches) {
+  let rem = base, total = 0, detail = [], prev = 0;
+  for (const t of tranches) {
+    if (rem <= 0) break;
+    const span = t.max === Infinity ? rem : Math.min(rem, t.max - prev);
+    const taxed = Math.max(0, span);
+    detail.push({ prev, max: t.max, taux: t.taux, taxed, droits: taxed * t.taux });
+    total += taxed * t.taux;
+    rem -= taxed;
+    prev = t.max;
+  }
+  return { total, detail };
+}
+
+function render() {
+  const actifBrut = +document.getElementById('sliderActif').value;
+  const dettes    = +document.getElementById('sliderDettes').value;
+  const lien      = document.getElementById('selectLien').value;
+  const nbEnf = +(document.querySelector('.nb-btn.active')?.dataset.n || 2);
+  const nbH   = nbEnf;
+
+  document.getElementById('valActif').textContent  = fmt(actifBrut);
+  document.getElementById('valDettes').textContent = fmt(dettes);
+
+  const b = BAREMES[lien];
+  const actifNet = Math.max(0, actifBrut - dettes);
+  const part     = actifNet / nbH;
+  const abatt    = Math.min(b.abattement, part);
+  const base     = Math.max(0, part - abatt);
+
+  document.getElementById('mActifNet').textContent = fmt(actifNet);
+  document.getElementById('mPart').textContent     = fmt(part);
+  document.getElementById('mAbattH').textContent   = fmt(abatt);
+  document.getElementById('mAbatt').textContent    = fmt(abatt * nbH);
+  document.getElementById('mAbattSub').textContent = nbH > 1 ? `${fmt(abatt)} × ${nbH}` : `/ héritier`;
+  document.getElementById('mBase').textContent     = fmt(base);
+
+  let droitsH = 0, detail = [];
+  if (!b.exonere && base > 0) {
+    const r = calcDroits(base, b.tranches);
+    droitsH  = r.total;
+    detail   = r.detail;
+  }
+  const droitsTotal = droitsH * nbH;
+  const taux = actifNet > 0 ? droitsTotal / actifNet : 0;
+  const netH = part - droitsH;
+
+  document.getElementById('mImpot').textContent    = fmt(droitsTotal);
+  document.getElementById('mImpotSub').textContent = nbH > 1 ? `${fmt(droitsH)} × ${nbH} héritiers` : '';
+  document.getElementById('mDroitsH').textContent  = b.exonere ? '0 €' : fmt(droitsH);
+  document.getElementById('mTauxH').textContent    = b.exonere ? 'Exonération totale' : `Taux effectif : ${(taux*100).toFixed(1)} %`;
+  document.getElementById('mNetH').textContent     = fmt(netH);
+  document.getElementById('mNetPct').textContent   = part > 0 ? `${((netH/part)*100).toFixed(1)} % de la part reçue` : '';
+  document.getElementById('tauxLabel').textContent = `→ ${(taux*100).toFixed(1)} % taux effectif`;
+  document.getElementById('tauxBar').style.width   = Math.min(100, taux*200).toFixed(1) + '%';
+
+  // Tranches
+  const cont = document.getElementById('trancheContainer');
+  cont.innerHTML = '';
+  if (b.exonere) {
+    cont.innerHTML = `<div class="exo-card"><div class="exo-icon">✓</div><div class="exo-text">Exonération totale</div><div class="exo-sub">Loi TEPA 2007 — aucun droit à payer</div></div>`;
+  } else if (base === 0) {
+    cont.innerHTML = `<div class="exo-card"><div class="exo-icon">◎</div><div class="exo-text">Base imposable nulle</div><div class="exo-sub">L'abattement couvre la totalité de la part</div></div>`;
+  } else {
+    for (const d of detail) {
+      if (d.taxed <= 0) continue;
+      const pct = base > 0 ? Math.round(d.taxed/base*100) : 0;
+      const tclass = d.taux <= 0.15 ? 'tag-low' : d.taux <= 0.30 ? 'tag-mid' : 'tag-high';
+      const rangeStr = d.max === Infinity
+        ? `> ${fmt(d.prev)}`
+        : d.prev === 0 ? `≤ ${fmt(d.max)}` : `${fmt(d.prev+1)} → ${fmt(d.max)}`;
+      cont.innerHTML += `
+      <div class="tranche-item">
+        <div class="tranche-top">
+          <div class="tranche-range">${rangeStr}</div>
+          <div class="tranche-tag ${tclass}">${Math.round(d.taux*100)} %</div>
+        </div>
+        <div class="tranche-bottom">
+          <div class="tranche-col">
+            <div class="tranche-col-label">Montant taxé</div>
+            <div class="tranche-col-val">${fmt(d.taxed)}</div>
+          </div>
+          <div class="tranche-col" style="text-align:right">
+            <div class="tranche-col-label">Droits</div>
+            <div class="tranche-col-val" style="color:#e06060">${fmt(d.droits)}</div>
+          </div>
+        </div>
+        <div class="tranche-bar-wrap">
+          <div class="tranche-bar-bg"><div class="tranche-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+    }
+    if (detail.some(d => d.taxed > 0)) {
+      cont.innerHTML += `
+      <div class="total-line">
+        <div class="total-line-label">${nbH > 1 ? `Total × ${nbH} héritiers` : 'Total héritier'}</div>
+        <div class="total-line-val">${fmt(droitsTotal)}</div>
+      </div>`;
+    }
+  }
+
+  // Table 50k€ (enfants uniquement)
+  const sec50 = document.getElementById('sectionTable50');
+  if (lien === 'enfant') {
+    sec50.style.display = '';
+    renderTable50(part);
+  } else {
+    sec50.style.display = 'none';
+  }
+
+  // Barème référence
+  document.getElementById('baremeTitle').textContent = `// BARÈME — ${b.label}`;
+  const grid = document.getElementById('baremeGrid');
+  grid.innerHTML = '';
+
+  if (b.exonere) {
+    grid.innerHTML = `<div class="bareme-row active-row"><span class="bareme-range">Exonération totale (conjoint / PACS)</span><span class="bareme-taux">0 %</span></div>`;
+  } else {
+    grid.innerHTML = `<div class="bareme-row" style="border-left-color:var(--olive);background:#141e10;margin-bottom:4px">
+      <span class="bareme-range" style="color:var(--olive-light)">Abattement</span>
+      <span class="bareme-taux" style="color:var(--green-ok)">${fmt(b.abattement)}</span>
+    </div>`;
+    let prev = 0;
+    for (const t of b.tranches) {
+      const isActive = base > 0 && detail.some(d => d.taux === t.taux && d.taxed > 0);
+      const rangeStr = t.max === Infinity
+        ? `Au-delà de ${fmt(prev)}`
+        : prev === 0 ? `Jusqu'à ${fmt(t.max)}` : `De ${fmt(prev+1)} à ${fmt(t.max)}`;
+      grid.innerHTML += `<div class="bareme-row ${isActive ? 'active-row' : ''}">
+        <span class="bareme-range">${rangeStr}</span>
+        <span class="bareme-taux">${Math.round(t.taux*100)} %</span>
+      </div>`;
+      prev = t.max;
+    }
+  }
+}
+
+document.getElementById('sliderActif').addEventListener('input', render);
+document.getElementById('sliderDettes').addEventListener('input', render);
+document.getElementById('selectLien').addEventListener('change', () => {
+  const lien = document.getElementById('selectLien').value;
+  const labels = { enfant:'nombre d\'enfants', conjoint:'nombre de conjoints', frere:'nombre de frères/sœurs', neveu:'nombre de neveux/nièces', autre:'nombre d\'héritiers' };
+  document.getElementById('nbLabel').textContent = labels[lien] || 'nombre d\'héritiers';
+  render();
+});
+document.querySelectorAll('.nb-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.nb-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
