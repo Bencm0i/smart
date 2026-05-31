@@ -8,57 +8,152 @@
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;}
 #w{position:relative;width:100%;height:100vh;min-height:600px;}
-canvas{display:block;width:100%;height:100%;}
-#planet-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+canvas{position:absolute;top:0;left:0;display:block;width:100%;height:100%;}
+#c{z-index:1;}
+#planet-overlay{z-index:2;pointer-events:none;}
+#aurora-canvas{z-index:3;pointer-events:none;}
+#ui{position:absolute;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none;}
+
+/* START SCREEN */
+#start{position:absolute;top:0;left:0;width:100%;height:100%;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;transition:opacity 1.5s;}
+#start h1{font-family:monospace;font-size:14px;color:rgba(255,220,120,.9);letter-spacing:6px;text-align:center;line-height:2.5;text-shadow:0 0 30px rgba(255,200,80,.4);}
+#speed-chooser{display:flex;flex-direction:column;align-items:center;gap:14px;}
+#speed-chooser span{font-family:monospace;font-size:9px;color:rgba(255,255,255,.3);letter-spacing:3px;}
+#speed-btns{display:flex;gap:12px;}
+.spbtn{font-family:monospace;font-size:10px;color:rgba(255,200,80,.6);border:1px solid rgba(255,200,80,.25);background:transparent;padding:10px 18px;border-radius:20px;cursor:pointer;letter-spacing:2px;pointer-events:all;transition:all .3s;}
+.spbtn:hover,.spbtn.active{color:rgba(255,220,120,1);border-color:rgba(255,200,80,.7);background:rgba(255,200,80,.08);}
+#launch-btn{font-family:monospace;font-size:11px;color:rgba(180,220,255,.8);border:1px solid rgba(180,220,255,.3);background:transparent;padding:12px 36px;border-radius:24px;cursor:pointer;letter-spacing:3px;pointer-events:all;transition:all .4s;}
+#launch-btn:hover{color:#fff;border-color:rgba(180,220,255,.8);background:rgba(180,220,255,.08);}
+
+/* WAKE SCREEN */
+#wake{position:absolute;top:0;left:0;width:100%;height:100%;z-index:200;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity 3s;}
+#wake p{font-family:monospace;font-size:12px;color:rgba(180,220,255,.8);letter-spacing:4px;text-align:center;line-height:2.5;}
+#wake-restart{font-family:monospace;font-size:10px;color:rgba(255,200,80,.5);border:1px solid rgba(255,200,80,.2);background:transparent;padding:10px 24px;border-radius:20px;cursor:pointer;letter-spacing:3px;pointer-events:all;margin-top:20px;}
+
+/* MSG */
 #msg{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);width:85%;font-family:monospace;font-size:13px;color:rgba(255,220,120,.85);letter-spacing:2px;text-align:center;pointer-events:none;opacity:0;transition:opacity 1.5s;line-height:2.2;text-shadow:0 0 18px rgba(255,200,80,.5);}
-#bot{position:absolute;bottom:0;left:0;right:0;padding:16px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+
+/* JOURNAL */
+#journal{position:absolute;bottom:90px;left:18px;right:18px;pointer-events:none;}
+.jentry{font-family:monospace;font-size:9px;color:rgba(150,200,255,.0);letter-spacing:1.5px;line-height:2;text-align:left;transition:color 3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jentry.visible{color:rgba(150,200,255,.45);}
+.jts{color:rgba(255,200,80,.25);margin-right:8px;}
+
+/* HUD */
+#bot{position:absolute;bottom:0;left:0;right:0;padding:14px 20px 18px;display:flex;flex-direction:column;align-items:center;gap:7px;}
 #pinfo{font-family:monospace;font-size:11px;color:rgba(255,200,80,.65);letter-spacing:2px;text-align:center;min-height:16px;}
 #pbar{width:70%;max-width:260px;height:1px;background:rgba(255,255,255,.07);}
 #pfill{height:100%;background:rgba(255,200,80,.45);width:0%;transition:width 1s;}
-#tleft{font-family:monospace;font-size:9px;color:rgba(255,255,255,.13);letter-spacing:2px;}
-#snd{position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:7px 20px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);border-radius:24px;font-family:monospace;font-size:11px;color:rgba(255,255,255,.35);cursor:pointer;letter-spacing:2px;}
+#tleft{font-family:monospace;font-size:9px;color:rgba(255,255,255,.15);letter-spacing:2px;}
+
+#snd{position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:7px 20px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);border-radius:24px;font-family:monospace;font-size:11px;color:rgba(255,255,255,.35);cursor:pointer;letter-spacing:2px;pointer-events:all;}
 #dist{position:absolute;top:14px;left:14px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.13);letter-spacing:1px;line-height:2;white-space:pre;}
+#eta{position:absolute;top:14px;right:14px;font-family:monospace;font-size:9px;color:rgba(255,255,255,.13);letter-spacing:1px;line-height:2;text-align:right;}
 </style>
 </head>
 <body>
 <div id="w">
-<canvas id="c"></canvas>
-<canvas id="planet-overlay"></canvas>
-<div id="msg"></div>
-<div id="snd">♪ SON</div>
-<div id="dist"></div>
-<div id="bot">
-  <div id="pinfo"></div>
-  <div id="pbar"><div id="pfill"></div></div>
-  <div id="tleft"></div>
-</div>
+  <canvas id="c"></canvas>
+  <canvas id="planet-overlay"></canvas>
+  <canvas id="aurora-canvas"></canvas>
+  <div id="ui">
+    <div id="msg"></div>
+    <div id="snd">♪ SON</div>
+    <div id="dist"></div>
+    <div id="eta"></div>
+    <div id="journal"></div>
+    <div id="bot">
+      <div id="pinfo"></div>
+      <div id="pbar"><div id="pfill"></div></div>
+      <div id="tleft"></div>
+    </div>
+  </div>
+  <div id="start">
+    <h1>SPACE DRIFT<br>TERRE → NEPTUNE</h1>
+    <div id="speed-chooser">
+      <span>DURÉE DU VOYAGE</span>
+      <div id="speed-btns">
+        <button class="spbtn active" data-min="10">10 MIN</button>
+        <button class="spbtn" data-min="20">20 MIN</button>
+        <button class="spbtn" data-min="45">45 MIN</button>
+      </div>
+    </div>
+    <button id="launch-btn">LANCER LE VOYAGE</button>
+  </div>
+  <div id="wake">
+    <p>NEPTUNE<br>ATTEINTE<br><br>30.1 UA · 4.5 MILLIARDS KM<br>BEAU VOYAGE</p>
+    <button id="wake-restart">↺ RECOMMENCER</button>
+  </div>
 </div>
 <script>
+// ── ELEMENTS ──
 const wrap=document.getElementById('w');
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 const pCanvas=document.getElementById('planet-overlay');
 const pCtx=pCanvas.getContext('2d');
+const aCanvas=document.getElementById('aurora-canvas');
+const aCtx=aCanvas.getContext('2d');
 const msgEl=document.getElementById('msg');
 const pinfo=document.getElementById('pinfo');
 const pfill=document.getElementById('pfill');
 const tleft=document.getElementById('tleft');
 const sndBtn=document.getElementById('snd');
 const distEl=document.getElementById('dist');
+const etaEl=document.getElementById('eta');
+const journalEl=document.getElementById('journal');
+const startScreen=document.getElementById('start');
+const wakeScreen=document.getElementById('wake');
 
+// ── SIZE ──
 function setSize(){
   const W=wrap.clientWidth,H=Math.max(window.innerHeight,600);
   wrap.style.height=H+'px';
-  canvas.width=W;canvas.height=H;
-  pCanvas.width=W;pCanvas.height=H;
+  [canvas,pCanvas,aCanvas].forEach(c=>{c.width=W;c.height=H;});
 }
 setSize();
 window.addEventListener('resize',setSize);
 
-const VOYAGE_MS=20*60*1000;
-const startTime=Date.now();
+// ── STATE ──
+let VOYAGE_MS=20*60*1000;
+let startTime=null;
+let running=false;
+let wakeShown=false;
+
+// Speed chooser
+document.querySelectorAll('.spbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.spbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    VOYAGE_MS=parseInt(btn.dataset.min)*60*1000;
+  });
+});
+
+// Launch
+document.getElementById('launch-btn').addEventListener('click',()=>{
+  startTime=Date.now();
+  running=true;
+  startScreen.style.opacity='0';
+  setTimeout(()=>startScreen.style.display='none',1600);
+  if(musicOn) resumeAudio();
+});
+
+// Wake restart
+document.getElementById('wake-restart').addEventListener('click',()=>{
+  wakeScreen.style.opacity='0';
+  setTimeout(()=>{
+    wakeScreen.style.display='none';
+    wakeShown=false;
+    shown.clear();
+    journalEl.innerHTML='';
+    journalLog=[];
+    startTime=Date.now();
+    running=true;
+  },1000);
+});
 
 function getProgress(){
+  if(!startTime)return 0;
   const t=Math.min((Date.now()-startTime)/VOYAGE_MS,1);
   if(t<0.05)return t*t*4;
   if(t>0.95)return 1-(1-t)*(1-t)*4;
@@ -66,15 +161,17 @@ function getProgress(){
 }
 function getShipAU(){return 1+getProgress()*29.1;}
 
+// ── PLANETS ──
 const PL=[
-  {name:'TERRE',   au:1,    col:'#4a9eff',atm:'#1a50a0',ring:false,bands:false,desc:'DÉPART · BONNE NUIT',ringCol:''},
-  {name:'MARS',    au:1.52, col:'#e05020',atm:'#701808',ring:false,bands:false,desc:'MARS · DÉSERT ROUGE',ringCol:''},
-  {name:'JUPITER', au:5.2,  col:'#c8a060',atm:'#705828',ring:false,bands:true, desc:'JUPITER · GÉANTE GAZEUSE',ringCol:''},
-  {name:'SATURNE', au:9.58, col:'#d4b870',atm:'#907040',ring:true, bands:false,desc:'SATURNE · ANNEAUX DE GLACE',ringCol:'rgba(200,170,100,.55)'},
-  {name:'URANUS',  au:19.2, col:'#7ad0d8',atm:'#308890',ring:true, bands:false,desc:'URANUS · PLANÈTE DE GLACE',ringCol:'rgba(100,200,210,.35)'},
-  {name:'NEPTUNE', au:30.1, col:'#3050e0',atm:'#1828a0',ring:false,bands:false,desc:'NEPTUNE · DESTINATION',ringCol:''},
+  {name:'TERRE',   au:1,    col:'#4a9eff',atm:'#1a50a0',ring:false,bands:false,desc:'DÉPART · BONNE NUIT',  ringCol:'',          aurora:true,  auroraCol:'#00ff88',lightning:false,tone:261.6},
+  {name:'MARS',    au:1.52, col:'#e05020',atm:'#701808',ring:false,bands:false,desc:'MARS · DÉSERT ROUGE',  ringCol:'',          aurora:false, auroraCol:'',        lightning:false,tone:293.7},
+  {name:'JUPITER', au:5.2,  col:'#c8a060',atm:'#705828',ring:false,bands:true, desc:'JUPITER · GÉANTE',    ringCol:'',          aurora:false, auroraCol:'',        lightning:true, tone:196.0},
+  {name:'SATURNE', au:9.58, col:'#d4b870',atm:'#907040',ring:true, bands:false,desc:'SATURNE · ANNEAUX',   ringCol:'rgba(200,170,100,.55)',aurora:false,auroraCol:'',lightning:false,tone:164.8},
+  {name:'URANUS',  au:19.2, col:'#7ad0d8',atm:'#308890',ring:true, bands:false,desc:'URANUS · GLACE',      ringCol:'rgba(100,200,210,.35)',aurora:true, auroraCol:'#00ccff',lightning:false,tone:130.8},
+  {name:'NEPTUNE', au:30.1, col:'#3050e0',atm:'#1828a0',ring:false,bands:false,desc:'NEPTUNE · DESTINATION',ringCol:'',         aurora:false, auroraCol:'',        lightning:false,tone:110.0},
 ];
 
+// ── MESSAGES ──
 const MSGS=[
   {au:1.05,t:'PILOTE AUTOMATIQUE\nENGAGÉ'},{au:1.3,t:'TOUT VA BIEN\nBONNE NUIT'},
   {au:1.52,t:'APPROCHE DE MARS\n-63°C DEHORS'},{au:2.7,t:'CEINTURE D\'ASTÉROÏDES\nNAVIGATION AUTO'},
@@ -87,27 +184,88 @@ const MSGS=[
 const shown=new Set();
 function showMsg(text){
   msgEl.style.opacity='0';
-  setTimeout(()=>{
-    msgEl.innerHTML=text.replace('\n','<br>');
-    msgEl.style.opacity='1';
-    setTimeout(()=>{msgEl.style.opacity='0';},4500);
-  },400);
+  setTimeout(()=>{msgEl.innerHTML=text.replace('\n','<br>');msgEl.style.opacity='1';setTimeout(()=>{msgEl.style.opacity='0';},4500);},400);
 }
 
-// Étoiles tunnel 3D
+// ── JOURNAL ──
+const JOURNAL_ENTRIES=[
+  {au:1.0,  text:'Atmosphère terrestre derrière nous. Vide devant.'},
+  {au:1.15, text:'Température ext. : -270°C. Le vide spatial est silencieux.'},
+  {au:1.3,  text:'Vitesse de croisière atteinte. Systèmes nominaux.'},
+  {au:1.5,  text:'Mars visible. Sa surface rouge parsemée de volcans éteints.'},
+  {au:1.8,  text:'La ceinture d\'astéroïdes approche. Restes d\'une planète avortée.'},
+  {au:2.4,  text:'Astéroïdes évités. Navigation automatique efficace.'},
+  {au:3.2,  text:'Le soleil paraît déjà plus petit d\'ici.'},
+  {au:4.0,  text:'Espace interplanétaire. Silence absolu. Bonne nuit.'},
+  {au:4.8,  text:'Jupiter détectée sur les capteurs. Champ magnétique intense.'},
+  {au:5.1,  text:'Les lunes galiléennes en formation autour de Jupiter.'},
+  {au:5.5,  text:'Passage de Jupiter. Taille : 318 fois la Terre.'},
+  {au:6.5,  text:'Espace calme après Jupiter. Lumière solaire très faible.'},
+  {au:8.0,  text:'Cap sur Saturne. Ses anneaux visibles à l\'oeil nu.'},
+  {au:9.2,  text:'Les anneaux de Saturne : 99% de glace d\'eau.'},
+  {au:10.0, text:'Derrière Saturne. L\'espace devient plus profond, plus sombre.'},
+  {au:13.0, text:'Espace profond. Prochain objet notable : Uranus dans des années.'},
+  {au:16.0, text:'Le soleil n\'est plus qu\'une étoile parmi d\'autres.'},
+  {au:18.5, text:'Uranus détectée. Rotation axiale quasi horizontale.'},
+  {au:19.0, text:'Uranus et ses anneaux bleutés. Température : -224°C.'},
+  {au:22.0, text:'Dernier vide avant Neptune. Silence cosmique.'},
+  {au:26.0, text:'Neptune capturée par les instruments. Vents à 2100 km/h.'},
+  {au:28.0, text:'Approche finale. La plus lointaine des planètes.'},
+  {au:29.8, text:'Neptune. Voyage accompli. 4,5 milliards de kilomètres parcourus.'},
+];
+let journalLog=[];
+const shownJournal=new Set();
+function addJournalEntry(text){
+  const now=startTime?Date.now()-startTime:0;
+  const h=Math.floor(now/3600000),m=Math.floor((now%3600000)/60000),s=Math.floor((now%60000)/1000);
+  const ts=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  journalLog.push({ts,text});
+  if(journalLog.length>4)journalLog.shift();
+  journalEl.innerHTML='';
+  journalLog.forEach((e,i)=>{
+    const div=document.createElement('div');
+    div.className='jentry';
+    div.innerHTML=`<span class="jts">${e.ts}</span>${e.text}`;
+    journalEl.appendChild(div);
+    setTimeout(()=>div.classList.add('visible'),50);
+  });
+}
+
+// ── STARS ──
 const STARS=[];
 for(let i=0;i<600;i++){
-  const angle=Math.random()*Math.PI*2;
-  const radius=Math.random()*0.95+0.05;
+  const angle=Math.random()*Math.PI*2,r=Math.random()*0.95+0.05;
   STARS.push({
-    ox:Math.cos(angle)*radius,oy:Math.sin(angle)*radius,
-    z:Math.random(),speed:0.0003+Math.random()*0.0004,
+    ox:Math.cos(angle)*r,oy:Math.sin(angle)*r,z:Math.random(),
+    speed:0.0003+Math.random()*0.0004,
     col:Math.random()<.06?`hsl(${200+Math.random()*60},70%,80%)`:Math.random()<.04?`hsl(${20+Math.random()*30},60%,85%)`:'#fff',
     br:0.3+Math.random()*0.7,size:0.5+Math.random()*1.5
   });
 }
 
-// Débris satellites
+// ── COMETS ──
+const COMETS=[];
+for(let i=0;i<5;i++) COMETS.push(makeComet(i));
+function makeComet(idx){
+  return{
+    active:false,lastActivated:startTime||0,nextSpawn:15000+Math.random()*40000+idx*8000,
+    x:0,y:0,vx:0,vy:0,len:0,alpha:0,col:'#fff'
+  };
+}
+function spawnComet(c,W,H){
+  const side=Math.floor(Math.random()*4);
+  const angle=Math.PI*.15+Math.random()*Math.PI*.2;
+  const speed=3+Math.random()*4;
+  if(side===0){c.x=Math.random()*W;c.y=-20;c.vx=Math.cos(angle)*speed;c.vy=Math.sin(angle)*speed;}
+  else if(side===1){c.x=W+20;c.y=Math.random()*H;c.vx=-Math.cos(angle)*speed;c.vy=Math.sin(angle)*speed;}
+  else if(side===2){c.x=Math.random()*W;c.y=H+20;c.vx=Math.cos(angle)*speed;c.vy=-Math.sin(angle)*speed;}
+  else{c.x=-20;c.y=Math.random()*H;c.vx=Math.cos(angle)*speed;c.vy=Math.sin(angle)*speed;}
+  c.len=60+Math.random()*120;
+  c.alpha=0;c.active=true;
+  c.col=Math.random()<.3?`hsl(${180+Math.random()*60},80%,85%)`:'#fff';
+}
+
+// ── DEBRIS ──
 const DEBRIS=[];
 for(let i=0;i<18;i++) DEBRIS.push(makeDebris(i));
 function makeDebris(idx){
@@ -115,34 +273,49 @@ function makeDebris(idx){
   for(let j=0;j<n;j++) pts.push({a:j/n*6.28+Math.random()*.4,r:3+Math.random()*8});
   return{
     x:0,y:0,vx:0,vy:0,pts,rot:Math.random()*6.28,rs:(Math.random()-.5)*0.015,
-    sz:0.4+Math.random()*1.2,alpha:0,fadeIn:true,
-    type:Math.floor(Math.random()*3),
-    nextSpawn:2000+Math.random()*15000+idx*3000,
-    active:false,lastActivated:startTime-(idx*3000)
+    sz:0.4+Math.random()*1.2,alpha:0,fadeIn:true,type:Math.floor(Math.random()*3),
+    nextSpawn:2000+Math.random()*15000+idx*3000,active:false,lastActivated:0
   };
 }
 
-// Audio
+// ── LIGHTNING ──
+let lightningFlash=0;
+let lightningTimer=0;
+function triggerLightning(){lightningFlash=1;lightningTimer=Date.now();}
+
+// ── AURORA ──
+let auroraPhase=0;
+let auroraActive=false;
+let auroraCol='#00ff88';
+let auroraIntensity=0;
+
+// ── AUDIO ──
 let audioCtx=null,musicOn=false,nodes=[];
+let windGains={};
+let masterGain=null;
+
 sndBtn.addEventListener('click',()=>{
   if(!musicOn){
     audioCtx=new(window.AudioContext||window.webkitAudioContext)();
     musicOn=true;sndBtn.textContent='♪ ON';sndBtn.style.color='rgba(100,200,255,.7)';
-    startWind();
+    if(running) startAudio();
   }else{
     nodes.forEach(n=>{try{n.stop&&n.stop();n.disconnect&&n.disconnect();}catch(e){}});
-    nodes=[];musicOn=false;sndBtn.textContent='♪ SON';sndBtn.style.color='rgba(255,255,255,.35)';
+    nodes=[];windGains={};masterGain=null;
+    musicOn=false;sndBtn.textContent='♪ SON';sndBtn.style.color='rgba(255,255,255,.35)';
   }
 });
-function startWind(){
+function resumeAudio(){if(musicOn&&audioCtx)startAudio();}
+function startAudio(){
   const ac=audioCtx;
+  masterGain=ac.createGain();masterGain.gain.value=1;masterGain.connect(ac.destination);nodes.push(masterGain);
   const revLen=ac.sampleRate*4;
   const revBuf=ac.createBuffer(2,revLen,ac.sampleRate);
   for(let ch=0;ch<2;ch++){const d=revBuf.getChannelData(ch);for(let i=0;i<revLen;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/revLen,1.8)*0.6;}
   const rev=ac.createConvolver();rev.buffer=revBuf;
-  const revGain=ac.createGain();revGain.gain.value=.7;
-  rev.connect(revGain);revGain.connect(ac.destination);nodes.push(revGain);
-  function makeWind(freq,q,vol,lfoRate,lfoDepth){
+  const revGain=ac.createGain();revGain.gain.value=.6;
+  rev.connect(revGain);revGain.connect(masterGain);nodes.push(revGain);
+  function makeWind(key,freq,q,vol,lfoRate,lfoDepth){
     const bufLen=ac.sampleRate*3;const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
     const d=buf.getChannelData(0);for(let i=0;i<bufLen;i++) d[i]=Math.random()*2-1;
     const src=ac.createBufferSource();src.buffer=buf;src.loop=true;
@@ -151,23 +324,51 @@ function startWind(){
     const lfo=ac.createOscillator();lfo.frequency.value=lfoRate;
     const lfoG=ac.createGain();lfoG.gain.value=lfoDepth;
     lfo.connect(lfoG);lfoG.connect(gain.gain);
-    src.connect(filt);filt.connect(gain);gain.connect(rev);gain.connect(ac.destination);
+    src.connect(filt);filt.connect(gain);gain.connect(rev);gain.connect(masterGain);
     src.start();lfo.start();nodes.push(src);nodes.push(lfo);
+    windGains[key]=gain;
   }
-  makeWind(180,1.2,.06,.07,.04);makeWind(380,2.0,.04,.11,.025);
-  makeWind(720,3.5,.025,.17,.015);makeWind(95,.8,.05,.04,.03);
+  makeWind('deep',180,1.2,.06,.07,.04);makeWind('mid',380,2.0,.04,.11,.025);
+  makeWind('high',720,3.5,.025,.17,.015);makeWind('sub',95,.8,.05,.04,.03);
   function drone(freq,vol,rate){
     const o=ac.createOscillator();o.type='sine';o.frequency.value=freq;
     const g=ac.createGain();g.gain.value=0;
     const lfo=ac.createOscillator();lfo.frequency.value=rate;
     const lg=ac.createGain();lg.gain.value=vol;
     lfo.connect(lg);lg.connect(g.gain);
-    o.connect(g);g.connect(rev);g.connect(ac.destination);
+    o.connect(g);g.connect(rev);g.connect(masterGain);
     o.start();lfo.start();nodes.push(o);nodes.push(lfo);
   }
   drone(55,.032,.05);drone(82.4,.022,.07);drone(110,.018,.04);drone(146.8,.012,.06);drone(220,.008,.09);
 }
 
+function playPlanetTone(freq,vol){
+  if(!musicOn||!audioCtx||!masterGain)return;
+  const ac=audioCtx;
+  const o=ac.createOscillator();o.type='sine';o.frequency.value=freq;
+  const g=ac.createGain();g.gain.setValueAtTime(0,ac.currentTime);
+  g.gain.linearRampToValueAtTime(vol,ac.currentTime+2);
+  g.gain.linearRampToValueAtTime(0,ac.currentTime+8);
+  o.connect(g);g.connect(masterGain);o.start();o.stop(ac.currentTime+9);
+}
+function playRumble(vol){
+  if(!musicOn||!audioCtx||!masterGain)return;
+  const ac=audioCtx;
+  const bufLen=ac.sampleRate*3;const buf=ac.createBuffer(1,bufLen,ac.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<bufLen;i++) d[i]=Math.random()*2-1;
+  const src=ac.createBufferSource();src.buffer=buf;
+  const filt=ac.createBiquadFilter();filt.type='lowpass';filt.frequency.value=80;
+  const g=ac.createGain();g.gain.setValueAtTime(0,ac.currentTime);
+  g.gain.linearRampToValueAtTime(vol,ac.currentTime+1);
+  g.gain.linearRampToValueAtTime(0,ac.currentTime+3);
+  src.connect(filt);filt.connect(g);g.connect(masterGain);src.start();src.stop(ac.currentTime+3.5);
+}
+
+// ── HELPERS ──
+function hexToRgba(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`rgba(${r},${g},${b},${a})`;
+}
 function lightenHex(hex,f){
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   return`rgb(${Math.min(255,r+f*255|0)},${Math.min(255,g+f*255|0)},${Math.min(255,b+f*255|0)})`;
@@ -177,12 +378,13 @@ function darkenHex(hex,f){
   return`rgb(${r*f|0},${g*f|0},${b*f|0})`;
 }
 
+// ── DRAW PLANET POV ──
 function drawPlanetPOV(ctx,cx,cy,radius,p,approachFactor){
   if(radius<1)return;
   ctx.save();
   const glowR=radius*2.5;
   const gr=ctx.createRadialGradient(cx,cy,radius*.7,cx,cy,glowR);
-  gr.addColorStop(0,p.atm+'cc');gr.addColorStop(0.4,p.atm+'44');gr.addColorStop(1,'transparent');
+  gr.addColorStop(0,hexToRgba(p.atm,.8));gr.addColorStop(0.4,hexToRgba(p.atm,.27));gr.addColorStop(1,'rgba(0,0,0,0)');
   ctx.globalAlpha=Math.min(1,approachFactor*1.5);
   ctx.fillStyle=gr;ctx.beginPath();ctx.arc(cx,cy,glowR,0,Math.PI*2);ctx.fill();
   ctx.globalAlpha=1;
@@ -203,6 +405,16 @@ function drawPlanetPOV(ctx,cx,cy,radius,p,approachFactor){
       ctx.save();ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.clip();
       ctx.beginPath();ctx.ellipse(cx+radius*.2,cy+radius*.15,radius*.22,radius*.12,0,0,Math.PI*2);
       ctx.fillStyle='rgba(180,60,20,.35)';ctx.fill();ctx.restore();
+    }
+    // Lightning on Jupiter
+    if(p.lightning&&lightningFlash>0&&radius>40){
+      ctx.save();ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.clip();
+      const lx=cx+(-radius*.3+Math.random()*radius*.6);
+      const ly=cy+(-radius*.3+Math.random()*radius*.6);
+      ctx.strokeStyle=`rgba(255,255,200,${lightningFlash*.8})`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(lx,ly);
+      for(let s=0;s<5;s++) ctx.lineTo(lx+(Math.random()-.5)*40,ly+s*12+Math.random()*8);
+      ctx.stroke();ctx.restore();
     }
   }
   if(p.ring&&radius>5){
@@ -228,6 +440,30 @@ function drawPlanetPOV(ctx,cx,cy,radius,p,approachFactor){
   ctx.restore();
 }
 
+// ── DRAW AURORA ──
+function drawAurora(ctx,W,H,t,col,intensity){
+  if(intensity<0.01)return;
+  ctx.save();ctx.globalAlpha=intensity*.35;
+  for(let layer=0;layer<3;layer++){
+    const offset=layer*120;
+    ctx.beginPath();
+    for(let x=0;x<=W;x+=8){
+      const y=H*.08+Math.sin(x*.008+t*.4+layer*1.2)*H*.06+Math.sin(x*.015+t*.25+layer*.8)*H*.04+offset*.2;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    for(let x=W;x>=0;x-=8){
+      const y=H*.18+Math.sin(x*.008+t*.4+layer*1.2)*H*.06+Math.sin(x*.015+t*.25+layer*.8)*H*.04+offset*.2+H*.06;
+      ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    const g=ctx.createLinearGradient(0,0,0,H*.3);
+    g.addColorStop(0,col+'00');g.addColorStop(.4,col+'ff');g.addColorStop(1,col+'00');
+    ctx.fillStyle=g;ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ── DRAW DEBRIS ──
 function drawDebris(ctx,d){
   ctx.save();ctx.globalAlpha=d.alpha;ctx.translate(d.x,d.y);ctx.rotate(d.rot);ctx.scale(d.sz,d.sz);
   if(d.type===1){
@@ -250,24 +486,43 @@ function drawDebris(ctx,d){
   ctx.restore();
 }
 
+// ── MAIN LOOP ──
 let lastCheck=0;
+let lastAU=1;
+const shownTones=new Set();
+const shownRumble=new Set();
+let bgHue=220;
+let bgIntensity=0;
+let t=0;
+
 function frame(){
   requestAnimationFrame(frame);
+  if(!running)return;
+
   const W=canvas.width,H=canvas.height;
   const now=Date.now();
   const progress=getProgress();
   const shipAU=getShipAU();
+  t+=0.016;
+
+  // Background color shift
+  const targetHue=220+progress*80;
+  const targetIntensity=0.03+Math.sin(progress*Math.PI)*.04;
+  bgHue+=(targetHue-bgHue)*.005;
+  bgIntensity+=(targetIntensity-bgIntensity)*.01;
+
   ctx.fillStyle='#010204';ctx.fillRect(0,0,W,H);
-  if(shipAU>3&&shipAU<28){
-    const nb=Math.sin(progress*6.28*.7)*.5+.5;
-    const ng=ctx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,H*.6);
-    const hue=200+progress*120;
-    ng.addColorStop(0,`hsla(${hue|0},40%,15%,.0${Math.floor(nb*25)})`);
-    ng.addColorStop(1,'transparent');
-    ctx.fillStyle=ng;ctx.fillRect(0,0,W,H);
-  }
+
+  // Nebula bg
+  const ng=ctx.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,H*.7);
+  ng.addColorStop(0,`hsla(${bgHue|0},35%,12%,${bgIntensity.toFixed(3)})`);
+  ng.addColorStop(1,'transparent');
+  ctx.fillStyle=ng;ctx.fillRect(0,0,W,H);
+
   const cx=W/2,cy=H/2;
   const speed=0.0003+progress*.0008;
+
+  // Stars tunnel
   STARS.forEach(s=>{
     s.z-=speed;if(s.z<=0)s.z=1;
     const sx=cx+(s.ox/s.z)*(W*.6);const sy=cy+(s.oy/s.z)*(H*.6);
@@ -284,8 +539,32 @@ function frame(){
     ctx.beginPath();ctx.arc(sx,sy,Math.max(.3,r),0,Math.PI*2);ctx.fill();
   });
   ctx.globalAlpha=1;
+
+  // Comets
+  COMETS.forEach(c=>{
+    if(!c.active){
+      if(now-(c.lastActivated||0)>c.nextSpawn){spawnComet(c,W,H);c.lastActivated=now;}
+      return;
+    }
+    c.x+=c.vx;c.y+=c.vy;
+    c.alpha=Math.min(.9,c.alpha+.04);
+    if(c.x<-200||c.x>W+200||c.y<-200||c.y>H+200){c.active=false;c.lastActivated=now;c.nextSpawn=20000+Math.random()*40000;return;}
+    const len=c.len;
+    const nx=-c.vx/Math.hypot(c.vx,c.vy),ny=-c.vy/Math.hypot(c.vx,c.vy);
+    const g=ctx.createLinearGradient(c.x,c.y,c.x+nx*len,c.y+ny*len);
+    const trailEnd=c.col.startsWith('#')?hexToRgba(c.col,0):'rgba(255,255,255,0)';
+    g.addColorStop(0,c.col);g.addColorStop(1,trailEnd);
+    ctx.beginPath();ctx.moveTo(c.x,c.y);ctx.lineTo(c.x+nx*len,c.y+ny*len);
+    ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.globalAlpha=c.alpha*.7;ctx.stroke();
+    ctx.beginPath();ctx.arc(c.x,c.y,2,0,Math.PI*2);ctx.fillStyle=c.col;ctx.globalAlpha=c.alpha;ctx.fill();
+    ctx.globalAlpha=1;
+  });
+
+  // Planets
   pCtx.clearRect(0,0,W,H);
   let nearP=null,nearD=Infinity;
+  let jupiterApproach=0;
+
   PL.forEach(p=>{
     const dist=Math.abs(p.au-shipAU);
     if(dist<nearD){nearD=dist;nearP=p;}
@@ -294,14 +573,25 @@ function frame(){
     let radius;
     const aheadDist=p.au-shipAU;
     if(aheadDist>0&&aheadDist<APPROACH_AU){
-      const t=1-(aheadDist/APPROACH_AU);const eased=t*t*t;
+      const t2=1-(aheadDist/APPROACH_AU);const eased=t2*t2*t2;
       radius=2+eased*Math.min(W,H)*.65;
     }else if(aheadDist<=0&&aheadDist>-PASSTHROUGH_AU){
-      const t=1+aheadDist/PASSTHROUGH_AU;radius=Math.min(W,H)*.65*(1+t*3);
+      const t2=1+aheadDist/PASSTHROUGH_AU;radius=Math.min(W,H)*.65*(1+t2*3);
     }else return;
     const approachFactor=Math.max(0,Math.min(1,(APPROACH_AU-Math.max(0,aheadDist))/APPROACH_AU));
     const driftX=cx+Math.sin(p.au*0.7)*W*.08;const driftY=cy+Math.cos(p.au*1.3)*H*.06;
+    if(p.lightning) jupiterApproach=approachFactor;
     drawPlanetPOV(pCtx,driftX,driftY,radius,p,approachFactor);
+    // Aurora toggle
+    if(p.aurora&&approachFactor>.3){auroraActive=true;auroraCol=p.auroraCol;auroraIntensity=approachFactor*.8;}
+    // Tone at close approach
+    if(!shownTones.has(p.name)&&approachFactor>.7){
+      shownTones.add(p.name);playPlanetTone(p.tone,.025);
+    }
+    // Rumble when very close
+    if(!shownRumble.has(p.name)&&approachFactor>.9){
+      shownRumble.add(p.name);playRumble(.08);
+    }
     if(radius>60&&radius<H*.5){
       const nameAlpha=Math.min(1,(radius-60)/120)*(1-Math.max(0,(radius-H*.35)/(H*.15)));
       pCtx.save();pCtx.font='bold 12px monospace';pCtx.fillStyle=p.col;
@@ -309,8 +599,21 @@ function frame(){
       pCtx.fillText(p.desc,driftX,driftY+radius+22);pCtx.restore();
     }
   });
+
+  // Aurora layer
+  if(!auroraActive) auroraIntensity=Math.max(0,auroraIntensity-.005);
+  aCanvas.style.opacity=1;
+  aCtx.clearRect(0,0,W,H);
+  if(auroraIntensity>0.01) drawAurora(aCtx,W,H,t,auroraCol,auroraIntensity);
+  auroraActive=false;
+
+  // Jupiter lightning decay
+  if(jupiterApproach>.5&&Math.random()<.008) triggerLightning();
+  lightningFlash=Math.max(0,lightningFlash-.04);
+
+  // Debris
   DEBRIS.forEach(d=>{
-    const elapsed=now-d.lastActivated;
+    const elapsed=now-(d.lastActivated||0);
     if(!d.active){
       if(elapsed>d.nextSpawn){
         d.active=true;d.lastActivated=now;
@@ -322,7 +625,7 @@ function frame(){
       }return;
     }
     d.x+=d.vx;d.y+=d.vy;d.rot+=d.rs;
-    if(d.fadeIn){d.alpha=Math.min(.85,d.alpha+.018);}
+    if(d.fadeIn)d.alpha=Math.min(.85,d.alpha+.018);
     const edgeDist=Math.min(d.x,W-d.x)/100;
     if(edgeDist<1)d.alpha=Math.max(0,d.alpha-0.03);
     if(d.alpha<=0&&!d.fadeIn){d.active=false;return;}
@@ -330,7 +633,10 @@ function frame(){
     d.fadeIn=d.alpha<.85;
     drawDebris(ctx,d);
   });
+
   ctx.drawImage(pCanvas,0,0);
+
+  // Sun glow near start
   if(shipAU<3){
     const sf=Math.max(0,1-(shipAU-1)/2);
     const sg=ctx.createRadialGradient(cx,cy,0,cx,cy,H*.4);
@@ -339,18 +645,36 @@ function frame(){
     sg.addColorStop(1,'transparent');
     ctx.save();ctx.globalAlpha=1;ctx.fillStyle=sg;ctx.fillRect(0,0,W,H);ctx.restore();
   }
+
+  // Wake screen
+  if(progress>=1&&!wakeShown){
+    wakeShown=true;running=false;
+    wakeScreen.style.display='flex';
+    setTimeout(()=>{wakeScreen.style.opacity='1';},100);
+  }
+
+  // Checks
   if(now-lastCheck>2500){
     lastCheck=now;
     for(const m of MSGS){
       if(!shown.has(m.au)&&shipAU>=m.au&&shipAU<m.au+.5){shown.add(m.au);showMsg(m.t);break;}
     }
+    for(const j of JOURNAL_ENTRIES){
+      if(!shownJournal.has(j.au)&&shipAU>=j.au&&shipAU<j.au+.4){shownJournal.add(j.au);addJournalEntry(j.text);break;}
+    }
   }
+
+  // HUD
   pfill.style.width=(progress*100)+'%';
   const rem=Math.max(0,VOYAGE_MS-(now-startTime));
   const rm=Math.floor(rem/60000),rs=Math.floor((rem%60000)/1000);
+  const arrDate=new Date(startTime+VOYAGE_MS);
+  const arrH=String(arrDate.getHours()).padStart(2,'0'),arrM=String(arrDate.getMinutes()).padStart(2,'0');
   tleft.textContent=progress>=1?'ARRIVÉE · NEPTUNE':`NEPTUNE DANS ${rm}m ${rs<10?'0':''}${rs}s`;
   pinfo.textContent=nearD<3?(nearP?nearP.desc:''):shipAU.toFixed(1)+' UA DU SOLEIL';
   distEl.textContent=(shipAU*149.6|0)+' M KM\n'+shipAU.toFixed(2)+' UA';
+  etaEl.textContent=`ARRIVÉE ${arrH}:${arrM}\nVITESSE ×${(progress*100+1|0)}`;
+  lastAU=shipAU;
 }
 frame();
 </script>
