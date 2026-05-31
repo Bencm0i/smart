@@ -307,6 +307,19 @@ body::after {
 .btn-pl.playing { color:var(--am); border-color:var(--am3); box-shadow:0 0 20px var(--amg); }
 .btn-shuf,.btn-rep { width:40px; height:34px; font-size:14px; }
 .btn-shuf.on,.btn-rep.on { color:var(--am2); background:linear-gradient(145deg,#1e1800,#141000); border-color:var(--am3); }
+.btn-stop-fade {
+  width:52px; height:44px; font-size:15px; letter-spacing:1px;
+  background:linear-gradient(145deg,#2a0505,#180202);
+  border:1px solid #5a1010; color:#cc3333;
+  box-shadow:0 3px 0 #050505,0 0 10px rgba(200,30,30,0.15),inset 0 1px 0 rgba(255,80,80,.06);
+}
+.btn-stop-fade:hover,.btn-stop-fade:focus { color:#ff5555; border-color:#aa2222; box-shadow:0 0 16px rgba(220,30,30,.35),0 3px 0 #050505; }
+.btn-stop-fade.fading {
+  color:#ff2222; border-color:#ff2222;
+  animation:stopblink .4s ease-in-out infinite alternate;
+  box-shadow:0 0 22px rgba(255,30,30,.5),0 3px 0 #050505;
+}
+@keyframes stopblink { 0%{box-shadow:0 0 10px rgba(255,30,30,.3),0 3px 0 #050505} 100%{box-shadow:0 0 28px rgba(255,30,30,.7),0 3px 0 #050505} }
 .sep { width:1px; height:30px; background:#2a2a2a; flex-shrink:0; margin:0 4px; }
 .sliders-inline { display:flex; gap:16px; width:100%; }
 .sl-group { flex:1; display:flex; flex-direction:column; gap:5px; }
@@ -511,7 +524,7 @@ input[type=range]::-moz-range-thumb { width:18px; height:18px; background:radial
         <div class="controls">
           <button class="btn btn-shuf" id="btnShuf">⇄</button>
           <button class="btn btn-sm"   id="btnPrev">⏮</button>
-          <button class="btn btn-sm"   id="btnStop">⏹</button>
+          <button class="btn btn-stop-fade" id="btnStopFade" title="Stop (fade 5s)">■</button>
           <button class="btn btn-pl"   id="btnPlay">▶</button>
           <button class="btn btn-sm"   id="btnNext">⏭</button>
           <button class="btn btn-rep"  id="btnRep">↺</button>
@@ -923,15 +936,7 @@ function pauseAudio(){
   document.getElementById('modeDisp').textContent='PAUSE';
   document.getElementById('statusTxt').textContent='PAUSE';
 }
-function stopAudio(){
-  audio.pause(); audio.currentTime=0; audio.src=''; isPlaying=false; updatePlayBtn(); setAnim(false);
-  document.getElementById('modeDisp').textContent='STOP';
-  document.getElementById('statusTxt').textContent='STOP';
-  document.getElementById('bigTime').textContent='00:00';
-  document.getElementById('progFill').style.width='0%';
-  document.getElementById('timeEl').textContent='0:00';
-  document.getElementById('timeRem').textContent='-0:00';
-}
+
 
 audio.addEventListener('timeupdate',()=>{
   if(!audio.duration)return;
@@ -973,7 +978,51 @@ document.getElementById('btnPlay').addEventListener('click',()=>{
   if(current===-1){selectTrack(0);return;}
   isPlaying?pauseAudio():playAudio();
 });
-document.getElementById('btnStop').addEventListener('click',stopAudio);
+let fadeInterval=null;
+function fadeStop(){
+  const btn=document.getElementById('btnStopFade');
+  if(!isPlaying){stopAudio();return;}
+  if(fadeInterval){
+    // annulation du fade en cours → stop immédiat
+    clearInterval(fadeInterval); fadeInterval=null;
+    if(gainNode) gainNode.gain.value=0;
+    btn.classList.remove('fading');
+    stopAudio();
+    return;
+  }
+  btn.classList.add('fading');
+  const startVol=gainNode?gainNode.gain.value:audio.volume;
+  const steps=100, interval=50; // 100 × 50ms = 5s
+  let step=0;
+  fadeInterval=setInterval(()=>{
+    step++;
+    const ratio=1-(step/steps);
+    const vol=startVol*ratio;
+    if(gainNode) gainNode.gain.value=vol;
+    audio.volume=Math.max(0,vol);
+    if(step>=steps){
+      clearInterval(fadeInterval); fadeInterval=null;
+      btn.classList.remove('fading');
+      stopAudio();
+      // Rétablir le volume au niveau slider
+      const slv=document.getElementById('volSlider').value/100;
+      if(gainNode) gainNode.gain.value=slv;
+      audio.volume=slv;
+    }
+  },interval);
+}
+document.getElementById('btnStopFade').addEventListener('click',fadeStop);
+// stopper le fade si stop classique est déclenché ailleurs
+function stopAudio(){
+  if(fadeInterval){clearInterval(fadeInterval);fadeInterval=null;document.getElementById('btnStopFade').classList.remove('fading');}
+  audio.pause(); audio.currentTime=0; audio.src=''; isPlaying=false; updatePlayBtn(); setAnim(false);
+  document.getElementById('modeDisp').textContent='STOP';
+  document.getElementById('statusTxt').textContent='STOP';
+  document.getElementById('bigTime').textContent='00:00';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('timeEl').textContent='0:00';
+  document.getElementById('timeRem').textContent='-0:00';
+}
 document.getElementById('btnPrev').addEventListener('click',()=>{
   if(audio.currentTime>3){audio.currentTime=0;return;}
   if(current>0)selectTrack(current-1);else if(repeatMode===2)selectTrack(tracks.length-1);
