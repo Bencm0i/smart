@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Journal Quartier</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #17191d;
+    --surface2: #1f2228;
+    --border: #2a2d35;
+    --accent: #e8c547;
+    --accent2: #e87b47;
+    --danger: #e84747;
+    --ok: #47c47e;
+    --text: #e8e9eb;
+    --muted: #6b7080;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Sora', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--accent); }
+  .header-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-top: 4px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 3px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* SECTIONS */
+  .section { display: none; padding: 20px; }
+  .section.active { display: block; }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .kpi-card.full { grid-column: 1 / -1; }
+  .kpi-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: var(--mono);
+    line-height: 1;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .kpi-value.danger { color: var(--danger); }
+  .kpi-value.warn { color: var(--accent2); }
+  .kpi-value.ok { color: var(--ok); }
+  .kpi-value.neutral { color: var(--accent); }
+
+  /* CHART */
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .chart-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { font-family: var(--mono); font-size: 11px; color: var(--muted); width: 70px; flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 20px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; display: flex; align-items: center; padding-left: 8px; }
+  .bar-count { font-family: var(--mono); font-size: 11px; font-weight: 500; }
+  .severity-1 { background: linear-gradient(90deg, #47c47e33, #47c47e55); }
+  .severity-2 { background: linear-gradient(90deg, #e8c54733, #e8c54755); }
+  .severity-3 { background: linear-gradient(90deg, #e8874733, #e8874755); }
+  .severity-4 { background: linear-gradient(90deg, #e8474733, #e8474755); }
+  .severity-1 .bar-count { color: var(--ok); }
+  .severity-2 .bar-count { color: var(--accent); }
+  .severity-3 .bar-count { color: var(--accent2); }
+  .severity-4 .bar-count { color: var(--danger); }
+
+  /* VERDICT */
+  .verdict-card {
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 10px;
+    border: 1px solid;
+  }
+  .verdict-card.green { background: #47c47e12; border-color: #47c47e40; }
+  .verdict-card.yellow { background: #e8c54712; border-color: #e8c54740; }
+  .verdict-card.orange { background: #e8874712; border-color: #e8874740; }
+  .verdict-card.red { background: #e8474712; border-color: #e8474740; }
+  .verdict-icon { font-size: 28px; margin-bottom: 8px; }
+  .verdict-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .verdict-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* FORM */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .form-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .field { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  textarea { resize: none; height: 90px; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7080' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+  /* SEVERITY PICKER */
+  .severity-picker { display: flex; gap: 8px; }
+  .sev-btn {
+    flex: 1;
+    padding: 10px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .sev-btn.active-1 { background: #47c47e20; border-color: var(--ok); color: var(--ok); }
+  .sev-btn.active-2 { background: #e8c54720; border-color: var(--accent); color: var(--accent); }
+  .sev-btn.active-3 { background: #e8874720; border-color: var(--accent2); color: var(--accent2); }
+  .sev-btn.active-4 { background: #e8474720; border-color: var(--danger); color: var(--danger); }
+
+  /* BUTTON */
+  .btn-primary {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #0e0f11;
+    border: none;
+    border-radius: 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:active { opacity: 0.8; }
+  .btn-ghost {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* LOG LIST */
+  .log-list { display: flex; flex-direction: column; gap: 10px; }
+  .log-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .log-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .dot-1 { background: var(--ok); }
+  .dot-2 { background: var(--accent); }
+  .dot-3 { background: var(--accent2); }
+  .dot-4 { background: var(--danger); }
+  .log-content { flex: 1; min-width: 0; }
+  .log-date { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .log-type { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .log-note { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-delete {
+    background: none; border: none; color: var(--border);
+    font-size: 18px; cursor: pointer; padding: 0;
+    line-height: 1; flex-shrink: 0;
+  }
+  .log-delete:active { color: var(--danger); }
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--muted); font-size: 13px; line-height: 1.7;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+
+  /* TOOLS */
+  .tools-grid { display: flex; flex-direction: column; gap: 10px; }
+  .tool-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s;
+  }
+  .tool-btn:active { border-color: var(--accent); }
+  .tool-icon { font-size: 22px; flex-shrink: 0; }
+  .tool-label { font-size: 14px; font-weight: 600; }
+  .tool-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* NAV BAR */
+  nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 3px;
+    background: none; border: none;
+    color: var(--muted); cursor: pointer;
+    padding: 6px 0;
+    font-size: 10px; font-family: var(--sans);
+    font-weight: 600; letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  .nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+  .nav-btn.active { color: var(--accent); }
+
+  /* PERIOD FILTER */
+  .period-filter { display: flex; gap: 6px; margin-bottom: 16px; }
+  .period-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px; font-family: var(--mono);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .period-btn.active { background: var(--accent); color: #0e0f11; border-color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">Journal <span>●</span> Quartier</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="totalBadge">0 entrées</div>
+  </div>
+  <div class="header-title">Suivi d'incidents</div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('kpi')">📊 Bilan</button>
+    <button class="tab" onclick="showTab('add')">➕ Noter</button>
+    <button class="tab" onclick="showTab('log')">📋 Journal</button>
+    <button class="tab" onclick="showTab('tools')">⚙️ Outils</button>
+  </div>
+</header>
+
+<!-- KPI -->
+<div id="tab-kpi" class="section active">
+  <div id="verdictCard" class="verdict-card green">
+    <div class="verdict-icon" id="verdictIcon">🟢</div>
+    <div class="verdict-title" id="verdictTitle">Aucun incident enregistré</div>
+    <div class="verdict-desc" id="verdictDesc">Commencez à noter les incidents pour obtenir une analyse de l'ambiance du quartier.</div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total incidents</div>
+      <div class="kpi-value neutral" id="kpiTotal">0</div>
+      <div class="kpi-sub">depuis le début</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">30 derniers jours</div>
+      <div class="kpi-value" id="kpi30" style="color:var(--text)">0</div>
+      <div class="kpi-sub" id="kpi30sub">aucun récent</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Plus grave</div>
+      <div class="kpi-value" id="kpiMax" style="color:var(--text)">—</div>
+      <div class="kpi-sub" id="kpiMaxSub">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Fréquence</div>
+      <div class="kpi-value" id="kpiFreq" style="color:var(--text)">—</div>
+      <div class="kpi-sub" id="kpiFreqSub">par mois</div>
+    </div>
+    <div class="kpi-card full">
+      <div class="kpi-label">Dernier incident</div>
+      <div class="kpi-value" id="kpiLast" style="font-size:16px;color:var(--text)">—</div>
+      <div class="kpi-sub" id="kpiLastSub"></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap" id="chartWrap" style="display:none">
+    <div class="chart-title">Répartition par gravité</div>
+    <div class="bar-chart" id="barChart"></div>
+  </div>
+</div>
+
+<!-- ADD -->
+<div id="tab-add" class="section">
+  <div class="form-card">
+    <div class="form-title">📝 Nouvel incident</div>
+
+    <div class="field">
+      <label>Date & heure</label>
+      <input type="datetime-local" id="fDate">
+    </div>
+
+    <div class="field">
+      <label>Type d'incident</label>
+      <select id="fType">
+        <option value="">— Choisir —</option>
+        <option value="Coups de feu">🔫 Coups de feu</option>
+        <option value="Altercation">🤜 Altercation / bagarre</option>
+        <option value="Va-et-vient suspect">👥 Va-et-vient suspect</option>
+        <option value="Véhicule suspect">🚗 Véhicule suspect</option>
+        <option value="Présence police">🚔 Présence police / intervention</option>
+        <option value="Nuisance sonore">🔊 Nuisance sonore</option>
+        <option value="Autre">📌 Autre</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Gravité perçue</label>
+      <div class="severity-picker">
+        <button class="sev-btn" data-sev="1" onclick="setSev(1)">1<br>Faible</button>
+        <button class="sev-btn" data-sev="2" onclick="setSev(2)">2<br>Modéré</button>
+        <button class="sev-btn" data-sev="3" onclick="setSev(3)">3<br>Sérieux</button>
+        <button class="sev-btn" data-sev="4" onclick="setSev(4)">4<br>Critique</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Notes (optionnel)</label>
+      <textarea id="fNote" placeholder="Ce que vous avez vu, entendu, nombre de personnes, véhicules…"></textarea>
+    </div>
+
+    <button class="btn-primary" onclick="addEntry()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- LOG -->
+<div id="tab-log" class="section">
+  <div class="period-filter">
+    <button class="period-btn active" onclick="setFilter('all', this)">Tout</button>
+    <button class="period-btn" onclick="setFilter(7, this)">7j</button>
+    <button class="period-btn" onclick="setFilter(30, this)">30j</button>
+    <button class="period-btn" onclick="setFilter(90, this)">90j</button>
+  </div>
+  <div class="log-list" id="logList">
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      Aucun incident enregistré.<br>Utilisez l'onglet <strong>Noter</strong> pour commencer.
+    </div>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div id="tab-tools" class="section">
+  <div class="tools-grid">
+    <button class="tool-btn" onclick="exportJSON()">
+      <div class="tool-icon">💾</div>
+      <div>
+        <div class="tool-label">Exporter en JSON</div>
+        <div class="tool-desc">Sauvegarde complète de tous vos incidents</div>
+      </div>
+    </button>
+    <button class="tool-btn" onclick="importJSON()">
+      <div class="tool-icon">📂</div>
+      <div>
+        <div class="tool-label">Importer un JSON</div>
+        <div class="tool-desc">Restaurer une sauvegarde existante</div>
+      </div>
+    </button>
+    <button class="tool-btn" onclick="exportCSV()">
+      <div class="tool-icon">📊</div>
+      <div>
+        <div class="tool-label">Exporter en CSV</div>
+        <div class="tool-desc">Ouvrir dans Excel ou Google Sheets</div>
+      </div>
+    </button>
+    <button class="tool-btn" onclick="exportReport()">
+      <div class="tool-icon">📄</div>
+      <div>
+        <div class="tool-label">Rapport texte</div>
+        <div class="tool-desc">Résumé lisible à conserver ou partager</div>
+      </div>
+    </button>
+    <button class="tool-btn" onclick="confirmClear()" style="border-color:#e8474730">
+      <div class="tool-icon">🗑️</div>
+      <div>
+        <div class="tool-label" style="color:var(--danger)">Tout effacer</div>
+        <div class="tool-desc">Supprime définitivement toutes les entrées</div>
+      </div>
+    </button>
+  </div>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+
+  <div style="margin-top:24px;padding:16px;background:var(--surface);border-radius:14px;border:1px solid var(--border)">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">À propos</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.7">
+      Les données sont stockées <strong style="color:var(--text)">localement</strong> sur votre appareil uniquement. Rien n'est envoyé sur internet.<br><br>
+      Exportez régulièrement en JSON pour ne rien perdre si vous changez de navigateur.
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'quartier_journal_v1';
+let entries = [];
+let currentSev = 0;
+let logFilter = 'all';
+
+// --- INIT ---
+function init() {
+  loadData();
+  setDefaultDate();
+  renderKPI();
+  renderLog();
+  updateBadge();
+}
+
+function setDefaultDate() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('fDate').value = now.toISOString().slice(0,16);
+}
+
+// --- STORAGE ---
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    entries = raw ? JSON.parse(raw) : [];
+  } catch { entries = []; }
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  updateBadge();
+}
+
+function updateBadge() {
+  document.getElementById('totalBadge').textContent = entries.length + (entries.length === 1 ? ' entrée' : ' entrées');
+}
+
+// --- TABS ---
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabs = ['kpi','add','log','tools'];
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  if (name === 'kpi') renderKPI();
+  if (name === 'log') renderLog();
+}
+
+// --- SEVERITY ---
+function setSev(n) {
+  currentSev = n;
+  document.querySelectorAll('.sev-btn').forEach(b => {
+    b.className = 'sev-btn';
+    if (parseInt(b.dataset.sev) === n) b.classList.add('active-' + n);
+  });
+}
+
+// --- ADD ENTRY ---
+function addEntry() {
+  const date = document.getElementById('fDate').value;
+  const type = document.getElementById('fType').value;
+  const note = document.getElementById('fNote').value.trim();
+
+  if (!date) return toast('⚠️ Indiquez une date');
+  if (!type) return toast('⚠️ Choisissez un type');
+  if (!currentSev) return toast('⚠️ Choisissez une gravité');
+
+  const entry = {
+    id: Date.now(),
+    date: date,
+    type: type,
+    severity: currentSev,
+    note: note
+  };
+  entries.unshift(entry);
+  saveData();
+
+  // reset
+  document.getElementById('fType').value = '';
+  document.getElementById('fNote').value = '';
+  currentSev = 0;
+  document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
+  setDefaultDate();
+
+  toast('✅ Incident enregistré');
+  showTab('log');
+}
+
+// --- LOG RENDER ---
+function setFilter(f, btn) {
+  logFilter = f;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+
+function filteredEntries() {
+  if (logFilter === 'all') return entries;
+  const cutoff = Date.now() - logFilter * 86400000;
+  return entries.filter(e => new Date(e.date).getTime() >= cutoff);
+}
+
+const TYPE_LABELS = {
+  'Coups de feu': '🔫',
+  'Altercation': '🤜',
+  'Va-et-vient suspect': '👥',
+  'Véhicule suspect': '🚗',
+  'Présence police': '🚔',
+  'Nuisance sonore': '🔊',
+  'Autre': '📌'
+};
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  const fe = filteredEntries();
+  if (!fe.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>Aucun incident${logFilter !== 'all' ? ' sur cette période' : ''}.<br>Utilisez l'onglet <strong>Noter</strong> pour commencer.</div>`;
+    return;
+  }
+  list.innerHTML = fe.map(e => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' })
+      + ' · ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    const icon = TYPE_LABELS[e.type] || '📌';
+    return `<div class="log-item">
+      <div class="log-dot dot-${e.severity}"></div>
+      <div class="log-content">
+        <div class="log-date">${dateStr}</div>
+        <div class="log-type">${icon} ${e.type} <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">· G${e.severity}</span></div>
+        ${e.note ? `<div class="log-note">${escHtml(e.note)}</div>` : ''}
+      </div>
+      <button class="log-delete" onclick="deleteEntry(${e.id})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  saveData();
+  renderLog();
+  renderKPI();
+  toast('🗑️ Entrée supprimée');
+}
+
+// --- KPI ---
+function renderKPI() {
+  const total = entries.length;
+  document.getElementById('kpiTotal').textContent = total;
+
+  const now = Date.now();
+  const last30 = entries.filter(e => now - new Date(e.date).getTime() < 30*86400000);
+  const k30 = document.getElementById('kpi30');
+  k30.textContent = last30.length;
+  k30.className = 'kpi-value ' + (last30.length === 0 ? 'ok' : last30.length <= 2 ? 'neutral' : last30.length <= 5 ? 'warn' : 'danger');
+  document.getElementById('kpi30sub').textContent = last30.length === 0 ? 'calme récent' : 'incidents récents';
+
+  // max severity
+  const maxSev = total ? Math.max(...entries.map(e => e.severity)) : 0;
+  const kpiMax = document.getElementById('kpiMax');
+  const sevLabels = ['', 'Faible', 'Modéré', 'Sérieux', 'Critique'];
+  const sevColors = ['', 'ok', 'neutral', 'warn', 'danger'];
+  kpiMax.textContent = maxSev ? sevLabels[maxSev] : '—';
+  kpiMax.className = 'kpi-value ' + (maxSev ? sevColors[maxSev] : '');
+  document.getElementById('kpiMaxSub').textContent = maxSev ? 'gravité maximale' : 'aucun incident';
+
+  // frequency
+  if (total >= 2) {
+    const dates = entries.map(e => new Date(e.date).getTime()).sort((a,b) => a-b);
+    const spanDays = (dates[dates.length-1] - dates[0]) / 86400000;
+    const perMonth = spanDays > 0 ? ((total / spanDays) * 30).toFixed(1) : total;
+    document.getElementById('kpiFreq').textContent = perMonth;
+    document.getElementById('kpiFreq').className = 'kpi-value ' + (perMonth < 1 ? 'ok' : perMonth < 3 ? 'neutral' : perMonth < 6 ? 'warn' : 'danger');
+    document.getElementById('kpiFreqSub').textContent = 'incidents / mois';
+  } else {
+    document.getElementById('kpiFreq').textContent = total === 1 ? '1' : '—';
+    document.getElementById('kpiFreq').className = 'kpi-value';
+    document.getElementById('kpiFreqSub').textContent = total ? 'trop tôt pour calculer' : 'par mois';
+  }
+
+  // last
+  if (total) {
+    const last = entries[0];
+    const d = new Date(last.date);
+    document.getElementById('kpiLast').textContent = d.toLocaleDateString('fr-FR', { weekday:'short', day:'2-digit', month:'long' });
+    document.getElementById('kpiLastSub').textContent = last.type + ' · Gravité ' + last.severity;
+  } else {
+    document.getElementById('kpiLast').textContent = '—';
+    document.getElementById('kpiLastSub').textContent = '';
+  }
+
+  // bar chart
+  if (total) {
+    document.getElementById('chartWrap').style.display = 'block';
+    const counts = [0,0,0,0];
+    entries.forEach(e => counts[e.severity-1]++);
+    const maxCount = Math.max(...counts);
+    const labels = ['G1 Faible', 'G2 Modéré', 'G3 Sérieux', 'G4 Critique'];
+    document.getElementById('barChart').innerHTML = counts.map((c,i) => {
+      const pct = maxCount ? (c / maxCount * 100) : 0;
+      return `<div class="bar-row">
+        <div class="bar-label">${labels[i]}</div>
+        <div class="bar-track">
+          <div class="bar-fill severity-${i+1}" style="width:${Math.max(c?8:0,pct)}%">
+            <span class="bar-count">${c || ''}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('chartWrap').style.display = 'none';
+  }
+
+  // verdict
+  renderVerdict(total, last30.length, maxSev);
+}
+
+function renderVerdict(total, last30, maxSev) {
+  const vc = document.getElementById('verdictCard');
+  const vi = document.getElementById('verdictIcon');
+  const vt = document.getElementById('verdictTitle');
+  const vd = document.getElementById('verdictDesc');
+
+  if (!total) {
+    vc.className = 'verdict-card green';
+    vi.textContent = '🟢';
+    vt.textContent = 'Aucun incident enregistré';
+    vd.textContent = 'Commencez à noter les incidents pour obtenir une analyse de l\'ambiance du quartier.';
+    return;
+  }
+  if (maxSev >= 4 || last30 >= 5) {
+    vc.className = 'verdict-card red';
+    vi.textContent = '🔴';
+    vt.textContent = 'Situation préoccupante';
+    vd.textContent = 'Incidents graves ou fréquence élevée. L\'environnement semble impacter négativement la valeur et la sérénité du bien.';
+  } else if (maxSev === 3 || last30 >= 3) {
+    vc.className = 'verdict-card orange';
+    vi.textContent = '🟠';
+    vt.textContent = 'Vigilance recommandée';
+    vd.textContent = 'Quelques incidents sérieux enregistrés. Continuez à observer sur la durée avant de tirer des conclusions.';
+  } else if (last30 >= 1 || total >= 3) {
+    vc.className = 'verdict-card yellow';
+    vi.textContent = '🟡';
+    vt.textContent = 'Activité à surveiller';
+    vd.textContent = 'Des incidents mineurs ont été notés. La fréquence et la gravité restent à suivre sur les prochaines semaines.';
+  } else {
+    vc.className = 'verdict-card green';
+    vi.textContent = '🟢';
+    vt.textContent = 'Situation calme';
+    vd.textContent = 'Peu d\'incidents et de faible gravité. Aucun signal d\'alarme particulier pour le moment.';
+  }
+}
+
+// --- EXPORT ---
+function exportJSON() {
+  const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), entries }, null, 2)], { type: 'application/json' });
+  download(blob, 'journal-quartier-' + today() + '.json');
+  toast('💾 JSON exporté');
+}
+
+function importJSON() {
+  document.getElementById('importFile').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const imported = data.entries || data;
+      if (!Array.isArray(imported)) throw new Error();
+      entries = imported;
+      saveData();
+      renderKPI();
+      renderLog();
+      toast('📂 ' + imported.length + ' entrées importées');
+    } catch { toast('❌ Fichier invalide'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function exportCSV() {
+  const header = 'Date,Heure,Type,Gravité,Notes';
+  const rows = entries.map(e => {
+    const d = new Date(e.date);
+    return [
+      d.toLocaleDateString('fr-FR'),
+      d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }),
+      '"' + e.type + '"',
+      e.severity,
+      '"' + (e.note || '').replace(/"/g, '""') + '"'
+    ].join(',');
+  });
+  const blob = new Blob([header + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  download(blob, 'journal-quartier-' + today() + '.csv');
+  toast('📊 CSV exporté');
+}
+
+function exportReport() {
+  const dateStr = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  const last30 = entries.filter(e => Date.now() - new Date(e.date).getTime() < 30*86400000);
+  const maxSev = entries.length ? Math.max(...entries.map(e => e.severity)) : 0;
+
+  let txt = `RAPPORT D'AMBIANCE DE QUARTIER\nGénéré le ${dateStr}\n${'='.repeat(40)}\n\n`;
+  txt += `RÉSUMÉ\n------\nTotal incidents enregistrés : ${entries.length}\nDerniers 30 jours : ${last30.length}\nGravité maximale observée : ${maxSev ? 'G' + maxSev : 'N/A'}\n\n`;
+  txt += `DÉTAIL DES INCIDENTS\n--------------------\n`;
+  entries.forEach(e => {
+    const d = new Date(e.date);
+    txt += `\n[${d.toLocaleDateString('fr-FR')} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}]\n`;
+    txt += `Type : ${e.type} | Gravité : G${e.severity}\n`;
+    if (e.note) txt += `Note : ${e.note}\n`;
+  });
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  download(blob, 'rapport-quartier-' + today() + '.txt');
+  toast('📄 Rapport exporté');
+}
+
+function confirmClear() {
+  if (confirm('Supprimer TOUS les incidents ? Cette action est irréversible.')) {
+    entries = [];
+    saveData();
+    renderKPI();
+    renderLog();
+    toast('🗑️ Journal effacé');
+  }
+}
+
+// --- UTILS ---
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+
+function today() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+init();
+</script>
+</body>
+</html>
