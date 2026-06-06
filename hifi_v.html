@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HiFi Studio</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='10' fill='%23231f1a'/><circle cx='32' cy='36' r='14' fill='%23c8a26a' opacity='.3'/><circle cx='32' cy='36' r='9' fill='%23c8a26a' opacity='.5'/><circle cx='32' cy='36' r='5' fill='%23c8a26a'/><circle cx='32' cy='17' r='5' fill='%23c8a26a' opacity='.7'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+
+/* ── THÈMES ── */
+body{
+  --th-bg:#0d1117;
+  --th-wood-d:#1a0f06;--th-wood-m:#2a1a0a;--th-wood-l:#3d2410;--th-wood-h:#5c3d1e;
+  --th-steel-d:#1c2030;--th-steel-m:#2a3040;--th-steel-l:#3a4255;--th-steel-h:#5a6275;
+  --th-neon:#00d4ff;--th-neon2:#0088ff;--th-neon3:rgba(0,180,255,.18);
+  --th-gold:#c8a26a;--th-led:#00ffcc;
+  --th-panel-bg:rgba(10,14,20,.92);--th-panel-border:rgba(0,180,255,.15);
+  --th-muted:#3a4a5a;--th-text:#8ab0c8;
+  --pb-border:rgba(0,180,255,.2);--pb-col:#4a6a8a;
+  background:var(--th-bg);font-family:'DM Mono',monospace;
+  display:flex;flex-direction:column;
+  transition:background .6s,color .6s;
+}
+/* THÈME BOIS CHAUD */
+body.warm{
+  --th-bg:#0c0806;
+  --th-wood-d:#3d2410;--th-wood-m:#5c3d1e;--th-wood-l:#8b5e3c;--th-wood-h:#a06b40;
+  --th-steel-d:#2a1a0a;--th-steel-m:#3a2810;--th-steel-l:#4a3818;--th-steel-h:#6a5028;
+  --th-neon:#ffaa00;--th-neon2:#ff7700;--th-neon3:rgba(255,140,0,.15);
+  --th-gold:#c8a26a;--th-led:#ffdd44;
+  --th-panel-bg:rgba(8,5,2,.92);--th-panel-border:rgba(200,140,60,.18);
+  --th-muted:#5a4030;--th-text:#c8a26a;
+  --pb-border:rgba(200,140,60,.25);--pb-col:#8a6a3a;
+}
+/* THÈME NUIT PROFONDE */
+body.night{
+  --th-bg:#030206;
+  --th-wood-d:#0a0818;--th-wood-m:#12102a;--th-wood-l:#1e1c3a;--th-wood-h:#2e2c50;
+  --th-steel-d:#0a0815;--th-steel-m:#141228;--th-steel-l:#201e40;--th-steel-h:#302e60;
+  --th-neon:#aa44ff;--th-neon2:#6622cc;--th-neon3:rgba(140,40,255,.15);
+  --th-gold:#8866cc;--th-led:#dd88ff;
+  --th-panel-bg:rgba(4,2,10,.95);--th-panel-border:rgba(140,60,255,.2);
+  --th-muted:#2a1a4a;--th-text:#9966dd;
+  --pb-border:rgba(140,60,255,.25);--pb-col:#6644aa;
+}
+
+canvas#waves{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+
+/* ── CABINET VERTICAL ── */
+.cabinet{
+  position:relative;z-index:2;flex:1;width:100%;
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 4px),
+    linear-gradient(170deg,
+      var(--th-wood-h) 0%,
+      var(--th-wood-l) 8%,
+      var(--th-wood-d) 18%,
+      var(--th-wood-m) 30%,
+      var(--th-wood-d) 45%,
+      var(--th-wood-l) 60%,
+      var(--th-wood-d) 75%,
+      var(--th-wood-m) 88%,
+      var(--th-wood-h) 100%);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  box-shadow:inset 0 3px 12px rgba(0,0,0,.6),inset 0 -3px 12px rgba(0,0,0,.4);
+  transition:background .7s;
+}
+.cabinet::before{
+  content:'';position:absolute;inset:-3px;z-index:1;pointer-events:none;
+  border-radius:4px;
+  box-shadow:
+    0 0 18px 3px var(--th-neon),
+    0 0 40px 8px var(--th-neon2),
+    0 0 80px 15px var(--th-neon3),
+    inset 0 0 30px var(--th-neon3);
+  animation:neonPulse 2.6s ease-in-out infinite;
+  transition:box-shadow .7s;
+}
+@keyframes neonPulse{
+  0%,100%{opacity:.8}
+  50%{opacity:1}
+}
+.cabinet::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%,rgba(0,0,0,.2) 100%)
+}
+
+/* ── ZONE PLATINE VERTICALE ── */
+.vinyl-zone{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:5;width:100%;
+}
+.vinyl-wrap{
+  position:relative;
+  height:min(88vh,640px);
+  width:auto;
+  aspect-ratio:420/700;
+}
+
+/* ── PANEL BAS ── */
+.panel{
+  position:relative;z-index:10;width:100%;
+  background:var(--th-panel-bg);
+  border-top:1px solid var(--th-panel-border);
+  padding:1vh 1rem 1.5vh;
+  display:flex;flex-direction:column;align-items:center;gap:.7vh;
+  transition:background .7s,border-color .7s;
+}
+.vu-wrap{display:flex;gap:2px;height:16px;width:min(94%,560px);align-items:flex-end}
+.vs{flex:1;border-radius:1px 1px 0 0;background:var(--th-neon);opacity:.08;transition:opacity .055s,background .6s}
+.vs.on{opacity:1}
+.vs:nth-child(n+14){background:#d4856a}
+.vs:nth-child(n+16){background:#d44040}
+.status{display:flex;align-items:center;gap:8px;
+  font-size:clamp(.52rem,1.3vw,.68rem);letter-spacing:.2em;text-transform:uppercase;color:var(--th-muted);transition:color .6s}
+.led{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.presets{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
+.pb{padding:.3rem .75rem;border:1px solid var(--pb-border);border-radius:20px;
+  background:transparent;color:var(--pb-col);
+  font-family:'DM Mono',monospace;font-size:clamp(.55rem,1.2vw,.68rem);
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .25s}
+.pb:hover{border-color:var(--th-neon);color:var(--th-neon)}
+.pb.active{background:var(--th-neon);border-color:var(--th-neon);color:#050a0f}
+.brand{font-family:'Playfair Display',serif;font-style:italic;
+  font-size:clamp(.6rem,1.5vw,.75rem);color:rgba(138,176,200,.28);letter-spacing:.06em;transition:color .6s}
+.clock{
+  font-family:'DM Mono',monospace;font-size:clamp(1.2rem,4vw,2.2rem);
+  font-weight:300;letter-spacing:.2em;
+  color:var(--th-neon);order:-1;
+  text-shadow:0 0 14px var(--th-neon),0 0 30px var(--th-neon2);
+  transition:color .6s,text-shadow .6s;
+}
+
+/* ── SWITCH DE THÈME ── */
+.theme-switch{
+  position:fixed;top:12px;right:12px;z-index:100;
+  display:flex;align-items:center;gap:0;
+  background:rgba(10,14,22,.85);
+  border:1px solid var(--th-panel-border);
+  border-radius:24px;overflow:hidden;
+  backdrop-filter:blur(10px);
+  transition:border-color .5s,background .5s;
+}
+.ts-btn{
+  padding:.3rem .7rem;
+  border:none;background:transparent;
+  color:var(--th-text);
+  font-family:'DM Mono',monospace;font-size:.58rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:all .25s;
+  white-space:nowrap;
+}
+.ts-btn.active{
+  background:var(--th-neon);color:#050a0f;border-radius:22px;
+}
+.ts-btn:hover:not(.active){color:var(--th-neon)}
+</style>
+</head>
+<body>
+
+<canvas id="waves"></canvas>
+
+<!-- Switch 3 thèmes -->
+<div class="theme-switch" id="themeSwitch">
+  <button class="ts-btn active" data-theme="" onclick="setTheme(this)">⚡ Acier</button>
+  <button class="ts-btn" data-theme="warm" onclick="setTheme(this)">🔥 Bois</button>
+  <button class="ts-btn" data-theme="night" onclick="setTheme(this)">✦ Nuit</button>
+</div>
+
+<div class="cabinet">
+  <div class="vinyl-zone" id="vinylZone">
+    <div class="vinyl-wrap">
+      <!-- PLATINE VERTICALE : viewBox 420×700 -->
+      <svg id="vinyl-svg-wrap" viewBox="0 0 420 700" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;overflow:visible">
+        <defs>
+          <!-- Plateau acier brossé (bois sombre en fond) -->
+          <linearGradient id="woodBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#2a1a0a"/>
+            <stop offset="35%"  stop-color="#1a0f06"/>
+            <stop offset="70%"  stop-color="#2e1c0c"/>
+            <stop offset="100%" stop-color="#1a0f06"/>
+          </linearGradient>
+          <linearGradient id="plateauGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#1c2030"/>
+            <stop offset="20%"  stop-color="#2a3040"/>
+            <stop offset="50%"  stop-color="#3a4255"/>
+            <stop offset="80%"  stop-color="#2a3040"/>
+            <stop offset="100%" stop-color="#1c2030"/>
+          </linearGradient>
+          <radialGradient id="plateauRadial" cx="42%" cy="38%" r="60%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,.12)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+          <!-- Stries acier brossé horizontales -->
+          <pattern id="brushH" x="0" y="0" width="1" height="3" patternUnits="userSpaceOnUse">
+            <rect width="420" height="1" fill="rgba(255,255,255,.05)"/>
+          </pattern>
+          <!-- Disque noir -->
+          <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#1a1a1a"/>
+            <stop offset="60%"  stop-color="#0e0e0e"/>
+            <stop offset="85%"  stop-color="#181818"/>
+            <stop offset="100%" stop-color="#0a0a0a"/>
+          </radialGradient>
+          <radialGradient id="discShine" cx="35%" cy="30%" r="65%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,.07)"/>
+            <stop offset="50%"  stop-color="rgba(180,200,255,.03)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+          <!-- Label -->
+          <radialGradient id="labelGrad" cx="40%" cy="36%" r="65%">
+            <stop offset="0%"   stop-color="#1c2840"/>
+            <stop offset="70%"  stop-color="#141e30"/>
+            <stop offset="100%" stop-color="#0c1420"/>
+          </radialGradient>
+          <!-- Bras chromé / acier -->
+          <linearGradient id="armChrome2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#555"/>
+            <stop offset="30%"  stop-color="#c0c0c0"/>
+            <stop offset="55%"  stop-color="#e8e8e8"/>
+            <stop offset="80%"  stop-color="#aaa"/>
+            <stop offset="100%" stop-color="#444"/>
+          </linearGradient>
+          <!-- Tête de lecture -->
+          <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#444"/>
+            <stop offset="40%"  stop-color="#bbb"/>
+            <stop offset="100%" stop-color="#333"/>
+          </linearGradient>
+          <!-- Bois côtés -->
+          <linearGradient id="woodSideL" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#4a3018"/>
+            <stop offset="60%"  stop-color="#3a2410"/>
+            <stop offset="100%" stop-color="#2a1808"/>
+          </linearGradient>
+          <linearGradient id="woodSideR" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#2a1808"/>
+            <stop offset="40%"  stop-color="#3a2410"/>
+            <stop offset="100%" stop-color="#4a3018"/>
+          </linearGradient>
+          <!-- Filtres -->
+          <filter id="neonGlow">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ══ FOND BOIS SOMBRE ══ -->
+        <rect x="0" y="0" width="420" height="700" rx="22" fill="url(#woodBg)"/>
+        <!-- Veinage bois -->
+        <g opacity=".18" fill="none">
+          <path d="M0 120 Q60 115 120 125 Q180 135 240 120 Q300 105 360 118 Q390 124 420 118" stroke="#6a4520" stroke-width="8"/>
+          <path d="M0 200 Q80 190 160 205 Q240 220 320 198 Q380 188 420 200" stroke="#5a3818" stroke-width="5"/>
+          <path d="M0 340 Q100 330 200 348 Q300 362 420 340" stroke="#6a4520" stroke-width="6"/>
+          <path d="M0 500 Q70 488 140 505 Q210 522 280 500 Q350 478 420 498" stroke="#5a3818" stroke-width="4"/>
+          <path d="M0 600 Q90 588 180 605 Q270 620 360 598 Q395 590 420 600" stroke="#6a4520" stroke-width="5"/>
+        </g>
+
+        <!-- ══ CADRE ACIER BROSSÉ CENTRAL ══ -->
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="url(#plateauGrad)"/>
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="url(#brushH)"/>
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="url(#plateauRadial)"/>
+        <!-- Bord intérieur acier -->
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>
+        <rect x="22" y="20" width="376" height="660" rx="13" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+
+        <!-- ══ NÉON AUTOUR DU DISQUE ══ -->
+        <circle cx="210" cy="285" r="178" fill="none" stroke="#00d4ff" stroke-width="3.5"
+          filter="url(#neonGlow)" opacity=".65">
+          <animate attributeName="opacity" values=".45;.85;.45" dur="2.6s" repeatCount="indefinite"/>
+        </circle>
+        <!-- Second anneau néon plus fin -->
+        <circle cx="210" cy="285" r="182" fill="none" stroke="#0088ff" stroke-width="1"
+          filter="url(#neonGlow)" opacity=".35">
+          <animate attributeName="opacity" values=".2;.5;.2" dur="2.6s" repeatCount="indefinite" begin=".3s"/>
+        </circle>
+
+        <!-- Encoche circulaire sous le disque -->
+        <circle cx="210" cy="285" r="190" fill="#161c28" opacity=".55"/>
+        <circle cx="210" cy="285" r="188" fill="#1a2035" opacity=".35"/>
+
+        <!-- ══ DISQUE VINYLE — centré (210,285) r=182 ══ -->
+        <g id="vinyl-disc" style="transform-origin:210px 285px">
+          <circle cx="210" cy="285" r="182" fill="url(#discGrad)"/>
+          <!-- sillons -->
+          <g fill="none" stroke-linecap="round">
+            <circle cx="210" cy="285" r="175" stroke="rgba(60,60,60,.6)"  stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="168" stroke="rgba(40,40,40,.8)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="160" stroke="rgba(55,55,55,.6)"  stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="152" stroke="rgba(35,35,35,.8)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="144" stroke="rgba(55,55,55,.55)" stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="136" stroke="rgba(35,35,35,.7)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="128" stroke="rgba(52,52,52,.5)"  stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="120" stroke="rgba(35,35,35,.7)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="112" stroke="rgba(50,50,50,.45)" stroke-width="1"/>
+            <circle cx="210" cy="285" r="104" stroke="rgba(35,35,35,.6)"  stroke-width=".7"/>
+            <circle cx="210" cy="285" r="171" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="164" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="156" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="148" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="140" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="132" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="124" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="116" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+          </g>
+          <circle cx="210" cy="285" r="182" fill="url(#discShine)"/>
+          <!-- Reflet arc chromatique -->
+          <ellipse cx="148" cy="228" rx="85" ry="34" fill="none"
+            stroke="rgba(180,220,255,.06)" stroke-width="20" transform="rotate(-40,148,228)"/>
+
+          <!-- Label central bleu acier -->
+          <circle cx="210" cy="285" r="58" fill="url(#labelGrad)"/>
+          <circle cx="210" cy="285" r="55" fill="none" stroke="rgba(0,180,255,.25)" stroke-width="1"/>
+          <circle cx="210" cy="285" r="48" fill="none" stroke="rgba(0,180,255,.12)" stroke-width=".7"/>
+          <!-- Texte label (couleur néon) -->
+          <text x="210" y="271" text-anchor="middle" font-family="'Playfair Display',serif"
+            font-style="italic" font-size="9.5" fill="rgba(0,200,255,.7)" letter-spacing=".5">HiFi Studio</text>
+          <text x="210" y="285" text-anchor="middle" font-family="'DM Mono',monospace"
+            font-size="6" fill="rgba(0,180,255,.5)" letter-spacing="2">45 RPM</text>
+          <text x="210" y="297" text-anchor="middle" font-family="'DM Mono',monospace"
+            font-size="5.5" fill="rgba(0,160,255,.4)" letter-spacing="1.5">STEREO</text>
+          <!-- Trou central -->
+          <circle cx="210" cy="285" r="7" fill="#0a0f18" stroke="rgba(0,180,255,.3)" stroke-width="1"/>
+          <circle cx="210" cy="285" r="5" fill="#050a12"/>
+        </g>
+
+        <!-- ══ BRAS DE LECTURE CHROMÉ (vertical)
+             Pivot : (340, 530) — bas droite
+             ARM_START=-28° / ARM_END=+8° / ARM_REST=-55°
+        ══ -->
+        <g id="tonearm-g" style="transform-origin:340px 530px; transform:rotate(-28deg)">
+          <!-- ombre socle -->
+          <ellipse cx="340" cy="545" rx="20" ry="7" fill="rgba(0,0,0,.35)"/>
+          <!-- socle pivot -->
+          <circle cx="340" cy="530" r="22" fill="#1a2030" stroke="#4a5a70" stroke-width="2"/>
+          <circle cx="340" cy="530" r="15" fill="#252f40" stroke="#7a8aa0" stroke-width="1"/>
+          <circle cx="340" cy="530" r="7"  fill="#4a5a70" stroke="#9aa8bc" stroke-width="1"/>
+          <circle cx="340" cy="530" r="2.5" fill="#c0d0e0"/>
+          <!-- Contrepoids -->
+          <rect x="347" y="517" width="44" height="26" rx="9" fill="#1e2838" stroke="#5a6880" stroke-width="1.5"/>
+          <rect x="349" y="519" width="16" height="22" rx="5" fill="#2a3848"/>
+          <line x1="350" y1="530" x2="389" y2="530" stroke="#4a5870" stroke-width="1" stroke-dasharray="3,2"/>
+
+          <!-- Tige principale : pivot(340,530) → coude (200,370) -->
+          <line x1="332" y1="538" x2="202" y2="367"
+            stroke="url(#armChrome2)" stroke-width="11" stroke-linecap="round"/>
+          <line x1="330" y1="535" x2="200" y2="364"
+            stroke="rgba(255,255,255,.38)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="335" y1="542" x2="205" y2="371"
+            stroke="rgba(0,0,0,.22)" stroke-width="2" stroke-linecap="round"/>
+
+          <!-- Coude -->
+          <path d="M202 367 Q188 353 178 340"
+            stroke="url(#armChrome2)" stroke-width="10" fill="none" stroke-linecap="round"/>
+          <path d="M200 364 Q186 350 176 337"
+            stroke="rgba(255,255,255,.32)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+          <!-- Petit bras vers tête -->
+          <line x1="178" y1="340" x2="165" y2="325"
+            stroke="url(#armChrome2)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="176" y1="337" x2="163" y2="322"
+            stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-linecap="round"/>
+
+          <!-- Cartridge -->
+          <g transform="rotate(-35,162,318)">
+            <rect x="142" y="310" width="40" height="16" rx="4"
+              fill="url(#headGrad)" stroke="#8899aa" stroke-width="1"/>
+            <rect x="144" y="312" width="14" height="8" rx="2"
+              fill="rgba(180,220,255,.25)"/>
+            <rect x="177" y="313" width="7" height="12" rx="2"
+              fill="#1a2230" stroke="#3a4a60" stroke-width=".5"/>
+          </g>
+
+          <!-- Cantilever + diamant -->
+          <line x1="158" y1="326" x2="155" y2="339"
+            stroke="#c8d8e8" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Diamant néon bleu -->
+          <circle cx="155" cy="341" r="4.5" fill="#00d4ff" filter="url(#softGlow)"/>
+          <circle cx="155" cy="341" r="2"   fill="#fff" opacity=".85"/>
+        </g>
+
+        <!-- ══ ÉLÉMENTS DÉCO ══ -->
+
+        <!-- ─ Fader vertical (gauche) ─ -->
+        <rect x="38" y="100" width="22" height="240" rx="6" fill="#1a2030" opacity=".7"/>
+        <rect x="41" y="102" width="16" height="236" rx="5" fill="#202838" opacity=".5"/>
+        <rect x="48" y="110" width="4" height="220" rx="2" fill="#0a1020" opacity=".6"/>
+        <rect x="38" y="195" width="22" height="28" rx="5" fill="#3a4860" stroke="#6a7890" stroke-width="1" opacity=".9"/>
+        <rect x="42" y="201" width="14" height="5" rx="2" fill="#1a2840"/>
+        <rect x="42" y="210" width="14" height="5" rx="2" fill="#1a2840"/>
+        <g stroke="#2a3848" stroke-width=".8" opacity=".6">
+          <line x1="34" y1="120" x2="40" y2="120"/>
+          <line x1="34" y1="150" x2="40" y2="150"/>
+          <line x1="34" y1="180" x2="40" y2="180"/>
+          <line x1="34" y1="210" x2="40" y2="210"/>
+          <line x1="34" y1="240" x2="40" y2="240"/>
+          <line x1="34" y1="270" x2="40" y2="270"/>
+          <line x1="34" y1="300" x2="40" y2="300"/>
+          <line x1="34" y1="330" x2="40" y2="330"/>
+        </g>
+
+        <!-- ─ Bouton power (coin haut-droit) ─ -->
+        <circle cx="370" cy="75" r="22" fill="#1a2030" stroke="#3a4a60" stroke-width="2"/>
+        <circle cx="370" cy="75" r="16" fill="#141c28" stroke="#4a5a78" stroke-width="1"/>
+        <circle cx="370" cy="75" r="9"  fill="#0e1620"/>
+        <path d="M370 67 L370 75" stroke="#6a8aaa" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M364 69 A9 9 0 1 0 376 69" fill="none" stroke="#3a5070" stroke-width="2" stroke-linecap="round"/>
+        <text x="370" y="107" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7"
+          fill="rgba(60,90,120,.8)" letter-spacing="1">POWER</text>
+
+        <!-- ─ Potentiomètre bas gauche ─ -->
+        <circle cx="75" cy="580" r="28" fill="#1a2030" stroke="#3a4a60" stroke-width="2"/>
+        <circle cx="75" cy="580" r="20" fill="#141c28" stroke="#4a5a78" stroke-width="1"/>
+        <circle cx="75" cy="580" r="10" fill="#1e2838"/>
+        <!-- Graduations potard -->
+        <g stroke="#2a3a50" stroke-width=".8" opacity=".7">
+          <line x1="75" y1="549" x2="75" y2="554"/>
+          <line x1="96" y1="559" x2="92" y2="563"/>
+          <line x1="106" y1="580" x2="101" y2="580"/>
+          <line x1="96" y1="601" x2="92" y2="597"/>
+          <line x1="75" y1="611" x2="75" y2="606"/>
+          <line x1="54" y1="601" x2="58" y2="597"/>
+          <line x1="44" y1="580" x2="49" y2="580"/>
+          <line x1="54" y1="559" x2="58" y2="563"/>
+        </g>
+        <!-- Repère potard -->
+        <line x1="75" y1="580" x2="75" y2="560" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" opacity=".8" id="potMark">
+          <animateTransform attributeName="transform" type="rotate"
+            from="0 75 580" to="360 75 580" dur="8s" repeatCount="indefinite"/>
+        </line>
+        <text x="75" y="626" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7"
+          fill="rgba(0,160,200,.55)" letter-spacing="1">VOL</text>
+
+        <!-- ─ LED verte (coin bas-droit) ─ -->
+        <circle cx="375" cy="570" r="6" fill="#00ff88" filter="url(#softGlow)" id="svgLed">
+          <animate attributeName="opacity" values=".7;1;.7" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="375" cy="570" r="3" fill="#aaffdd"/>
+        <text x="375" y="590" text-anchor="middle" font-family="'DM Mono',monospace" font-size="6"
+          fill="rgba(0,180,120,.5)" letter-spacing=".5">SIG</text>
+
+        <!-- ─ Ligne déco néon haut ─ -->
+        <rect x="40" y="52" width="340" height="1.5" rx="1" fill="#00d4ff" opacity=".3"
+          filter="url(#softGlow)">
+          <animate attributeName="opacity" values=".2;.4;.2" dur="3s" repeatCount="indefinite"/>
+        </rect>
+
+        <!-- ─ Ligne déco néon bas ─ -->
+        <rect x="40" y="648" width="340" height="1.5" rx="1" fill="#00d4ff" opacity=".3"
+          filter="url(#softGlow)">
+          <animate attributeName="opacity" values=".2;.4;.2" dur="3s" repeatCount="indefinite" begin=".5s"/>
+        </rect>
+
+        <!-- ─ Indicateur de vitesse (bas centre) ─ -->
+        <text x="210" y="640" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8"
+          fill="rgba(0,180,255,.4)" letter-spacing="3" id="rpmTxt">33⅓</text>
+
+        <!-- ─ Titre marque (haut centre) ─ -->
+        <text x="210" y="44" text-anchor="middle" font-family="'Playfair Display',serif"
+          font-style="italic" font-size="13" fill="rgba(0,200,255,.35)" letter-spacing="1">HiFi Studio</text>
+
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="clock" id="clock">--:--:--</div>
+  <div class="vu-wrap" id="vu">
+    <div class="vs" style="height:14%"></div><div class="vs" style="height:20%"></div>
+    <div class="vs" style="height:28%"></div><div class="vs" style="height:36%"></div>
+    <div class="vs" style="height:45%"></div><div class="vs" style="height:54%"></div>
+    <div class="vs" style="height:62%"></div><div class="vs" style="height:69%"></div>
+    <div class="vs" style="height:75%"></div><div class="vs" style="height:81%"></div>
+    <div class="vs" style="height:86%"></div><div class="vs" style="height:90%"></div>
+    <div class="vs" style="height:94%"></div><div class="vs" style="height:97%"></div>
+    <div class="vs" style="height:99%"></div><div class="vs" style="height:100%"></div>
+  </div>
+  <div class="status"><div class="led" id="led"></div><span id="stxt">Hi-Fi — Stéréo actif</span></div>
+  <div class="presets">
+    <button class="pb active" data-p="hifi"      onclick="setP(this)">Hi-Fi</button>
+    <button class="pb"        data-p="jazz"      onclick="setP(this)">Jazz</button>
+    <button class="pb"        data-p="rock"      onclick="setP(this)">Rock</button>
+    <button class="pb"        data-p="classique" onclick="setP(this)">Classique</button>
+    <button class="pb"        data-p="bass"      onclick="setP(this)">Bass Boost</button>
+    <button class="pb"        data-p="synth"     onclick="setP(this)">Synth Wave</button>
+    <button class="pb"        data-p="off"       onclick="setP(this)">Off</button>
+  </div>
+  <div class="brand">Kube HiFi Reference MK-II</div>
+</div>
+
+<script>
+const P={
+  hifi:     {pump:.045,speed:1.0, vu:.55,tw:.003,wAmp:.85, wCol:[[200,162,106]],              wFreq:1,   wLines:3, label:'Hi-Fi — Stéréo actif',   rpm:'33⅓'},
+  jazz:     {pump:.035,speed:.75, vu:.42,tw:.002,wAmp:.75, wCol:[[80,160,220],[120,200,255]], wFreq:1.5, wLines:4, label:'Jazz — Scène large',       rpm:'33⅓'},
+  rock:     {pump:.10, speed:1.55,vu:.82,tw:.008,wAmp:1.0, wCol:[[220,80,50],[255,140,60]],  wFreq:2,   wLines:5, label:'Rock — Puissance maximale', rpm:'45'},
+  classique:{pump:.025,speed:.45, vu:.32,tw:.001,wAmp:.55, wCol:[[160,200,140]],              wFreq:.8,  wLines:2, label:'Classique — Détail & air',  rpm:'33⅓'},
+  bass:     {pump:.16, speed:1.9, vu:.90,tw:.001,wAmp:1.0, wCol:[[140,80,220],[180,120,255]],wFreq:.5,  wLines:6, label:'Bass Boost — Subwoofer max', rpm:'45'},
+  synth:    {pump:.06, speed:2.4, vu:.70,tw:.018,wAmp:.95, wCol:[[0,220,200],[80,255,220],[140,180,255]],wFreq:4,wLines:5,label:'Synth Wave — Électronique', rpm:'45'},
+  off:      {pump:0,   speed:0,   vu:0,  tw:0,   wAmp:0,   wCol:[[200,162,106]],              wFreq:1,   wLines:1, label:'Système éteint',            rpm:'—'}
+};
+
+let cfg={...P.hifi},on=true;
+let t=0,vuPh=0,lastTs=0;
+
+const vinylDisc=document.getElementById('vinyl-disc');
+const tonearmG =document.getElementById('tonearm-g');
+const led=document.getElementById('led');
+const stxt=document.getElementById('stxt');
+const rpmTxt=document.getElementById('rpmTxt');
+const segs=[...document.querySelectorAll('.vs')];
+
+let vinylAngle=0;
+// Pivot SVG vertical : (340, 530)
+const ARM_START=-28;
+const ARM_END  =  8;
+const ARM_REST =-55;
+let armAngle=ARM_START;
+let armProgress=0;
+const ARM_DURATION=90;
+let armAngleCurrent=ARM_START;
+
+function setLed(){
+  led.style.cssText=on
+    ?`width:6px;height:6px;border-radius:50%;background:var(--th-led);box-shadow:0 0 10px var(--th-led)`
+    :'width:6px;height:6px;border-radius:50%;background:#222;box-shadow:none';
+}
+
+function setP(btn){
+  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cfg={...P[btn.dataset.p]};
+  on=(btn.dataset.p!=='off');
+  stxt.textContent=cfg.label;
+  rpmTxt.textContent=cfg.rpm;
+  if(!on) waves=[];
+  setLed();
+}
+
+/* ── SWITCH THÈME ── */
+function setTheme(btn){
+  document.querySelectorAll('.ts-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const th=btn.dataset.theme;
+  document.body.className=th;
+  // met à jour les couleurs néon dans le SVG dynamiquement
+  updateNeonColors(th);
+}
+
+function updateNeonColors(th){
+  const colors={
+    '':   {neon:'#00d4ff', neon2:'#0088ff'},
+    warm: {neon:'#ffaa00', neon2:'#ff7700'},
+    night:{neon:'#aa44ff', neon2:'#6622cc'}
+  };
+  const c=colors[th]||colors[''];
+  // Cercle néon SVG
+  const neonCircles=document.querySelectorAll('#vinyl-svg-wrap circle[stroke]');
+  // Lignes déco
+  document.querySelectorAll('#vinyl-svg-wrap rect[fill="#00d4ff"]').forEach(el=>el.setAttribute('fill',c.neon));
+  // Repère potard
+  const pot=document.getElementById('potMark');
+  if(pot) pot.setAttribute('stroke',c.neon);
+  // Diamant stylus
+  const stylus=document.querySelector('#tonearm-g circle[fill="#00d4ff"]');
+  if(stylus) stylus.setAttribute('fill',c.neon);
+}
+
+/* ── WAVES ── */
+const canvas=document.getElementById('waves');
+const ctx=canvas.getContext('2d');
+let waves=[];
+let wCX=0,wCY=0,wR=0;
+
+function resize(){
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const vz=document.querySelector('.vinyl-wrap');
+  if(vz){
+    const r=vz.getBoundingClientRect();
+    // Centre du disque dans le SVG vertical : (210/420, 285/700)
+    const scaleX=r.width/420;
+    const scaleY=r.height/700;
+    wCX=r.left+210*scaleX;
+    wCY=r.top +285*scaleY;
+    wR =182*scaleX*.6;
+  }
+}
+window.addEventListener('resize',resize);
+setTimeout(resize,120);
+
+let wTimer=0;
+
+function spawnWave(forceCol){
+  const cols=cfg.wCol;
+  const col=forceCol||cols[Math.floor(Math.random()*cols.length)];
+  const n=cfg.wLines||3;
+  for(let i=0;i<n;i++){
+    setTimeout(()=>{
+      if(!on)return;
+      waves.push({
+        r:wR*.5+Math.random()*wR*.3,
+        maxR:Math.max(canvas.width,canvas.height)*1.4,
+        alpha:1,col,
+        freq:cfg.wFreq,
+        phase:Math.random()*Math.PI*2,
+        wobbleAmp:6+Math.random()*8,
+        lw:1+Math.random()*1.5
+      });
+    },i*28);
+  }
+}
+
+function drawWaves(dt){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!on||cfg.wAmp===0){waves=[];return}
+  const expandSpeed=200+cfg.speed*160;
+  waves=waves.filter(w=>{
+    w.r+=expandSpeed*dt;
+    w.alpha=Math.pow(Math.max(0,1-(w.r/(w.maxR*.55))),1.4);
+    return w.alpha>.003&&w.r<w.maxR;
+  });
+  if(waves.length>0){
+    const topWave=waves[0];
+    const grad=ctx.createRadialGradient(wCX,wCY,wR*.3,wCX,wCY,wR*2.5);
+    const [r,g,b]=topWave.col;
+    const haloA=(cfg.wAmp*.18*topWave.alpha).toFixed(3);
+    grad.addColorStop(0,`rgba(${r},${g},${b},${haloA})`);
+    grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(wCX,wCY,wR*2.5,0,Math.PI*2);ctx.fill();
+  }
+  for(const w of waves){
+    const [r,g,b]=w.col;
+    const baseA=(w.alpha*cfg.wAmp).toFixed(3);
+    const pts=96;
+    ctx.beginPath();
+    for(let i=0;i<=pts;i++){
+      const a=(i/pts)*Math.PI*2;
+      const wobble=w.wobbleAmp*Math.sin(a*w.freq*3+t*cfg.speed*5+w.phase)*(1-w.r/w.maxR);
+      const wobble2=w.wobbleAmp*.4*Math.sin(a*w.freq*7-t*cfg.speed*3+w.phase)*(1-w.r/w.maxR);
+      const rad=w.r+wobble+wobble2;
+      const x=wCX+Math.cos(a)*rad;
+      const y=wCY+Math.sin(a)*rad;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=`rgba(${r},${g},${b},${baseA})`;
+    ctx.lineWidth=w.lw;ctx.stroke();
+    if(w.alpha>.25){
+      ctx.beginPath();
+      for(let i=0;i<=pts;i++){
+        const a=(i/pts)*Math.PI*2;
+        const wobble=w.wobbleAmp*.6*Math.sin(a*w.freq*3+t*cfg.speed*5+w.phase+.4)*(1-w.r/w.maxR);
+        const rad=w.r+wobble+w.lw*3;
+        const x=wCX+Math.cos(a)*rad;
+        const y=wCY+Math.sin(a)*rad;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp*.35).toFixed(3)})`;
+      ctx.lineWidth=w.lw*.6;ctx.stroke();
+    }
+    if(w.r<wR*2.2){
+      ctx.beginPath();ctx.arc(wCX,wCY,w.r,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp*.12).toFixed(3)})`;
+      ctx.lineWidth=w.r*.12;ctx.stroke();
+    }
+  }
+}
+
+/* ── LOOP ── */
+function loop(ts){
+  const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;
+  if(on&&cfg.speed>0){
+    t+=dt;vuPh+=dt*cfg.speed*5;
+    const rpm=33.33+(cfg.speed-1)*22;
+    vinylAngle=(vinylAngle+rpm/60*360*dt)%360;
+    vinylDisc.style.transform=`rotate(${vinylAngle.toFixed(2)}deg)`;
+    vinylDisc.style.transformOrigin='210px 285px';
+
+    armProgress+=dt/ARM_DURATION;
+    if(armProgress>=1) armProgress=0;
+    const armTarget=ARM_START+(ARM_END-ARM_START)*armProgress;
+    armAngleCurrent+=(armTarget-armAngleCurrent)*Math.min(1,dt*2);
+    tonearmG.style.transform=`rotate(${armAngleCurrent.toFixed(3)}deg)`;
+    tonearmG.style.transformOrigin='340px 530px';
+
+    const lvl=Math.min(1,Math.max(0,cfg.vu+Math.sin(vuPh)*.13+Math.sin(vuPh*2.4)*.06));
+    segs.forEach((s,i)=>s.classList.toggle('on',i<Math.round(lvl*segs.length)));
+    wTimer+=dt;
+    const wi=1/(cfg.speed*.9+.25);
+    if(wTimer>=wi){wTimer=0;spawnWave();}
+  } else {
+    segs.forEach(s=>s.classList.remove('on'));
+    armAngleCurrent+=(ARM_REST-armAngleCurrent)*Math.min(1,dt*1.2);
+    tonearmG.style.transform=`rotate(${armAngleCurrent.toFixed(3)}deg)`;
+    tonearmG.style.transformOrigin='340px 530px';
+  }
+  drawWaves(dt);
+  requestAnimationFrame(loop);
+}
+
+setLed();
+
+/* ── HORLOGE ── */
+const clockEl=document.getElementById('clock');
+function updateClock(){
+  const n=new Date();
+  const h=String(n.getHours()).padStart(2,'0');
+  const m=String(n.getMinutes()).padStart(2,'0');
+  const s=String(n.getSeconds()).padStart(2,'0');
+  clockEl.textContent=`${h}:${m}:${s}`;
+}
+updateClock();setInterval(updateClock,1000);
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
