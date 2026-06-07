@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMART // INDEX OPS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:       #0d0f0b;
+    --bg2:      #131610;
+    --bg3:      #1a1e16;
+    --border:   #2e3828;
+    --border2:  #3d4a33;
+    --olive:    #6b7c52;
+    --olive2:   #8a9e68;
+    --olive3:   #b4c98e;
+    --khaki:    #c8b87a;
+    --amber:    #d4a843;
+    --red:      #c0392b;
+    --green:    #4a7c59;
+    --green2:   #5fa870;
+    --text:     #d4d8cc;
+    --text2:    #8a9080;
+    --text3:    #5e6458;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Rajdhani', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BG ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    border-bottom: 2px solid var(--border2);
+    background: linear-gradient(180deg, #161a12 0%, var(--bg) 100%);
+    padding: 18px 28px 14px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+
+  .logo-block {
+    display: flex; align-items: baseline; gap: 10px;
+  }
+
+  .logo-block .logo {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--olive3);
+    letter-spacing: 0.15em;
+  }
+
+  .logo-block .slash { color: var(--border2); }
+
+  .logo-block .sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.2em;
+  }
+
+  .header-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .status-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.12em;
+  }
+
+  .status-pill.live  { background: #1a3020; color: var(--green2); border: 1px solid var(--green); }
+  .status-pill.cache { background: #2a2010; color: var(--amber);  border: 1px solid #6b5020; }
+  .status-pill.load  { background: #1e2018; color: var(--text3);  border: 1px solid var(--border2); animation: blink 1s infinite; }
+
+  @keyframes blink { 50% { opacity: 0.4; } }
+
+  .counter {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    position: relative; z-index: 10;
+    padding: 10px 28px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1; min-width: 200px; max-width: 360px;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px 7px 32px;
+    outline: none;
+    letter-spacing: 0.05em;
+  }
+
+  .search-wrap input:focus { border-color: var(--olive); }
+
+  .search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text3); font-size: 12px; pointer-events: none;
+  }
+
+  .cat-filters {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+
+  .cat-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .cat-btn:hover { border-color: var(--olive); color: var(--olive3); }
+
+  .cat-btn.active {
+    background: var(--olive);
+    border-color: var(--olive2);
+    color: var(--bg);
+  }
+
+  .sort-wrap {
+    margin-left: auto;
+    display: flex; gap: 6px;
+  }
+
+  .sort-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sort-btn:hover  { color: var(--text); border-color: var(--border2); }
+  .sort-btn.active { color: var(--khaki); border-color: var(--khaki); }
+
+  /* ── REFRESH BTN ── */
+  .refresh-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 12px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--olive2);
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+  }
+
+  .refresh-btn:hover { background: var(--border); color: var(--olive3); }
+
+  /* ── GRID ── */
+  main {
+    position: relative; z-index: 10;
+    padding: 20px 28px 40px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text3);
+    padding: 6px 0 6px;
+    margin: 16px 0 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-label::before {
+    content: '▸';
+    color: var(--olive);
+  }
+
+  .section-count {
+    margin-left: auto;
+    color: var(--border2);
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 8px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border2);
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    border-color: var(--olive);
+    border-left-color: var(--olive2);
+    background: var(--bg3);
+  }
+
+  .card-header {
+    padding: 10px 12px 8px;
+    display: flex; align-items: flex-start; gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card-icon {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .card-name-wrap { flex: 1; min-width: 0; }
+
+  .card-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--olive3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.04em;
+  }
+
+  .card-cat {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  .card-chevron {
+    font-size: 10px;
+    color: var(--text3);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .card.open .card-chevron { transform: rotate(90deg); }
+
+  /* ── DESCRIPTION ── */
+  .card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+
+  .card.open .card-body { max-height: 200px; }
+
+  .card-desc {
+    padding: 0 12px 10px 50px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+    font-family: var(--sans);
+    font-weight: 400;
+  }
+
+  .card-desc.editing {
+    padding: 0 12px 10px 12px;
+  }
+
+  .desc-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--olive);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 6px 8px;
+    resize: vertical;
+    outline: none;
+    min-height: 60px;
+  }
+
+  .card-actions {
+    padding: 0 12px 10px 50px;
+    display: flex; gap: 6px;
+  }
+
+  .btn-link {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    background: var(--green);
+    border: 1px solid var(--green2);
+    color: #d4f0dc;
+    text-decoration: none;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .btn-link:hover { background: var(--green2); }
+
+  .btn-edit {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-edit:hover { border-color: var(--khaki); color: var(--khaki); }
+
+  .btn-save {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--olive);
+    color: var(--olive3);
+    cursor: pointer;
+  }
+
+  /* ── EMPTY ── */
+  .empty-msg {
+    font-family: var(--mono);
+    color: var(--text3);
+    font-size: 12px;
+    padding: 40px 0;
+    text-align: center;
+    letter-spacing: 0.15em;
+  }
+
+  /* ── SCANLINE ── */
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--olive2), transparent);
+  }
+
+  /* ── CORNER DECO ── */
+  .corner-tl { position:fixed; top:12px; left:12px; font-family:var(--mono); font-size:9px; color:var(--border2); letter-spacing:.1em; z-index:5; }
+  .corner-br { position:fixed; bottom:12px; right:12px; font-family:var(--mono); font-size:9px; color:var(--border2); letter-spacing:.1em; z-index:5; }
+
+  .hidden { display: none !important; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); }
+</style>
+</head>
+<body>
+
+<div class="corner-tl">SYS:BENCM0I // SMART-OPS</div>
+<div class="corner-br" id="corner-ts">--</div>
+
+<header>
+  <div class="logo-block">
+    <span class="logo">SMART</span>
+    <span class="slash">//</span>
+    <span class="sub">INDEX OPS v2.0</span>
+  </div>
+  <div class="header-right">
+    <span class="status-pill load" id="status-pill">⬤ CHARGEMENT</span>
+    <span class="counter" id="file-count">-- fichiers</span>
+    <button class="refresh-btn" onclick="fetchGitHub(true)">↺ SYNC</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search-input" placeholder="FILTRER..." autocomplete="off" oninput="renderAll()">
+  </div>
+
+  <div class="cat-filters" id="cat-filters">
+    <button class="cat-btn active" data-cat="ALL" onclick="setCategory(this)">TOUT</button>
+  </div>
+
+  <div class="sort-wrap">
+    <button class="sort-btn active" id="sort-alpha" onclick="setSort('alpha')">A→Z</button>
+    <button class="sort-btn" id="sort-cat" onclick="setSort('cat')">CAT</button>
+  </div>
+</div>
+
+<main id="main-content">
+  <div class="empty-msg">CHARGEMENT DES DONNÉES...</div>
+</main>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const REPO_OWNER = 'Bencm0i';
+const REPO_NAME  = 'smart';
+const RAW_BASE   = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/`;
+const API_URL    = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents`;
+const LS_FILES   = 'smart_index_files_v2';
+const LS_DESCS   = 'smart_index_descs_v2';
+const LS_TS      = 'smart_index_ts_v2';
+
+// ── CATÉGORIES (heuristique sur les noms) ───────────────────────────────────
+const CATEGORIES = {
+  FINANCE:    { icon:'💰', keywords:['patrimoine','btc','depenses','succession','tracker-erit','budget'] },
+  SANTE:      { icon:'🫀', keywords:['sante','fodmap','gluten','poids','symptomes','suivi'] },
+  METEO:      { icon:'🌦', keywords:['meteo'] },
+  MUSIQUE:    { icon:'🎵', keywords:['hifi','muse','waveamp'] },
+  DOMOTIQUE:  { icon:'🏠', keywords:['backup','incidents','scanner','drive'] },
+  CUISINE:    { icon:'🍽', keywords:['cuisine','courses','liste','inventaire','cheque'] },
+  TODO:       { icon:'✅', keywords:['todo','notes','kit','agenda','calendrier'] },
+  OUTILS:     { icon:'⚙️', keywords:['aide','decision','compteur','prompt','export','launcher'] },
+  ESPACE:     { icon:'🚀', keywords:['space','alien','conscience'] },
+  VEHICULE:   { icon:'🚗', keywords:['yaris','drive_lec'] },
+  MEDIA:      { icon:'📺', keywords:['series','tv','mobile','nuisances'] },
+};
+
+function getCategory(filename) {
+  const lower = filename.toLowerCase();
+  for (const [cat, cfg] of Object.entries(CATEGORIES)) {
+    if (cfg.keywords.some(k => lower.includes(k))) return cat;
+  }
+  return 'AUTRES';
+}
+
+function getCatIcon(cat) {
+  return CATEGORIES[cat]?.icon ?? '📄';
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let files   = [];
+let descs   = {};
+let sortMode = 'alpha';
+let activeCat = 'ALL';
+let editingFile = null;
+
+// ── DESCRIPTIONS PAR DÉFAUT ─────────────────────────────────────────────────
+const DEFAULT_DESCS = {
+  'aide_decision.html':            'Outil d\'aide à la décision multicritères.',
+  'alien.html':                    'Expérience visuelle / art génératif extraterrestre.',
+  'backup_tracker.html':           'Suivi des sauvegardes systèmes et fichiers.',
+  'btc-tracker.html':              'Tracker Bitcoin — cours en temps réel.',
+  'calendrier_viewer_mobile.html': 'Visualiseur calendrier optimisé mobile.',
+  'cheque.html':                   'Générateur / enregistreur de chèques.',
+  'compteur.html':                 'Compteur simple polyvalent.',
+  'conscience.html':               'Exploration philosophique de la conscience / identité numérique.',
+  'cuisine_taches.html':           'Gestionnaire de tâches cuisine.',
+  'decision_export.html':          'Export des décisions / journal de bord décisionnel.',
+  'depenses_mois.html':            'Suivi mensuel des dépenses.',
+  'drive_lec.html':                'Interface de lecture Drive / stockage cloud.',
+  'gluten_fodmap_tracker.html':    'Tracker FODMAP et sensibilités alimentaires.',
+  'hifi.html':                     'Dashboard Hi-Fi — gestion matériel audio.',
+  'hifi_v.html':                   'Variante visuelle du dashboard Hi-Fi.',
+  'incidents.html':                'Journal des incidents domestiques / techniques.',
+  'index.html':                    'Page d\'index principale du repo.',
+  'inventaire.html':               'Inventaire objets / matériel.',
+  'kit_tracker.html':              'Suivi des kits maker (composants, pièces).',
+  'liste_courses_militaire.html':  'Liste de courses — esthétique tactique/militaire.',
+  'meteo.html':                    'Tableau météo simple.',
+  'meteo_dashboard_chauffage.html':'Dashboard météo + conseil velotaf + chauffage (Open-Meteo / HA).',
+  'muse.html':                     'Interface musicale / inspiration créative.',
+  'muse2.html':                    'Variante Muse — version 2.',
+  'muse3.html':                    'Variante Muse — version 3.',
+  'muse_mobile.html':              'Interface Muse optimisée mobile.',
+  'muse_tv.html':                  'Interface Muse pour TV / grand écran.',
+  'notes.html':                    'Prise de notes rapide.',
+  'nuisances_sonores2.html':       'Enregistreur de nuisances sonores.',
+  'patrimoine_saisie.html':        'Saisie des données patrimoniales (biens, épargne).',
+  'patrimoine_saisie_RESET.html':  'Version reset/nettoyage des données patrimoine.',
+  'poids.html':                    'Tracker de poids corporel.',
+  'prompt-manager.html':           'Gestionnaire de prompts IA.',
+  'scanner.html':                  'Scanner QR / codes-barres.',
+  'series_tracker.html':           'Suivi de séries TV.',
+  'smart_launcher.html':           'Launcher central des outils SMART.',
+  'space_drift_mobile.html':       'Space DRIFT — voyage Terre→Neptune, art génératif audio (mobile).',
+  'succession_simulator.html':     'Simulateur de succession / fiscalité successorale.',
+  'suivi-sante.html':              'Suivi santé global — symptômes, bien-être.',
+  'symptomes.html':                'Journal de symptômes quotidien.',
+  'todo.html':                     'Liste de tâches principale.',
+  'todo_terrain.html':             'Todo terrain / chantier / projets physiques.',
+  'tracker-erit.html':             'Tracker héritage / ERIT — suivi dossier succession.',
+  'waveamp.html':                  'Visualiseur d\'ondes audio / amplificateur.',
+  'yaris.html':                    'Suivi Yaris Hybrid — kilométrage, consommation, entretien.',
+};
+
+// ── FETCH GITHUB ─────────────────────────────────────────────────────────────
+async function fetchGitHub(force = false) {
+  setPill('load', '⬤ SYNC...');
+
+  // Try cache first
+  if (!force) {
+    const cached = localStorage.getItem(LS_FILES);
+    if (cached) {
+      try {
+        files = JSON.parse(cached);
+        loadDescs();
+        setPill('cache', '⬤ CACHE');
+        updateTimestamp();
+        buildUI();
+        return;
+      } catch(e) {}
+    }
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const data = await res.json();
+    files = data
+      .filter(f => f.name.endsWith('.html') && f.name !== 'README.md')
+      .map(f => ({
+        name: f.name,
+        sha: f.sha,
+        url: `${RAW_BASE}${f.name}`,
+        github_url: f.html_url,
+        size: f.size,
+      }));
+
+    localStorage.setItem(LS_FILES, JSON.stringify(files));
+    localStorage.setItem(LS_TS, Date.now().toString());
+    loadDescs();
+    setPill('live', '⬤ LIVE');
+    updateTimestamp();
+    buildUI();
+
+  } catch (err) {
+    // Fallback: use hardcoded list
+    files = Object.keys(DEFAULT_DESCS).map(name => ({
+      name,
+      url: `${RAW_BASE}${name}`,
+      github_url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/main/${name}`,
+      size: 0,
+      fallback: true,
+    }));
+    loadDescs();
+    setPill('cache', '⬤ FALLBACK');
+    buildUI();
+    console.warn('GitHub API failed, using fallback:', err.message);
+  }
+}
+
+function loadDescs() {
+  const saved = localStorage.getItem(LS_DESCS);
+  if (saved) {
+    try { descs = JSON.parse(saved); } catch(e) { descs = {}; }
+  }
+  // Merge defaults for missing
+  for (const [k, v] of Object.entries(DEFAULT_DESCS)) {
+    if (!descs[k]) descs[k] = v;
+  }
+}
+
+function saveDesc(filename, text) {
+  descs[filename] = text;
+  localStorage.setItem(LS_DESCS, JSON.stringify(descs));
+}
+
+// ── UI ───────────────────────────────────────────────────────────────────────
+function buildUI() {
+  buildCategoryFilters();
+  renderAll();
+}
+
+function buildCategoryFilters() {
+  const used = new Set(files.map(f => getCategory(f.name)));
+  const container = document.getElementById('cat-filters');
+  container.innerHTML = '<button class="cat-btn active" data-cat="ALL" onclick="setCategory(this)">TOUT</button>';
+
+  const allCats = [...Object.keys(CATEGORIES), 'AUTRES'].filter(c => used.has(c));
+  for (const cat of allCats) {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.dataset.cat = cat;
+    btn.textContent = `${getCatIcon(cat)} ${cat}`;
+    btn.onclick = function() { setCategory(this); };
+    container.appendChild(btn);
+  }
+}
+
+function setCategory(btn) {
+  activeCat = btn.dataset.cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function setSort(mode) {
+  sortMode = mode;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort-' + mode).classList.add('active');
+  renderAll();
+}
+
+function renderAll() {
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const main  = document.getElementById('main-content');
+
+  let filtered = files.filter(f => {
+    if (!f.name.endsWith('.html')) return false;
+    const matchSearch = !query ||
+      f.name.toLowerCase().includes(query) ||
+      (descs[f.name] || '').toLowerCase().includes(query);
+    const matchCat = activeCat === 'ALL' || getCategory(f.name) === activeCat;
+    return matchSearch && matchCat;
+  });
+
+  document.getElementById('file-count').textContent = `${files.length} fichiers`;
+
+  if (!filtered.length) {
+    main.innerHTML = '<div class="empty-msg">// AUCUN RÉSULTAT //</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (sortMode === 'cat') {
+    const bycat = {};
+    for (const f of filtered) {
+      const c = getCategory(f.name);
+      (bycat[c] = bycat[c] || []).push(f);
+    }
+    const sortedCats = [...Object.keys(CATEGORIES), 'AUTRES'].filter(c => bycat[c]);
+    for (const cat of sortedCats) {
+      const list = bycat[cat].sort((a, b) => a.name.localeCompare(b.name));
+      html += `<div class="section-label">${getCatIcon(cat)} ${cat}<span class="section-count">${list.length}</span></div>`;
+      html += `<div class="cards-grid">${list.map(renderCard).join('')}</div>`;
+    }
+  } else {
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    html = `<div class="cards-grid">${filtered.map(renderCard).join('')}</div>`;
+  }
+
+  main.innerHTML = html;
+}
+
+function renderCard(f) {
+  const cat  = getCategory(f.name);
+  const icon = getCatIcon(cat);
+  const desc = descs[f.name] || '<span style="color:var(--text3);font-style:italic">— aucune description —</span>';
+  const fid  = CSS.escape(f.name);
+
+  return `
+  <div class="card" id="card-${fid}" data-file="${f.name}">
+    <div class="card-header" onclick="toggleCard('${f.name.replace(/'/g, "\\'")}')">
+      <div class="card-icon">${icon}</div>
+      <div class="card-name-wrap">
+        <div class="card-name">${f.name}</div>
+        <div class="card-cat">${cat}</div>
+      </div>
+      <span class="card-chevron">▶</span>
+    </div>
+    <div class="card-body">
+      <div class="card-desc" id="desc-${fid}">${desc}</div>
+      <div class="card-actions">
+        <a class="btn-link" href="${f.url}" target="_blank">⬥ OUVRIR</a>
+        <a class="btn-link" href="${f.github_url}" target="_blank" style="background:var(--bg3);border-color:var(--border2);color:var(--text2);">◈ GITHUB</a>
+        <button class="btn-edit" onclick="startEdit('${f.name.replace(/'/g, "\\'")}')">✎ ÉDITER</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(filename) {
+  const card = document.querySelector(`.card[data-file="${CSS.escape(filename)}"]`);
+  if (!card) return;
+  // close others
+  document.querySelectorAll('.card.open').forEach(c => {
+    if (c !== card) c.classList.remove('open');
+  });
+  card.classList.toggle('open');
+}
+
+function startEdit(filename) {
+  const fid = CSS.escape(filename);
+  const descEl = document.getElementById('desc-' + fid);
+  if (!descEl) return;
+
+  const current = descs[filename] || '';
+  descEl.classList.add('editing');
+  descEl.innerHTML = `<textarea class="desc-input" id="ta-${fid}">${current}</textarea>`;
+
+  const actionsEl = descEl.nextElementSibling;
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn-save';
+  saveBtn.textContent = '✓ SAUVER';
+  saveBtn.onclick = () => saveEdit(filename);
+  actionsEl.appendChild(saveBtn);
+
+  document.getElementById('ta-' + fid)?.focus();
+}
+
+function saveEdit(filename) {
+  const fid = CSS.escape(filename);
+  const ta  = document.getElementById('ta-' + fid);
+  if (!ta) return;
+
+  const val = ta.value.trim();
+  saveDesc(filename, val);
+
+  const descEl = document.getElementById('desc-' + fid);
+  descEl.classList.remove('editing');
+  descEl.innerHTML = val || '<span style="color:var(--text3);font-style:italic">— aucune description —</span>';
+
+  const actionsEl = descEl.nextElementSibling;
+  const saveBtn = actionsEl.querySelector('.btn-save');
+  if (saveBtn) saveBtn.remove();
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function setPill(type, label) {
+  const p = document.getElementById('status-pill');
+  p.className = 'status-pill ' + type;
+  p.textContent = label;
+}
+
+function updateTimestamp() {
+  const ts = localStorage.getItem(LS_TS);
+  if (ts) {
+    const d = new Date(parseInt(ts));
+    document.getElementById('corner-br').textContent =
+      `SYNC: ${d.toLocaleDateString('fr-FR')} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`;
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+fetchGitHub(false);
+</script>
+</body>
+</html>
