@@ -10,194 +10,594 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden}
 
+/* ══ THÈMES FUSIONNÉS ══
+   défaut = acier (platine)  |  warm = bois chaud (enceinte)  |  night = nuit (commun)
+*/
 body{
-  --wood-d:#3d2410;--wood-m:#5c3d1e;--wood-l:#8b5e3c;--wood-h:#a06b40;
-  --gold:#c8a26a;--bg:#0c0a08;--panel-bg:rgba(8,6,4,.88);--panel-border:rgba(200,162,106,.1);
-  --muted:#5a4a3a;--led:#4aff6a;
-  --pb-border:rgba(200,162,106,.18);--pb-col:#5a4a3a;
+  --wood-d:#1a0f06;--wood-m:#2a1a0a;--wood-l:#3d2410;--wood-h:#5c3d1e;
+  --gold:#c8a26a;--bg:#0d1117;
+  --panel-bg:rgba(10,14,20,.92);--panel-border:rgba(0,180,255,.15);
+  --muted:#3a4a5a;--led:#00ffcc;
+  --neon1:#00d4ff;--neon2:#0088ff;--neon3:rgba(0,180,255,.18);
+  --pb-border:rgba(0,180,255,.2);--pb-col:#4a6a8a;--text:#8ab0c8;
   background:var(--bg);font-family:'DM Mono',monospace;
   display:flex;flex-direction:column;
-  transition:background .5s;
+  transition:background .6s,color .6s;
 }
-body.dark{
-  --wood-d:#120a04;--wood-m:#1e1008;--wood-l:#2e1a0a;--wood-h:#3a2010;
-  --gold:#8a6030;--bg:#030201;--panel-bg:rgba(2,1,0,.95);--panel-border:rgba(120,80,30,.15);
-  --muted:#2a1a0a;--led:#00ff88;
-  --pb-border:rgba(120,80,30,.2);--pb-col:#3a2a1a;
+body.warm{
+  --wood-d:#3d2410;--wood-m:#5c3d1e;--wood-l:#8b5e3c;--wood-h:#a06b40;
+  --gold:#c8a26a;--bg:#0c0806;
+  --panel-bg:rgba(8,5,2,.92);--panel-border:rgba(200,140,60,.18);
+  --muted:#5a4030;--led:#ffdd44;
+  --neon1:#ffaa00;--neon2:#ff7700;--neon3:rgba(255,140,0,.15);
+  --pb-border:rgba(200,140,60,.25);--pb-col:#8a6a3a;--text:#c8a26a;
+}
+body.night{
+  --wood-d:#0a0818;--wood-m:#12102a;--wood-l:#1e1c3a;--wood-h:#2e2c50;
+  --gold:#8866cc;--bg:#030206;
+  --panel-bg:rgba(4,2,10,.95);--panel-border:rgba(140,60,255,.2);
+  --muted:#2a1a4a;--led:#dd88ff;
+  --neon1:#aa44ff;--neon2:#6622cc;--neon3:rgba(140,40,255,.15);
+  --pb-border:rgba(140,60,255,.25);--pb-col:#6644aa;--text:#9966dd;
 }
 
 canvas#waves{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 
+/* ══ CABINET ══ */
 .cabinet{
   position:relative;z-index:2;flex:1;width:100%;
-  background:
-    repeating-linear-gradient(90deg,rgba(0,0,0,.14) 0,rgba(0,0,0,.14) 1.5px,transparent 1.5px,transparent 6px),
-    repeating-linear-gradient(180deg,rgba(255,255,255,.02) 0,rgba(255,255,255,.02) 1px,transparent 1px,transparent 40px),
-    linear-gradient(165deg,var(--wood-h) 0%,var(--wood-l) 10%,var(--wood-m) 35%,var(--wood-d) 58%,var(--wood-m) 78%,var(--wood-l) 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;
+  display:flex;align-items:center;justify-content:center;
   overflow:hidden;
-  box-shadow:inset 4px 0 8px rgba(255,255,255,.05),inset -4px 0 8px rgba(0,0,0,.5);
-  transition:background .6s;
+  transition:background .7s;
 }
-.cabinet::after{content:'';position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(110deg,rgba(255,255,255,.07) 0%,transparent 35%,rgba(0,0,0,.22) 100%)}
 
-.tweeter-zone{width:min(22vw,160px);aspect-ratio:1;position:relative;z-index:5}
-.tw-body{width:100%;height:100%;border-radius:50%;
-  background:radial-gradient(circle at 36% 32%,#3a3a3a,#141414 60%,#050505);
-  box-shadow:0 4px 20px rgba(0,0,0,.9),0 0 0 3px rgba(255,255,255,.04),inset 0 2px 4px rgba(255,255,255,.07);
-  display:flex;align-items:center;justify-content:center;position:relative}
-.tw-r1{position:absolute;inset:6%;border-radius:50%;border:1.5px solid rgba(200,162,106,.18)}
-.tw-r2{position:absolute;inset:18%;border-radius:50%;border:1px solid rgba(255,255,255,.06)}
-.tw-r3{position:absolute;inset:32%;border-radius:50%;border:1px solid rgba(255,255,255,.04)}
-.tw-dome{width:30%;height:30%;border-radius:50%;
-  background:radial-gradient(circle at 36% 32%,#5c5c5c,#1a1a1a);
-  box-shadow:inset 0 2px 6px rgba(0,0,0,.8)}
+/* Cabinet vinyle (acier/nuit) */
+.cabinet.mode-vinyl{
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 4px),
+    linear-gradient(170deg,var(--wood-h) 0%,var(--wood-l) 8%,var(--wood-d) 18%,var(--wood-m) 30%,var(--wood-d) 45%,var(--wood-l) 60%,var(--wood-d) 75%,var(--wood-m) 88%,var(--wood-h) 100%);
+  box-shadow:inset 0 3px 12px rgba(0,0,0,.6),inset 0 -3px 12px rgba(0,0,0,.4);
+}
 
-.woofer-zone{width:min(78vw,580px);aspect-ratio:1;position:relative;z-index:5}
-.wf-frame{width:100%;height:100%;border-radius:50%;
-  background:radial-gradient(circle at 38% 34%,#282828,#101010 50%,#030303);
-  box-shadow:0 8px 40px rgba(0,0,0,.95),0 0 0 4px rgba(255,255,255,.03),0 0 0 8px rgba(0,0,0,.4),inset 0 4px 8px rgba(255,255,255,.04);
-  display:flex;align-items:center;justify-content:center;position:relative}
-.wf-surround{position:absolute;inset:4%;border-radius:50%;border:6px solid rgba(255,255,255,.05)}
-.wf-surround2{position:absolute;inset:6.5%;border-radius:50%;border:2px solid rgba(200,162,106,.08)}
-.wf-cone{position:absolute;width:78%;height:78%;border-radius:50%;
-  background:radial-gradient(circle at 40% 37%,#4a4a4a,#252525 30%,#111 65%,#080808);
-  will-change:transform;transform-origin:50% 50%;
-  display:flex;align-items:center;justify-content:center}
-.cr{position:absolute;border-radius:50%;border:1.5px solid rgba(255,255,255,.055)}
-.cr1{inset:10%}.cr2{inset:22%}.cr3{inset:36%}.cr4{inset:50%}.cr5{inset:64%}
-.wf-spider{position:absolute;width:28%;height:28%;border-radius:50%;
-  background:radial-gradient(circle,#333,#1a1a1a 60%,#0d0d0d);border:1px solid rgba(255,255,255,.05)}
-/* wf-cap défini plus haut avec néon jaune */
+/* Cabinet enceinte (bois chaud) */
+.cabinet.mode-hp{
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0,rgba(0,0,0,.12) 1.5px,transparent 1.5px,transparent 5px),
+    repeating-linear-gradient(180deg,rgba(255,255,255,.018) 0,rgba(255,255,255,.018) 1px,transparent 1px,transparent 38px),
+    linear-gradient(168deg,var(--wood-h) 0%,var(--wood-l) 12%,var(--wood-m) 34%,var(--wood-d) 56%,var(--wood-m) 76%,var(--wood-l) 100%);
+  box-shadow:inset 4px 0 10px rgba(255,255,255,.06),inset -4px 0 10px rgba(0,0,0,.5);
+}
 
-.port{width:28%;height:min(2.2%,12px);border-radius:20px;
-  background:#030201;box-shadow:inset 0 4px 8px rgba(0,0,0,1);position:relative;z-index:5}
+.cabinet::before{
+  content:'';position:absolute;inset:-3px;z-index:0;pointer-events:none;border-radius:4px;
+  box-shadow:
+    0 0 18px 3px var(--neon1),
+    0 0 40px 8px var(--neon2),
+    0 0 80px 15px var(--neon3),
+    inset 0 0 30px var(--neon3);
+  animation:neonPulse 2.6s ease-in-out infinite;
+  transition:box-shadow .7s;
+}
+@keyframes neonPulse{0%,100%{opacity:.8}50%{opacity:1}}
+.cabinet::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%,rgba(0,0,0,.2) 100%)
+}
 
+/* ── Zones SVG ── */
+.vinyl-zone,.hp-zone{
+  position:relative;z-index:5;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .35s;
+}
+.vinyl-wrap{
+  height:min(88vh,640px);width:auto;aspect-ratio:420/700;
+}
+.hp-zone{display:none}
+
+/* ══ PANEL BAS ══ */
 .panel{
   position:relative;z-index:10;width:100%;
   background:var(--panel-bg);
   border-top:1px solid var(--panel-border);
-  padding:1vh 1rem 1.5vh;
-  display:flex;flex-direction:column;align-items:center;gap:.8vh;
-  transition:background .6s;
+  padding:.7vh 1rem 1.1vh;
+  display:flex;flex-direction:column;align-items:center;gap:.5vh;
+  transition:background .6s,border-color .6s;
 }
-.vu-wrap{display:flex;gap:2px;height:18px;width:min(94%,700px);align-items:flex-end}
-.vs{flex:1;border-radius:1px 1px 0 0;background:#c8a26a;opacity:.08;transition:opacity .055s}
+
+/* ── ONGLETS ── */
+.tabs{display:flex;gap:0;border:1px solid var(--panel-border);border-radius:20px;overflow:hidden;transition:border-color .5s}
+.tab{
+  padding:.3rem 1.2rem;border:none;background:transparent;
+  color:var(--muted);font-family:'DM Mono',monospace;
+  font-size:clamp(.54rem,1.3vw,.68rem);letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;transition:all .22s;
+}
+.tab.active{background:var(--neon1);color:#050a0f}
+.tab:hover:not(.active){color:var(--neon1)}
+
+/* VU-mètre */
+.vu-wrap{display:flex;gap:2px;height:14px;width:min(94%,600px);align-items:flex-end}
+.vs{flex:1;border-radius:1px 1px 0 0;background:var(--neon1);opacity:.08;transition:opacity .055s,background .6s}
 .vs.on{opacity:1}
 .vs:nth-child(n+14){background:#d4856a}
 .vs:nth-child(n+16){background:#d44040}
 
+/* Status */
 .status{display:flex;align-items:center;gap:8px;
-  font-size:clamp(.52rem,1.3vw,.68rem);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-.led{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  font-size:clamp(.5rem,1.2vw,.65rem);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);transition:color .6s}
+.ledDot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* Horloge */
+.clock{
+  font-family:'DM Mono',monospace;font-size:clamp(1.2rem,3.8vw,2.2rem);
+  font-weight:300;letter-spacing:.2em;color:var(--neon1);order:-1;
+  text-shadow:0 0 14px var(--neon1),0 0 30px var(--neon2);
+  transition:color .6s,text-shadow .6s;
+}
+
+/* ── Presets (platine) ── */
 .presets{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
-.pb{padding:.3rem .75rem;border:1px solid var(--pb-border);border-radius:20px;
+.pb{
+  padding:.28rem .7rem;border:1px solid var(--pb-border);border-radius:20px;
   background:transparent;color:var(--pb-col);
-  font-family:'DM Mono',monospace;font-size:clamp(.55rem,1.2vw,.68rem);
-  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s}
-.pb:hover{border-color:var(--gold);color:var(--gold)}
-.pb.active{background:var(--gold);border-color:var(--gold);color:#0c0a08}
+  font-family:'DM Mono',monospace;font-size:clamp(.52rem,1.1vw,.65rem);
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .22s;
+}
+.pb:hover{border-color:var(--neon1);color:var(--neon1)}
+.pb.active{background:var(--neon1);border-color:var(--neon1);color:#050a0f}
+
+/* ── Sliders (enceinte) ── */
+.sliders{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:.4rem 1rem;width:min(96%,640px);
+}
+.sl-row{display:flex;flex-direction:column;gap:.2rem;align-items:stretch}
+.sl-label{font-size:clamp(.46rem,1vw,.58rem);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:center;transition:color .4s}
+.sl-val{font-size:clamp(.5rem,1vw,.6rem);letter-spacing:.1em;color:var(--gold);text-align:center;transition:color .4s}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:3px;border-radius:2px;
+  background:linear-gradient(to right,var(--gold) 0%,var(--gold) var(--pct,50%),rgba(200,162,106,.18) var(--pct,50%),rgba(200,162,106,.18) 100%);
+  outline:none;cursor:pointer;transition:background .1s;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#e8d090,#c8a26a 50%,#8a6030);
+  box-shadow:0 0 6px rgba(200,162,106,.7),0 1px 3px rgba(0,0,0,.8);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;border:none;
+  background:radial-gradient(circle at 35% 30%,#e8d090,#c8a26a 50%,#8a6030);
+  box-shadow:0 0 6px rgba(200,162,106,.7);cursor:pointer;
+}
+
+/* Boutons power/theme enceinte */
+.btn-row{display:flex;gap:.5rem;align-items:center;justify-content:center}
+.ctrl-btn{
+  padding:.28rem .7rem;border:1px solid var(--panel-border);border-radius:16px;
+  background:transparent;color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;
+}
+.ctrl-btn:hover{border-color:var(--neon1);color:var(--neon1)}
+.ctrl-btn.on{background:var(--neon1);border-color:var(--neon1);color:#050a0f}
+
+/* Switch thème (platine) */
+.theme-switch{
+  display:flex;align-items:center;gap:0;
+  border:1px solid var(--panel-border);border-radius:20px;overflow:hidden;
+  transition:border-color .5s;
+}
+.ts-btn{
+  padding:.28rem .6rem;border:none;background:transparent;color:var(--muted);
+  font-family:'DM Mono',monospace;font-size:clamp(.5rem,1vw,.6rem);
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .22s;white-space:nowrap;
+}
+.ts-btn.active{background:var(--neon1);color:#050a0f;border-radius:18px}
+.ts-btn:hover:not(.active){color:var(--neon1)}
 
 .brand{font-family:'Playfair Display',serif;font-style:italic;
-  font-size:clamp(.6rem,1.5vw,.75rem);color:rgba(200,162,106,.28);letter-spacing:.06em}
+  font-size:clamp(.55rem,1.2vw,.68rem);color:rgba(200,162,106,.25);letter-spacing:.06em}
 
-/* ══ HORLOGE ══ */
-.clock{
-  font-family:'DM Mono',monospace;font-size:clamp(1.4rem,4.5vw,2.6rem);
-  font-weight:300;letter-spacing:.2em;
-  color:#fff;
-  text-shadow:0 0 14px rgba(255,255,255,.9),0 0 30px rgba(255,255,255,.5),0 0 60px rgba(200,162,106,.6);
-  opacity:.95;line-height:1;order:-1;
-}
-
-/* ══ NÉONS ENCEINTE ══ */
-.cabinet{
-  /* les néons seront gérés via box-shadow animé sur ::before */
-}
-.cabinet::before{
-  content:'';position:absolute;inset:-3px;z-index:1;pointer-events:none;
-  border-radius:4px;
-  box-shadow:
-    0 0 12px 2px rgba(0,220,255,.55),
-    0 0 30px 6px rgba(0,150,255,.35),
-    0 0 60px 10px rgba(0,80,220,.18),
-    inset 0 0 20px rgba(0,180,255,.08);
-  animation:neonPulse 2.4s ease-in-out infinite;
-}
-@keyframes neonPulse{
-  0%,100%{
-    box-shadow:
-      0 0 12px 2px rgba(0,220,255,.55),
-      0 0 30px 6px rgba(0,150,255,.35),
-      0 0 60px 10px rgba(0,80,220,.18),
-      inset 0 0 20px rgba(0,180,255,.08);
-  }
-  50%{
-    box-shadow:
-      0 0 20px 4px rgba(0,240,255,.85),
-      0 0 50px 12px rgba(0,180,255,.55),
-      0 0 100px 20px rgba(0,100,255,.28),
-      0 0 8px 1px rgba(180,0,255,.4),
-      inset 0 0 30px rgba(0,220,255,.12);
-  }
-}
-
-/* ══ CENTRE HP JAUNE ══ */
-.wf-cap{width:10%;height:10%;border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#ffff00,#ffcc00 40%,#ff8800 80%,#cc5500);
-  box-shadow:
-    0 0 10px 3px rgba(255,255,0,.9),
-    0 0 25px 8px rgba(255,200,0,.7),
-    0 0 50px 15px rgba(255,150,0,.45),
-    0 0 4px 1px rgba(255,255,100,1) inset;
-  position:relative;z-index:3;
-  animation:capGlow 1.6s ease-in-out infinite alternate;
-}
-@keyframes capGlow{
-  from{box-shadow:0 0 10px 3px rgba(255,255,0,.9),0 0 25px 8px rgba(255,200,0,.7),0 0 50px 15px rgba(255,150,0,.45)}
-  to  {box-shadow:0 0 18px 6px rgba(255,255,50,1),0 0 40px 14px rgba(255,220,0,.9),0 0 80px 25px rgba(255,160,0,.6)}
-}
-
-/* theme toggle */
-.theme-btn{
-  position:fixed;top:10px;right:10px;z-index:100;
-  padding:.35rem .8rem;
-  border:1px solid rgba(200,162,106,.25);border-radius:20px;
-  background:rgba(8,6,4,.75);color:#c8a26a;
-  font-family:'DM Mono',monospace;font-size:.62rem;
-  letter-spacing:.14em;text-transform:uppercase;cursor:pointer;
-  backdrop-filter:blur(8px);transition:all .2s;
-}
-.theme-btn:hover{background:rgba(200,162,106,.15)}
+/* Sections panel qui s'alternent */
+#panelVinyl,#panelHP{transition:opacity .25s}
+#panelHP{display:none}
 </style>
 </head>
 <body>
 
 <canvas id="waves"></canvas>
-<button class="theme-btn" onclick="toggleTheme()" id="tbtn">◐ Dark Club</button>
 
-<div class="cabinet">
-  <div class="tweeter-zone" id="tw">
-    <div class="tw-body">
-      <div class="tw-r1"></div><div class="tw-r2"></div><div class="tw-r3"></div>
-      <div class="tw-dome"></div>
+<!-- ══════════════════════════════════
+     CABINET
+══════════════════════════════════ -->
+<div class="cabinet mode-vinyl" id="cabinet">
+
+  <!-- ── PLATINE VINYLE ── -->
+  <div class="vinyl-zone" id="vinylZone">
+    <div class="vinyl-wrap">
+      <svg id="vinyl-svg-wrap" viewBox="0 0 420 700" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;overflow:visible">
+        <defs>
+          <linearGradient id="woodBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#2a1a0a"/><stop offset="35%"  stop-color="#1a0f06"/>
+            <stop offset="70%"  stop-color="#2e1c0c"/><stop offset="100%" stop-color="#1a0f06"/>
+          </linearGradient>
+          <linearGradient id="plateauGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#1c2030"/><stop offset="20%"  stop-color="#2a3040"/>
+            <stop offset="50%"  stop-color="#3a4255"/><stop offset="80%"  stop-color="#2a3040"/>
+            <stop offset="100%" stop-color="#1c2030"/>
+          </linearGradient>
+          <radialGradient id="plateauRadial" cx="42%" cy="38%" r="60%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,.12)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+          <pattern id="brushH" x="0" y="0" width="1" height="3" patternUnits="userSpaceOnUse">
+            <rect width="420" height="1" fill="rgba(255,255,255,.05)"/>
+          </pattern>
+          <radialGradient id="discGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#1a1a1a"/><stop offset="60%"  stop-color="#0e0e0e"/>
+            <stop offset="85%"  stop-color="#181818"/><stop offset="100%" stop-color="#0a0a0a"/>
+          </radialGradient>
+          <radialGradient id="discShine" cx="35%" cy="30%" r="65%">
+            <stop offset="0%"   stop-color="rgba(255,255,255,.07)"/>
+            <stop offset="50%"  stop-color="rgba(180,200,255,.03)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+          </radialGradient>
+          <radialGradient id="labelGrad" cx="40%" cy="36%" r="65%">
+            <stop offset="0%"   stop-color="#1c2840"/><stop offset="70%"  stop-color="#141e30"/>
+            <stop offset="100%" stop-color="#0c1420"/>
+          </radialGradient>
+          <linearGradient id="armChrome2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#555"/><stop offset="30%"  stop-color="#c0c0c0"/>
+            <stop offset="55%"  stop-color="#e8e8e8"/><stop offset="80%"  stop-color="#aaa"/>
+            <stop offset="100%" stop-color="#444"/>
+          </linearGradient>
+          <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#444"/><stop offset="40%"  stop-color="#bbb"/>
+            <stop offset="100%" stop-color="#333"/>
+          </linearGradient>
+          <filter id="neonGlow">
+            <feGaussianBlur stdDeviation="5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <rect x="0" y="0" width="420" height="700" rx="22" fill="url(#woodBg)"/>
+        <g opacity=".18" fill="none">
+          <path d="M0 120 Q60 115 120 125 Q180 135 240 120 Q300 105 360 118 Q390 124 420 118" stroke="#6a4520" stroke-width="8"/>
+          <path d="M0 200 Q80 190 160 205 Q240 220 320 198 Q380 188 420 200" stroke="#5a3818" stroke-width="5"/>
+          <path d="M0 340 Q100 330 200 348 Q300 362 420 340" stroke="#6a4520" stroke-width="6"/>
+          <path d="M0 500 Q70 488 140 505 Q210 522 280 500 Q350 478 420 498" stroke="#5a3818" stroke-width="4"/>
+          <path d="M0 600 Q90 588 180 605 Q270 620 360 598 Q395 590 420 600" stroke="#6a4520" stroke-width="5"/>
+        </g>
+
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="url(#plateauGrad)"/>
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="url(#brushH)"/>
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="url(#plateauRadial)"/>
+        <rect x="20" y="18" width="380" height="664" rx="14" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>
+        <rect x="22" y="20" width="376" height="660" rx="13" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1"/>
+
+        <!-- Néon autour disque -->
+        <circle cx="210" cy="285" r="178" fill="none" stroke="#00d4ff" stroke-width="3.5"
+          filter="url(#neonGlow)" opacity=".65" id="neonRing1">
+          <animate attributeName="opacity" values=".45;.85;.45" dur="2.6s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="210" cy="285" r="182" fill="none" stroke="#0088ff" stroke-width="1"
+          filter="url(#neonGlow)" opacity=".35" id="neonRing2">
+          <animate attributeName="opacity" values=".2;.5;.2" dur="2.6s" repeatCount="indefinite" begin=".3s"/>
+        </circle>
+        <circle cx="210" cy="285" r="190" fill="#161c28" opacity=".55"/>
+        <circle cx="210" cy="285" r="188" fill="#1a2035" opacity=".35"/>
+
+        <!-- Disque vinyle -->
+        <g id="vinyl-disc" style="transform-origin:210px 285px">
+          <circle cx="210" cy="285" r="182" fill="url(#discGrad)"/>
+          <g fill="none" stroke-linecap="round">
+            <circle cx="210" cy="285" r="175" stroke="rgba(60,60,60,.6)"  stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="168" stroke="rgba(40,40,40,.8)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="160" stroke="rgba(55,55,55,.6)"  stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="152" stroke="rgba(35,35,35,.8)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="144" stroke="rgba(55,55,55,.55)" stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="136" stroke="rgba(35,35,35,.7)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="128" stroke="rgba(52,52,52,.5)"  stroke-width="1.2"/>
+            <circle cx="210" cy="285" r="120" stroke="rgba(35,35,35,.7)"  stroke-width=".8"/>
+            <circle cx="210" cy="285" r="112" stroke="rgba(50,50,50,.45)" stroke-width="1"/>
+            <circle cx="210" cy="285" r="104" stroke="rgba(35,35,35,.6)"  stroke-width=".7"/>
+            <circle cx="210" cy="285" r="171" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="164" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="156" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="148" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="140" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="132" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="124" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+            <circle cx="210" cy="285" r="116" stroke="rgba(70,70,70,.25)" stroke-width=".4"/>
+          </g>
+          <circle cx="210" cy="285" r="182" fill="url(#discShine)"/>
+          <ellipse cx="148" cy="228" rx="85" ry="34" fill="none"
+            stroke="rgba(180,220,255,.06)" stroke-width="20" transform="rotate(-40,148,228)"/>
+          <circle cx="210" cy="285" r="58" fill="url(#labelGrad)"/>
+          <circle cx="210" cy="285" r="55" fill="none" stroke="rgba(0,180,255,.25)" stroke-width="1"/>
+          <circle cx="210" cy="285" r="48" fill="none" stroke="rgba(0,180,255,.12)" stroke-width=".7"/>
+          <text x="210" y="271" text-anchor="middle" font-family="'Playfair Display',serif"
+            font-style="italic" font-size="9.5" fill="rgba(0,200,255,.7)" letter-spacing=".5">HiFi Studio</text>
+          <text x="210" y="285" text-anchor="middle" font-family="'DM Mono',monospace"
+            font-size="6" fill="rgba(0,180,255,.5)" letter-spacing="2">45 RPM</text>
+          <text x="210" y="297" text-anchor="middle" font-family="'DM Mono',monospace"
+            font-size="5.5" fill="rgba(0,160,255,.4)" letter-spacing="1.5">STEREO</text>
+          <circle cx="210" cy="285" r="7" fill="#0a0f18" stroke="rgba(0,180,255,.3)" stroke-width="1"/>
+          <circle cx="210" cy="285" r="5" fill="#050a12"/>
+        </g>
+
+        <!-- Bras de lecture -->
+        <g id="tonearm-g" style="transform-origin:340px 530px;transform:rotate(-28deg)">
+          <ellipse cx="340" cy="545" rx="20" ry="7" fill="rgba(0,0,0,.35)"/>
+          <circle cx="340" cy="530" r="22" fill="#1a2030" stroke="#4a5a70" stroke-width="2"/>
+          <circle cx="340" cy="530" r="15" fill="#252f40" stroke="#7a8aa0" stroke-width="1"/>
+          <circle cx="340" cy="530" r="7"  fill="#4a5a70" stroke="#9aa8bc" stroke-width="1"/>
+          <circle cx="340" cy="530" r="2.5" fill="#c0d0e0"/>
+          <rect x="347" y="517" width="44" height="26" rx="9" fill="#1e2838" stroke="#5a6880" stroke-width="1.5"/>
+          <rect x="349" y="519" width="16" height="22" rx="5" fill="#2a3848"/>
+          <line x1="350" y1="530" x2="389" y2="530" stroke="#4a5870" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="332" y1="538" x2="202" y2="367" stroke="url(#armChrome2)" stroke-width="11" stroke-linecap="round"/>
+          <line x1="330" y1="535" x2="200" y2="364" stroke="rgba(255,255,255,.38)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="335" y1="542" x2="205" y2="371" stroke="rgba(0,0,0,.22)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M202 367 Q188 353 178 340" stroke="url(#armChrome2)" stroke-width="10" fill="none" stroke-linecap="round"/>
+          <path d="M200 364 Q186 350 176 337" stroke="rgba(255,255,255,.32)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <line x1="178" y1="340" x2="165" y2="325" stroke="url(#armChrome2)" stroke-width="8" stroke-linecap="round"/>
+          <line x1="176" y1="337" x2="163" y2="322" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-linecap="round"/>
+          <g transform="rotate(-35,162,318)">
+            <rect x="142" y="310" width="40" height="16" rx="4" fill="url(#headGrad)" stroke="#8899aa" stroke-width="1"/>
+            <rect x="144" y="312" width="14" height="8" rx="2" fill="rgba(180,220,255,.25)"/>
+            <rect x="177" y="313" width="7" height="12" rx="2" fill="#1a2230" stroke="#3a4a60" stroke-width=".5"/>
+          </g>
+          <line x1="158" y1="326" x2="155" y2="339" stroke="#c8d8e8" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="155" cy="341" r="4.5" fill="#00d4ff" filter="url(#softGlow)" id="stylusGem"/>
+          <circle cx="155" cy="341" r="2"   fill="#fff" opacity=".85"/>
+        </g>
+
+        <!-- Déco -->
+        <rect x="38" y="100" width="22" height="240" rx="6" fill="#1a2030" opacity=".7"/>
+        <rect x="41" y="102" width="16" height="236" rx="5" fill="#202838" opacity=".5"/>
+        <rect x="48" y="110" width="4" height="220" rx="2" fill="#0a1020" opacity=".6"/>
+        <rect x="38" y="195" width="22" height="28" rx="5" fill="#3a4860" stroke="#6a7890" stroke-width="1" opacity=".9"/>
+        <rect x="42" y="201" width="14" height="5" rx="2" fill="#1a2840"/>
+        <rect x="42" y="210" width="14" height="5" rx="2" fill="#1a2840"/>
+        <g stroke="#2a3848" stroke-width=".8" opacity=".6">
+          <line x1="34" y1="120" x2="40" y2="120"/><line x1="34" y1="150" x2="40" y2="150"/>
+          <line x1="34" y1="180" x2="40" y2="180"/><line x1="34" y1="210" x2="40" y2="210"/>
+          <line x1="34" y1="240" x2="40" y2="240"/><line x1="34" y1="270" x2="40" y2="270"/>
+          <line x1="34" y1="300" x2="40" y2="300"/><line x1="34" y1="330" x2="40" y2="330"/>
+        </g>
+        <circle cx="370" cy="75" r="22" fill="#1a2030" stroke="#3a4a60" stroke-width="2"/>
+        <circle cx="370" cy="75" r="16" fill="#141c28" stroke="#4a5a78" stroke-width="1"/>
+        <circle cx="370" cy="75" r="9"  fill="#0e1620"/>
+        <path d="M370 67 L370 75" stroke="#6a8aaa" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M364 69 A9 9 0 1 0 376 69" fill="none" stroke="#3a5070" stroke-width="2" stroke-linecap="round"/>
+        <text x="370" y="107" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7"
+          fill="rgba(60,90,120,.8)" letter-spacing="1">POWER</text>
+        <circle cx="75" cy="580" r="28" fill="#1a2030" stroke="#3a4a60" stroke-width="2"/>
+        <circle cx="75" cy="580" r="20" fill="#141c28" stroke="#4a5a78" stroke-width="1"/>
+        <circle cx="75" cy="580" r="10" fill="#1e2838"/>
+        <g stroke="#2a3a50" stroke-width=".8" opacity=".7">
+          <line x1="75" y1="549" x2="75" y2="554"/><line x1="96" y1="559" x2="92" y2="563"/>
+          <line x1="106" y1="580" x2="101" y2="580"/><line x1="96" y1="601" x2="92" y2="597"/>
+          <line x1="75" y1="611" x2="75" y2="606"/><line x1="54" y1="601" x2="58" y2="597"/>
+          <line x1="44" y1="580" x2="49" y2="580"/><line x1="54" y1="559" x2="58" y2="563"/>
+        </g>
+        <line x1="75" y1="580" x2="75" y2="560" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round" opacity=".8" id="potMark">
+          <animateTransform attributeName="transform" type="rotate" from="0 75 580" to="360 75 580" dur="8s" repeatCount="indefinite"/>
+        </line>
+        <text x="75" y="626" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7"
+          fill="rgba(0,160,200,.55)" letter-spacing="1">VOL</text>
+        <circle cx="375" cy="570" r="6" fill="#00ff88" filter="url(#softGlow)" id="svgLed">
+          <animate attributeName="opacity" values=".7;1;.7" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="375" cy="570" r="3" fill="#aaffdd"/>
+        <text x="375" y="590" text-anchor="middle" font-family="'DM Mono',monospace" font-size="6"
+          fill="rgba(0,180,120,.5)" letter-spacing=".5">SIG</text>
+        <rect x="40" y="52" width="340" height="1.5" rx="1" fill="#00d4ff" opacity=".3" filter="url(#softGlow)">
+          <animate attributeName="opacity" values=".2;.4;.2" dur="3s" repeatCount="indefinite"/>
+        </rect>
+        <rect x="40" y="648" width="340" height="1.5" rx="1" fill="#00d4ff" opacity=".3" filter="url(#softGlow)">
+          <animate attributeName="opacity" values=".2;.4;.2" dur="3s" repeatCount="indefinite" begin=".5s"/>
+        </rect>
+        <text x="210" y="640" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8"
+          fill="rgba(0,180,255,.4)" letter-spacing="3" id="rpmTxt">33⅓</text>
+        <text x="210" y="44" text-anchor="middle" font-family="'Playfair Display',serif"
+          font-style="italic" font-size="13" fill="rgba(0,200,255,.35)" letter-spacing="1">HiFi Studio</text>
+      </svg>
     </div>
   </div>
-  <div class="woofer-zone">
-    <div class="wf-frame">
-      <div class="wf-surround"></div><div class="wf-surround2"></div>
-      <div class="wf-cone" id="wfc">
-        <div class="cr cr1"></div><div class="cr cr2"></div><div class="cr cr3"></div>
-        <div class="cr cr4"></div><div class="cr cr5"></div>
-        <div class="wf-spider"></div>
-        <div class="wf-cap"></div>
-      </div>
-    </div>
-  </div>
-  <div class="port"></div>
-</div>
 
+  <!-- ── ENCEINTE HP ── -->
+  <div class="hp-zone" id="hpZone">
+    <svg id="spk-svg" viewBox="0 0 460 700" xmlns="http://www.w3.org/2000/svg"
+      style="height:100%;max-height:100%;width:auto;max-width:98vw;position:relative;z-index:5;overflow:visible">
+      <defs>
+        <linearGradient id="faceGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#2e2e2e"/><stop offset="8%"   stop-color="#1c1c1c"/>
+          <stop offset="30%"  stop-color="#111"/><stop offset="70%"  stop-color="#0b0b0b"/>
+          <stop offset="100%" stop-color="#070707"/>
+        </linearGradient>
+        <linearGradient id="topFace" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#3a3a3a"/><stop offset="40%"  stop-color="#252525"/>
+          <stop offset="100%" stop-color="#141414"/>
+        </linearGradient>
+        <linearGradient id="leftFace" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#2e1e0e"/><stop offset="55%"  stop-color="#1e1208"/>
+          <stop offset="100%" stop-color="#120c04"/>
+        </linearGradient>
+        <linearGradient id="twBaffle" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="#1a1a1a"/><stop offset="100%" stop-color="#080808"/>
+        </linearGradient>
+        <radialGradient id="twRing" cx="38%" cy="33%" r="62%">
+          <stop offset="0%"   stop-color="#5a5a5a"/><stop offset="35%"  stop-color="#2e2e2e"/>
+          <stop offset="100%" stop-color="#0e0e0e"/>
+        </radialGradient>
+        <radialGradient id="twWG" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#0c0c0c"/><stop offset="100%" stop-color="#040404"/>
+        </radialGradient>
+        <radialGradient id="twDome" cx="34%" cy="28%" r="70%">
+          <stop offset="0%"   stop-color="#f5e090"/><stop offset="15%"  stop-color="#e8c060"/>
+          <stop offset="35%"  stop-color="#c8903a"/><stop offset="58%"  stop-color="#9a6010"/>
+          <stop offset="80%"  stop-color="#6a3e08"/><stop offset="100%" stop-color="#3e2004"/>
+        </radialGradient>
+        <radialGradient id="twSpec" cx="36%" cy="28%" r="45%">
+          <stop offset="0%"   stop-color="rgba(255,240,180,.55)"/>
+          <stop offset="100%" stop-color="rgba(255,200,80,.0)"/>
+        </radialGradient>
+        <radialGradient id="wfMount" cx="40%" cy="35%" r="62%">
+          <stop offset="0%"   stop-color="#404040"/><stop offset="50%"  stop-color="#1e1e1e"/>
+          <stop offset="100%" stop-color="#0a0a0a"/>
+        </radialGradient>
+        <radialGradient id="wfSurr" cx="40%" cy="35%" r="62%">
+          <stop offset="0%"   stop-color="#282828"/><stop offset="55%"  stop-color="#101010"/>
+          <stop offset="100%" stop-color="#050505"/>
+        </radialGradient>
+        <radialGradient id="wfMem" cx="38%" cy="33%" r="65%">
+          <stop offset="0%"   stop-color="#e8b848"/><stop offset="20%"  stop-color="#cc8e22"/>
+          <stop offset="42%"  stop-color="#a06410"/><stop offset="64%"  stop-color="#784408"/>
+          <stop offset="84%"  stop-color="#542c04"/><stop offset="100%" stop-color="#381802"/>
+        </radialGradient>
+        <radialGradient id="wfDust" cx="33%" cy="27%" r="70%">
+          <stop offset="0%"   stop-color="#f8e498"/><stop offset="18%"  stop-color="#e8c050"/>
+          <stop offset="40%"  stop-color="#c08020"/><stop offset="65%"  stop-color="#8a5010"/>
+          <stop offset="100%" stop-color="#4e2806"/>
+        </radialGradient>
+        <radialGradient id="wfSpec" cx="34%" cy="26%" r="42%">
+          <stop offset="0%"   stop-color="rgba(255,245,190,.6)"/>
+          <stop offset="100%" stop-color="rgba(255,200,80,.0)"/>
+        </radialGradient>
+        <linearGradient id="portG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#0e0e0e"/><stop offset="100%" stop-color="#020202"/>
+        </linearGradient>
+        <radialGradient id="scrG" cx="30%" cy="25%" r="70%">
+          <stop offset="0%"   stop-color="#d8d8d8"/><stop offset="40%"  stop-color="#909090"/>
+          <stop offset="100%" stop-color="#383838"/>
+        </radialGradient>
+        <filter id="fSoft"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="fGlow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="fInner"><feGaussianBlur stdDeviation="3"/></filter>
+        <clipPath id="faceClip">
+          <path d="M70,18 L390,18 Q406,18 406,34 L406,682 Q406,698 390,698 L70,698 Q54,698 54,682 L54,34 Q54,18 70,18 Z"/>
+        </clipPath>
+      </defs>
+
+      <ellipse cx="225" cy="710" rx="160" ry="12" fill="rgba(0,0,0,.5)"/>
+      <!-- Face gauche bois -->
+      <path d="M18,42 L70,18 L70,698 L18,670 Z" fill="url(#leftFace)"/>
+      <g opacity=".22">
+        <path d="M18,120 Q44,115 70,122" stroke="#6a4520" stroke-width="3" fill="none"/>
+        <path d="M18,220 Q44,214 70,222" stroke="#5a3818" stroke-width="2" fill="none"/>
+        <path d="M18,340 Q44,333 70,342" stroke="#6a4520" stroke-width="2.5" fill="none"/>
+        <path d="M18,480 Q44,473 70,482" stroke="#5a3818" stroke-width="2" fill="none"/>
+        <path d="M18,600 Q44,593 70,602" stroke="#6a4520" stroke-width="2" fill="none"/>
+      </g>
+      <path d="M18,42 L70,18 L70,80 L18,100 Z" fill="rgba(255,255,255,.07)"/>
+      <path d="M18,580 L70,580 L70,698 L18,670 Z" fill="rgba(0,0,0,.3)"/>
+      <!-- Dessus -->
+      <path d="M18,42 L390,18 L406,34 L70,58 Z" fill="url(#topFace)"/>
+      <path d="M18,42 L200,30 L200,44 L18,52 Z" fill="rgba(255,255,255,.08)"/>
+      <line x1="70" y1="18" x2="390" y2="18" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
+      <!-- Face avant -->
+      <path d="M70,18 L390,18 Q406,18 406,34 L406,682 Q406,698 390,698 L70,698 Q54,698 54,682 L54,34 Q54,18 70,18 Z" fill="url(#faceGrad)"/>
+      <path d="M70,18 L155,18 L155,55 Q120,48 70,62 Z" fill="rgba(255,255,255,.055)"/>
+      <path d="M70,18 L390,18 Q406,18 406,34 L406,682 Q406,698 390,698 L70,698 Q54,698 54,682 L54,34 Q54,18 70,18 Z"
+        fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/>
+      <line x1="54" y1="34" x2="54" y2="682" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+
+      <!-- LEDs -->
+      <g id="ledRow" filter="url(#fSoft)">
+        <circle cx="186" cy="38" r="2.8" fill="#22ccff"><animate attributeName="opacity" values=".5;1;.5" dur="1.8s" repeatCount="indefinite"/></circle>
+        <circle cx="202" cy="38" r="2.8" fill="#22ccff"><animate attributeName="opacity" values=".4;.9;.4" dur="1.8s" repeatCount="indefinite" begin=".18s"/></circle>
+        <circle cx="218" cy="38" r="2.8" fill="#22ccff"><animate attributeName="opacity" values=".3;.75;.3" dur="1.8s" repeatCount="indefinite" begin=".36s"/></circle>
+        <circle cx="234" cy="38" r="2.8" fill="#444" opacity=".7"/>
+        <circle cx="250" cy="38" r="2.8" fill="#444" opacity=".7"/>
+      </g>
+
+      <!-- Tweeter -->
+      <rect x="82" y="62" width="308" height="200" rx="14" fill="url(#twBaffle)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <rect x="82" y="62" width="308" height="200" rx="14" fill="none" stroke="rgba(0,0,0,.7)" stroke-width="8"/>
+      <circle cx="230" cy="162" r="80" fill="url(#wfMount)"/>
+      <circle cx="230" cy="162" r="75" fill="#0e0e0e"/>
+      <circle cx="230" cy="162" r="70" fill="url(#twWG)"/>
+      <circle cx="230" cy="162" r="65" fill="none" stroke="rgba(180,180,180,.2)" stroke-width="3"/>
+      <circle cx="230" cy="162" r="62" fill="none" stroke="rgba(60,60,60,.4)" stroke-width="1"/>
+      <circle cx="230" cy="162" r="56" fill="#0a0a0a" stroke="rgba(200,160,60,.3)" stroke-width="2"/>
+      <ellipse cx="230" cy="162" rx="42" ry="40" fill="url(#twDome)" id="twDomeEl">
+        <animate attributeName="ry" values="40;41.8;40" dur="0.9s" repeatCount="indefinite" id="twAnim"/>
+      </ellipse>
+      <ellipse cx="218" cy="150" rx="18" ry="13" fill="url(#twSpec)" transform="rotate(-20,218,150)"/>
+      <circle cx="97"  cy="76"  r="6" fill="url(#scrG)"/>
+      <circle cx="363" cy="76"  r="6" fill="url(#scrG)"/>
+      <circle cx="97"  cy="248" r="6" fill="url(#scrG)"/>
+      <circle cx="363" cy="248" r="6" fill="url(#scrG)"/>
+      <g stroke="#4a4a4a" stroke-width="1.4">
+        <line x1="91" y1="76"  x2="103" y2="76"/><line x1="97"  y1="70"  x2="97"  y2="82"/>
+        <line x1="357" y1="76" x2="369" y2="76"/><line x1="363" y1="70" x2="363" y2="82"/>
+        <line x1="91" y1="248" x2="103" y2="248"/><line x1="97"  y1="242" x2="97"  y2="254"/>
+        <line x1="357" y1="248" x2="369" y2="248"/><line x1="363" y1="242" x2="363" y2="254"/>
+      </g>
+
+      <!-- Woofer -->
+      <rect x="70" y="280" width="322" height="342" rx="12" fill="#0c0c0c" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+      <rect x="70" y="280" width="322" height="342" rx="12" fill="none" stroke="rgba(0,0,0,.8)" stroke-width="8"/>
+      <circle cx="230" cy="452" r="158" fill="url(#wfMount)"/>
+      <circle cx="230" cy="452" r="152" fill="#0d0d0d"/>
+      <circle cx="230" cy="452" r="148" fill="none" stroke="url(#wfSurr)" stroke-width="26"/>
+      <circle cx="230" cy="452" r="148" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="10"/>
+      <circle cx="230" cy="452" r="140" fill="none" stroke="rgba(0,0,0,.8)"  stroke-width="5"/>
+      <circle cx="230" cy="452" r="135" fill="none" stroke="rgba(255,255,255,.02)" stroke-width="3"/>
+      <circle cx="230" cy="452" r="122" fill="url(#wfMem)" id="wfConeEl"/>
+      <g id="wfRides" fill="none">
+        <circle cx="230" cy="452" r="114" stroke="rgba(72,38,4,.95)"  stroke-width="4.5"/>
+        <circle cx="230" cy="452" r="104" stroke="rgba(80,44,6,.9)"   stroke-width="3.8"/>
+        <circle cx="230" cy="452" r="94"  stroke="rgba(68,34,2,.95)"  stroke-width="3.2"/>
+        <circle cx="230" cy="452" r="84"  stroke="rgba(76,42,5,.88)"  stroke-width="2.8"/>
+        <circle cx="230" cy="452" r="74"  stroke="rgba(62,30,2,.9)"   stroke-width="2.4"/>
+        <circle cx="230" cy="452" r="64"  stroke="rgba(72,38,4,.85)"  stroke-width="2"/>
+        <circle cx="230" cy="452" r="54"  stroke="rgba(58,28,1,.88)"  stroke-width="1.8"/>
+      </g>
+      <ellipse cx="182" cy="404" rx="62" ry="38" fill="rgba(255,200,80,.06)" transform="rotate(-35,182,404)"/>
+      <circle cx="230" cy="452" r="40" fill="#3a1e06" stroke="rgba(120,70,15,.4)" stroke-width="1.5"/>
+      <circle cx="230" cy="452" r="33" fill="#4a2808"/>
+      <circle cx="230" cy="452" r="28" fill="url(#wfDust)" id="wfDustEl"/>
+      <ellipse cx="220" cy="440" rx="13" ry="9" fill="url(#wfSpec)" transform="rotate(-28,220,440)"/>
+      <circle cx="230" cy="452" r="28" fill="none" stroke="rgba(180,110,30,.45)" stroke-width="1.3"/>
+      <circle cx="86"  cy="296" r="7" fill="url(#scrG)"/>
+      <circle cx="374" cy="296" r="7" fill="url(#scrG)"/>
+      <circle cx="86"  cy="606" r="7" fill="url(#scrG)"/>
+      <circle cx="374" cy="606" r="7" fill="url(#scrG)"/>
+      <g stroke="#4a4a4a" stroke-width="1.5">
+        <line x1="79"  y1="296" x2="93"  y2="296"/><line x1="86"  y1="289" x2="86"  y2="303"/>
+        <line x1="367" y1="296" x2="381" y2="296"/><line x1="374" y1="289" x2="374" y2="303"/>
+        <line x1="79"  y1="606" x2="93"  y2="606"/><line x1="86"  y1="599" x2="86"  y2="613"/>
+        <line x1="367" y1="606" x2="381" y2="606"/><line x1="374" y1="599" x2="374" y2="613"/>
+      </g>
+
+      <!-- Bass-reflex -->
+      <rect x="148" y="638" width="164" height="36" rx="18" fill="rgba(0,0,0,.55)" filter="url(#fSoft)"/>
+      <rect x="150" y="636" width="160" height="36" rx="18" fill="url(#portG)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+      <rect x="157" y="642" width="146" height="24" rx="13" fill="#030303"/>
+      <path d="M162,642 Q230,637 298,642" stroke="rgba(255,255,255,.07)" stroke-width="1" fill="none"/>
+
+      <!-- Logo -->
+      <text x="230" y="688" text-anchor="middle" font-family="'Playfair Display',serif"
+        font-style="italic" font-size="16" fill="rgba(200,162,106,.5)" letter-spacing="4">Teufel</text>
+      <line x1="180" y1="694" x2="280" y2="694" stroke="rgba(200,162,106,.14)" stroke-width=".8"/>
+    </svg>
+  </div>
+
+</div><!-- /cabinet -->
+
+<!-- ══════════════════════════════════
+     PANEL BAS
+══════════════════════════════════ -->
 <div class="panel">
   <div class="clock" id="clock">--:--:--</div>
   <div class="vu-wrap" id="vu">
@@ -210,61 +610,221 @@ canvas#waves{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z
     <div class="vs" style="height:94%"></div><div class="vs" style="height:97%"></div>
     <div class="vs" style="height:99%"></div><div class="vs" style="height:100%"></div>
   </div>
-  <div class="status"><div class="led" id="led"></div><span id="stxt">Hi-Fi — Stéréo actif</span></div>
-  <div class="presets">
-    <button class="pb active" data-p="hifi"      onclick="setP(this)">Hi-Fi</button>
-    <button class="pb"        data-p="jazz"      onclick="setP(this)">Jazz</button>
-    <button class="pb"        data-p="rock"      onclick="setP(this)">Rock</button>
-    <button class="pb"        data-p="classique" onclick="setP(this)">Classique</button>
-    <button class="pb"        data-p="bass"      onclick="setP(this)">Bass Boost</button>
-    <button class="pb"        data-p="synth"     onclick="setP(this)">Synth Wave</button>
-    <button class="pb"        data-p="off"       onclick="setP(this)">Off</button>
+  <div class="status"><div class="ledDot" id="led"></div><span id="stxt">Hi-Fi — Stéréo actif</span></div>
+
+  <!-- ONGLETS -->
+  <div class="tabs">
+    <button class="tab active" id="tabVinyl" onclick="switchTab('vinyl')">◉ Platine</button>
+    <button class="tab"        id="tabHP"    onclick="switchTab('hp')">◈ Enceinte</button>
   </div>
+
+  <!-- Section platine -->
+  <div id="panelVinyl">
+    <div class="presets">
+      <button class="pb active" data-p="hifi"      onclick="setP(this)">Hi-Fi</button>
+      <button class="pb"        data-p="jazz"      onclick="setP(this)">Jazz</button>
+      <button class="pb"        data-p="rock"      onclick="setP(this)">Rock</button>
+      <button class="pb"        data-p="classique" onclick="setP(this)">Classique</button>
+      <button class="pb"        data-p="bass"      onclick="setP(this)">Bass Boost</button>
+      <button class="pb"        data-p="synth"     onclick="setP(this)">Synth Wave</button>
+      <button class="pb"        data-p="off"       onclick="setP(this)">Off</button>
+    </div>
+    <div style="display:flex;gap:.6rem;align-items:center;justify-content:center;margin-top:.3vh">
+      <div class="theme-switch">
+        <button class="ts-btn active" data-theme=""     onclick="setTheme(this)">⚡ Acier</button>
+        <button class="ts-btn"        data-theme="warm" onclick="setTheme(this)">🔥 Bois</button>
+        <button class="ts-btn"        data-theme="night" onclick="setTheme(this)">✦ Nuit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section enceinte -->
+  <div id="panelHP" style="display:none;width:100%;display:none;flex-direction:column;align-items:center;gap:.4vh">
+    <div class="sliders">
+      <div class="sl-row">
+        <div class="sl-label">Volume</div>
+        <input type="range" id="slVol" min="0" max="100" value="70" oninput="updateSlider(this)">
+        <div class="sl-val" id="slVolVal">70</div>
+      </div>
+      <div class="sl-row">
+        <div class="sl-label">Basses</div>
+        <input type="range" id="slBass" min="0" max="100" value="55" oninput="updateSlider(this)">
+        <div class="sl-val" id="slBassVal">55</div>
+      </div>
+      <div class="sl-row">
+        <div class="sl-label">Aigus</div>
+        <input type="range" id="slTreb" min="0" max="100" value="50" oninput="updateSlider(this)">
+        <div class="sl-val" id="slTrebVal">50</div>
+      </div>
+      <div class="sl-row">
+        <div class="sl-label">Rythme</div>
+        <input type="range" id="slSpeed" min="10" max="100" value="50" oninput="updateSlider(this)">
+        <div class="sl-val" id="slSpeedVal">50</div>
+      </div>
+      <div class="sl-row">
+        <div class="sl-label">Excursion</div>
+        <input type="range" id="slPump" min="0" max="100" value="45" oninput="updateSlider(this)">
+        <div class="sl-val" id="slPumpVal">45</div>
+      </div>
+      <div class="sl-row">
+        <div class="sl-label">Ondes</div>
+        <input type="range" id="slWave" min="0" max="100" value="70" oninput="updateSlider(this)">
+        <div class="sl-val" id="slWaveVal">70</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="ctrl-btn on" id="pwrBtn" onclick="togglePower()">⏻ Power</button>
+    </div>
+  </div>
+
   <div class="brand">Kube HiFi Reference MK-II</div>
 </div>
 
 <script>
+/* ══════════════════════════════════════
+   CONFIG
+══════════════════════════════════════ */
 const P={
-  hifi:     {pump:.045,speed:1.0, vu:.55,tw:.003,wAmp:.85, wCol:[[200,162,106]],              wFreq:1,   wLines:3, label:'Hi-Fi — Stéréo actif'},
-  jazz:     {pump:.035,speed:.75, vu:.42,tw:.002,wAmp:.75, wCol:[[80,160,220],[120,200,255]], wFreq:1.5, wLines:4, label:'Jazz — Scène large'},
-  rock:     {pump:.10, speed:1.55,vu:.82,tw:.008,wAmp:1.0, wCol:[[220,80,50],[255,140,60]],  wFreq:2,   wLines:5, label:'Rock — Puissance maximale'},
-  classique:{pump:.025,speed:.45, vu:.32,tw:.001,wAmp:.55, wCol:[[160,200,140]],              wFreq:.8,  wLines:2, label:'Classique — Détail & air'},
-  bass:     {pump:.16, speed:1.9, vu:.90,tw:.001,wAmp:1.0, wCol:[[140,80,220],[180,120,255]],wFreq:.5,  wLines:6, label:'Bass Boost — Subwoofer max'},
-  synth:    {pump:.06, speed:2.4, vu:.70,tw:.018,wAmp:.95, wCol:[[0,220,200],[80,255,220],[140,180,255]],wFreq:4,wLines:5,label:'Synth Wave — Électronique'},
-  off:      {pump:0,   speed:0,   vu:0,  tw:0,   wAmp:0,   wCol:[[200,162,106]],              wFreq:1,   wLines:1, label:'Système éteint'}
+  hifi:     {pump:.045,speed:1.0, vu:.55,wAmp:.85, wCol:[[200,162,106]],              wFreq:1,   wLines:3, label:'Hi-Fi — Stéréo actif',    rpm:'33⅓'},
+  jazz:     {pump:.035,speed:.75, vu:.42,wAmp:.75, wCol:[[80,160,220],[120,200,255]], wFreq:1.5, wLines:4, label:'Jazz — Scène large',        rpm:'33⅓'},
+  rock:     {pump:.10, speed:1.55,vu:.82,wAmp:1.0, wCol:[[220,80,50],[255,140,60]],  wFreq:2,   wLines:5, label:'Rock — Puissance maximale',  rpm:'45'},
+  classique:{pump:.025,speed:.45, vu:.32,wAmp:.55, wCol:[[160,200,140]],              wFreq:.8,  wLines:2, label:'Classique — Détail & air',   rpm:'33⅓'},
+  bass:     {pump:.16, speed:1.9, vu:.90,wAmp:1.0, wCol:[[140,80,220],[180,120,255]],wFreq:.5,  wLines:6, label:'Bass Boost — Subwoofer max', rpm:'45'},
+  synth:    {pump:.06, speed:2.4, vu:.70,wAmp:.95, wCol:[[0,220,200],[80,255,220],[140,180,255]],wFreq:4,wLines:5,label:'Synth Wave — Électronique', rpm:'45'},
+  off:      {pump:0,   speed:0,   vu:0,  wAmp:0,   wCol:[[200,162,106]],              wFreq:1,   wLines:1, label:'Système éteint',             rpm:'—'}
 };
 
-let cfg={...P.hifi},on=true,dark=false;
+/* cfg courant : mix platine + sliders */
+let cfgVinyl={...P.hifi};
+let cfgHP={speed:1.0,pump:.045,vu:.55,wAmp:.85,wFreq:1,wLines:3,wCol:[[200,162,106]]};
+let activeTab='vinyl'; // 'vinyl' | 'hp'
+let on=true;
 let t=0,vuPh=0,lastTs=0;
-const wfc=document.getElementById('wfc');
-const twEl=document.getElementById('tw');
-const led=document.getElementById('led');
-const stxt=document.getElementById('stxt');
-const segs=[...document.querySelectorAll('.vs')];
 
-function setLed(){
-  led.style.cssText=on
-    ?`width:6px;height:6px;border-radius:50%;background:var(--led);box-shadow:0 0 10px var(--led)`
-    :'width:6px;height:6px;border-radius:50%;background:#222;box-shadow:none';
-}
+/* Refs SVG platine */
+const vinylDisc =document.getElementById('vinyl-disc');
+const tonearmG  =document.getElementById('tonearm-g');
+const rpmTxt    =document.getElementById('rpmTxt');
+/* Refs SVG enceinte */
+const wfConeEl  =document.getElementById('wfConeEl');
+const wfDustEl  =document.getElementById('wfDustEl');
+const wfRides   =document.getElementById('wfRides');
+const twAnim    =document.getElementById('twAnim');
+/* Communs */
+const led   =document.getElementById('led');
+const stxt  =document.getElementById('stxt');
+const segs  =[...document.querySelectorAll('.vs')];
+const cabinet=document.getElementById('cabinet');
 
-function setP(btn){
-  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  cfg={...P[btn.dataset.p]};
-  on=(btn.dataset.p!=='off');
-  stxt.textContent=cfg.label;
-  if(!on)waves=[];
+let vinylAngle=0;
+const ARM_START=-28,ARM_END=8,ARM_REST=-55;
+let armProgress=0;
+const ARM_DURATION=90;
+let armAngleCurrent=ARM_START;
+
+/* ══ ONGLETS ══ */
+function switchTab(tab){
+  activeTab=tab;
+  document.getElementById('tabVinyl').classList.toggle('active',tab==='vinyl');
+  document.getElementById('tabHP').classList.toggle('active',tab==='hp');
+
+  const vz=document.getElementById('vinylZone');
+  const hz=document.getElementById('hpZone');
+  const pv=document.getElementById('panelVinyl');
+  const ph=document.getElementById('panelHP');
+
+  if(tab==='vinyl'){
+    vz.style.display='';hz.style.display='none';
+    pv.style.display='';ph.style.display='none';
+    cabinet.classList.remove('mode-hp');cabinet.classList.add('mode-vinyl');
+    // couleur horloge/vu selon thème acier par défaut
+    resize();
+  } else {
+    vz.style.display='none';hz.style.display='flex';
+    pv.style.display='none';ph.style.display='flex';
+    cabinet.classList.remove('mode-vinyl');cabinet.classList.add('mode-hp');
+    resize();
+  }
   setLed();
 }
 
-function toggleTheme(){
-  dark=!dark;
-  document.body.classList.toggle('dark',dark);
-  document.getElementById('tbtn').textContent=dark?'◑ Hi-Fi':'◐ Dark Club';
+/* ══ PLATINE : presets ══ */
+function setP(btn){
+  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cfgVinyl={...P[btn.dataset.p]};
+  on=(btn.dataset.p!=='off');
+  stxt.textContent=cfgVinyl.label;
+  rpmTxt.textContent=cfgVinyl.rpm;
+  if(!on) waves=[];
+  setLed();
 }
 
-/* ══ WAVES ENGINE ══ */
+/* ══ PLATINE : thèmes ══ */
+function setTheme(btn){
+  document.querySelectorAll('.ts-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const th=btn.dataset.theme;
+  document.body.className=th;
+  updateNeonColors(th);
+}
+function updateNeonColors(th){
+  const colors={'':['#00d4ff','#0088ff'],warm:['#ffaa00','#ff7700'],night:['#aa44ff','#6622cc']};
+  const [c1,c2]=colors[th]||colors[''];
+  const pot=document.getElementById('potMark');
+  if(pot) pot.setAttribute('stroke',c1);
+  const stylus=document.getElementById('stylusGem');
+  if(stylus) stylus.setAttribute('fill',c1);
+  document.querySelectorAll('#vinyl-svg-wrap rect[fill="#00d4ff"]').forEach(el=>el.setAttribute('fill',c1));
+}
+
+/* ══ ENCEINTE : sliders ══ */
+function updateSlider(el){
+  const pct=((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%';
+  el.style.setProperty('--pct',pct);
+  document.getElementById(el.id+'Val').textContent=el.value;
+  applySliders();
+}
+document.querySelectorAll('input[type=range]').forEach(el=>{
+  const pct=((el.value-el.min)/(el.max-el.min)*100).toFixed(1)+'%';
+  el.style.setProperty('--pct',pct);
+});
+function applySliders(){
+  const vol =+document.getElementById('slVol').value/100;
+  const bass=+document.getElementById('slBass').value/100;
+  const treb=+document.getElementById('slTreb').value/100;
+  const spd =+document.getElementById('slSpeed').value/100;
+  const pump=+document.getElementById('slPump').value/100;
+  const wave=+document.getElementById('slWave').value/100;
+  cfgHP.speed =0.2+spd*2.5;
+  cfgHP.pump  =pump*0.18;
+  cfgHP.vu    =vol*0.85;
+  cfgHP.wAmp  =wave;
+  cfgHP.wFreq =0.5+bass*3;
+  cfgHP.wLines=Math.round(2+wave*5);
+  const r=Math.round(80+bass*170),g=Math.round(80+treb*150),b=Math.round(80+wave*160);
+  cfgHP.wCol=[[r,g,b]];
+  stxt.textContent=`Vol ${Math.round(vol*100)} · Bass ${Math.round(bass*100)} · Treb ${Math.round(treb*100)}`;
+}
+applySliders();
+
+function togglePower(){
+  on=!on;
+  const btn=document.getElementById('pwrBtn');
+  btn.classList.toggle('on',on);
+  if(!on){waves=[];segs.forEach(s=>s.classList.remove('on'));}
+  stxt.textContent=on?'Système actif':'Système éteint';
+  setLed();
+}
+
+function setLed(){
+  led.style.cssText=on
+    ?'width:6px;height:6px;border-radius:50%;background:var(--led);box-shadow:0 0 10px var(--led)'
+    :'width:6px;height:6px;border-radius:50%;background:#222;box-shadow:none';
+}
+setLed();
+
+/* ══ WAVES ══ */
 const canvas=document.getElementById('waves');
 const ctx=canvas.getContext('2d');
 let waves=[];
@@ -272,36 +832,40 @@ let wCX=0,wCY=0,wR=0;
 
 function resize(){
   canvas.width=window.innerWidth;canvas.height=window.innerHeight;
-  const wz=document.querySelector('.woofer-zone');
-  if(wz){
-    const r=wz.getBoundingClientRect();
-    wCX=r.left+r.width*.5;
-    wCY=r.top+r.height*.5;
-    wR=r.width*.5*.78*.55;
+  if(activeTab==='vinyl'){
+    const vz=document.querySelector('.vinyl-wrap');
+    if(vz){
+      const r=vz.getBoundingClientRect();
+      const sX=r.width/420,sY=r.height/700;
+      wCX=r.left+210*sX;wCY=r.top+285*sY;wR=182*sX*.6;
+    }
+  } else {
+    const sv=document.getElementById('spk-svg');
+    if(sv){
+      const r=sv.getBoundingClientRect();
+      const sX=r.width/460,sY=r.height/700;
+      wCX=r.left+230*sX;wCY=r.top+452*sY;wR=122*sX*.65;
+    }
   }
 }
 window.addEventListener('resize',resize);
-setTimeout(resize,120);
+setTimeout(resize,150);
 
 let wTimer=0;
-
-function spawnWave(forceCol){
+function spawnWave(){
+  const cfg=activeTab==='vinyl'?cfgVinyl:cfgHP;
   const cols=cfg.wCol;
-  const col=forceCol||cols[Math.floor(Math.random()*cols.length)];
-  // spawn plusieurs anneaux légèrement décalés pour épaissir l'effet
+  const col=cols[Math.floor(Math.random()*cols.length)];
   const n=cfg.wLines||3;
   for(let i=0;i<n;i++){
     setTimeout(()=>{
       if(!on)return;
       waves.push({
-        r:wR*.5+Math.random()*wR*.3,
+        r:wR*.45+Math.random()*wR*.3,
         maxR:Math.max(canvas.width,canvas.height)*1.4,
-        alpha:1,
-        col,
-        freq:cfg.wFreq,
-        phase:Math.random()*Math.PI*2,
-        wobbleAmp: 6+Math.random()*8,
-        lw: 1+Math.random()*1.5
+        alpha:1,col,
+        freq:cfg.wFreq,phase:Math.random()*Math.PI*2,
+        wobbleAmp:5+Math.random()*9,lw:1+Math.random()*1.5
       });
     },i*28);
   }
@@ -309,73 +873,55 @@ function spawnWave(forceCol){
 
 function drawWaves(dt){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  const cfg=activeTab==='vinyl'?cfgVinyl:cfgHP;
   if(!on||cfg.wAmp===0){waves=[];return}
-
-  const expandSpeed=200+cfg.speed*160;
-
+  const expandSpeed=190+cfg.speed*155;
   waves=waves.filter(w=>{
     w.r+=expandSpeed*dt;
-    // fade: più lento all'inizio, poi rapido
     w.alpha=Math.pow(Math.max(0,1-(w.r/(w.maxR*.55))),1.4);
     return w.alpha>.003&&w.r<w.maxR;
   });
-
-  // Glow ambiant autour du woofer (halo)
   if(waves.length>0){
-    const topWave=waves[0];
+    const tw=waves[0];
     const grad=ctx.createRadialGradient(wCX,wCY,wR*.3,wCX,wCY,wR*2.5);
-    const [r,g,b]=topWave.col;
-    const haloA=(cfg.wAmp*.18*topWave.alpha).toFixed(3);
-    grad.addColorStop(0,`rgba(${r},${g},${b},${haloA})`);
+    const [r,g,b]=tw.col;
+    grad.addColorStop(0,`rgba(${r},${g},${b},${(cfg.wAmp*.17*tw.alpha).toFixed(3)})`);
     grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
     ctx.fillStyle=grad;
     ctx.beginPath();ctx.arc(wCX,wCY,wR*2.5,0,Math.PI*2);ctx.fill();
   }
-
   for(const w of waves){
     const [r,g,b]=w.col;
-    const baseA=(w.alpha*cfg.wAmp).toFixed(3);
-
-    // anneau principal ondulé
     const pts=96;
     ctx.beginPath();
     for(let i=0;i<=pts;i++){
       const a=(i/pts)*Math.PI*2;
-      const wobble=w.wobbleAmp*Math.sin(a*w.freq*3+t*cfg.speed*5+w.phase)*(1-w.r/w.maxR);
-      const wobble2=w.wobbleAmp*.4*Math.sin(a*w.freq*7-t*cfg.speed*3+w.phase)*(1-w.r/w.maxR);
-      const rad=w.r+wobble+wobble2;
-      const x=wCX+Math.cos(a)*rad;
-      const y=wCY+Math.sin(a)*rad;
+      const wb=w.wobbleAmp*Math.sin(a*w.freq*3+t*cfg.speed*5+w.phase)*(1-w.r/w.maxR);
+      const wb2=w.wobbleAmp*.4*Math.sin(a*w.freq*7-t*cfg.speed*3+w.phase)*(1-w.r/w.maxR);
+      const rad=w.r+wb+wb2;
+      const x=wCX+Math.cos(a)*rad,y=wCY+Math.sin(a)*rad;
       i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     }
     ctx.closePath();
-    ctx.strokeStyle=`rgba(${r},${g},${b},${baseA})`;
-    ctx.lineWidth=w.lw;
-    ctx.stroke();
-
-    // double anneau légèrement plus large (épaisseur visuelle)
+    ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp).toFixed(3)})`;
+    ctx.lineWidth=w.lw;ctx.stroke();
     if(w.alpha>.25){
       ctx.beginPath();
       for(let i=0;i<=pts;i++){
         const a=(i/pts)*Math.PI*2;
-        const wobble=w.wobbleAmp*.6*Math.sin(a*w.freq*3+t*cfg.speed*5+w.phase+.4)*(1-w.r/w.maxR);
-        const rad=w.r+wobble+w.lw*3;
-        const x=wCX+Math.cos(a)*rad;
-        const y=wCY+Math.sin(a)*rad;
+        const wb=w.wobbleAmp*.6*Math.sin(a*w.freq*3+t*cfg.speed*5+w.phase+.4)*(1-w.r/w.maxR);
+        const rad=w.r+wb+w.lw*3;
+        const x=wCX+Math.cos(a)*rad,y=wCY+Math.sin(a)*rad;
         i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
       }
       ctx.closePath();
-      ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp*.35).toFixed(3)})`;
-      ctx.lineWidth=w.lw*.6;
-      ctx.stroke();
+      ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp*.33).toFixed(3)})`;
+      ctx.lineWidth=w.lw*.6;ctx.stroke();
     }
-
-    // remplissage très doux pour les petits rayons
     if(w.r<wR*2.2){
       ctx.beginPath();ctx.arc(wCX,wCY,w.r,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp*.12).toFixed(3)})`;
-      ctx.lineWidth=w.r*.12;
-      ctx.stroke();
+      ctx.strokeStyle=`rgba(${r},${g},${b},${(w.alpha*cfg.wAmp*.11).toFixed(3)})`;
+      ctx.lineWidth=w.r*.11;ctx.stroke();
     }
   }
 }
@@ -383,42 +929,76 @@ function drawWaves(dt){
 /* ══ LOOP ══ */
 function loop(ts){
   const dt=Math.min((ts-lastTs)/1000,.05);lastTs=ts;
-
+  const cfg=activeTab==='vinyl'?cfgVinyl:cfgHP;
   if(on&&cfg.speed>0){
     t+=dt;vuPh+=dt*cfg.speed*5;
-    const raw=Math.sin(t*cfg.speed*Math.PI*2);
-    wfc.style.transform=`scaleY(${(1-cfg.pump*Math.max(0,raw)).toFixed(4)}) scaleX(${(1+cfg.pump*.3*Math.max(0,raw)).toFixed(4)})`;
-    const tx=cfg.tw*120*(Math.sin(t*95)+Math.sin(t*143)*.4);
-    twEl.style.transform=`translateX(${tx.toFixed(2)}px)`;
+
+    if(activeTab==='vinyl'){
+      /* Disque */
+      const rpm=33.33+(cfg.speed-1)*22;
+      vinylAngle=(vinylAngle+rpm/60*360*dt)%360;
+      vinylDisc.style.transform=`rotate(${vinylAngle.toFixed(2)}deg)`;
+      vinylDisc.style.transformOrigin='210px 285px';
+      /* Bras */
+      armProgress+=dt/ARM_DURATION;
+      if(armProgress>=1)armProgress=0;
+      const armTarget=ARM_START+(ARM_END-ARM_START)*armProgress;
+      armAngleCurrent+=(armTarget-armAngleCurrent)*Math.min(1,dt*2);
+      tonearmG.style.transform=`rotate(${armAngleCurrent.toFixed(3)}deg)`;
+      tonearmG.style.transformOrigin='340px 530px';
+    } else {
+      /* Membrane enceinte */
+      const raw=Math.sin(t*cfg.speed*Math.PI*2);
+      const pump=cfg.pump;
+      if(wfConeEl){
+        const sc=1-pump*Math.max(0,raw)*.22;
+        const dy=452*(1-sc);
+        wfConeEl.setAttribute('transform',`translate(0,${dy.toFixed(2)}) scale(1,${sc.toFixed(4)})`);
+      }
+      if(wfRides){
+        const sc=1-pump*Math.max(0,raw)*.18;
+        const dy=452*(1-sc);
+        wfRides.setAttribute('transform',`translate(0,${dy.toFixed(2)}) scale(1,${sc.toFixed(4)})`);
+      }
+      if(wfDustEl){
+        const dy=(pump*8*Math.max(0,raw)).toFixed(2);
+        wfDustEl.setAttribute('transform',`translate(0,${dy})`);
+      }
+      if(twAnim) twAnim.setAttribute('dur',(1.0/Math.max(.3,cfg.speed)).toFixed(2)+'s');
+    }
+
     const lvl=Math.min(1,Math.max(0,cfg.vu+Math.sin(vuPh)*.13+Math.sin(vuPh*2.4)*.06));
     segs.forEach((s,i)=>s.classList.toggle('on',i<Math.round(lvl*segs.length)));
-
     wTimer+=dt;
     const wi=1/(cfg.speed*.9+.25);
     if(wTimer>=wi){wTimer=0;spawnWave();}
   } else {
-    wfc.style.transform='scaleY(1) scaleX(1)';
-    twEl.style.transform='translateX(0)';
+    if(activeTab==='vinyl'){
+      armAngleCurrent+=(ARM_REST-armAngleCurrent)*Math.min(1,dt*1.2);
+      tonearmG.style.transform=`rotate(${armAngleCurrent.toFixed(3)}deg)`;
+      tonearmG.style.transformOrigin='340px 530px';
+    } else {
+      if(wfConeEl) wfConeEl.removeAttribute('transform');
+      if(wfRides)  wfRides.removeAttribute('transform');
+      if(wfDustEl) wfDustEl.removeAttribute('transform');
+      if(twAnim)   twAnim.setAttribute('dur','3s');
+    }
     segs.forEach(s=>s.classList.remove('on'));
   }
-
   drawWaves(dt);
   requestAnimationFrame(loop);
 }
-
-setLed();
 
 /* ══ HORLOGE ══ */
 const clockEl=document.getElementById('clock');
 function updateClock(){
   const n=new Date();
-  const h=String(n.getHours()).padStart(2,'0');
-  const m=String(n.getMinutes()).padStart(2,'0');
-  const s=String(n.getSeconds()).padStart(2,'0');
-  clockEl.textContent=`${h}:${m}:${s}`;
+  clockEl.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
 }
 updateClock();setInterval(updateClock,1000);
 
+/* Init */
+switchTab('vinyl');
 requestAnimationFrame(loop);
 </script>
 </body>
