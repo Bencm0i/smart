@@ -90,7 +90,41 @@
     transition: width 0.4s ease, background 0.3s;
   }
 
-  /* SUCCESS OVERLAY — positive validation */
+  /* TABS */
+  #tabs {
+    display: flex;
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 57px;
+    z-index: 99;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 11px 8px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-pane { display: none; flex-direction: column; flex: 1; }
+  .tab-pane.active { display: flex; }
+
+  /* SUCCESS OVERLAY */
   #success-overlay {
     display: none;
     position: fixed;
@@ -231,10 +265,10 @@
     color: #000;
     border: none;
     font-family: var(--sans);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 800;
     letter-spacing: 2px;
-    padding: 10px 16px;
+    padding: 13px 20px;
     cursor: pointer;
     text-transform: uppercase;
     flex-shrink: 0;
@@ -248,9 +282,9 @@
     border: 1px solid var(--border);
     color: var(--muted);
     font-family: var(--sans);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
-    padding: 10px 12px;
+    padding: 13px 16px;
     cursor: pointer;
     flex-shrink: 0;
   }
@@ -262,20 +296,21 @@
     padding: 10px 16px;
     background: var(--panel);
     border-bottom: 1px solid var(--border);
+    justify-content: flex-start;
   }
 
   .btn {
-    flex: 1;
-    padding: 10px 8px;
+    padding: 14px 20px;
     border: 1px solid var(--border);
     background: transparent;
     color: var(--text);
     font-family: var(--sans);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
+    min-width: 120px;
   }
 
   .btn:active { opacity: 0.8; }
@@ -346,9 +381,10 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 16px;
+    padding: 10px 16px;
     background: var(--panel);
     border-bottom: 1px solid var(--border);
+    justify-content: flex-start;
   }
 
   #manual-label {
@@ -356,16 +392,16 @@
     font-size: 10px;
     color: var(--muted);
     letter-spacing: 2px;
-    flex: 1;
     text-transform: uppercase;
+    margin-left: auto;
   }
 
-  #manual-btns { display: flex; gap: 6px; }
+  #manual-btns { display: flex; gap: 8px; }
 
   #manual-dec, #manual-inc {
-    width: 40px;
-    height: 40px;
-    font-size: 22px;
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
     font-weight: bold;
     border: 1px solid var(--border);
     background: #0a0a0a;
@@ -383,12 +419,12 @@
   #manual-dec:active { background: #1a0000; }
 
   #manual-lock {
-    font-size: 18px;
+    font-size: 20px;
     background: none;
     border: 1px solid var(--border);
     color: var(--muted);
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -464,9 +500,9 @@
     background: none;
     border: 1px solid var(--border);
     color: var(--muted);
-    width: 28px;
-    height: 28px;
-    font-size: 16px;
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -499,6 +535,196 @@
     z-index: 999;
     transition: opacity 0.05s;
   }
+
+  /* ── DATABASE TAB ── */
+  #db-pane {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+  }
+  #db-pane.active { display: flex; }
+
+  #db-toolbar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  #db-toolbar-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  .btn-db {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .btn-db:active { opacity: 0.8; }
+  .btn-db-accent { color: var(--accent); border-color: var(--accent); }
+  .btn-db-danger { color: var(--accent2); border-color: #2a1111; }
+
+  #db-list { flex: 1; overflow-y: auto; }
+  #db-list::-webkit-scrollbar { width: 3px; }
+  #db-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .db-session {
+    border-bottom: 2px solid var(--border);
+  }
+
+  .db-session-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: #111;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .db-session-header:active { background: #1a1a00; }
+
+  .db-session-date {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    flex: 1;
+  }
+
+  .db-session-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-align: right;
+  }
+
+  .db-session-chevron {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+
+  .db-session.open .db-session-chevron { transform: rotate(90deg); }
+
+  .db-session-body { display: none; }
+  .db-session.open .db-session-body { display: block; }
+
+  .db-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .db-entry-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .db-entry-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  .db-entry-label-wrap {
+    margin-top: 4px;
+  }
+
+  .db-entry-label {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    width: 100%;
+    padding: 2px 0;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .db-entry-label:focus {
+    border-bottom-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .db-entry-label::placeholder { color: var(--muted); font-style: italic; }
+
+  .db-entry-count {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--accent);
+    min-width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .db-empty {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    line-height: 2;
+  }
+
+  /* save btn in db-session */
+  #db-save-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    justify-content: flex-end;
+  }
+
+  #db-save-btn button {
+    padding: 12px 20px;
+    background: var(--confirm);
+    color: #000;
+    border: none;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  #db-save-btn button:active { opacity: 0.8; }
+
+  #db-save-btn span {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
 </style>
 </head>
 <body>
@@ -515,54 +741,82 @@
   </div>
 </header>
 
-<div id="success-banner">✔ COMMANDE COMPLÈTE</div>
+<!-- TABS -->
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('scan')">📷 SCANNER</button>
+  <button class="tab-btn" onclick="switchTab('db')" id="tab-db-btn">🗄 BASE DE DONNÉES</button>
+</div>
 
-<div id="scanner-viewport">
-  <div id="scanner-placeholder">
-    <div style="font-size:36px;opacity:0.4">📷</div>
-    <div>APPUYER SUR DÉMARRER</div>
+<!-- ══ ONGLET SCANNER ══ -->
+<div class="tab-pane active" id="scan-pane">
+
+  <div id="success-banner">✔ COMMANDE COMPLÈTE</div>
+
+  <div id="scanner-viewport">
+    <div id="scanner-placeholder">
+      <div style="font-size:36px;opacity:0.4">📷</div>
+      <div>APPUYER SUR DÉMARRER</div>
+    </div>
+    <div class="bracket tl"></div>
+    <div class="bracket tr"></div>
+    <div class="bracket bl"></div>
+    <div class="bracket br"></div>
+    <div id="scan-line"></div>
   </div>
-  <div class="bracket tl"></div>
-  <div class="bracket tr"></div>
-  <div class="bracket bl"></div>
-  <div class="bracket br"></div>
-  <div id="scan-line"></div>
-</div>
 
-<div id="cooldown-bar-wrap"><div id="cooldown-bar"></div></div>
+  <div id="cooldown-bar-wrap"><div id="cooldown-bar"></div></div>
 
-<div id="pending-bar">
-  <button class="btn-ok" onclick="confirmPending()">✓ OK</button>
-  <div id="pending-info">
-    <span id="pending-code-val">—</span>
-    <span id="pending-count-info"></span>
-    <span id="pending-warning">⚠ CODE DÉJÀ SCANNÉ — CONFIRMER ?</span>
+  <div id="pending-bar">
+    <button class="btn-ok" onclick="confirmPending()">✓ OK</button>
+    <div id="pending-info">
+      <span id="pending-code-val">—</span>
+      <span id="pending-count-info"></span>
+      <span id="pending-warning">⚠ CODE DÉJÀ SCANNÉ — CONFIRMER ?</span>
+    </div>
+    <button class="btn-cancel" onclick="cancelPending()">✕</button>
   </div>
-  <button class="btn-cancel" onclick="cancelPending()">✕</button>
-</div>
 
-<div id="controls">
-  <button class="btn btn-primary" id="toggle-btn" onclick="toggleScanner()">DÉMARRER</button>
-  <button class="btn btn-danger" onclick="confirmReset()">RESET</button>
-</div>
-
-<div id="manual-row">
-  <span id="manual-label">SAISIE MANUELLE</span>
-  <div id="manual-btns" style="display:none">
-    <button id="manual-dec" onclick="manualDecrement()">−</button>
-    <button id="manual-inc" onclick="manualIncrement()">+</button>
+  <div id="controls">
+    <button class="btn btn-primary" id="toggle-btn" onclick="toggleScanner()">DÉMARRER</button>
+    <button class="btn btn-danger" onclick="confirmReset()">RESET</button>
   </div>
-  <button id="manual-lock" onclick="toggleManualLock()">🔓</button>
-</div>
 
-<div id="max-row">
-  <label>QTÉ COMMANDÉE :</label>
-  <input type="number" id="max-input" placeholder="—" inputmode="numeric" min="1" oninput="onMaxInput(this.value)" disabled>
-  <button id="max-toggle" onclick="toggleMax()">OFF</button>
-</div>
+  <div id="manual-row">
+    <button id="manual-lock" onclick="toggleManualLock()">🔓</button>
+    <div id="manual-btns" style="display:none">
+      <button id="manual-dec" onclick="manualDecrement()">−</button>
+      <button id="manual-inc" onclick="manualIncrement()">+</button>
+    </div>
+    <span id="manual-label">SAISIE MANUELLE</span>
+  </div>
 
-<div id="product-list">
-  <div class="empty-state" id="empty-state">AUCUN PRODUIT SCANNÉ<br>— — —</div>
+  <div id="max-row">
+    <label>QTÉ COMMANDÉE :</label>
+    <input type="number" id="max-input" placeholder="—" inputmode="numeric" min="1" oninput="onMaxInput(this.value)" disabled>
+    <button id="max-toggle" onclick="toggleMax()">OFF</button>
+  </div>
+
+  <!-- Save to DB bar -->
+  <div id="db-save-btn">
+    <span>ENREGISTRER LA SESSION →</span>
+    <button onclick="saveSessionToDB()">💾 SAUVEGARDER</button>
+  </div>
+
+  <div id="product-list">
+    <div class="empty-state" id="empty-state">AUCUN PRODUIT SCANNÉ<br>— — —</div>
+  </div>
+
+</div><!-- /scan-pane -->
+
+<!-- ══ ONGLET BASE DE DONNÉES ══ -->
+<div class="tab-pane" id="db-pane">
+  <div id="db-toolbar">
+    <span id="db-toolbar-title">SESSIONS SAUVEGARDÉES</span>
+    <button class="btn-db btn-db-danger" onclick="clearAllDB()">TOUT EFFACER</button>
+  </div>
+  <div id="db-list">
+    <div class="db-empty" id="db-empty">AUCUNE SESSION SAUVEGARDÉE<br>— — —</div>
+  </div>
 </div>
 
 <script>
@@ -579,6 +833,16 @@
 
   let manualLocked = false;
   const MANUAL_CODE = '__MANUAL__';
+
+  // ── TABS ──────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'scan') || (i === 1 && tab === 'db'));
+    });
+    document.getElementById('scan-pane').classList.toggle('active', tab === 'scan');
+    document.getElementById('db-pane').classList.toggle('active', tab === 'db');
+    if (tab === 'db') renderDB();
+  }
 
   function toggleManualLock() {
     manualLocked = !manualLocked;
@@ -670,7 +934,6 @@
       if (total >= maxValue) {
         bar.style.background = 'var(--confirm)';
         disp.className = 'at-max';
-        // Show success state only if it wasn't already shown
         if (overlay.style.display !== 'block') {
           overlay.style.display = 'block';
           banner.style.display  = 'block';
@@ -759,7 +1022,8 @@
     const isNew = !data[code];
     if (isNew) data[code] = {
       count: 0,
-      first: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      first: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      label: ''
     };
     data[code].count++;
     saveData();
@@ -783,13 +1047,14 @@
     showPending(code);
   }
 
-  // ── RENDER ────────────────────────────────────────────────
+  // ── RENDER (onglet scanner) ───────────────────────────────
   function renderItem(code, isNew) {
     const list = document.getElementById('product-list');
     document.getElementById('empty-state')?.remove();
 
-    const label = code === '__MANUAL__' ? '— SAISIE MANUELLE —' : code;
+    const label    = code === '__MANUAL__' ? '— SAISIE MANUELLE —' : code;
     const subLabel = code === '__MANUAL__' ? 'Incrémenté manuellement' : `Premier scan : ${data[code].first}`;
+    const savedLbl = data[code].label || '';
 
     let item = document.getElementById('item-' + code);
     if (!item) {
@@ -914,6 +1179,132 @@
     document.getElementById('scan-line').style.display = 'none';
     document.getElementById('scanner-placeholder').style.display = 'flex';
     document.getElementById('scanner-viewport').querySelectorAll('video, canvas').forEach(el => el.remove());
+  }
+
+  // ── BASE DE DONNÉES ───────────────────────────────────────
+  function getDB() {
+    try { return JSON.parse(localStorage.getItem('scan_db') || '[]'); } catch { return []; }
+  }
+
+  function saveDB(db) {
+    localStorage.setItem('scan_db', JSON.stringify(db));
+  }
+
+  function saveSessionToDB() {
+    const keys = Object.keys(data);
+    if (keys.length === 0) {
+      alert('Aucun produit à sauvegarder.');
+      return;
+    }
+    const db = getDB();
+    const session = {
+      id: Date.now(),
+      date: new Date().toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }),
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      total: getTotal(),
+      items: Object.entries(data).map(([code, v]) => ({
+        code,
+        count: v.count,
+        first: v.first,
+        label: v.label || ''
+      }))
+    };
+    db.unshift(session);
+    saveDB(db);
+    // badge update
+    document.getElementById('tab-db-btn').textContent = `🗄 BASE DE DONNÉES (${db.length})`;
+    alert(`Session sauvegardée — ${session.total} articles.`);
+  }
+
+  function renderDB() {
+    const db = getDB();
+    const list = document.getElementById('db-list');
+    const empty = document.getElementById('db-empty');
+
+    // badge
+    document.getElementById('tab-db-btn').textContent = db.length
+      ? `🗄 BASE DE DONNÉES (${db.length})`
+      : '🗄 BASE DE DONNÉES';
+
+    if (db.length === 0) {
+      list.innerHTML = '<div class="db-empty" id="db-empty">AUCUNE SESSION SAUVEGARDÉE<br>— — —</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    db.forEach((session, si) => {
+      const div = document.createElement('div');
+      div.className = 'db-session';
+      div.id = 'session-' + session.id;
+
+      const itemsHTML = session.items.map((item, ii) => `
+        <div class="db-entry">
+          <div class="db-entry-left">
+            <div class="db-entry-code">${item.code === '__MANUAL__' ? '— SAISIE MANUELLE —' : item.code}</div>
+            <div class="db-entry-label-wrap">
+              <input class="db-entry-label"
+                type="text"
+                placeholder="Ajouter une description..."
+                value="${escHtml(item.label || '')}"
+                onchange="updateDBLabel(${session.id}, ${ii}, this.value)"
+                onclick="event.stopPropagation()"
+              >
+            </div>
+          </div>
+          <div class="db-entry-count">×${item.count}</div>
+        </div>
+      `).join('');
+
+      div.innerHTML = `
+        <div class="db-session-header" onclick="toggleSession(${session.id})">
+          <div>
+            <div class="db-session-date">📅 ${session.date} ${session.time}</div>
+          </div>
+          <div class="db-session-meta">${session.items.length} réf. — ${session.total} art.</div>
+          <span class="db-session-chevron">▶</span>
+        </div>
+        <div class="db-session-body">
+          ${itemsHTML}
+          <div style="padding:8px 16px; display:flex; gap:8px; justify-content:flex-end; background:#111; border-top:1px solid var(--border)">
+            <button class="btn-db btn-db-danger" onclick="deleteSession(${session.id})">🗑 SUPPRIMER</button>
+          </div>
+        </div>
+      `;
+
+      list.appendChild(div);
+    });
+  }
+
+  function toggleSession(id) {
+    const el = document.getElementById('session-' + id);
+    el.classList.toggle('open');
+  }
+
+  function updateDBLabel(sessionId, itemIndex, value) {
+    const db = getDB();
+    const s = db.find(s => s.id === sessionId);
+    if (s && s.items[itemIndex] !== undefined) {
+      s.items[itemIndex].label = value;
+      saveDB(db);
+    }
+  }
+
+  function deleteSession(id) {
+    if (!confirm('Supprimer cette session ?')) return;
+    let db = getDB();
+    db = db.filter(s => s.id !== id);
+    saveDB(db);
+    renderDB();
+  }
+
+  function clearAllDB() {
+    if (!confirm('Effacer toute la base de données ?')) return;
+    localStorage.removeItem('scan_db');
+    renderDB();
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   loadData();
