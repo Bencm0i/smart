@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Cuisine Timer</title>
+<style>
+  :root {
+    --bg: #1a1008;
+    --surface: #2a1e0e;
+    --surface2: #3a2a14;
+    --accent: #e8803a;
+    --accent2: #f5a623;
+    --text: #f5ede0;
+    --text-dim: #8a7060;
+    --danger: #e84040;
+    --success: #5eb85e;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  /* PANELS */
+  #panels {
+    display: flex; width: 200%; height: 100%;
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #panels.show-timer { transform: translateX(-50%); }
+  .panel {
+    width: 50%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: env(safe-area-inset-top, 24px) 24px env(safe-area-inset-bottom, 24px);
+    position: relative; overflow: hidden;
+  }
+
+  /* SWIPE HINT */
+  .swipe-hint {
+    position: absolute;
+    bottom: max(env(safe-area-inset-bottom, 0px) + 18px, 26px);
+    left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+    pointer-events: none;
+  }
+  .swipe-hint svg { opacity: 0.5; animation: bounce-x 1.6s ease-in-out infinite; }
+  @keyframes bounce-x { 0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)} }
+
+  /* CLOCK PANEL */
+  #panel-clock { background: var(--bg); }
+  .clock-label { font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+  #clock-display { font-size: clamp(72px, 22vw, 110px); font-weight: 200; letter-spacing: -0.02em; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
+  .clock-seconds { font-size: clamp(32px, 9vw, 48px); color: var(--accent); font-weight: 300; letter-spacing: 0.04em; margin-top: 4px; text-align: center; }
+  .clock-date { margin-top: 18px; font-size: 15px; color: var(--text-dim); letter-spacing: 0.06em; }
+  .quick-strip { margin-top: 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .quick-btn {
+    background: var(--surface); border: 1px solid var(--surface2);
+    color: var(--accent2); border-radius: 40px; padding: 8px 16px;
+    font-size: 14px; cursor: pointer; transition: background 0.18s, transform 0.1s; font-weight: 500;
+  }
+  .quick-btn:active { background: var(--surface2); transform: scale(0.95); }
+
+  /* TIMER PANEL */
+  #panel-timer { background: var(--bg); gap: 0; }
+  .timer-header {
+    position: absolute;
+    top: max(env(safe-area-inset-top, 0px) + 14px, 20px);
+    left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+  }
+  .back-btn {
+    background: var(--surface); border: none; color: var(--accent);
+    border-radius: 50%; width: 40px; height: 40px; font-size: 20px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .back-btn:active { background: var(--surface2); }
+  .timer-title { font-size: 15px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  /* RING */
+  .ring-wrap {
+    position: relative; width: min(72vw, 280px); height: min(72vw, 280px);
+    margin: 60px auto 20px;
+  }
+  #ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--surface2); stroke-width: 8; }
+  #ring-progress { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.5s linear, stroke 0.3s; }
+  .ring-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  #timer-display { font-size: clamp(44px, 14vw, 68px); font-weight: 200; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+  #timer-preset-name { font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
+
+  /* CONTROLS */
+  .timer-controls { display: flex; gap: 18px; align-items: center; margin-top: 4px; }
+  .ctrl-btn {
+    background: var(--surface); border: none; color: var(--text);
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .ctrl-btn:active { transform: scale(0.9); }
+  .ctrl-btn.lg { width: 72px; height: 72px; font-size: 28px; background: var(--accent); color: #fff; }
+  .ctrl-btn.sm { width: 50px; height: 50px; font-size: 20px; }
+  .ctrl-btn.lg:active { background: var(--accent2); }
+  .ctrl-btn.sm:active { background: var(--surface2); }
+  #play-btn.running { background: var(--surface2); }
+
+  /* PRESETS SECTION */
+  .presets-section { width: 100%; padding: 0 16px; margin-top: 14px; flex: 1; overflow-y: auto; }
+  .presets-section::-webkit-scrollbar { display: none; }
+  .preset-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding: 0 4px;
+  }
+  .preset-label { font-size: 11px; color: var(--text-dim); letter-spacing: 0.18em; text-transform: uppercase; }
+  #add-preset-btn {
+    background: var(--surface); border: 1.5px solid var(--accent);
+    color: var(--accent); border-radius: 20px; padding: 5px 12px;
+    font-size: 13px; cursor: pointer; font-weight: 600;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #add-preset-btn:active { background: var(--surface2); transform: scale(0.95); }
+
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .preset-card {
+    background: var(--surface); border: 1.5px solid var(--surface2);
+    border-radius: var(--radius); padding: 14px 16px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    display: flex; flex-direction: column; gap: 4px;
+    position: relative;
+  }
+  .preset-card:active { transform: scale(0.97); background: var(--surface2); }
+  .preset-card.active { border-color: var(--accent); background: #3a2010; }
+  .preset-card .p-name { font-size: 13px; color: var(--text-dim); font-weight: 500; }
+  .preset-card .p-time { font-size: 22px; font-weight: 300; color: var(--accent2); font-variant-numeric: tabular-nums; }
+  .preset-card .p-icon { font-size: 20px; }
+  .del-btn {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 14px; color: var(--text-dim);
+    cursor: pointer; padding: 2px 4px;
+    transition: color 0.15s;
+  }
+  .del-btn:active { color: var(--danger); }
+
+  /* DONE */
+  #timer-display.done { color: var(--success); animation: pulse-done 0.7s ease-in-out infinite alternate; }
+  @keyframes pulse-done { from{opacity:1} to{opacity:0.4} }
+
+  /* DOTS */
+  .dots {
+    position: fixed; bottom: max(env(safe-area-inset-bottom, 0px) + 10px, 16px);
+    left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; z-index: 10; pointer-events: none;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s, transform 0.3s; }
+  .dot.active { background: var(--accent); transform: scale(1.4); }
+
+  /* MODAL */
+  #add-modal {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7); align-items: flex-end; justify-content: center;
+  }
+  #add-modal.open { display: flex; }
+  .modal-box {
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    padding: 28px 24px max(env(safe-area-inset-bottom,0px)+24px, 32px);
+    width: 100%; max-width: 480px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: 0.06em; }
+  .modal-field { display: flex; flex-direction: column; gap: 6px; }
+  .modal-field label { font-size: 12px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+  .modal-field input {
+    background: var(--bg); border: 1.5px solid var(--surface2);
+    color: var(--text); border-radius: 12px; padding: 12px 14px;
+    font-size: 16px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-field input:focus { border-color: var(--accent); }
+  .modal-row { display: flex; gap: 12px; }
+  .modal-row .modal-field { flex: 1; }
+  .modal-actions { display: flex; gap: 12px; margin-top: 4px; }
+  .modal-actions button {
+    flex: 1; padding: 14px; border: none; border-radius: 14px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .modal-actions button:active { transform: scale(0.97); opacity: 0.85; }
+  #modal-cancel { background: var(--surface2); color: var(--text-dim); }
+  #modal-save { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="panels">
+  <!-- HORLOGE -->
+  <div class="panel" id="panel-clock">
+    <div class="clock-label">Horloge</div>
+    <div id="clock-display">00:00</div>
+    <div class="clock-seconds" id="clock-sec">00</div>
+    <div class="clock-date" id="clock-date"></div>
+    <div style="height:32px"></div>
+    <div class="quick-strip" id="quick-strip"></div>
+    <div class="swipe-hint">
+      Minuteur
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- MINUTEUR -->
+  <div class="panel" id="panel-timer">
+    <div class="timer-header">
+      <button class="back-btn" id="back-btn">‹</button>
+      <span class="timer-title">Minuteur</span>
+      <div style="width:40px"></div>
+    </div>
+    <div class="ring-wrap">
+      <svg id="ring-svg" viewBox="0 0 280 280">
+        <circle class="ring-track" cx="140" cy="140" r="128"/>
+        <circle id="ring-progress" cx="140" cy="140" r="128"/>
+      </svg>
+      <div class="ring-inner">
+        <div id="timer-display">00:00</div>
+        <div id="timer-preset-name">—</div>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <button class="ctrl-btn sm" id="reset-btn">↺</button>
+      <button class="ctrl-btn lg" id="play-btn">▶</button>
+      <button class="ctrl-btn sm" id="plus30-btn">+30s</button>
+    </div>
+    <div class="presets-section">
+      <div class="preset-header">
+        <div class="preset-label">Préréglages</div>
+        <button id="add-preset-btn">+ Ajouter</button>
+      </div>
+      <div class="preset-grid" id="preset-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="dots">
+  <div class="dot active" id="dot0"></div>
+  <div class="dot" id="dot1"></div>
+</div>
+
+<!-- MODAL AJOUT -->
+<div id="add-modal">
+  <div class="modal-box">
+    <div class="modal-title">Nouveau préréglage</div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label>Icône</label>
+        <input id="new-icon" type="text" maxlength="2" placeholder="🍳" value="⏱">
+      </div>
+      <div class="modal-field" style="flex:3">
+        <label>Nom</label>
+        <input id="new-name" type="text" placeholder="ex: Riz basmati">
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Durée (minutes)</label>
+      <input id="new-mins" type="number" min="0.5" step="0.5" placeholder="ex: 18">
+    </div>
+    <div class="modal-actions">
+      <button id="modal-cancel">Annuler</button>
+      <button id="modal-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FIXED_PRESETS = [
+  { name: "Infusion courte", icon: "🍵", s: 3*60 },
+  { name: "Infusion longue", icon: "🫖", s: 7*60 },
+  { name: "Pâtes",           icon: "🍝", s: 11*60 },
+];
+
+let customPresets = [];
+try { customPresets = JSON.parse(localStorage.getItem('custom_presets') || '[]'); } catch(e) {}
+function allPresets() { return [...FIXED_PRESETS, ...customPresets]; }
+function saveCustom() { localStorage.setItem('custom_presets', JSON.stringify(customPresets)); }
+
+let currentPanel = 0;
+let timerTotal = 0;
+let timerRemaining = 0;
+let timerRunning = false;
+let timerInterval = null;
+let activePresetIdx = -1;
+const CIRCUMFERENCE = 2 * Math.PI * 128;
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function formatTime(s) { return pad(Math.floor(s/60)) + ':' + pad(s%60); }
+
+// CLOCK
+function updateClock() {
+  const d = new Date();
+  document.getElementById('clock-display').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+  document.getElementById('clock-sec').textContent = pad(d.getSeconds());
+  const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+  document.getElementById('clock-date').textContent = days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+}
+setInterval(updateClock, 500);
+updateClock();
+
+// RENDER PRESETS
+function renderPresets() {
+  const grid = document.getElementById('preset-grid');
+  const strip = document.getElementById('quick-strip');
+  grid.innerHTML = '';
+  strip.innerHTML = '';
+  const presets = allPresets();
+
+  presets.forEach((p, i) => {
+    const isCustom = i >= FIXED_PRESETS.length;
+    const card = document.createElement('div');
+    card.className = 'preset-card' + (activePresetIdx === i ? ' active' : '');
+    card.innerHTML = `<div class="p-icon">${p.icon}</div><div class="p-name">${p.name}</div><div class="p-time">${formatTime(p.s)}</div>`;
+    if (isCustom) {
+      const del = document.createElement('span');
+      del.className = 'del-btn';
+      del.textContent = '✕';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        customPresets.splice(i - FIXED_PRESETS.length, 1);
+        saveCustom();
+        if (activePresetIdx === i) activePresetIdx = -1;
+        renderPresets();
+      });
+      card.appendChild(del);
+    }
+    card.addEventListener('click', () => selectPreset(i));
+    grid.appendChild(card);
+  });
+
+  FIXED_PRESETS.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = p.icon + ' ' + formatTime(p.s);
+    btn.addEventListener('click', () => { selectPreset(i); showPanel(1); });
+    strip.appendChild(btn);
+  });
+}
+renderPresets();
+
+function selectPreset(i) {
+  const p = allPresets()[i];
+  stopTimer();
+  timerTotal = p.s;
+  timerRemaining = p.s;
+  activePresetIdx = i;
+  renderPresets();
+  document.getElementById('timer-preset-name').textContent = p.name;
+  updateTimerDisplay();
+}
+
+// TIMER
+function updateTimerDisplay() {
+  const el = document.getElementById('timer-display');
+  el.textContent = formatTime(timerRemaining);
+  el.classList.remove('done');
+  const progress = timerTotal > 0 ? timerRemaining / timerTotal : 1;
+  document.getElementById('ring-progress').style.strokeDasharray = CIRCUMFERENCE;
+  document.getElementById('ring-progress').style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+  document.getElementById('ring-progress').style.stroke = timerRemaining === 0 ? 'var(--success)' : 'var(--accent)';
+}
+
+function startTimer() {
+  if (timerRemaining <= 0 || timerRunning) return;
+  timerRunning = true;
+  document.getElementById('play-btn').textContent = '⏸';
+  document.getElementById('play-btn').classList.add('running');
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    updateTimerDisplay();
+    if (timerRemaining <= 0) {
+      timerRemaining = 0;
+      stopTimer();
+      document.getElementById('timer-display').classList.add('done');
+      document.getElementById('timer-preset-name').textContent = '✓ Terminé !';
+      triggerBuzz();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById('play-btn').textContent = '▶';
+  document.getElementById('play-btn').classList.remove('running');
+}
+function stopTimer() { pauseTimer(); }
+
+function resetTimer() {
+  stopTimer();
+  timerRemaining = timerTotal;
+  document.getElementById('timer-display').classList.remove('done');
+  const p = allPresets()[activePresetIdx];
+  if (p) document.getElementById('timer-preset-name').textContent = p.name;
+  updateTimerDisplay();
+}
+
+function triggerBuzz() {
+  if ('vibrate' in navigator) navigator.vibrate([300,100,300,100,600]);
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.4, 0.8].forEach(t => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + t);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.3);
+    });
+  } catch(e) {}
+}
+
+document.getElementById('play-btn').addEventListener('click', () => {
+  if (timerTotal === 0) return;
+  timerRunning ? pauseTimer() : startTimer();
+});
+document.getElementById('reset-btn').addEventListener('click', resetTimer);
+document.getElementById('plus30-btn').addEventListener('click', () => {
+  timerRemaining += 30;
+  timerTotal = Math.max(timerTotal, timerRemaining);
+  updateTimerDisplay();
+});
+
+document.getElementById('ring-progress').style.strokeDasharray = CIRCUMFERENCE;
+document.getElementById('ring-progress').style.strokeDashoffset = CIRCUMFERENCE;
+
+// MODAL
+document.getElementById('add-preset-btn').addEventListener('click', () => {
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-mins').value = '';
+  document.getElementById('new-icon').value = '⏱';
+  document.getElementById('new-name').style.borderColor = '';
+  document.getElementById('new-mins').style.borderColor = '';
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-name').focus(), 100);
+});
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('add-modal').classList.remove('open');
+});
+document.getElementById('add-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('add-modal'))
+    document.getElementById('add-modal').classList.remove('open');
+});
+document.getElementById('modal-save').addEventListener('click', () => {
+  const name = document.getElementById('new-name').value.trim();
+  const mins = parseFloat(document.getElementById('new-mins').value.replace(',','.'));
+  const icon = document.getElementById('new-icon').value.trim() || '⏱';
+  let ok = true;
+  if (!name) { document.getElementById('new-name').style.borderColor='var(--danger)'; ok=false; }
+  if (isNaN(mins)||mins<=0) { document.getElementById('new-mins').style.borderColor='var(--danger)'; ok=false; }
+  if (!ok) return;
+  customPresets.push({ name, icon, s: Math.round(mins * 60) });
+  saveCustom();
+  renderPresets();
+  document.getElementById('add-modal').classList.remove('open');
+});
+
+// NAVIGATION
+function showPanel(idx) {
+  currentPanel = idx;
+  document.getElementById('panels').classList.toggle('show-timer', idx === 1);
+  document.getElementById('dot0').classList.toggle('active', idx === 0);
+  document.getElementById('dot1').classList.toggle('active', idx === 1);
+}
+document.getElementById('back-btn').addEventListener('click', () => showPanel(0));
+
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < 0 && currentPanel === 0) showPanel(1);
+    if (dx > 0 && currentPanel === 1) showPanel(0);
+  }
+}, { passive: true });
+document.addEventListener('touchmove', e => {
+  if (!e.target.closest('.presets-section') && !e.target.closest('.modal-box')) e.preventDefault();
+}, { passive: false });
+</script>
+</body>
+</html>
