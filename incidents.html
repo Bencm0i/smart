@@ -312,7 +312,35 @@
     </div>
 
     <div class="field">
-      <label>Gravité perçue</label>
+      <label style="display:flex;align-items:center;justify-content:space-between">
+        <span>Gravité perçue</span>
+        <button onclick="toggleGuide()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:var(--mono);font-size:10px;padding:2px 7px;cursor:pointer;letter-spacing:0.05em">? grille</button>
+      </label>
+      <!-- GUIDE INLINE -->
+      <div id="guidePanel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;font-size:12px;line-height:1.6">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Grille de référence</div>
+        <div style="display:grid;gap:8px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ok);flex-shrink:0;width:20px">G1</span>
+            <div><div style="font-weight:600;color:var(--text)">Faible</div><div style="color:var(--muted)">Observable, sans danger direct. Nuisance sonore, tag, comportement déplacé.</div></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;width:20px">G2</span>
+            <div><div style="font-weight:600;color:var(--text)">Modéré</div><div style="color:var(--muted)">Comportement suspect répété, tension visible, intervention légère forces de l'ordre.</div></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent2);flex-shrink:0;width:20px">G3</span>
+            <div><div style="font-weight:600;color:var(--text)">Sérieux</div><div style="color:var(--muted)">Altercation physique, intervention police significative (2+ véhicules), dégradation intentionnelle.</div></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--danger);flex-shrink:0;width:20px">G4</span>
+            <div><div style="font-weight:600;color:var(--text)">Critique</div><div style="color:var(--muted)">Arme visible, coup de feu, violence grave, incendie volontaire.</div></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);color:var(--muted);font-size:11px">
+          ⚠️ Ne noter que ce que vous avez observé directement. Conserver la même logique d'une entrée à l'autre.
+        </div>
+      </div>
       <div class="severity-picker">
         <button class="sev-btn" data-sev="1" onclick="setSev(1)">1<br>Faible</button>
         <button class="sev-btn" data-sev="2" onclick="setSev(2)">2<br>Modéré</button>
@@ -385,7 +413,54 @@
   </div>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
 
-  <div style="margin-top:24px;padding:16px;background:var(--surface);border-radius:14px;border:1px solid var(--border)">
+  <!-- GUIDE DE RÉFÉRENCE -->
+  <div style="margin-top:16px;padding:18px;background:var(--surface);border-radius:14px;border:1px solid var(--border)">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">📋 Guide de notation</div>
+
+    <div style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Grille de gravité</div>
+    <div style="display:grid;gap:10px;margin-bottom:16px">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ok);flex-shrink:0;width:22px">G1</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Faible</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Observable, sans danger direct. Nuisance sonore, tag, comportement déplacé ponctuel.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);flex-shrink:0;width:22px">G2</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Modéré</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Comportement suspect répété, tension visible, regroupements fixes, intervention légère FDO.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent2);flex-shrink:0;width:22px">G3</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Sérieux</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Altercation physique, intervention police significative (2+ véhicules), dégradation intentionnelle.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--danger);flex-shrink:0;width:22px">G4</span>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Critique</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Arme visible, coup de feu, violence grave, incendie volontaire.</div></div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Quoi noter</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">
+        ✅ Coups de feu / détonations (même incertaines)<br>
+        ✅ Altercations physiques, agressions observées<br>
+        ✅ Va-et-vient suspects à horaires fixes<br>
+        ✅ Véhicules stationnés longtemps avec activité<br>
+        ✅ Interventions police / SAMU sur cause violente<br>
+        ✅ Nuisances sonores nocturnes répétées (&gt;23h)<br>
+        ❌ Incidents isolés sans récurrence<br>
+        ❌ Nuisances légères normales en milieu urbain<br>
+        ❌ Ouï-dire non observés directement
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Règle de cohérence</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">
+        La cohérence prime sur la précision. Si vous notez G3 la première fois pour un type d'incident donné, notez G3 les fois suivantes pour le même type. C'est la <strong style="color:var(--text)">fréquence et la tendance</strong> qui donnent la valeur probante du journal, pas le détail d'une entrée.
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;padding:16px;background:var(--surface);border-radius:14px;border:1px solid var(--border)">
     <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">À propos</div>
     <div style="font-size:12px;color:var(--muted);line-height:1.7">
       Les données sont stockées <strong style="color:var(--text)">localement</strong> sur votre appareil uniquement. Rien n'est envoyé sur internet.<br><br>
@@ -455,6 +530,12 @@ function showTab(name) {
   document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
   if (name === 'kpi') renderKPI();
   if (name === 'log') renderLog();
+}
+
+// --- GUIDE ---
+function toggleGuide() {
+  const p = document.getElementById('guidePanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
 }
 
 // --- SEVERITY ---
