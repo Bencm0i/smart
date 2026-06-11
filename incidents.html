@@ -433,6 +433,14 @@
       <div class="kpi-sub" id="kpiFreqSub">par mois</div>
     </div>
     <div class="kpi-card full">
+      <div class="kpi-label">Tendance</div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <div class="kpi-value" id="kpiTrendArrow" style="color:var(--text);font-size:22px">—</div>
+        <div class="kpi-value" id="kpiTrendPct" style="color:var(--text);font-size:20px"></div>
+      </div>
+      <div class="kpi-sub" id="kpiTrendSub">moitié ancienne vs moitié récente</div>
+    </div>
+    <div class="kpi-card full">
       <div class="kpi-label">Dernier incident</div>
       <div class="kpi-value" id="kpiLast" style="font-size:16px;color:var(--text)">—</div>
       <div class="kpi-sub" id="kpiLastSub"></div>
@@ -726,14 +734,67 @@ function renderKPI() {
   if (total >= 2) {
     const dates = entries.map(e => new Date(e.date).getTime()).sort((a,b) => a-b);
     const spanDays = (dates[dates.length-1] - dates[0]) / 86400000;
-    const perMonth = spanDays > 0 ? ((total / spanDays) * 30).toFixed(1) : total;
-    document.getElementById('kpiFreq').textContent = perMonth;
+    const perMonth = spanDays > 0 ? (total / spanDays) * 30 : total;
+    const perMonthStr = perMonth.toFixed(2);
+    document.getElementById('kpiFreq').textContent = perMonth.toFixed(2);
     document.getElementById('kpiFreq').className = 'kpi-value ' + (perMonth < 1 ? 'ok' : perMonth < 3 ? 'neutral' : perMonth < 6 ? 'warn' : 'danger');
-    document.getElementById('kpiFreqSub').textContent = 'incidents / mois';
+    // Inverse: 1 incident every N months
+    const interval = perMonth > 0 ? 1 / perMonth : null;
+    let intervalStr;
+    if (interval === null) {
+      intervalStr = '';
+    } else if (interval < 1) {
+      // less than 1 month → express in days
+      const days = Math.round(interval * 30);
+      intervalStr = `1 inc. / ${days} j`;
+    } else if (interval < 2) {
+      intervalStr = `1 inc. / mois`;
+    } else {
+      intervalStr = `1 inc. / ${interval.toFixed(1).replace('.0','')} mois`;
+    }
+    document.getElementById('kpiFreqSub').textContent = intervalStr ? `inc./mois · ${intervalStr}` : 'incidents / mois';
   } else {
     document.getElementById('kpiFreq').textContent = total === 1 ? '1' : '—';
     document.getElementById('kpiFreq').className = 'kpi-value';
     document.getElementById('kpiFreqSub').textContent = total ? 'trop tôt pour calculer' : 'par mois';
+  }
+
+  // tendance : moitié ancienne vs moitié récente (fréquence normalisée)
+  const trendArrow = document.getElementById('kpiTrendArrow');
+  const trendPct   = document.getElementById('kpiTrendPct');
+  const trendSub   = document.getElementById('kpiTrendSub');
+  if (total >= 4) {
+    const sorted = [...entries].sort((a,b) => new Date(a.date) - new Date(b.date));
+    const mid = Math.floor(sorted.length / 2);
+    const firstHalf  = sorted.slice(0, mid);
+    const secondHalf = sorted.slice(mid);
+    // durée de chaque moitié en jours
+    const spanA = (new Date(firstHalf[firstHalf.length-1].date) - new Date(firstHalf[0].date)) / 86400000 || 1;
+    const spanB = (new Date(secondHalf[secondHalf.length-1].date) - new Date(secondHalf[0].date)) / 86400000 || 1;
+    const freqA = (firstHalf.length  / spanA) * 30;
+    const freqB = (secondHalf.length / spanB) * 30;
+    const delta = freqA > 0 ? ((freqB - freqA) / freqA) * 100 : null;
+
+    if (delta === null) {
+      trendArrow.textContent = '—'; trendArrow.className = 'kpi-value';
+      trendPct.textContent = ''; trendSub.textContent = 'données insuffisantes';
+    } else {
+      const absDelta = Math.abs(delta);
+      const stable = absDelta < 10;
+      let color, arrow, label;
+      if (stable)         { color = 'neutral'; arrow = '→';  label = 'Stable'; }
+      else if (delta > 0) { color = 'danger';  arrow = '↑';  label = 'En hausse'; }
+      else                { color = 'ok';      arrow = '↓';  label = 'En baisse'; }
+      trendArrow.textContent = arrow + ' ' + label;
+      trendArrow.className = 'kpi-value ' + color;
+      trendPct.textContent = (delta > 0 ? '+' : '') + delta.toFixed(0) + '%';
+      trendPct.className = 'kpi-value ' + color;
+      trendSub.textContent = `${freqA.toFixed(2)} → ${freqB.toFixed(2)} inc./mois (moitié ancienne → récente)`;
+    }
+  } else {
+    trendArrow.textContent = '—'; trendArrow.className = 'kpi-value';
+    trendPct.textContent = '';
+    trendSub.textContent = 'minimum 4 incidents requis';
   }
 
   // last
