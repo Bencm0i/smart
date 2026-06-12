@@ -301,6 +301,7 @@
       <label>Type d'incident</label>
       <select id="fType">
         <option value="">— Choisir —</option>
+        <option value="Bruit suspect non identifié">💥 Bruit suspect non identifié (ex. détonation)</option>
         <option value="Coups de feu">🔫 Coups de feu</option>
         <option value="Altercation">🤜 Altercation / bagarre</option>
         <option value="Va-et-vient suspect">👥 Va-et-vient suspect</option>
@@ -330,15 +331,16 @@
           </div>
           <div style="display:flex;gap:10px;align-items:flex-start">
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent2);flex-shrink:0;width:20px">G3</span>
-            <div><div style="font-weight:600;color:var(--text)">Sérieux</div><div style="color:var(--muted)">Altercation physique, intervention police significative (2+ véhicules), dégradation intentionnelle.</div></div>
+            <div><div style="font-weight:600;color:var(--text)">Sérieux</div><div style="color:var(--muted)">Altercation physique, intervention police significative (2+ véhicules), dégradation intentionnelle, bruit sourd/sec non identifié pouvant évoquer une détonation.</div></div>
           </div>
           <div style="display:flex;gap:10px;align-items:flex-start">
             <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--danger);flex-shrink:0;width:20px">G4</span>
-            <div><div style="font-weight:600;color:var(--text)">Critique</div><div style="color:var(--muted)">Arme visible, coup de feu, violence grave, incendie volontaire.</div></div>
+            <div><div style="font-weight:600;color:var(--text)">Critique</div><div style="color:var(--muted)">Arme visible, coup de feu confirmé, violence grave, incendie volontaire.</div></div>
           </div>
         </div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);color:var(--muted);font-size:11px">
-          ⚠️ Ne noter que ce que vous avez observé directement. Conserver la même logique d'une entrée à l'autre.
+          ⚠️ Ne noter que ce que vous avez observé directement. Conserver la même logique d'une entrée à l'autre.<br>
+          💥 En cas de doute sur la nature d'un bruit (ex. coup de feu possible), utilisez le type « Bruit suspect non identifié » plutôt que de minimiser la gravité : l'incertitude sur la cause ne doit pas faire sous-évaluer le niveau G3.
         </div>
       </div>
       <div class="severity-picker">
@@ -370,6 +372,7 @@
     </div>
     <div class="type-filter-row" id="typeFilterRow">
       <button class="type-btn active" onclick="setTypeFilter('', this)">Tous types</button>
+      <button class="type-btn" onclick="setTypeFilter('Bruit suspect non identifié', this)">💥 Bruit suspect</button>
       <button class="type-btn" onclick="setTypeFilter('Coups de feu', this)">🔫 Coups de feu</button>
       <button class="type-btn" onclick="setTypeFilter('Altercation', this)">🤜 Altercation</button>
       <button class="type-btn" onclick="setTypeFilter('Va-et-vient suspect', this)">👥 Va-et-vient</button>
@@ -429,11 +432,11 @@
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
         <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent2);flex-shrink:0;width:22px">G3</span>
-        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Sérieux</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Altercation physique, intervention police significative (2+ véhicules), dégradation intentionnelle.</div></div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Sérieux</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Altercation physique, intervention police significative (2+ véhicules), dégradation intentionnelle, bruit sourd/sec non identifié pouvant évoquer une détonation.</div></div>
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start">
         <span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--danger);flex-shrink:0;width:22px">G4</span>
-        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Critique</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Arme visible, coup de feu, violence grave, incendie volontaire.</div></div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Critique</div><div style="font-size:12px;color:var(--muted);line-height:1.5">Arme visible, coup de feu confirmé, violence grave, incendie volontaire.</div></div>
       </div>
     </div>
 
@@ -441,6 +444,7 @@
       <div style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Quoi noter</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.7">
         ✅ Coups de feu / détonations (même incertaines)<br>
+        ✅ Bruit sourd, sec ou explosif inexpliqué pouvant évoquer un coup de feu, même sans certitude (type « Bruit suspect non identifié »)<br>
         ✅ Altercations physiques, agressions observées<br>
         ✅ Va-et-vient suspects à horaires fixes<br>
         ✅ Véhicules stationnés longtemps avec activité<br>
@@ -455,7 +459,8 @@
     <div style="border-top:1px solid var(--border);padding-top:14px">
       <div style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Règle de cohérence</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.7">
-        La cohérence prime sur la précision. Si vous notez G3 la première fois pour un type d'incident donné, notez G3 les fois suivantes pour le même type. C'est la <strong style="color:var(--text)">fréquence et la tendance</strong> qui donnent la valeur probante du journal, pas le détail d'une entrée.
+        La cohérence prime sur la précision. Si vous notez G3 la première fois pour un type d'incident donné, notez G3 les fois suivantes pour le même type. C'est la <strong style="color:var(--text)">fréquence et la tendance</strong> qui donnent la valeur probante du journal, pas le détail d'une entrée.<br><br>
+        Pour un bruit non identifié mais potentiellement grave (ex. détonation), privilégiez le type dédié « Bruit suspect non identifié » avec une gravité G3 par défaut, plutôt que de classer l'événement en « Nuisance sonore » qui sous-estimerait sa portée.
       </div>
     </div>
   </div>
@@ -480,6 +485,7 @@ let typeFilter = '';
 let editingId = null;
 
 const TYPE_LABELS = {
+  'Bruit suspect non identifié': '💥',
   'Coups de feu': '🔫',
   'Altercation': '🤜',
   'Va-et-vient suspect': '👥',
