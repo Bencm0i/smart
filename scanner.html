@@ -218,20 +218,25 @@
   /* PENDING BAR */
   #pending-bar {
     display: none;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
+    flex-direction: column;
     background: #1a1a00;
     border-bottom: 2px solid var(--accent);
   }
 
   #pending-bar.duplicate {
-    background: #1a0800;
+    background: #100800;
     border-bottom-color: #ff8800;
   }
 
   #pending-bar.duplicate #pending-code-val { color: #ff8800; }
-  #pending-bar.duplicate .btn-ok { background: #ff8800; }
+  #pending-bar.duplicate #pending-timer-bar { background: #ff8800; }
+
+  #pending-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+  }
 
   #pending-info { flex: 1; min-width: 0; }
 
@@ -251,31 +256,51 @@
     margin-top: 2px;
   }
 
-  #pending-warning {
+  /* duplicate badge */
+  #duplicate-badge {
     display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px 8px;
+    background: rgba(255,136,0,0.08);
+    border-top: 1px solid #3a2000;
+  }
+
+  #duplicate-badge .dup-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  #duplicate-badge .dup-text {
     font-family: var(--mono);
     font-size: 10px;
     color: #ff8800;
-    margin-top: 3px;
     letter-spacing: 1px;
+    line-height: 1.4;
+    flex: 1;
   }
 
-  .btn-ok {
+  #duplicate-badge .dup-sessions {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    display: block;
+    margin-top: 1px;
+  }
+
+  /* auto-timer progress */
+  #pending-timer-wrap {
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  #pending-timer-bar {
+    height: 100%;
+    width: 100%;
     background: var(--confirm);
-    color: #000;
-    border: none;
-    font-family: var(--sans);
-    font-size: 16px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    padding: 13px 20px;
-    cursor: pointer;
-    text-transform: uppercase;
-    flex-shrink: 0;
-    order: -1;
+    transform-origin: left;
+    transition: none;
   }
-
-  .btn-ok:active { opacity: 0.8; }
 
   .btn-cancel {
     background: none;
@@ -767,13 +792,21 @@
   <div id="cooldown-bar-wrap"><div id="cooldown-bar"></div></div>
 
   <div id="pending-bar">
-    <button class="btn-ok" onclick="confirmPending()">✓ OK</button>
-    <div id="pending-info">
-      <span id="pending-code-val">—</span>
-      <span id="pending-count-info"></span>
-      <span id="pending-warning">⚠ CODE DÉJÀ SCANNÉ — CONFIRMER ?</span>
+    <div id="pending-main">
+      <div id="pending-info">
+        <span id="pending-code-val">—</span>
+        <span id="pending-count-info"></span>
+      </div>
+      <button class="btn-cancel" onclick="cancelPending()">✕</button>
     </div>
-    <button class="btn-cancel" onclick="cancelPending()">✕</button>
+    <div id="duplicate-badge">
+      <span class="dup-icon">⚠</span>
+      <div class="dup-text">
+        PRODUIT DÉJÀ PRÉSENT EN SESSION
+        <span class="dup-sessions" id="dup-sessions-info"></span>
+      </div>
+    </div>
+    <div id="pending-timer-wrap"><div id="pending-timer-bar"></div></div>
   </div>
 
   <div id="controls">
@@ -821,6 +854,7 @@
 
 <script>
   const COOLDOWN_MS = 2000;
+  const PENDING_MS  = 1000;   // auto-confirm delay
 
   let scanning = false;
   let cooldownActive = false;
@@ -830,6 +864,8 @@
   let maxEnabled = false;
   let maxValue = 0;
   let pendingCode = null;
+  let pendingTimer = null;
+  let pendingRAF   = null;
 
   let manualLocked = false;
   const MANUAL_CODE = '__MANUAL__';
@@ -958,7 +994,7 @@
     }
   }
 
-  // ── PENDING CONFIRMATION ──────────────────────────────────
+  // ── PENDING + AUTO-TIMER ──────────────────────────────────
   function showPending(code) {
     pendingCode = code;
     const existing    = data[code] ? data[code].count : 0;
@@ -968,25 +1004,70 @@
     document.getElementById('pending-count-info').textContent =
       existing > 0 ? `Déjà ×${existing} → sera ×${existing + 1}` : 'Nouveau produit';
 
-    const warning = document.getElementById('pending-warning');
-    const bar     = document.getElementById('pending-bar');
-    warning.style.display = isDuplicate ? 'block' : 'none';
-    bar.className = isDuplicate ? 'duplicate' : '';
+    const badge = document.getElementById('duplicate-badge');
+    const bar   = document.getElementById('pending-bar');
+
+    if (isDuplicate) {
+      badge.style.display = 'flex';
+      // also check how many past sessions contain this code
+      const db = getDB();
+      const sessionsWithCode = db.filter(s => s.items.some(i => i.code === code));
+      const info = document.getElementById('dup-sessions-info');
+      info.textContent = sessionsWithCode.length > 0
+        ? `Présent dans ${sessionsWithCode.length} session(s) sauvegardée(s)`
+        : 'Pas encore dans la base de données';
+      bar.className = 'duplicate';
+    } else {
+      badge.style.display = 'none';
+      bar.className = '';
+    }
+
     bar.style.display = 'flex';
+    startPendingTimer();
+  }
+
+  function startPendingTimer() {
+    clearTimeout(pendingTimer);
+    if (pendingRAF) cancelAnimationFrame(pendingRAF);
+
+    const bar   = document.getElementById('pending-timer-bar');
+    const start = performance.now();
+
+    function tick(now) {
+      const elapsed = now - start;
+      const pct     = Math.max(0, 100 - (elapsed / PENDING_MS) * 100);
+      bar.style.width = pct + '%';
+      if (elapsed < PENDING_MS) {
+        pendingRAF = requestAnimationFrame(tick);
+      } else {
+        bar.style.width = '0%';
+        confirmPending();
+      }
+    }
+
+    bar.style.width = '100%';
+    pendingRAF = requestAnimationFrame(tick);
+    pendingTimer = setTimeout(confirmPending, PENDING_MS);
   }
 
   function confirmPending() {
     if (!pendingCode) return;
+    clearTimeout(pendingTimer);
+    if (pendingRAF) { cancelAnimationFrame(pendingRAF); pendingRAF = null; }
     if (isMaxReached()) { cancelPending(); return; }
     addCode(pendingCode);
-    cancelPending();
+    pendingCode = null;
+    document.getElementById('pending-bar').style.display  = 'none';
+    document.getElementById('duplicate-badge').style.display = 'none';
     startCooldown();
   }
 
   function cancelPending() {
+    clearTimeout(pendingTimer);
+    if (pendingRAF) { cancelAnimationFrame(pendingRAF); pendingRAF = null; }
     pendingCode = null;
     document.getElementById('pending-bar').style.display  = 'none';
-    document.getElementById('pending-warning').style.display = 'none';
+    document.getElementById('duplicate-badge').style.display = 'none';
     startCooldown();
   }
 
