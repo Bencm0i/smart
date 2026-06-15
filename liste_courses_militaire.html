@@ -352,6 +352,39 @@ body {
 .recap-text { flex: 1; }
 .recap-text.done { text-decoration: line-through; color: var(--text-dim); }
 
+/* RECAP - mini résumé */
+.recap-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.recap-summary-item {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  text-align: center;
+}
+.recap-summary-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--beige-hi);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.recap-summary-val.green  { color: #6abf46; }
+.recap-summary-val.orange { color: var(--orange-hi); }
+.recap-summary-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
 /* ALARM POPUP */
 .alarm-overlay {
   display: none;
@@ -1158,14 +1191,7 @@ function renderList(listId) {
         ${listId === 2 && item.prio ? `<div class="item-priority p-${item.prio}"></div>` : ''}
         <div class="item-text">${escHtml(item.text)}</div>
         ${item.qty ? `<div class="item-qty">×${item.qty}</div>` : ''}
-        ${listId === 2 && item.due && !item.done ? (() => {
-          const today = new Date(); today.setHours(0,0,0,0);
-          const d = new Date(item.due + 'T00:00:00');
-          const diff = Math.round((d - today) / 86400000);
-          const label = diff < 0 ? `EXPIRÉ ${Math.abs(diff)}j` : diff === 0 ? 'AUJOURD\'HUI' : `J-${diff}`;
-          const cls = diff < 0 ? 'overdue' : diff <= 2 ? 'due-soon' : '';
-          return `<div class="due-badge ${cls}">⏰${label}</div>`;
-        })() : ''}
+        ${listId === 2 ? dueBadgeHtml(item) : ''}
         <div class="item-edit-btn" title="Modifier">✏️</div>
       </div>
     `;
@@ -1183,6 +1209,16 @@ function renderList(listId) {
 
 function escHtml(t) {
   return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function dueBadgeHtml(item) {
+  if (!item.due || item.done) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(item.due + 'T00:00:00');
+  const diff = Math.round((d - today) / 86400000);
+  const label = diff < 0 ? `EXPIRÉ ${Math.abs(diff)}j` : diff === 0 ? 'AUJOURD\'HUI' : `J-${diff}`;
+  const cls = diff < 0 ? 'overdue' : diff <= 2 ? 'due-soon' : '';
+  return `<div class="due-badge ${cls}">⏰${label}</div>`;
 }
 
 function setupSwipe(wrapper, itemEl, listId, itemId) {
@@ -1275,22 +1311,63 @@ function renderRecap() {
     { id: 2, name: '✅ To-Do', tag: 'tag-todo' }
   ];
 
+  const all = [...LISTS[0].items, ...LISTS[1].items, ...LISTS[2].items];
+  if (all.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">// TOUTES LES LISTES SONT VIDES</div></div>';
+    return;
+  }
+
+  // mini résumé global
+  const total = all.length;
+  const done = all.filter(i => i.done).length;
+  const pending = total - done;
+  const urgent = LISTS[2].items.filter(i => !i.done && i.prio === 'high').length;
+
+  const summary = document.createElement('div');
+  summary.className = 'recap-summary';
+  summary.innerHTML = `
+    <div class="recap-summary-item">
+      <div class="recap-summary-val">${total}</div>
+      <div class="recap-summary-label">TOTAL</div>
+    </div>
+    <div class="recap-summary-item">
+      <div class="recap-summary-val">${pending}</div>
+      <div class="recap-summary-label">RESTANT</div>
+    </div>
+    <div class="recap-summary-item">
+      <div class="recap-summary-val green">${done}</div>
+      <div class="recap-summary-label">FAIT</div>
+    </div>
+    <div class="recap-summary-item">
+      <div class="recap-summary-val orange">${urgent}</div>
+      <div class="recap-summary-label">URGENT</div>
+    </div>
+  `;
+  container.appendChild(summary);
+
   allLists.forEach(({ id, name }) => {
     const items = LISTS[id].items;
     if (items.length === 0) return;
 
     const section = document.createElement('div');
     section.className = 'recap-section';
-    const pending = items.filter(i => !i.done);
+    let pending = items.filter(i => !i.done);
     const done = items.filter(i => i.done);
+
+    // tri par priorité pour la todo
+    if (id === 2) {
+      const prioOrder = { high: 0, med: 1, low: 2 };
+      pending = [...pending].sort((a, b) => (prioOrder[a.prio] ?? 1) - (prioOrder[b.prio] ?? 1));
+    }
 
     let html = `<div class="recap-title">${name} <span class="section-count">${items.length}</span></div>`;
 
     if (pending.length > 0) {
       html += pending.map(item => `
         <div class="recap-item">
-          <div class="recap-dot"></div>
+          <div class="recap-dot${id === 2 && item.prio ? ' p-' + item.prio : ''}"></div>
           <div class="recap-text">${escHtml(item.text)}${item.qty ? ' <span style="color:var(--orange);font-size:12px">×'+item.qty+'</span>' : ''}</div>
+          ${id === 2 ? dueBadgeHtml(item) : ''}
         </div>
       `).join('');
     }
@@ -1307,10 +1384,6 @@ function renderRecap() {
     section.innerHTML = html;
     container.appendChild(section);
   });
-
-  if (container.children.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">// TOUTES LES LISTES SONT VIDES</div></div>';
-  }
 }
 
 let editContext = null; // { listId, itemId }
