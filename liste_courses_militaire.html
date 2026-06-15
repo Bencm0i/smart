@@ -196,6 +196,11 @@ body {
   color: white;
   font-size: 20px;
   border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.item-wrapper.swiping .item-delete-bg {
+  opacity: 1;
 }
 .item {
   background: var(--bg-card);
@@ -346,64 +351,6 @@ body {
 .recap-done-dot { background: var(--success); }
 .recap-text { flex: 1; }
 .recap-text.done { text-decoration: line-through; color: var(--text-dim); }
-
-/* KPI PAGE */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.kpi-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 12px;
-  text-align: center;
-}
-.kpi-val {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 28px;
-  color: var(--beige-hi);
-  font-weight: bold;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-.kpi-val.orange { color: var(--orange-hi); }
-.kpi-val.olive  { color: var(--olive-hi); }
-.kpi-val.green  { color: #6abf46; }
-.kpi-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-.kpi-bar-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-}
-.bar-track {
-  background: var(--bg-input);
-  border-radius: 4px;
-  height: 8px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-.bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.4s ease;
-}
-.bar-orange { background: var(--orange); }
-.bar-olive  { background: var(--olive-hi); }
-.bar-green  { background: #5a9f3a; }
 
 /* ALARM POPUP */
 .alarm-overlay {
@@ -908,18 +855,23 @@ body {
     TACTICAL <span>LISTS</span>
   </div>
   <div class="tabs">
-    <div class="tab active" onclick="switchTab(0)">🛒 ALIM</div>
-    <div class="tab" onclick="switchTab(1)">🔧 SPEC</div>
-    <div class="tab" onclick="switchTab(2)">✅ TODO</div>
-    <div class="tab" onclick="switchTab(3)">📋 RECAP</div>
-    <div class="tab" onclick="switchTab(4)">📊 KPI</div>
+    <div class="tab active" onclick="switchTab(0)">📋 RECAP</div>
+    <div class="tab" onclick="switchTab(1)">🛒 ALIM</div>
+    <div class="tab" onclick="switchTab(2)">🔧 SPEC</div>
+    <div class="tab" onclick="switchTab(3)">✅ TODO</div>
   </div>
 </div>
 
 <div class="main">
 
-  <!-- PAGE 0: COURSES ALIMENTAIRES -->
-  <div class="page active" id="page-0">
+  <!-- PAGE 0: RECAP -->
+  <div class="page active" id="page-3">
+    <div class="scroll-area" id="recap-content">
+    </div>
+  </div>
+
+  <!-- PAGE 1: COURSES ALIMENTAIRES -->
+  <div class="page" id="page-0">
     <div class="scroll-area" id="list-0">
       <div class="empty" id="empty-0">
         <div class="empty-icon">🥦</div>
@@ -933,7 +885,7 @@ body {
     </div>
   </div>
 
-  <!-- PAGE 1: COURSES SPÉCIALISÉES -->
+  <!-- PAGE 2: COURSES SPÉCIALISÉES -->
   <div class="page" id="page-1">
     <div class="scroll-area" id="list-1">
       <div class="empty" id="empty-1">
@@ -948,7 +900,7 @@ body {
     </div>
   </div>
 
-  <!-- PAGE 2: TODO -->
+  <!-- PAGE 3: TODO -->
   <div class="page" id="page-2">
     <div class="scroll-area" id="list-2">
       <div class="empty" id="empty-2">
@@ -964,18 +916,6 @@ body {
     <div class="add-form">
       <input class="add-input" id="input-2" placeholder="Nouvelle tâche..." maxlength="100" />
       <button class="add-btn" onclick="addItem(2)" title="Ajouter">+</button>
-    </div>
-  </div>
-
-  <!-- PAGE 3: RECAP -->
-  <div class="page" id="page-3">
-    <div class="scroll-area" id="recap-content">
-    </div>
-  </div>
-
-  <!-- PAGE 4: KPI -->
-  <div class="page" id="page-4">
-    <div class="scroll-area" id="kpi-content">
     </div>
   </div>
 
@@ -1225,9 +1165,8 @@ function renderList(listId) {
     container.appendChild(wrapper);
   });
 
-  // update recap & kpi if on those pages
-  if (currentTab === 3) renderRecap();
-  if (currentTab === 4) renderKpi();
+  // update recap if on that page
+  if (currentTab === 0) renderRecap();
 }
 
 function escHtml(t) {
@@ -1255,6 +1194,7 @@ function setupSwipe(wrapper, itemEl, listId, itemId) {
       if (x < 0 && Math.abs(x) > Math.abs(y) * 0.8) {
         isItemSwipe = true;
         itemEl.classList.add('swiping');
+        wrapper.classList.add('swiping');
       }
     }
     if (!isItemSwipe) return;
@@ -1271,6 +1211,7 @@ function setupSwipe(wrapper, itemEl, listId, itemId) {
       setTimeout(() => deleteItem(listId, itemId), 180);
     } else {
       itemEl.style.transform = '';
+      wrapper.classList.remove('swiping');
     }
     isItemSwipe = false;
   }
@@ -1285,9 +1226,11 @@ function setupSwipe(wrapper, itemEl, listId, itemId) {
   const main = document.querySelector('.main');
   let tx = 0, ty = 0, decided = false, isTabSwipe = false;
   main.addEventListener('touchstart', e => {
-    // swipe d'onglet uniquement si le touch démarre sur la barre d'ajout
+    // sur l'onglet RECAP (pas de barre d'ajout) : swipe autorisé sur toute la page
+    // sur les autres onglets : swipe d'onglet uniquement si le touch démarre sur la barre d'ajout
     const onAddForm = e.target.closest('.add-form, .priority-row, .hint');
-    if (!onAddForm) { decided = true; isTabSwipe = false; return; }
+    const onRecap = currentTab === 0;
+    if (!onAddForm && !onRecap) { decided = true; isTabSwipe = false; return; }
     tx = e.touches[0].clientX;
     ty = e.touches[0].clientY;
     decided = false; isTabSwipe = false;
@@ -1305,7 +1248,7 @@ function setupSwipe(wrapper, itemEl, listId, itemId) {
     if (!isTabSwipe) return;
     const dx = e.changedTouches[0].clientX - tx;
     if (Math.abs(dx) < 50) return;
-    if (dx < 0 && currentTab < 4) switchTab(currentTab + 1);
+    if (dx < 0 && currentTab < 3) switchTab(currentTab + 1);
     else if (dx > 0 && currentTab > 0) switchTab(currentTab - 1);
   }, { passive: true });
 })();
@@ -1356,88 +1299,6 @@ function renderRecap() {
   if (container.children.length === 0) {
     container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">// TOUTES LES LISTES SONT VIDES</div></div>';
   }
-}
-
-function renderKpi() {
-  const container = document.getElementById('kpi-content');
-
-  const alim = LISTS[0].items;
-  const spec = LISTS[1].items;
-  const todo = LISTS[2].items;
-  const all = [...alim, ...spec, ...todo];
-
-  const total = all.length;
-  const done = all.filter(i => i.done).length;
-  const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-  const todoPending = todo.filter(i => !i.done);
-  const urgent = todoPending.filter(i => i.prio === 'high').length;
-
-  const alimPending = alim.filter(i => !i.done).length;
-  const specPending = spec.filter(i => !i.done).length;
-
-  const alimPct = alim.length > 0 ? Math.round(alim.filter(i=>i.done).length / alim.length * 100) : 0;
-  const specPct = spec.length > 0 ? Math.round(spec.filter(i=>i.done).length / spec.length * 100) : 0;
-  const todoPct = todo.length > 0 ? Math.round(todo.filter(i=>i.done).length / todo.length * 100) : 0;
-
-  container.innerHTML = `
-    <div class="section-header">TABLEAU DE BORD</div>
-    <div class="kpi-grid" style="margin-top:12px">
-      <div class="kpi-card">
-        <div class="kpi-val">${total}</div>
-        <div class="kpi-label">TOTAL ITEMS</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-val green">${pct}%</div>
-        <div class="kpi-label">COMPLÉTÉ</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-val orange">${urgent}</div>
-        <div class="kpi-label">TÂCHES URGENTES</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-val olive">${total - done}</div>
-        <div class="kpi-label">EN ATTENTE</div>
-      </div>
-    </div>
-
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
-      <div class="kpi-bar-label">🛒 ALIMENTAIRE — ${alim.filter(i=>i.done).length}/${alim.length}</div>
-      <div class="bar-track"><div class="bar-fill bar-green" style="width:${alimPct}%"></div></div>
-
-      <div class="kpi-bar-label">🔧 SPÉCIALISÉ — ${spec.filter(i=>i.done).length}/${spec.length}</div>
-      <div class="bar-track"><div class="bar-fill bar-olive" style="width:${specPct}%"></div></div>
-
-      <div class="kpi-bar-label">✅ TODO — ${todo.filter(i=>i.done).length}/${todo.length}</div>
-      <div class="bar-track" style="margin-bottom:0"><div class="bar-fill bar-orange" style="width:${todoPct}%"></div></div>
-    </div>
-
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
-      <div class="recap-title">BREAKDOWN TODO</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-        <div style="flex:1;min-width:80px;text-align:center">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:20px;color:var(--orange-hi)">${todo.filter(i=>!i.done && i.prio==='high').length}</div>
-          <div class="kpi-label">URGENT</div>
-        </div>
-        <div style="flex:1;min-width:80px;text-align:center">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:20px;color:var(--olive-hi)">${todo.filter(i=>!i.done && i.prio==='med').length}</div>
-          <div class="kpi-label">NORMAL</div>
-        </div>
-        <div style="flex:1;min-width:80px;text-align:center">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:20px;color:var(--beige)">${todo.filter(i=>!i.done && i.prio==='low').length}</div>
-          <div class="kpi-label">FAIBLE</div>
-        </div>
-        <div style="flex:1;min-width:80px;text-align:center">
-          <div style="font-family:'Share Tech Mono',monospace;font-size:20px;color:#6abf46">${todo.filter(i=>i.done).length}</div>
-          <div class="kpi-label">FAIT</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);text-align:center;padding:8px 0">
-      TOTAL COURSES À FAIRE: ${alimPending + specPending} ARTICLES
-    </div>
-  `;
 }
 
 let editContext = null; // { listId, itemId }
@@ -1520,8 +1381,7 @@ function switchTab(idx) {
   currentTab = idx;
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i === idx));
-  if (idx === 3) renderRecap();
-  if (idx === 4) renderKpi();
+  if (idx === 0) renderRecap();
 }
 
 // ─── ALARME URGENTE ──────────────────────────────────────
@@ -1530,7 +1390,7 @@ function getUrgentPending() {
 }
 
 function updateUrgentBadge() {
-  const tab = document.querySelectorAll('.tab')[2];
+  const tab = document.querySelectorAll('.tab')[3];
   const old = tab.querySelector('.tab-badge');
   if (old) old.remove();
   const n = getUrgentPending().length;
@@ -1564,7 +1424,7 @@ function alarmDismiss() {
 
 function alarmGoto() {
   document.getElementById('alarm-overlay').classList.remove('open');
-  switchTab(2);
+  switchTab(3);
 }
 
 // ─── ALARME ÉCHÉANCE ─────────────────────────────────────
@@ -1604,7 +1464,7 @@ function alarmDueDismiss() {
 
 function alarmDueGoto() {
   document.getElementById('alarm-due-overlay').classList.remove('open');
-  switchTab(2);
+  switchTab(3);
 }
 
 // Enter key
