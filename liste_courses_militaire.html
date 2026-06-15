@@ -531,6 +531,11 @@ body {
 .prio-btn.selected-med  { background: var(--olive-lo); border-color: var(--olive-hi); color: var(--olive-hi); }
 .prio-btn.selected-low  { background: var(--bg-card); border-color: var(--border-hi); color: var(--beige); }
 
+/* List selector (modal d'édition) */
+.prio-btn.selected-list0 { background: #2a3a1a; border-color: #3a5a2a; color: #7abf46; }
+.prio-btn.selected-list1 { background: #1a2a3a; border-color: #2a4a5a; color: #46a0bf; }
+.prio-btn.selected-list2 { background: var(--orange-lo); border-color: var(--orange); color: var(--orange-hi); }
+
 /* Qty input hint */
 .hint {
   padding: 4px 16px 0;
@@ -930,6 +935,13 @@ body {
       <div class="modal-label">TEXTE</div>
       <input class="modal-input" id="edit-text" maxlength="100" />
 
+      <div class="modal-label">LISTE</div>
+      <div class="modal-prio-row">
+        <button class="prio-btn" id="elist-0" onclick="setEditList(0)">🛒 ALIM</button>
+        <button class="prio-btn" id="elist-1" onclick="setEditList(1)">🔧 SPEC</button>
+        <button class="prio-btn" id="elist-2" onclick="setEditList(2)">✅ TODO</button>
+      </div>
+
       <div class="modal-row">
         <div style="flex:1">
           <div class="modal-label">QUANTITÉ (optionnel)</div>
@@ -1303,36 +1315,48 @@ function renderRecap() {
 
 let editContext = null; // { listId, itemId }
 let editPrio = 'med';
+let editTargetList = 0;
 
 function openEditModal(listId, itemId) {
   const item = LISTS[listId].items.find(i => i.id === itemId);
   if (!item) return;
   editContext = { listId, itemId };
   editPrio = item.prio || 'med';
+  editTargetList = listId;
 
   document.getElementById('edit-text').value = item.text;
   document.getElementById('edit-qty').value = item.qty || '';
+  document.getElementById('edit-due').value = item.due || '';
 
-  // show/hide priority block
-  const prioBlock = document.getElementById('edit-prio-block');
-  prioBlock.style.display = listId === 2 ? 'block' : 'none';
+  updateEditListButtons();
+  updateEditDependentBlocks();
 
-  // show/hide due date block
-  const dueBlock = document.getElementById('edit-due-block');
-  dueBlock.style.display = listId === 2 ? 'block' : 'none';
-  if (listId === 2) {
-    document.getElementById('edit-due').value = item.due || '';
-  }
-
-  if (listId === 2) {
-    ['high','med','low'].forEach(x => {
-      const btn = document.getElementById('eprio-' + x);
-      btn.className = 'prio-btn' + (x === editPrio ? ' selected-' + x : '');
-    });
-  }
+  ['high','med','low'].forEach(x => {
+    const btn = document.getElementById('eprio-' + x);
+    btn.className = 'prio-btn' + (x === editPrio ? ' selected-' + x : '');
+  });
 
   document.getElementById('edit-modal').classList.add('open');
   setTimeout(() => document.getElementById('edit-text').focus(), 100);
+}
+
+function updateEditListButtons() {
+  [0, 1, 2].forEach(id => {
+    const btn = document.getElementById('elist-' + id);
+    btn.className = 'prio-btn' + (id === editTargetList ? ' selected-list' + id : '');
+  });
+}
+
+function updateEditDependentBlocks() {
+  const isTodo = editTargetList === 2;
+  document.getElementById('edit-prio-block').style.display = isTodo ? 'block' : 'none';
+  document.getElementById('edit-due-block').style.display = isTodo ? 'block' : 'none';
+}
+
+function setEditList(newListId) {
+  editTargetList = newListId;
+  updateEditListButtons();
+  updateEditDependentBlocks();
 }
 
 function closeEditModal(e) {
@@ -1361,13 +1385,29 @@ function saveEdit() {
 
   item.text = newText;
   item.qty = newQty || null;
-  if (listId === 2) {
+
+  if (editTargetList === 2) {
     item.prio = editPrio;
     item.due = document.getElementById('edit-due').value || null;
+  } else {
+    item.prio = null;
+    item.due = null;
   }
 
-  save(listId);
-  renderList(listId);
+  if (editTargetList !== listId) {
+    // déplacer l'item vers l'autre liste
+    const idx = LISTS[listId].items.findIndex(i => i.id === itemId);
+    if (idx !== -1) LISTS[listId].items.splice(idx, 1);
+    LISTS[editTargetList].items.unshift(item);
+    save(listId);
+    save(editTargetList);
+    renderList(listId);
+    renderList(editTargetList);
+  } else {
+    save(listId);
+    renderList(listId);
+  }
+
   document.getElementById('edit-modal').classList.remove('open');
   editContext = null;
 }
