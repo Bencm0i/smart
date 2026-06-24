@@ -383,6 +383,7 @@
     <button class="tab active" onclick="showTab('kpi')">📊 Bilan</button>
     <button class="tab" onclick="showTab('add')">➕ Noter</button>
     <button class="tab" onclick="showTab('log')">📋 Journal</button>
+    <button class="tab" onclick="showTab('chart')">📈 Graphique</button>
     <button class="tab" onclick="showTab('tools')">⚙️ Outils</button>
   </div>
 </header>
@@ -648,6 +649,60 @@
   </div>
 </div>
 
+<!-- GRAPHIQUE -->
+<div id="tab-chart" class="section">
+  <div style="padding-bottom:8px">
+    <!-- Sélecteur de vue -->
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="period-btn active" id="chartModeMonth" onclick="setChartMode('month',this)">Mensuel</button>
+      <button class="period-btn" id="chartModeWeek" onclick="setChartMode('week',this)">Hebdo</button>
+      <button class="period-btn" id="chartModeSev" onclick="setChartMode('sev',this)">Gravité</button>
+    </div>
+
+    <!-- Canvas principal -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div>
+          <div class="chart-title" style="margin-bottom:2px" id="chartMainTitle">Incidents / mois</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="chartMainSub"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end" id="chartLegend"></div>
+      </div>
+      <canvas id="mainChart" style="width:100%;display:block" height="220"></canvas>
+    </div>
+
+    <!-- KPIs tendance -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px">
+        <div class="kpi-label">Tendance (régression)</div>
+        <div class="kpi-value" id="chartTrendVal" style="font-size:20px">—</div>
+        <div class="kpi-sub" id="chartTrendSub"></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px">
+        <div class="kpi-label">Projection M+3</div>
+        <div class="kpi-value" id="chartProjVal" style="font-size:20px">—</div>
+        <div class="kpi-sub" id="chartProjSub"></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px">
+        <div class="kpi-label">Moy. glissante 3m</div>
+        <div class="kpi-value" id="chartAvgVal" style="font-size:20px">—</div>
+        <div class="kpi-sub" id="chartAvgSub"></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px">
+        <div class="kpi-label">Mois le plus calme</div>
+        <div class="kpi-value" id="chartMinVal" style="font-size:16px;color:var(--ok)">—</div>
+        <div class="kpi-sub" id="chartMinSub"></div>
+      </div>
+    </div>
+
+    <!-- Message vide -->
+    <div id="chartEmpty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:13px">
+      <div style="font-size:36px;margin-bottom:12px">📈</div>
+      Ajoutez au moins 2 incidents<br>pour générer un graphique.
+    </div>
+  </div>
+</div>
+
 <!-- TOOLS -->
 <div id="tab-tools" class="section">
   <div class="tools-grid">
@@ -822,10 +877,12 @@ function showTab(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  const tabs = ['kpi','add','log','tools'];
-  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  const tabs = ['kpi','add','log','chart','tools'];
+  const idx = tabs.indexOf(name);
+  if (idx !== -1) document.querySelectorAll('.tab')[idx].classList.add('active');
   if (name === 'kpi') renderKPI();
   if (name === 'log') renderLog();
+  if (name === 'chart') renderChart();
 }
 
 // --- GUIDE ---
@@ -1761,6 +1818,488 @@ function startZenCanvas() {
   }
   if (zenAnimFrame) cancelAnimationFrame(zenAnimFrame);
   draw();
+}
+
+// ============================================================
+// GRAPHIQUE TENDANCE
+// ============================================================
+let chartMode = 'month';
+
+function setChartMode(mode, btn) {
+  chartMode = mode;
+  document.querySelectorAll('#tab-chart .period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChart();
+}
+
+function renderChart() {
+  const canvas = document.getElementById('mainChart');
+  const empty  = document.getElementById('chartEmpty');
+  if (!entries.length || entries.length < 2) {
+    canvas.style.display = 'none';
+    empty.style.display  = 'block';
+    ['chartTrendVal','chartProjVal','chartAvgVal','chartMinVal'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    ['chartTrendSub','chartProjSub','chartAvgSub','chartMinSub'].forEach(id => {
+      document.getElementById(id).textContent = '';
+    });
+    return;
+  }
+  canvas.style.display = 'block';
+  empty.style.display  = 'none';
+
+  if (chartMode === 'month') renderChartMonth(canvas);
+  else if (chartMode === 'week') renderChartWeek(canvas);
+  else renderChartSev(canvas);
+}
+
+// ---- HELPERS COMMUNS ----
+function linReg(xs, ys) {
+  const n = xs.length;
+  const mx = xs.reduce((a,b) => a+b,0)/n;
+  const my = ys.reduce((a,b) => a+b,0)/n;
+  let num = 0, den = 0;
+  for (let i=0;i<n;i++) { num += (xs[i]-mx)*(ys[i]-my); den += (xs[i]-mx)**2; }
+  const slope = den ? num/den : 0;
+  const intercept = my - slope*mx;
+  return { slope, intercept, predict: x => slope*x + intercept };
+}
+
+function drawChartBase(ctx, W, H, PAD, labels, vals, opts = {}) {
+  const {
+    barColor = '#e8c547', projColor = 'rgba(232,196,71,0.3)',
+    trendColor = '#e87b47', avgColor = '#47c47e',
+    projLabels = [], projVals = [],
+  } = opts;
+
+  ctx.clearRect(0, 0, W, H);
+  const maxV = Math.max(...vals, ...projVals, 1);
+  const innerW = W - PAD.l - PAD.r;
+  const innerH = H - PAD.t - PAD.b;
+  const N = labels.length;
+  const barW = Math.max(4, innerW / N * 0.55);
+  const gap  = innerW / N;
+
+  // Grille horizontale
+  const gridLines = 4;
+  ctx.strokeStyle = 'rgba(42,45,53,0.8)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= gridLines; i++) {
+    const y = PAD.t + innerH - (i / gridLines) * innerH;
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + innerW, y); ctx.stroke();
+    const label = Math.round((i / gridLines) * maxV);
+    ctx.fillStyle = 'rgba(107,112,128,0.7)';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(label, PAD.l - 4, y + 3);
+  }
+
+  // Barres réelles
+  vals.forEach((v, i) => {
+    const x = PAD.l + i * gap + gap/2 - barW/2;
+    const bh = (v / maxV) * innerH;
+    const y  = PAD.t + innerH - bh;
+    ctx.fillStyle = barColor;
+    ctx.globalAlpha = 0.75;
+    roundRect(ctx, x, y, barW, bh, 3);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // valeur
+    if (v > 0) {
+      ctx.fillStyle = 'rgba(232,233,235,0.85)';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(v, x + barW/2, y - 3);
+    }
+  });
+
+  // Barres projetées (mois en cours)
+  projVals.forEach((v, i) => {
+    const x = PAD.l + (vals.length + i) * gap + gap/2 - barW/2;
+    const bh = Math.max(0, (v / maxV) * innerH);
+    const y  = PAD.t + innerH - bh;
+    ctx.fillStyle = projColor;
+    ctx.setLineDash([3,3]);
+    ctx.strokeStyle = barColor;
+    ctx.lineWidth = 1;
+    roundRect(ctx, x, y, barW, bh, 3);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (v > 0) {
+      ctx.fillStyle = 'rgba(232,196,71,0.7)';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('~'+v, x + barW/2, y - 3);
+    }
+  });
+
+  // Labels X
+  const allLabels = [...labels, ...projLabels];
+  allLabels.forEach((lbl, i) => {
+    const x = PAD.l + i * gap + gap/2;
+    ctx.fillStyle = i < labels.length ? 'rgba(107,112,128,0.9)' : 'rgba(232,196,71,0.6)';
+    ctx.font = i < labels.length ? '9px monospace' : 'italic 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, x, PAD.t + innerH + 14);
+  });
+
+  return { innerW, innerH, N, gap, maxV };
+}
+
+function drawTrendLine(ctx, PAD, innerH, N, gap, maxV, vals, color) {
+  if (N < 2) return;
+  const xs = vals.map((_,i) => i);
+  const reg = linReg(xs, vals);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  [0, N-1].forEach((i, idx) => {
+    const x = PAD.l + i * gap + gap/2;
+    const y = PAD.t + innerH - Math.max(0, Math.min(1, reg.predict(i)/maxV)) * innerH;
+    idx === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  return reg;
+}
+
+function drawAvgLine(ctx, PAD, innerH, N, gap, maxV, vals, color, winSize=3) {
+  if (N < winSize) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,3]);
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  vals.forEach((_, i) => {
+    const slice = vals.slice(Math.max(0,i-winSize+1), i+1);
+    const avg = slice.reduce((a,b)=>a+b,0)/slice.length;
+    const x = PAD.l + i * gap + gap/2;
+    const y = PAD.t + innerH - Math.max(0, Math.min(1, avg/maxV)) * innerH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  if (h <= 0) return;
+  r = Math.min(r, h/2, w/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h);
+  ctx.lineTo(x, y+h);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function setLegend(items) {
+  document.getElementById('chartLegend').innerHTML = items.map(({color, dash, label}) =>
+    `<div style="display:flex;align-items:center;gap:5px">
+      <div style="width:18px;height:2px;background:${color};${dash?'border-top:2px dashed '+color+';background:transparent':''}"></div>
+      <span style="font-family:monospace;font-size:9px;color:rgba(107,112,128,0.9)">${label}</span>
+    </div>`
+  ).join('');
+}
+
+function updateKpiCards(vals, reg, projCount, monthNames) {
+  // Tendance
+  const trendEl  = document.getElementById('chartTrendVal');
+  const trendSub = document.getElementById('chartTrendSub');
+  if (reg) {
+    const pctPerMonth = vals[0] > 0 ? (reg.slope / (vals.reduce((a,b)=>a+b,0)/vals.length)) * 100 : 0;
+    const sign = reg.slope > 0.05 ? '↑' : reg.slope < -0.05 ? '↓' : '→';
+    const cls  = reg.slope > 0.05 ? 'danger' : reg.slope < -0.05 ? 'ok' : 'neutral';
+    trendEl.textContent = sign + ' ' + (reg.slope > 0 ? '+' : '') + reg.slope.toFixed(2) + '/m';
+    trendEl.className = 'kpi-value ' + cls;
+    trendSub.textContent = 'inc. supplémentaires par mois';
+  }
+
+  // Projection M+3
+  const projEl  = document.getElementById('chartProjVal');
+  const projSub = document.getElementById('chartProjSub');
+  if (reg && projCount > 0) {
+    const p1 = Math.max(0, reg.predict(vals.length)).toFixed(1);
+    const p2 = Math.max(0, reg.predict(vals.length+1)).toFixed(1);
+    const p3 = Math.max(0, reg.predict(vals.length+2)).toFixed(1);
+    projEl.textContent = `${p1} · ${p2} · ${p3}`;
+    projEl.className = 'kpi-value neutral';
+    projSub.textContent = monthNames ? monthNames.slice(0,3).join(', ') : 'M+1 · M+2 · M+3';
+  }
+
+  // Moyenne glissante (derniers 3 mois)
+  const avgEl  = document.getElementById('chartAvgVal');
+  const avgSub = document.getElementById('chartAvgSub');
+  const last3  = vals.slice(-3);
+  const avg3   = last3.reduce((a,b)=>a+b,0)/last3.length;
+  avgEl.textContent = avg3.toFixed(1);
+  avgEl.className   = 'kpi-value ' + (avg3 < 1 ? 'ok' : avg3 < 3 ? 'neutral' : avg3 < 5 ? 'warn' : 'danger');
+  avgSub.textContent = `sur les ${last3.length} derniers mois`;
+
+  // Mois le plus calme
+  const minIdx = vals.indexOf(Math.min(...vals));
+  document.getElementById('chartMinVal').textContent = Math.min(...vals);
+  document.getElementById('chartMinSub').textContent = monthNames ? monthNames[minIdx] : '';
+}
+
+// ---- MODE MENSUEL ----
+function renderChartMonth(canvas) {
+  const PAD = { l:28, r:12, t:16, b:22 };
+  const W = canvas.offsetWidth || 400;
+  const H = 220;
+  canvas.width  = W * (window.devicePixelRatio||1);
+  canvas.height = H * (window.devicePixelRatio||1);
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+
+  // Construire les données mensuelles
+  const sorted = [...entries].sort((a,b) => new Date(a.date)-new Date(b.date));
+  const monthMap = {};
+  sorted.forEach(e => {
+    const d = new Date(e.date);
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthMap[k] = (monthMap[k]||0) + 1;
+  });
+  const nowD   = new Date();
+  const curKey = `${nowD.getFullYear()}-${String(nowD.getMonth()+1).padStart(2,'0')}`;
+  const keys   = Object.keys(monthMap).sort();
+  const firstM = new Date(keys[0]+'-01');
+  const allKeys= [];
+  const cur2   = new Date(firstM);
+  const lastMD = new Date(Math.max(new Date(keys[keys.length-1]+'-01'), new Date(curKey+'-01')));
+  while (cur2 <= lastMD) {
+    allKeys.push(`${cur2.getFullYear()}-${String(cur2.getMonth()+1).padStart(2,'0')}`);
+    cur2.setMonth(cur2.getMonth()+1);
+  }
+  const monthNames = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+  // Séparer mois passés du mois en cours (projection)
+  const pastKeys = allKeys.filter(k => k < curKey);
+  const pastVals = pastKeys.map(k => monthMap[k]||0);
+  const pastLabels = pastKeys.map(k => monthNames[parseInt(k.slice(5))-1]);
+
+  // Projection mois en cours
+  const dayOfMonth = nowD.getDate();
+  const daysInMonth = new Date(nowD.getFullYear(), nowD.getMonth()+1, 0).getDate();
+  const rawCur = monthMap[curKey]||0;
+  const projCur = dayOfMonth < daysInMonth ? Math.round((rawCur/dayOfMonth)*daysInMonth) : rawCur;
+  const projLabels = [monthNames[nowD.getMonth()] + '*'];
+  const projVals   = [projCur];
+
+  // Régression sur mois passés
+  const reg = pastVals.length >= 2 ? linReg(pastVals.map((_,i)=>i), pastVals) : null;
+
+  // Projection régression M+1, M+2, M+3
+  const projMoNames = [];
+  for (let p=1;p<=3;p++) {
+    const pm = new Date(nowD.getFullYear(), nowD.getMonth()+p, 1);
+    projMoNames.push(monthNames[pm.getMonth()]);
+  }
+
+  const { innerW, innerH, N, gap, maxV } = drawChartBase(ctx, W, H, PAD, pastLabels, pastVals, {
+    barColor: '#e8c547', projColor: 'rgba(232,196,71,0.25)',
+    projLabels, projVals,
+  });
+
+  // Ligne de tendance (régression)
+  const rObj = drawTrendLine(ctx, PAD, innerH, pastVals.length, gap, maxV, pastVals, '#e87b47');
+
+  // Prolonger la tendance dans la zone projection
+  if (rObj && projVals.length) {
+    ctx.strokeStyle = '#e87b47';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,4]);
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    const xStart = PAD.l + (pastVals.length-1)*gap + gap/2;
+    const yStart = PAD.t + innerH - Math.max(0, Math.min(1, rObj.predict(pastVals.length-1)/maxV))*innerH;
+    const xEnd   = PAD.l + (pastVals.length + projVals.length - 0.5)*gap + gap/2;
+    const yEnd   = PAD.t + innerH - Math.max(0, Math.min(1, rObj.predict(pastVals.length+projVals.length-1)/maxV))*innerH;
+    ctx.moveTo(xStart, yStart); ctx.lineTo(xEnd, yEnd);
+    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+
+  // Moyenne glissante 3 mois
+  drawAvgLine(ctx, PAD, innerH, pastVals.length, gap, maxV, pastVals, '#47c47e', 3);
+
+  document.getElementById('chartMainTitle').textContent = 'Incidents / mois';
+  document.getElementById('chartMainSub').textContent = `${pastKeys.length} mois d'historique`;
+  setLegend([
+    { color:'#e8c547', label:'Réel' },
+    { color:'#e87b47', label:'Tendance' },
+    { color:'#47c47e', dash:true, label:'Moy. 3m' },
+    { color:'rgba(232,196,71,0.5)', label:'Projection' },
+  ]);
+  updateKpiCards(pastVals, rObj, 3, projMoNames);
+}
+
+// ---- MODE HEBDO ----
+function renderChartWeek(canvas) {
+  const PAD = { l:28, r:12, t:16, b:22 };
+  const W = canvas.offsetWidth || 400;
+  const H = 220;
+  canvas.width  = W * (window.devicePixelRatio||1);
+  canvas.height = H * (window.devicePixelRatio||1);
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+
+  // 12 dernières semaines
+  const now = Date.now();
+  const weeks = [];
+  for (let w=11; w>=0; w--) {
+    const start = now - (w+1)*7*86400000;
+    const end   = now - w*7*86400000;
+    const cnt   = entries.filter(e => { const t=new Date(e.date).getTime(); return t>=start && t<end; }).length;
+    const d = new Date(start);
+    weeks.push({ label: `S${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`, cnt });
+  }
+  const vals   = weeks.map(w=>w.cnt);
+  const labels = weeks.map(w=>w.label);
+  const reg    = vals.length >= 2 ? linReg(vals.map((_,i)=>i), vals) : null;
+
+  const { innerW, innerH, N, gap, maxV } = drawChartBase(ctx, W, H, PAD, labels, vals, { barColor:'#a78bfa' });
+  drawTrendLine(ctx, PAD, innerH, vals.length, gap, maxV, vals, '#e87b47');
+  drawAvgLine(ctx, PAD, innerH, vals.length, gap, maxV, vals, '#47c47e', 3);
+
+  document.getElementById('chartMainTitle').textContent = 'Incidents / semaine (12 sem.)';
+  document.getElementById('chartMainSub').textContent = '';
+  setLegend([
+    { color:'#a78bfa', label:'Réel' },
+    { color:'#e87b47', label:'Tendance' },
+    { color:'#47c47e', dash:true, label:'Moy. 3s' },
+  ]);
+
+  const projWeek1 = reg ? Math.max(0, reg.predict(12)).toFixed(1) : '—';
+  document.getElementById('chartProjVal').textContent = projWeek1;
+  document.getElementById('chartProjSub').textContent = 'semaine prochaine (tendance)';
+  document.getElementById('chartProjVal').className = 'kpi-value neutral';
+
+  const last3 = vals.slice(-3);
+  const avg3  = last3.reduce((a,b)=>a+b,0)/last3.length;
+  document.getElementById('chartAvgVal').textContent = avg3.toFixed(1);
+  document.getElementById('chartAvgSub').textContent = 'sur les 3 dernières semaines';
+  document.getElementById('chartAvgVal').className = 'kpi-value '+(avg3<1?'ok':avg3<2?'neutral':avg3<4?'warn':'danger');
+
+  if (reg) {
+    const sign = reg.slope>0.02?'↑':reg.slope<-0.02?'↓':'→';
+    const cls  = reg.slope>0.02?'danger':reg.slope<-0.02?'ok':'neutral';
+    document.getElementById('chartTrendVal').textContent = sign+' '+(reg.slope>0?'+':'')+reg.slope.toFixed(2)+'/s';
+    document.getElementById('chartTrendVal').className = 'kpi-value '+cls;
+    document.getElementById('chartTrendSub').textContent = 'inc. supplémentaires par semaine';
+  }
+  const minIdx = vals.indexOf(Math.min(...vals));
+  document.getElementById('chartMinVal').textContent = Math.min(...vals);
+  document.getElementById('chartMinSub').textContent = labels[minIdx];
+}
+
+// ---- MODE GRAVITÉ ----
+function renderChartSev(canvas) {
+  const PAD = { l:28, r:12, t:16, b:22 };
+  const W = canvas.offsetWidth || 400;
+  const H = 220;
+  canvas.width  = W * (window.devicePixelRatio||1);
+  canvas.height = H * (window.devicePixelRatio||1);
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+
+  // Gravité moyenne par mois
+  const sorted = [...entries].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const monthMap = {}; const monthSev = {};
+  sorted.forEach(e => {
+    const d = new Date(e.date);
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    monthMap[k] = (monthMap[k]||0)+1;
+    monthSev[k] = (monthSev[k]||0)+e.severity;
+  });
+  const keys = Object.keys(monthMap).sort();
+  const monthNames = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+  const labels = keys.map(k=>monthNames[parseInt(k.slice(5))-1]);
+  const vals   = keys.map(k => parseFloat((monthSev[k]/monthMap[k]).toFixed(2)));
+  const reg    = vals.length >= 2 ? linReg(vals.map((_,i)=>i), vals) : null;
+
+  // Couleur par valeur
+  ctx.clearRect(0,0,W,H);
+  const maxV = 4;
+  const innerW = W-PAD.l-PAD.r, innerH = H-PAD.t-PAD.b;
+  const N = labels.length, gap = innerW/N;
+  const barW = Math.max(4, gap*0.55);
+
+  // Grille
+  [1,2,3,4].forEach(v => {
+    const y = PAD.t + innerH - (v/maxV)*innerH;
+    ctx.strokeStyle = 'rgba(42,45,53,0.8)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(PAD.l,y); ctx.lineTo(PAD.l+innerW,y); ctx.stroke();
+    ctx.fillStyle='rgba(107,112,128,0.7)'; ctx.font='9px monospace'; ctx.textAlign='right';
+    ctx.fillText('G'+v, PAD.l-4, y+3);
+  });
+
+  // Barres colorées selon gravité
+  const sevColors = ['','#47c47e','#e8c547','#e87b47','#e84747'];
+  vals.forEach((v,i) => {
+    const x = PAD.l + i*gap + gap/2 - barW/2;
+    const bh = (v/maxV)*innerH;
+    const y  = PAD.t+innerH-bh;
+    const col = v<1.5?sevColors[1]:v<2.5?sevColors[2]:v<3.5?sevColors[3]:sevColors[4];
+    ctx.fillStyle = col; ctx.globalAlpha=0.75;
+    roundRect(ctx,x,y,barW,bh,3); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(232,233,235,0.85)'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+    ctx.fillText(v.toFixed(1), x+barW/2, y-3);
+  });
+
+  // Labels X
+  labels.forEach((lbl,i) => {
+    ctx.fillStyle='rgba(107,112,128,0.9)'; ctx.font='9px monospace'; ctx.textAlign='center';
+    ctx.fillText(lbl, PAD.l+i*gap+gap/2, PAD.t+innerH+14);
+  });
+
+  // Tendance
+  if (reg) {
+    ctx.strokeStyle='#e87b47'; ctx.lineWidth=2; ctx.setLineDash([]); ctx.globalAlpha=0.9;
+    ctx.beginPath();
+    [0,N-1].forEach((i,idx) => {
+      const x = PAD.l+i*gap+gap/2;
+      const y = PAD.t+innerH - Math.max(0,Math.min(1,reg.predict(i)/maxV))*innerH;
+      idx===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke(); ctx.globalAlpha=1;
+  }
+  // Moyenne glissante
+  drawAvgLine(ctx,PAD,innerH,N,gap,maxV,vals,'#47c47e',3);
+
+  document.getElementById('chartMainTitle').textContent = 'Gravité moyenne / mois';
+  document.getElementById('chartMainSub').textContent = 'G1=faible → G4=critique';
+  setLegend([
+    {color:'#47c47e',label:'G1–G2'},{color:'#e8c547',label:'G2–G3'},
+    {color:'#e87b47',label:'Tendance'},{color:'#47c47e',dash:true,label:'Moy. 3m'},
+  ]);
+
+  if (reg) {
+    const sign = reg.slope>0.02?'↑':reg.slope<-0.02?'↓':'→';
+    const cls  = reg.slope>0.02?'danger':reg.slope<-0.02?'ok':'neutral';
+    document.getElementById('chartTrendVal').textContent=sign+' '+(reg.slope>0?'+':'')+reg.slope.toFixed(3)+'/m';
+    document.getElementById('chartTrendVal').className='kpi-value '+cls;
+    document.getElementById('chartTrendSub').textContent='évolution de la gravité moyenne';
+    const p3=Math.max(1,Math.min(4,reg.predict(N+2))).toFixed(1);
+    document.getElementById('chartProjVal').textContent='G'+p3;
+    document.getElementById('chartProjSub').textContent='gravité projetée M+3';
+    document.getElementById('chartProjVal').className='kpi-value '+(p3<2?'ok':p3<3?'neutral':p3<3.5?'warn':'danger');
+  }
+  const last3=vals.slice(-3); const avg3=last3.reduce((a,b)=>a+b,0)/last3.length;
+  document.getElementById('chartAvgVal').textContent='G'+avg3.toFixed(1);
+  document.getElementById('chartAvgSub').textContent='gravité moy. 3 derniers mois';
+  document.getElementById('chartAvgVal').className='kpi-value '+(avg3<2?'ok':avg3<3?'neutral':'warn');
+  const minIdx=vals.indexOf(Math.min(...vals));
+  document.getElementById('chartMinVal').textContent='G'+Math.min(...vals).toFixed(1);
+  document.getElementById('chartMinSub').textContent=labels[minIdx];
 }
 
 init();
