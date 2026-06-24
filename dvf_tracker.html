@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DVF TRACKER — Quartier BLV 000BB</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #1a1c18;
+    --bg2: #22251e;
+    --bg3: #2a2e24;
+    --border: #3a3f30;
+    --green: #7aab4a;
+    --green-dim: #4a6a2a;
+    --amber: #c8952a;
+    --amber-dim: #7a5a18;
+    --red: #c84a3a;
+    --red-dim: #7a2a20;
+    --blue: #4a8ac8;
+    --blue-dim: #2a4a7a;
+    --text: #c8d0b8;
+    --text-dim: #7a8070;
+    --text-bright: #e8f0d8;
+    --mono: 'Courier New', Courier, monospace;
+    --grid: repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(100,120,60,0.04) 24px, rgba(100,120,60,0.04) 25px),
+            repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(100,120,60,0.04) 24px, rgba(100,120,60,0.04) 25px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    background-image: var(--grid);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  header {
+    border: 1px solid var(--border);
+    border-bottom: 2px solid var(--green-dim);
+    padding: 14px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg2);
+  }
+
+  .header-title { font-size: 16px; font-weight: bold; color: var(--green); letter-spacing: 0.12em; }
+  .header-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-top: 3px; }
+  .header-right { text-align: right; font-size: 11px; color: var(--text-dim); }
+  .header-right a { color: var(--blue); text-decoration: none; letter-spacing: 0.05em; }
+  .header-right a:hover { color: var(--text-bright); text-decoration: underline; }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    border-left: 2px solid var(--green-dim);
+    padding-left: 8px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+  }
+
+  .card-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 5px; text-transform: uppercase; }
+  .card-value { font-size: 22px; font-weight: bold; color: var(--text-bright); }
+  .card-sub { font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+  .card.mine .card-value { color: var(--blue); }
+  .card.mine { border-color: var(--blue-dim); }
+
+  .chart-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .chart-wrap { position: relative; width: 100%; height: 260px; margin-top: 12px; }
+
+  .signal-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+
+  .signal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .signal-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+
+  .signal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(58,63,48,0.5);
+    font-size: 12px;
+  }
+
+  .signal-row:last-child { border-bottom: none; }
+  .signal-note { font-size: 10px; color: var(--text-dim); margin-top: 8px; }
+
+  .add-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+
+  .add-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  .add-form { display: none; margin-top: 14px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .form-row input, .form-row select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    outline: none;
+    width: 100%;
+  }
+
+  .form-row input:focus, .form-row select:focus { border-color: var(--green-dim); }
+  .form-row select option { background: var(--bg3); }
+
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  button:hover { border-color: var(--green-dim); color: var(--text-bright); }
+  button.btn-primary { border-color: var(--green-dim); color: var(--green); }
+  button.btn-primary:hover { background: var(--green-dim); color: var(--text-bright); }
+  button.btn-toggle { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; }
+
+  .table-section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg3);
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(58,63,48,0.4);
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr.mine td { background: rgba(74,138,200,0.06); }
+  tr.mine td:first-child { border-left: 2px solid var(--blue); }
+  tr:hover td { background: rgba(100,120,60,0.06); }
+  tr.mine:hover td { background: rgba(74,138,200,0.1); }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 7px;
+    letter-spacing: 0.06em;
+    border: 1px solid;
+  }
+
+  .badge-mine { border-color: var(--blue-dim); color: var(--blue); }
+  .badge-warn { border-color: var(--amber-dim); color: var(--amber); }
+  .badge-high { border-color: var(--green-dim); color: var(--green); }
+  .badge-low { border-color: var(--red-dim); color: var(--red); }
+
+  .note-small { font-size: 10px; color: var(--text-dim); margin-left: 4px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  footer a { color: var(--blue); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .ok { color: var(--green); }
+  .warn { color: var(--amber); }
+  .danger { color: var(--red); }
+  .info { color: var(--blue); }
+
+  @media (max-width: 600px) {
+    body { padding: 10px; }
+    .header-title { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-title">▣ DVF TRACKER — SECTEUR BLV 000BB</div>
+    <div class="header-sub">BOURG-LÈS-VALENCE · SUIVI IMMOBILIER PERSONNEL</div>
+  </div>
+  <div class="header-right">
+    <div>SOURCE OFFICIELLE</div>
+    <div style="margin-top:4px">
+      <a href="https://app.dvf.etalab.gouv.fr" target="_blank">↗ DVF ETALAB</a>
+      &nbsp;·&nbsp;
+      <a href="https://www.impots.gouv.fr/portail/recherche-de-transactions-immobilieres" target="_blank">↗ PATRIM</a>
+    </div>
+    <div style="margin-top:4px" id="last-update"></div>
+  </div>
+</header>
+
+<div class="section-label">Indicateurs</div>
+<div class="cards" id="summary-cards"></div>
+
+<div class="chart-section">
+  <div class="section-label">Évolution prix au m² — maisons (hors anomalies)</div>
+  <div class="chart-wrap">
+    <canvas id="chart" role="img" aria-label="Évolution prix au m² dans le secteur 000BB de Bourg-lès-Valence"></canvas>
+  </div>
+</div>
+
+<div class="signal-block">
+  <div class="section-label">Signal marché</div>
+  <div id="signal-content"></div>
+</div>
+
+<div class="add-section">
+  <div class="add-header">
+    <div class="section-label" style="margin-bottom:0">Transactions</div>
+    <button class="btn-toggle" onclick="toggleForm()" id="toggle-btn">[ + AJOUTER ]</button>
+  </div>
+  <div class="add-form" id="add-form">
+    <div class="form-row">
+      <input type="date" id="f-date" placeholder="Date">
+      <input type="text" id="f-rue" placeholder="Rue / voie">
+      <input type="number" id="f-surface" placeholder="Surface m²" min="10" max="500">
+      <input type="number" id="f-prix" placeholder="Prix €" min="10000">
+    </div>
+    <div class="form-row">
+      <select id="f-type">
+        <option value="Maison">Maison</option>
+        <option value="Appartement">Appartement</option>
+        <option value="Terrain">Terrain</option>
+      </select>
+      <input type="text" id="f-note" placeholder="Note (optionnel)">
+    </div>
+    <div class="form-actions">
+      <button onclick="toggleForm()">ANNULER</button>
+      <button class="btn-primary" onclick="addTransaction()">[ ENREGISTRER ]</button>
+    </div>
+  </div>
+</div>
+
+<div class="table-section">
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Voie</th>
+        <th>Type</th>
+        <th>Surface</th>
+        <th>Prix</th>
+        <th>€/m²</th>
+        <th>Note</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<footer>
+  <div>DVF TRACKER v1.0 · DONNÉES DVF ETALAB · SECTION 000BB BOURG-LÈS-VALENCE</div>
+  <div>
+    <a href="https://app.dvf.etalab.gouv.fr" target="_blank">app.dvf.etalab.gouv.fr</a>
+    &nbsp;·&nbsp;
+    <a href="https://www.impots.gouv.fr/portail/recherche-de-transactions-immobilieres" target="_blank">impots.gouv.fr (Patrim)</a>
+    &nbsp;·&nbsp;
+    <a href="https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/" target="_blank">data.gouv.fr (téléchargement DVF)</a>
+  </div>
+</footer>
+
+<script>
+const STORAGE_KEY = 'dvf_tracker_blv_v1';
+
+const seed = [
+  { date:'2021-06-29', rue:'Ch. Delestraint', surface:98, prix:169000, type:'Maison', mine:false, note:'' },
+  { date:'2021-07-07', rue:'Imp. André Cros', surface:82, prix:177650, type:'Maison', mine:false, note:'' },
+  { date:'2021-10-06', rue:'Jean Prévost', surface:70, prix:225600, type:'Maison', mine:false, note:'' },
+  { date:'2021-10-21', rue:'Rue des Fauvettes', surface:75, prix:222000, type:'Maison', mine:false, note:'' },
+  { date:'2021-12-23', rue:'Imp. Serge Argence', surface:89, prix:350505, type:'Maison', mine:false, note:'' },
+  { date:'2022-02-08', rue:'Jean Prévost', surface:156, prix:395000, type:'Maison', mine:false, note:'' },
+  { date:'2022-05-19', rue:'Ch. Delestraint', surface:85, prix:202850, type:'Maison', mine:false, note:'' },
+  { date:'2022-06-30', rue:'Ch. Delestraint', surface:82, prix:175000, type:'Maison', mine:false, note:'' },
+  { date:'2022-07-18', rue:'Jean Prévost', surface:98, prix:213500, type:'Maison', mine:false, note:'' },
+  { date:'2022-09-09', rue:'Rue des Fauvettes', surface:75, prix:120000, type:'Maison', mine:false, note:'' },
+  { date:'2022-09-13', rue:'Rue des Alouettes', surface:67, prix:250000, type:'Maison', mine:false, note:'' },
+  { date:'2022-11-04', rue:'Ch. Delestraint', surface:85, prix:215000, type:'Maison', mine:false, note:'' },
+  { date:'2022-12-12', rue:'Ch. Delestraint', surface:84, prix:230420, type:'Maison', mine:false, note:'' },
+  { date:'2022-12-13', rue:'Jean Prévost', surface:89, prix:286660, type:'Maison', mine:false, note:'' },
+  { date:'2024-04-15', rue:'Imp. André Cros', surface:90, prix:71750, type:'Maison', mine:false, note:'Prix anormal — succession ?' },
+  { date:'2024-06-24', rue:'Rue des Fauvettes', surface:null, prix:110000, type:'Terrain', mine:false, note:'Multi-parcelles' },
+  { date:'2024-07-04', rue:'Ch. Delestraint', surface:98, prix:207100, type:'Maison', mine:false, note:'' },
+  { date:'2024-11-05', rue:'Ch. Delestraint', surface:85, prix:197900, type:'Maison', mine:true, note:'Mon achat' },
+  { date:'2025-01-09', rue:'Imp. André Cros', surface:95, prix:189000, type:'Maison', mine:false, note:'' },
+  { date:'2025-01-29', rue:'Jean Prévost', surface:98, prix:236300, type:'Maison', mine:false, note:'' },
+  { date:'2025-03-21', rue:'Jean Prévost', surface:98, prix:146050, type:'Maison', mine:false, note:'' },
+];
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [...seed];
+  } catch(e) { return [...seed]; }
+}
+
+function save(d) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+    document.getElementById('last-update').textContent = 'MAJ ' + new Date().toLocaleDateString('fr-FR');
+  } catch(e) {}
+}
+
+let data = load();
+
+function prixM2(d) {
+  return d.surface ? Math.round(d.prix / d.surface) : null;
+}
+
+function isAnomaly(d) {
+  const pm2 = prixM2(d);
+  return pm2 !== null && pm2 < 1200;
+}
+
+function renderCards() {
+  const maisons = data.filter(d => d.type === 'Maison' && d.surface);
+  const normal = maisons.filter(d => !isAnomaly(d));
+  const recent = normal.filter(d => d.date >= '2024-01-01');
+  const pic = normal.filter(d => d.date >= '2022-01-01' && d.date < '2023-01-01');
+
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,d) => s + prixM2(d), 0) / arr.length) : null;
+  const avgRecent = avg(recent);
+  const avgPic = avg(pic);
+  const evol = avgRecent && avgPic ? Math.round((avgRecent - avgPic) / avgPic * 100) : null;
+
+  const mine = data.find(d => d.mine);
+  const myPm2 = mine ? prixM2(mine) : null;
+  const diff = myPm2 && avgRecent ? Math.round((myPm2 - avgRecent) / avgRecent * 100) : null;
+
+  const evolColor = evol === null ? '' : evol < -15 ? 'danger' : evol < -5 ? 'warn' : 'ok';
+
+  document.getElementById('summary-cards').innerHTML = `
+    <div class="card">
+      <div class="card-label">Moy. 2024–2025</div>
+      <div class="card-value">${avgRecent ? avgRecent.toLocaleString('fr-FR') : '—'}</div>
+      <div class="card-sub">€/m² (hors anomalies)</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Pic 2022</div>
+      <div class="card-value">${avgPic ? avgPic.toLocaleString('fr-FR') : '—'}</div>
+      <div class="card-sub">€/m²</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Évolution</div>
+      <div class="card-value ${evolColor}">${evol !== null ? (evol > 0 ? '+' : '') + evol + '%' : '—'}</div>
+      <div class="card-sub">vs. pic 2022</div>
+    </div>
+    <div class="card mine">
+      <div class="card-label">Mon achat (nov 2024)</div>
+      <div class="card-value">${myPm2 ? myPm2.toLocaleString('fr-FR') : '—'}</div>
+      <div class="card-sub">${diff !== null ? (diff > 0 ? '+' : '') + diff + '% vs moy. récente' : '€/m²'}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Transactions</div>
+      <div class="card-value">${data.length}</div>
+      <div class="card-sub">${data.filter(isAnomaly).length} anomalie(s) détectée(s)</div>
+    </div>
+  `;
+}
+
+let chartInst = null;
+function renderChart() {
+  const maisons = data.filter(d => d.type === 'Maison' && d.surface && !isAnomaly(d));
+  const sorted = [...maisons].sort((a,b) => a.date.localeCompare(b.date));
+  const mine = data.find(d => d.mine);
+  const myDate = mine ? mine.date.slice(0,7) : null;
+
+  const labels = sorted.map(d => d.date.slice(0,7));
+  const values = sorted.map(d => prixM2(d));
+  const colors = sorted.map(d => d.date.slice(0,7) === myDate ? '#4a8ac8' : '#4a6a2a');
+  const borders = sorted.map(d => d.date.slice(0,7) === myDate ? '#7ab0e8' : '#7aab4a');
+
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
+
+  chartInst = new Chart(document.getElementById('chart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '€/m²',
+        data: values,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+        borderRadius: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#22251e',
+          borderColor: '#3a3f30',
+          borderWidth: 1,
+          titleColor: '#7aab4a',
+          bodyColor: '#c8d0b8',
+          titleFont: { family: 'Courier New', size: 11 },
+          bodyFont: { family: 'Courier New', size: 12 },
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => ' ' + ctx.parsed.y.toLocaleString('fr-FR') + ' €/m²'
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#7a8070', font: { family: 'Courier New', size: 10 }, maxRotation: 45, autoSkip: true },
+          grid: { color: 'rgba(58,63,48,0.3)' }
+        },
+        y: {
+          ticks: {
+            color: '#7a8070',
+            font: { family: 'Courier New', size: 10 },
+            callback: v => v.toLocaleString('fr-FR')
+          },
+          grid: { color: 'rgba(58,63,48,0.3)' }
+        }
+      }
+    }
+  });
+}
+
+function renderSignal() {
+  const maisons = data.filter(d => d.type === 'Maison' && d.surface && !isAnomaly(d));
+  const recent = maisons.filter(d => d.date >= '2024-01-01');
+  const pic = maisons.filter(d => d.date >= '2022-01-01' && d.date < '2023-01-01');
+  const avg = arr => arr.length ? arr.reduce((s,d) => s + prixM2(d), 0) / arr.length : null;
+  const avgRecent = avg(recent);
+  const avgPic = avg(pic);
+  const evol = avgRecent && avgPic ? (avgRecent - avgPic) / avgPic * 100 : null;
+  const anomalies = data.filter(isAnomaly).length;
+  const txRecent = data.filter(d => d.date >= '2025-01-01').length;
+
+  let score = 0;
+  const rows = [];
+
+  const evolOk = evol === null || evol > -15;
+  const evolWarn = evol !== null && evol < -10 && evol >= -15;
+  rows.push({
+    label: 'TENDANCE PRIX (vs pic 2022)',
+    val: evol !== null ? (evol > 0 ? '+' : '') + evol.toFixed(1) + '%' : 'N/D',
+    cls: !evolOk ? 'danger' : evolWarn ? 'warn' : 'ok'
+  });
+  if (!evolOk) score++;
+
+  rows.push({
+    label: 'ACTIVITÉ 2025 (transactions)',
+    val: txRecent + ' enregistrée' + (txRecent > 1 ? 's' : ''),
+    cls: txRecent > 3 ? 'danger' : txRecent > 1 ? 'warn' : 'ok'
+  });
+  if (txRecent > 3) score++;
+
+  rows.push({
+    label: 'VENTES ANORMALES (<1 200 €/m²)',
+    val: anomalies + ' détectée' + (anomalies > 1 ? 's' : ''),
+    cls: anomalies > 1 ? 'danger' : anomalies === 1 ? 'warn' : 'ok'
+  });
+  if (anomalies > 1) score++;
+
+  const niveaux = ['◉ STABLE — RAS', '◈ À SURVEILLER', '◆ VIGILANCE', '▲ ALERTE'];
+  const niveauCls = ['ok', 'warn', 'warn', 'danger'];
+
+  document.getElementById('signal-content').innerHTML = `
+    <div class="signal-header">
+      <span class="signal-title">ÉVALUATION MARCHÉ LOCAL</span>
+      <span class="${niveauCls[Math.min(score,3)]}" style="font-weight:bold;letter-spacing:0.08em;font-size:12px">${niveaux[Math.min(score,3)]}</span>
+    </div>
+    ${rows.map(r => `
+      <div class="signal-row">
+        <span style="color:#7a8070">${r.label}</span>
+        <span class="${r.cls}" style="font-weight:bold">${r.val}</span>
+      </div>
+    `).join('')}
+    <div class="signal-note">▸ Ajouter chaque nouvelle transaction DVF pour affiner le signal. Données DVF décalées de ~6 mois vs ventes réelles.</div>
+  `;
+}
+
+function renderTable() {
+  const sorted = [...data].sort((a,b) => b.date.localeCompare(a.date));
+  document.getElementById('tbody').innerHTML = sorted.map(d => {
+    const pm2 = prixM2(d);
+    let badge = '';
+    if (d.mine) badge = '<span class="badge badge-mine">MON ACHAT</span>';
+    else if (isAnomaly(d)) badge = '<span class="badge badge-warn">ANORMAL</span>';
+    else if (pm2 && pm2 > 2800) badge = '<span class="badge badge-high">HAUT</span>';
+    else if (pm2 && pm2 < 1800) badge = '<span class="badge badge-low">BAS</span>';
+    return `<tr class="${d.mine ? 'mine' : ''}">
+      <td>${d.date.slice(0,7)}</td>
+      <td>${d.rue}</td>
+      <td>${d.type}</td>
+      <td>${d.surface ? d.surface + ' m²' : '—'}</td>
+      <td>${d.prix.toLocaleString('fr-FR')} €</td>
+      <td style="font-weight:bold;color:${pm2 && pm2 < 1200 ? 'var(--amber)' : 'var(--text-bright)'}">${pm2 ? pm2.toLocaleString('fr-FR') + ' €' : '—'}</td>
+      <td><span class="note-small">${d.note || ''}</span></td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleForm() {
+  const f = document.getElementById('add-form');
+  const btn = document.getElementById('toggle-btn');
+  const open = f.style.display === 'none' || f.style.display === '';
+  f.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? '[ − FERMER ]' : '[ + AJOUTER ]';
+}
+
+function addTransaction() {
+  const date = document.getElementById('f-date').value;
+  const rue = document.getElementById('f-rue').value.trim();
+  const surface = parseFloat(document.getElementById('f-surface').value) || null;
+  const prix = parseFloat(document.getElementById('f-prix').value) || null;
+  const type = document.getElementById('f-type').value;
+  const note = document.getElementById('f-note').value.trim();
+  if (!date || !rue || !prix) { alert('DATE + RUE + PRIX obligatoires'); return; }
+  data.push({ date, rue, surface, prix, type, mine: false, note });
+  save(data);
+  render();
+  toggleForm();
+  ['f-date','f-rue','f-surface','f-prix','f-note'].forEach(id => document.getElementById(id).value = '');
+}
+
+function render() {
+  renderCards();
+  renderChart();
+  renderSignal();
+  renderTable();
+}
+
+document.getElementById('last-update').textContent = 'MAJ ' + new Date().toLocaleDateString('fr-FR');
+render();
+</script>
+</body>
+</html>
