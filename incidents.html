@@ -216,6 +216,16 @@
   .type-bar { background: linear-gradient(90deg,#6b708033,#6b708055); }
   .type-bar .bar-count { color: var(--text); }
 
+  /* CHART JOUR / NUIT */
+  .dn-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .dn-label { font-family: var(--mono); font-size: 10px; color: var(--muted); width: 32px; flex-shrink: 0; text-align: right; }
+  .dn-track { flex: 1; height: 20px; border-radius: 4px; overflow: hidden; display: flex; background: var(--surface2); }
+  .dn-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 600; transition: width 0.5s ease; min-width: 0; overflow: hidden; }
+  .dn-day   { background: #e8c54755; color: #e8c547; }
+  .dn-eve   { background: #6b708055; color: #9aa0b0; }
+  .dn-night { background: #e8474755; color: #e84747; }
+  .dn-total { font-family: var(--mono); font-size: 10px; color: var(--muted); width: 24px; text-align: right; flex-shrink: 0; }
+
   /* SPARKLINE */
   .sparkline-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
   .sparkline-row { display: flex; align-items: flex-end; gap: 3px; height: 48px; margin-top: 8px; }
@@ -390,6 +400,7 @@
     <div class="verdict-icon" id="verdictIcon">🟢</div>
     <div class="verdict-title" id="verdictTitle">Aucun incident enregistré</div>
     <div class="verdict-desc" id="verdictDesc">Commencez à noter les incidents pour obtenir une analyse de l'ambiance du quartier.</div>
+    <div id="verdictAction" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;font-weight:600;letter-spacing:0.01em"></div>
   </div>
 
   <div class="kpi-grid">
@@ -488,8 +499,28 @@
 
   <!-- Sparkline temporelle -->
   <div class="sparkline-wrap" id="sparkWrap" style="display:none">
-    <div class="chart-title">Incidents par mois</div>
-    <div class="sparkline-row" id="sparkRow"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="chart-title" style="margin-bottom:0">Incidents par mois</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:16px;height:2px;background:var(--muted);opacity:0.5;border-top:2px dashed var(--muted)"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">moy.</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--surface2);border:1px dashed var(--border)"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">en cours</span></div>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="sparkline-row" id="sparkRow"></div>
+      <canvas id="sparkAvgLine" style="position:absolute;top:0;left:0;width:100%;height:48px;pointer-events:none"></canvas>
+    </div>
+  </div>
+
+  <!-- Chart jour / nuit -->
+  <div class="chart-wrap" id="dayNightWrap" style="display:none">
+    <div class="chart-title">Incidents par tranche horaire</div>
+    <div id="dayNightChart"></div>
+    <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#e8c547aa"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Jour (8h–20h)</span></div>
+      <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#6b7080aa"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Soirée (20h–0h)</span></div>
+      <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:#e84747aa"></div><span style="font-family:var(--mono);font-size:9px;color:var(--muted)">Nuit (0h–8h)</span></div>
+    </div>
   </div>
 
   <!-- Bar chart gravité -->
@@ -1097,7 +1128,7 @@ function renderKPI(fireZen = false) {
     document.getElementById('kpiLastSub').textContent = '';
   }
 
-  // sparkline temporelle par mois
+  // sparkline temporelle par mois avec projection et moyenne glissante
   if (total) {
     document.getElementById('sparkWrap').style.display = 'block';
     const sorted = [...entries].sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -1107,35 +1138,140 @@ function renderKPI(fireZen = false) {
       const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       monthMap[key] = (monthMap[key] || 0) + 1;
     });
-    // fill contiguous months
+
+    // Inclure le mois en cours même s'il n'a pas d'incident
+    const nowD = new Date();
+    const curKey = `${nowD.getFullYear()}-${String(nowD.getMonth()+1).padStart(2,'0')}`;
+
     const keys = Object.keys(monthMap).sort();
     const firstM = new Date(keys[0] + '-01');
-    const lastM  = new Date(keys[keys.length-1] + '-01');
+    // S'assurer d'aller jusqu'au mois en cours
+    const lastMDate = new Date(Math.max(new Date(keys[keys.length-1] + '-01'), new Date(curKey + '-01')));
     const allKeys = [];
-    const cur = new Date(firstM);
-    while (cur <= lastM) {
-      const k = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}`;
+    const cur2 = new Date(firstM);
+    while (cur2 <= lastMDate) {
+      const k = `${cur2.getFullYear()}-${String(cur2.getMonth()+1).padStart(2,'0')}`;
       allKeys.push(k);
-      cur.setMonth(cur.getMonth() + 1);
+      cur2.setMonth(cur2.getMonth() + 1);
     }
+
+    // Valeur réelle vs projetée pour le mois en cours
     const vals = allKeys.map(k => monthMap[k] || 0);
-    const maxVal = Math.max(...vals, 1);
+    const projectedVals = [...vals];
+    const curIdx = allKeys.indexOf(curKey);
+    let projectedVal = null;
+    if (curIdx !== -1) {
+      const dayOfMonth = nowD.getDate();
+      const daysInMonth = new Date(nowD.getFullYear(), nowD.getMonth()+1, 0).getDate();
+      const raw = vals[curIdx];
+      projectedVal = dayOfMonth < daysInMonth ? Math.round((raw / dayOfMonth) * daysInMonth) : raw;
+      projectedVals[curIdx] = projectedVal;
+    }
+
+    // Moyenne glissante sur 3 mois (sur vals réels seulement)
+    const avgVals = vals.map((_, i) => {
+      const slice = vals.slice(Math.max(0, i-2), i+1);
+      return slice.reduce((a,b) => a+b, 0) / slice.length;
+    });
+
+    const maxVal = Math.max(...projectedVals, 1);
+    const monthNames = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
     const sparkColors = ['#47c47e','#47c47e','#e8c547','#e87b47','#e84747'];
+
     document.getElementById('sparkRow').innerHTML = allKeys.map((k, i) => {
       const v = vals[i];
-      const pct = Math.max(v / maxVal * 100, v ? 4 : 0);
-      const label = k.slice(5); // MM
-      const monthNames = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+      const isCurrentMonth = k === curKey;
+      const displayH = Math.max((projectedVals[i] / maxVal) * 100, v || projectedVals[i] ? 4 : 0);
       const mLabel = monthNames[parseInt(k.slice(5))-1];
-      const col = v === 0 ? '#2a2d35' : v <= 1 ? sparkColors[0] : v <= 2 ? sparkColors[1] : v <= 4 ? sparkColors[2] : v <= 6 ? sparkColors[3] : sparkColors[4];
+      const col = v === 0 && !isCurrentMonth ? '#2a2d35'
+        : v <= 1 ? sparkColors[0] : v <= 2 ? sparkColors[1] : v <= 4 ? sparkColors[2] : v <= 6 ? sparkColors[3] : sparkColors[4];
+      const barStyle = isCurrentMonth
+        ? `height:${displayH}%;background:${col};opacity:0.45;border:1px dashed ${col};box-sizing:border-box`
+        : `height:${displayH}%;background:${col}`;
+      const countLabel = isCurrentMonth && projectedVal !== null && projectedVal !== v
+        ? `<span title="Projection fin de mois">${v}→${projectedVal}</span>`
+        : (v || '');
       return `<div class="spark-col">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;min-height:14px">${v || ''}</div>
-        <div class="spark-bar" style="height:${pct}%;background:${col}"></div>
-        <div class="spark-label">${mLabel}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);text-align:center;min-height:14px">${countLabel}</div>
+        <div class="spark-bar" style="${barStyle}"></div>
+        <div class="spark-label" style="${isCurrentMonth ? 'color:var(--accent)' : ''}">${mLabel}</div>
+      </div>`;
+    }).join('');
+
+    // Ligne de moyenne glissante via canvas
+    requestAnimationFrame(() => {
+      const canvas = document.getElementById('sparkAvgLine');
+      if (!canvas) return;
+      const row = document.getElementById('sparkRow');
+      const cols = row.querySelectorAll('.spark-col');
+      if (!cols.length) return;
+      const rowRect = row.getBoundingClientRect();
+      canvas.width = rowRect.width;
+      canvas.height = 48;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(107,112,128,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      cols.forEach((col, i) => {
+        const colRect = col.getBoundingClientRect();
+        const x = colRect.left - rowRect.left + colRect.width / 2;
+        const avgPct = Math.max(avgVals[i] / maxVal, 0);
+        const y = 48 - avgPct * 44;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    });
+  } else {
+    document.getElementById('sparkWrap').style.display = 'none';
+  }
+
+  // chart jour / nuit
+  if (total) {
+    document.getElementById('dayNightWrap').style.display = 'block';
+    // tranches : Jour 8-20, Soirée 20-24, Nuit 0-8
+    const slots = [
+      { label: 'Lun', d:0, e:0, n:0 },{ label: 'Mar', d:0, e:0, n:0 },{ label: 'Mer', d:0, e:0, n:0 },
+      { label: 'Jeu', d:0, e:0, n:0 },{ label: 'Ven', d:0, e:0, n:0 },{ label: 'Sam', d:0, e:0, n:0 },{ label: 'Dim', d:0, e:0, n:0 },
+    ];
+    // Aussi totaliser global
+    let gDay = 0, gEve = 0, gNight = 0;
+    entries.forEach(e => {
+      const d = new Date(e.date);
+      const h = d.getHours();
+      const dow = (d.getDay() + 6) % 7; // 0=lun
+      const bucket = h >= 8 && h < 20 ? 'd' : h >= 20 ? 'e' : 'n';
+      slots[dow][bucket]++;
+      if (bucket === 'd') gDay++; else if (bucket === 'e') gEve++; else gNight++;
+    });
+    const gTotal = gDay + gEve + gNight;
+    // Ligne globale en premier
+    const allRows = [{ label: 'Total', d: gDay, e: gEve, n: gNight }, ...slots];
+    const maxRow = Math.max(...allRows.map(r => r.d + r.e + r.n), 1);
+    document.getElementById('dayNightChart').innerHTML = allRows.map((r, ri) => {
+      const tot = r.d + r.e + r.n;
+      if (!tot && ri > 0) return ''; // masquer les jours vides
+      const base = tot; // largeur relative
+      const dayW  = tot ? (r.d / tot * 100) : 0;
+      const eveW  = tot ? (r.e / tot * 100) : 0;
+      const nightW= tot ? (r.n / tot * 100) : 0;
+      const trackW= tot / maxRow * 100;
+      const isBold = ri === 0;
+      return `<div class="dn-row">
+        <div class="dn-label" style="${isBold ? 'color:var(--text);font-weight:600' : ''}">${r.label}</div>
+        <div style="flex:1;display:flex;align-items:center;gap:6px">
+          <div class="dn-track" style="flex:${trackW} 0 0%;max-width:${trackW}%">
+            ${dayW   > 0 ? `<div class="dn-seg dn-day"   style="width:${dayW}%">${r.d >= 2 || (isBold && r.d) ? r.d : ''}</div>` : ''}
+            ${eveW   > 0 ? `<div class="dn-seg dn-eve"   style="width:${eveW}%">${r.e >= 2 || (isBold && r.e) ? r.e : ''}</div>` : ''}
+            ${nightW > 0 ? `<div class="dn-seg dn-night" style="width:${nightW}%">${r.n >= 2 || (isBold && r.n) ? r.n : ''}</div>` : ''}
+          </div>
+        </div>
+        <div class="dn-total">${tot}</div>
       </div>`;
     }).join('');
   } else {
-    document.getElementById('sparkWrap').style.display = 'none';
+    document.getElementById('dayNightWrap').style.display = 'none';
   }
 
   // bar chart gravité
@@ -1192,29 +1328,57 @@ function renderVerdict(total, last30, maxSev) {
   const vi = document.getElementById('verdictIcon');
   const vt = document.getElementById('verdictTitle');
   const vd = document.getElementById('verdictDesc');
+  const va = document.getElementById('verdictAction');
+
+  const setVerdict = (cls, icon, title, desc, actions) => {
+    vc.className = 'verdict-card ' + cls;
+    vi.textContent = icon;
+    vt.textContent = title;
+    vd.textContent = desc;
+    if (actions && actions.length) {
+      va.style.display = 'block';
+      va.innerHTML = actions.map(a => `<div style="margin-bottom:4px">→ ${a}</div>`).join('');
+    } else {
+      va.style.display = 'none';
+      va.innerHTML = '';
+    }
+  };
 
   if (!total) {
-    vc.className = 'verdict-card green'; vi.textContent = '🟢';
-    vt.textContent = 'Aucun incident enregistré';
-    vd.textContent = 'Commencez à noter les incidents pour obtenir une analyse de l\'ambiance du quartier.';
+    setVerdict('green', '🟢', 'Aucun incident enregistré',
+      'Commencez à noter les incidents pour obtenir une analyse de l\'ambiance du quartier.', []);
     return;
   }
   if (maxSev >= 4 || last30 >= 5) {
-    vc.className = 'verdict-card red'; vi.textContent = '🔴';
-    vt.textContent = 'Situation préoccupante';
-    vd.textContent = 'Incidents graves ou fréquence élevée. L\'environnement semble impacter négativement la valeur et la sérénité du bien.';
+    setVerdict('red', '🔴', 'Situation préoccupante',
+      'Incidents graves ou fréquence élevée détectés sur les 30 derniers jours.',
+      [
+        'Déposer une main courante ou plainte à la gendarmerie / police',
+        'Contacter le bailleur ou le syndic par écrit (LRAR)',
+        'Signaler sur la plateforme nationale : signal.conso.gouv.fr',
+        'Exporter le journal en PDF comme preuve datée',
+      ]);
   } else if (maxSev === 3 || last30 >= 3) {
-    vc.className = 'verdict-card orange'; vi.textContent = '🟠';
-    vt.textContent = 'Vigilance recommandée';
-    vd.textContent = 'Quelques incidents sérieux enregistrés. Continuez à observer sur la durée avant de tirer des conclusions.';
+    setVerdict('orange', '🟠', 'Vigilance recommandée',
+      'Quelques incidents sérieux enregistrés. La tendance mérite d\'être suivie.',
+      [
+        'Continuer à documenter avec rigueur (date, heure, type)',
+        'Informer le voisinage pour croiser les observations',
+        'Envisager un signalement si la fréquence augmente',
+      ]);
   } else if (last30 >= 1 || total >= 3) {
-    vc.className = 'verdict-card yellow'; vi.textContent = '🟡';
-    vt.textContent = 'Activité à surveiller';
-    vd.textContent = 'Des incidents mineurs ont été notés. La fréquence et la gravité restent à suivre sur les prochaines semaines.';
+    setVerdict('yellow', '🟡', 'Activité à surveiller',
+      'Des incidents mineurs ont été notés. La fréquence et la gravité restent à suivre.',
+      [
+        'Maintenir le journal sur au moins 2–3 mois pour identifier une tendance',
+        'Vérifier si les incidents se concentrent sur une plage horaire (nuit, week-end)',
+      ]);
   } else {
-    vc.className = 'verdict-card green'; vi.textContent = '🟢';
-    vt.textContent = 'Situation calme';
-    vd.textContent = 'Peu d\'incidents et de faible gravité. Aucun signal d\'alarme particulier pour le moment.';
+    setVerdict('green', '🟢', 'Situation calme',
+      'Peu d\'incidents et de faible gravité. Aucun signal d\'alarme pour le moment.',
+      [
+        'Continuer à noter même les événements mineurs pour garder un historique fiable',
+      ]);
   }
 }
 
