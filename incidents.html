@@ -87,6 +87,51 @@
   .streak-best-label { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 5px; }
   .streak-best-label span { color: var(--ok); font-weight: 600; }
 
+  /* ZEN RECORD OVERLAY */
+  #zenOverlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(10,12,14,0.96);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  #zenOverlay.visible { opacity: 1; pointer-events: all; }
+  .zen-canvas { position: absolute; inset: 0; }
+  .zen-content { position: relative; z-index: 2; text-align: center; padding: 40px 32px; }
+  .zen-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    border: 2px solid #47c47e55;
+    margin: 0 auto 28px;
+    display: flex; align-items: center; justify-content: center;
+    animation: zenPulse 3s ease-in-out infinite;
+    position: relative;
+  }
+  .zen-circle::before {
+    content: ''; position: absolute; inset: -12px; border-radius: 50%;
+    border: 1px solid #47c47e22;
+    animation: zenPulse 3s ease-in-out infinite 0.5s;
+  }
+  .zen-circle::after {
+    content: ''; position: absolute; inset: -24px; border-radius: 50%;
+    border: 1px solid #47c47e11;
+    animation: zenPulse 3s ease-in-out infinite 1s;
+  }
+  @keyframes zenPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.06); opacity: 1; }
+  }
+  .zen-days-num { font-family: var(--mono); font-size: 44px; font-weight: 700; color: var(--ok); line-height: 1; }
+  .zen-days-lbl { font-family: var(--mono); font-size: 11px; color: #47c47e88; text-transform: uppercase; letter-spacing: 0.15em; margin-top: 4px; }
+  .zen-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; letter-spacing: -0.02em; }
+  .zen-sub { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 260px; margin: 0 auto 32px; }
+  .zen-close {
+    padding: 14px 36px; border: 1px solid #47c47e55; background: transparent;
+    color: var(--ok); border-radius: 50px; font-family: var(--sans); font-size: 14px;
+    font-weight: 600; cursor: pointer; letter-spacing: 0.04em;
+    transition: all 0.3s;
+  }
+  .zen-close:hover { background: #47c47e15; border-color: var(--ok); }
+
   /* CHART */
   .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
   .chart-title { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
@@ -434,6 +479,10 @@
       <div class="tool-icon">🗑️</div>
       <div><div class="tool-label" style="color:var(--danger)">Tout effacer</div><div class="tool-desc">Supprime définitivement toutes les entrées</div></div>
     </button>
+    <button class="tool-btn" onclick="showZen(document.getElementById('streakDays').textContent || 42)" style="border-color:#47c47e30">
+      <div class="tool-icon">🌿</div>
+      <div><div class="tool-label" style="color:var(--ok)">Tester l'animation record</div><div class="tool-desc">Aperçu de l'animation zen de nouveau record</div></div>
+    </button>
   </div>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
 
@@ -492,6 +541,21 @@
       Les données sont stockées <strong style="color:var(--text)">localement</strong> sur votre appareil uniquement. Rien n'est envoyé sur internet.<br><br>
       Exportez régulièrement en JSON pour ne rien perdre si vous changez de navigateur.
     </div>
+  </div>
+</div>
+
+<div id="zenOverlay">
+  <canvas class="zen-canvas" id="zenCanvas"></canvas>
+  <div class="zen-content">
+    <div class="zen-circle">
+      <div>
+        <div class="zen-days-num" id="zenDaysNum">0</div>
+        <div class="zen-days-lbl">jours</div>
+      </div>
+    </div>
+    <div class="zen-title">✦ Nouveau record ✦</div>
+    <div class="zen-sub" id="zenSubText">Calme absolu.<br>Le quartier n'a jamais été aussi serein.</div>
+    <button class="zen-close" onclick="closeZen()">Continuer →</button>
   </div>
 </div>
 
@@ -832,6 +896,13 @@ function renderKPI() {
     else if (pct >= 30) streakProgressFill.style.background = 'var(--accent2)';
     else                streakProgressFill.style.background = 'var(--danger)';
     streakProgressWrap.style.display = 'block';
+
+    // Déclenche l'animation zen si le record est battu (et pas déjà affiché pour ce record)
+    const zenKey = 'zen_shown_for_' + bestStreak;
+    if (pct >= 100 && diffDays > 0 && !localStorage.getItem(zenKey)) {
+      localStorage.setItem(zenKey, '1');
+      setTimeout(() => showZen(diffDays), 600);
+    }
   } else {
     streakEl.textContent = '—'; streakEl.className = 'streak-days ok';
     streakSub.textContent = 'aucun incident enregistré';
@@ -1127,6 +1198,88 @@ function toast(msg) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// --- ZEN RECORD ANIMATION ---
+let zenAnimFrame = null;
+
+function showZen(days) {
+  document.getElementById('zenDaysNum').textContent = days;
+  const messages = [
+    'Calme absolu.<br>Le quartier n\'a jamais été aussi serein.',
+    'Un silence rare.<br>Chaque journée paisible compte.',
+    'La tranquillité s\'installe.<br>Record personnel battu.',
+  ];
+  document.getElementById('zenSubText').innerHTML = messages[Math.floor(Math.random() * messages.length)];
+  const overlay = document.getElementById('zenOverlay');
+  overlay.classList.add('visible');
+  startZenCanvas();
+}
+
+function closeZen() {
+  const overlay = document.getElementById('zenOverlay');
+  overlay.classList.remove('visible');
+  if (zenAnimFrame) { cancelAnimationFrame(zenAnimFrame); zenAnimFrame = null; }
+}
+
+function startZenCanvas() {
+  const canvas = document.getElementById('zenCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Particules zen : feuilles/lucioles douces
+  const particles = Array.from({ length: 38 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2.5 + 0.5,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: -Math.random() * 0.5 - 0.1,
+    alpha: Math.random() * 0.5 + 0.1,
+    phase: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.008 + 0.004,
+  }));
+
+  // Anneau respiratoire
+  let breathT = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    breathT += 0.012;
+
+    // Lueur centrale douce
+    const cx = canvas.width / 2, cy = canvas.height / 2;
+    const breathR = 180 + Math.sin(breathT) * 20;
+    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, breathR);
+    grd.addColorStop(0, 'rgba(71,196,126,0.07)');
+    grd.addColorStop(1, 'rgba(71,196,126,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(cx, cy, breathR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Particules
+    particles.forEach(p => {
+      p.phase += p.speed;
+      p.x += p.vx + Math.sin(p.phase) * 0.3;
+      p.y += p.vy;
+      if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+      if (p.x < -10) p.x = canvas.width + 10;
+      if (p.x > canvas.width + 10) p.x = -10;
+
+      const pulse = 0.5 + Math.sin(p.phase * 1.5) * 0.3;
+      ctx.globalAlpha = p.alpha * pulse;
+      ctx.fillStyle = '#47c47e';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.globalAlpha = 1;
+    zenAnimFrame = requestAnimationFrame(draw);
+  }
+  if (zenAnimFrame) cancelAnimationFrame(zenAnimFrame);
+  draw();
 }
 
 init();
