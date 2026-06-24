@@ -767,7 +767,7 @@ function submitEntry() {
     toast('✅ Incident enregistré');
     showTab('log');
   }
-  renderKPI();
+  renderKPI(true);
   renderLog();
 }
 
@@ -870,7 +870,7 @@ function renderLog() {
 }
 
 // --- KPI ---
-function renderKPI() {
+function renderKPI(fireZen = false) {
   const total = entries.length;
   document.getElementById('kpiTotal').textContent = total;
 
@@ -999,8 +999,8 @@ function renderKPI() {
     // Badges paliers
     renderBadges(diffDays, bestStreak);
 
-    // Déclenche l'animation zen si un palier est atteint pour la 1ère fois
-    checkAndFireBadges(diffDays, bestStreak);
+    // Déclenche l'animation zen au moment de l'enregistrement d'un incident
+    if (fireZen) checkAndFireBadges(diffDays, bestStreak);
   } else {
     streakEl.textContent = '—'; streakEl.className = 'streak-days ok';
     streakSub.textContent = 'aucun incident enregistré';
@@ -1343,19 +1343,18 @@ function renderBadges(diffDays, bestStreak) {
 }
 
 function checkAndFireBadges(diffDays, bestStreak) {
-  // Fixed milestones
-  for (const m of MILESTONES) {
-    if (diffDays >= m.days && !localStorage.getItem(m.key)) {
-      localStorage.setItem(m.key, '1');
-      setTimeout(() => showZenMilestone(m, diffDays), 600);
-      return; // one at a time
-    }
-  }
-  // ATH
-  const athKey = 'zen_shown_for_ath_' + bestStreak;
-  if (diffDays >= bestStreak && bestStreak > 0 && !localStorage.getItem(athKey)) {
-    localStorage.setItem(athKey, '1');
+  // ATH prime sur tout
+  if (diffDays >= bestStreak && bestStreak > 0) {
     setTimeout(() => showZenMilestone({ ...ATH_MILESTONE, days: bestStreak }, diffDays), 600);
+    return;
+  }
+  // Palier fixe le plus haut atteint
+  let highest = null;
+  for (const m of MILESTONES) {
+    if (diffDays >= m.days) highest = m;
+  }
+  if (highest) {
+    setTimeout(() => showZenMilestone(highest, diffDays), 600);
   }
 }
 
