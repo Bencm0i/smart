@@ -79,6 +79,14 @@
   .streak-days.warn { color: var(--accent2); }
   .streak-days.danger { color: var(--danger); }
 
+  /* STREAK PROGRESS */
+  .streak-progress-wrap { margin-top: 10px; width: 100%; }
+  .streak-progress-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 4px; }
+  .streak-progress-track { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .streak-progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; background: var(--ok); }
+  .streak-best-label { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 5px; }
+  .streak-best-label span { color: var(--ok); font-weight: 600; }
+
   /* CHART */
   .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
   .chart-title { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
@@ -249,12 +257,25 @@
       <div class="kpi-sub" id="kpiTrendSub">moitié ancienne vs moitié récente</div>
     </div>
     <!-- STREAK -->
-    <div class="streak-card" id="streakCard">
-      <div class="streak-icon" id="streakIcon">🕊️</div>
-      <div>
-        <div class="kpi-label">Jours sans incident</div>
-        <div class="streak-days ok" id="streakDays">—</div>
-        <div class="kpi-sub" id="streakSub">aucun incident enregistré</div>
+    <div class="streak-card" id="streakCard" style="flex-direction:column;align-items:flex-start;gap:10px">
+      <div style="display:flex;align-items:center;gap:14px;width:100%">
+        <div class="streak-icon" id="streakIcon">🕊️</div>
+        <div style="flex:1">
+          <div class="kpi-label">Jours sans incident</div>
+          <div class="streak-days ok" id="streakDays">—</div>
+          <div class="kpi-sub" id="streakSub">aucun incident enregistré</div>
+        </div>
+      </div>
+      <div class="streak-progress-wrap" id="streakProgressWrap" style="display:none">
+        <div class="streak-progress-labels">
+          <span>0j</span>
+          <span id="streakProgressMid"></span>
+          <span id="streakProgressMax"></span>
+        </div>
+        <div class="streak-progress-track">
+          <div class="streak-progress-fill" id="streakProgressFill" style="width:0%"></div>
+        </div>
+        <div class="streak-best-label">Record : <span id="streakBestVal">—</span> jours sans incident</div>
       </div>
     </div>
     <div class="kpi-card full">
@@ -762,10 +783,32 @@ function renderKPI() {
     trendSub.textContent = 'minimum 4 incidents requis';
   }
 
-  // streak : jours sans incident
-  const streakEl  = document.getElementById('streakDays');
-  const streakSub = document.getElementById('streakSub');
+  // streak : jours sans incident + calcul du record
+  const streakEl   = document.getElementById('streakDays');
+  const streakSub  = document.getElementById('streakSub');
   const streakIcon = document.getElementById('streakIcon');
+  const streakProgressWrap = document.getElementById('streakProgressWrap');
+  const streakProgressFill = document.getElementById('streakProgressFill');
+  const streakProgressMid  = document.getElementById('streakProgressMid');
+  const streakProgressMax  = document.getElementById('streakProgressMax');
+  const streakBestVal      = document.getElementById('streakBestVal');
+
+  // Calcul du record (max jours entre deux incidents consécutifs + depuis le dernier)
+  function computeBestStreak(entries, now) {
+    if (!entries.length) return 0;
+    const sorted = [...entries].map(e => new Date(e.date).getTime()).sort((a,b) => a-b);
+    let best = 0;
+    // gaps entre incidents consécutifs
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = Math.floor((sorted[i] - sorted[i-1]) / 86400000);
+      if (gap > best) best = gap;
+    }
+    // depuis le dernier incident jusqu'à aujourd'hui
+    const sinceLastDay = Math.floor((now - sorted[sorted.length-1]) / 86400000);
+    if (sinceLastDay > best) best = sinceLastDay;
+    return best;
+  }
+
   if (total) {
     const lastDate = new Date(entries.reduce((a,b) => new Date(a.date) > new Date(b.date) ? a : b).date);
     const diffDays = Math.floor((now - lastDate.getTime()) / 86400000);
@@ -775,10 +818,25 @@ function renderKPI() {
     else if (diffDays >= 7)  { streakEl.className = 'streak-days neutral'; streakIcon.textContent = '👁️'; streakSub.textContent = 'jours depuis le dernier incident'; }
     else if (diffDays >= 3)  { streakEl.className = 'streak-days warn';    streakIcon.textContent = '⚠️'; streakSub.textContent = 'jours depuis le dernier incident'; }
     else                     { streakEl.className = 'streak-days danger';   streakIcon.textContent = '🔴'; streakSub.textContent = 'incident très récent'; }
+
+    // Barre de progression vers le record
+    const bestStreak = computeBestStreak(entries, now);
+    streakBestVal.textContent = bestStreak;
+    streakProgressMax.textContent = bestStreak + 'j';
+    streakProgressMid.textContent = Math.round(bestStreak / 2) + 'j';
+    const pct = bestStreak > 0 ? Math.min(100, Math.round((diffDays / bestStreak) * 100)) : 100;
+    streakProgressFill.style.width = pct + '%';
+    // couleur de la barre selon avancement
+    if (pct >= 100)     streakProgressFill.style.background = 'var(--ok)';
+    else if (pct >= 60) streakProgressFill.style.background = 'var(--accent)';
+    else if (pct >= 30) streakProgressFill.style.background = 'var(--accent2)';
+    else                streakProgressFill.style.background = 'var(--danger)';
+    streakProgressWrap.style.display = 'block';
   } else {
     streakEl.textContent = '—'; streakEl.className = 'streak-days ok';
     streakSub.textContent = 'aucun incident enregistré';
     streakIcon.textContent = '🕊️';
+    streakProgressWrap.style.display = 'none';
   }
 
   // last
@@ -965,10 +1023,20 @@ function exportReport() {
   const sevLabels = ['', 'Faible', 'Modéré', 'Sérieux', 'Critique'];
 
   // streak
-  let streakDays = '—';
+  let streakDays = '—', bestStreakDays = '—';
   if (entries.length) {
     const lastDate = new Date(entries.reduce((a,b) => new Date(a.date) > new Date(b.date) ? a : b).date);
     streakDays = Math.floor((now - lastDate.getTime()) / 86400000);
+    // best streak
+    const sorted2 = [...entries].map(e => new Date(e.date).getTime()).sort((a,b) => a-b);
+    let best = 0;
+    for (let i = 1; i < sorted2.length; i++) {
+      const gap = Math.floor((sorted2[i] - sorted2[i-1]) / 86400000);
+      if (gap > best) best = gap;
+    }
+    const sinceLastDay = Math.floor((now - sorted2[sorted2.length-1]) / 86400000);
+    if (sinceLastDay > best) best = sinceLastDay;
+    bestStreakDays = best;
   }
 
   // freq
@@ -1007,7 +1075,8 @@ function exportReport() {
   txt += `Fréquence                     : ${freqStr}\n`;
   txt += `Intervalle moyen              : ${intervalStr}\n`;
   txt += `Tendance                      : ${trendStr}\n`;
-  txt += `Jours sans incident           : ${streakDays}\n\n`;
+  txt += `Jours sans incident           : ${streakDays}\n`;
+  txt += `Record jours sans incident    : ${bestStreakDays}\n\n`;
 
   // répartition par type
   const typeCounts = {};
