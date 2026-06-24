@@ -87,6 +87,54 @@
   .streak-best-label { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 5px; }
   .streak-best-label span { color: var(--ok); font-weight: 600; }
 
+  /* BADGES */
+  .badges-wrap { margin-top: 12px; width: 100%; }
+  .badges-title { font-family: var(--mono); font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; }
+  .badges-row { display: flex; gap: 8px; justify-content: space-between; }
+  .badge-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 8px 4px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--surface2); transition: all 0.3s; cursor: default; position: relative;
+    min-width: 0;
+  }
+  .badge-item.unlocked {
+    border-color: #47c47e50; background: #47c47e0a;
+  }
+  .badge-item.unlocked.badge-week   { border-color: #47c47e60; }
+  .badge-item.unlocked.badge-month  { border-color: #e8c54760; background: #e8c5470a; }
+  .badge-item.unlocked.badge-sixmo  { border-color: #a78bfa60; background: #a78bfa0a; }
+  .badge-item.unlocked.badge-year   { border-color: #e8874760; background: #e887470a; }
+  .badge-item.unlocked.badge-ath    { border-color: #e8474760; background: #e847470a; }
+  .badge-icon { font-size: 20px; line-height: 1; filter: grayscale(1) opacity(0.3); transition: filter 0.4s; }
+  .badge-item.unlocked .badge-icon  { filter: none; }
+  .badge-lbl { font-family: var(--mono); font-size: 9px; color: var(--muted); text-align: center; line-height: 1.3; }
+  .badge-item.unlocked .badge-lbl   { color: var(--text); }
+  .badge-item.current { animation: badgePulse 2.5s ease-in-out infinite; }
+  @keyframes badgePulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(71,196,126,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(71,196,126,0.12); }
+  }
+  .badge-item.current.badge-month { animation: badgePulseY 2.5s ease-in-out infinite; }
+  @keyframes badgePulseY {
+    0%,100% { box-shadow: 0 0 0 0 rgba(232,197,71,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(232,197,71,0.12); }
+  }
+  .badge-item.current.badge-sixmo { animation: badgePulseP 2.5s ease-in-out infinite; }
+  @keyframes badgePulseP {
+    0%,100% { box-shadow: 0 0 0 0 rgba(167,139,250,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(167,139,250,0.12); }
+  }
+  .badge-item.current.badge-year { animation: badgePulseO 2.5s ease-in-out infinite; }
+  @keyframes badgePulseO {
+    0%,100% { box-shadow: 0 0 0 0 rgba(232,135,71,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(232,135,71,0.12); }
+  }
+  .badge-item.current.badge-ath { animation: badgePulseR 2.5s ease-in-out infinite; }
+  @keyframes badgePulseR {
+    0%,100% { box-shadow: 0 0 0 0 rgba(232,71,71,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(232,71,71,0.12); }
+  }
+
   /* ZEN RECORD OVERLAY */
   #zenOverlay {
     position: fixed; inset: 0; z-index: 999;
@@ -131,6 +179,22 @@
     transition: all 0.3s;
   }
   .zen-close:hover { background: #47c47e15; border-color: var(--ok); }
+  #zenOverlay.zen-month  .zen-circle { border-color: #e8c54755; } #zenOverlay.zen-month  .zen-circle::before { border-color: #e8c54722; } #zenOverlay.zen-month  .zen-circle::after { border-color: #e8c54711; }
+  #zenOverlay.zen-month  .zen-days-num { color: var(--accent); }
+  #zenOverlay.zen-month  .zen-close { border-color: #e8c54755; color: var(--accent); }
+  #zenOverlay.zen-month  .zen-close:hover { background: #e8c54715; border-color: var(--accent); }
+  #zenOverlay.zen-sixmo  .zen-circle { border-color: #a78bfa55; } #zenOverlay.zen-sixmo  .zen-circle::before { border-color: #a78bfa22; } #zenOverlay.zen-sixmo  .zen-circle::after { border-color: #a78bfa11; }
+  #zenOverlay.zen-sixmo  .zen-days-num { color: #a78bfa; }
+  #zenOverlay.zen-sixmo  .zen-close { border-color: #a78bfa55; color: #a78bfa; }
+  #zenOverlay.zen-sixmo  .zen-close:hover { background: #a78bfa15; border-color: #a78bfa; }
+  #zenOverlay.zen-year   .zen-circle { border-color: #e8874755; } #zenOverlay.zen-year   .zen-circle::before { border-color: #e8874722; } #zenOverlay.zen-year   .zen-circle::after { border-color: #e8874711; }
+  #zenOverlay.zen-year   .zen-days-num { color: var(--accent2); }
+  #zenOverlay.zen-year   .zen-close { border-color: #e8874755; color: var(--accent2); }
+  #zenOverlay.zen-year   .zen-close:hover { background: #e8874715; border-color: var(--accent2); }
+  #zenOverlay.zen-ath    .zen-circle { border-color: #e8474755; } #zenOverlay.zen-ath    .zen-circle::before { border-color: #e8474722; } #zenOverlay.zen-ath    .zen-circle::after { border-color: #e8474711; }
+  #zenOverlay.zen-ath    .zen-days-num { color: var(--danger); }
+  #zenOverlay.zen-ath    .zen-close { border-color: #e8474755; color: var(--danger); }
+  #zenOverlay.zen-ath    .zen-close:hover { background: #e8474715; border-color: var(--danger); }
 
   /* CHART */
   .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
@@ -322,6 +386,32 @@
         </div>
         <div class="streak-best-label">Record : <span id="streakBestVal">—</span> jours sans incident</div>
       </div>
+      <!-- BADGES PALIERS -->
+      <div class="badges-wrap" id="badgesWrap" style="display:none">
+        <div class="badges-title">Paliers débloqués</div>
+        <div class="badges-row">
+          <div class="badge-item badge-week" id="badge-7">
+            <div class="badge-icon">🕊️</div>
+            <div class="badge-lbl">1<br>sem.</div>
+          </div>
+          <div class="badge-item badge-month" id="badge-30">
+            <div class="badge-icon">🌙</div>
+            <div class="badge-lbl">1<br>mois</div>
+          </div>
+          <div class="badge-item badge-sixmo" id="badge-180">
+            <div class="badge-icon">🔮</div>
+            <div class="badge-lbl">6<br>mois</div>
+          </div>
+          <div class="badge-item badge-year" id="badge-365">
+            <div class="badge-icon">🌅</div>
+            <div class="badge-lbl">1<br>an</div>
+          </div>
+          <div class="badge-item badge-ath" id="badge-ath">
+            <div class="badge-icon">⚡</div>
+            <div class="badge-lbl">ATH<br>record</div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="kpi-card full">
       <div class="kpi-label">Dernier incident</div>
@@ -479,9 +569,9 @@
       <div class="tool-icon">🗑️</div>
       <div><div class="tool-label" style="color:var(--danger)">Tout effacer</div><div class="tool-desc">Supprime définitivement toutes les entrées</div></div>
     </button>
-    <button class="tool-btn" onclick="showZen(document.getElementById('streakDays').textContent || 42)" style="border-color:#47c47e30">
+    <button class="tool-btn" onclick="testZenPicker()" style="border-color:#47c47e30">
       <div class="tool-icon">🌿</div>
-      <div><div class="tool-label" style="color:var(--ok)">Tester l'animation record</div><div class="tool-desc">Aperçu de l'animation zen de nouveau record</div></div>
+      <div><div class="tool-label" style="color:var(--ok)">Tester l'animation record</div><div class="tool-desc">Aperçu de chaque palier zen</div></div>
     </button>
   </div>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
@@ -544,18 +634,27 @@
   </div>
 </div>
 
+<div id="zenPickerOverlay" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(10,12,14,0.85);align-items:flex-end;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:480px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:16px">Tester un palier</div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="zenPickerList"></div>
+    <button onclick="closeZenPicker()" style="margin-top:14px;width:100%;padding:13px;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-family:var(--sans);font-size:14px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
 <div id="zenOverlay">
   <canvas class="zen-canvas" id="zenCanvas"></canvas>
   <div class="zen-content">
-    <div class="zen-circle">
+    <div class="zen-circle" id="zenCircle">
       <div>
         <div class="zen-days-num" id="zenDaysNum">0</div>
-        <div class="zen-days-lbl">jours</div>
+        <div class="zen-days-lbl" id="zenDaysLbl">jours</div>
       </div>
     </div>
-    <div class="zen-title">✦ Nouveau record ✦</div>
-    <div class="zen-sub" id="zenSubText">Calme absolu.<br>Le quartier n'a jamais été aussi serein.</div>
-    <button class="zen-close" onclick="closeZen()">Continuer →</button>
+    <div class="zen-badge-icon" id="zenBadgeIcon" style="font-size:36px;margin-bottom:10px"></div>
+    <div class="zen-title" id="zenTitle">✦ Nouveau record ✦</div>
+    <div class="zen-sub" id="zenSubText"></div>
+    <button class="zen-close" id="zenCloseBtn" onclick="closeZen()">Continuer →</button>
   </div>
 </div>
 
@@ -897,12 +996,11 @@ function renderKPI() {
     else                streakProgressFill.style.background = 'var(--danger)';
     streakProgressWrap.style.display = 'block';
 
-    // Déclenche l'animation zen si le record est battu (et pas déjà affiché pour ce record)
-    const zenKey = 'zen_shown_for_' + bestStreak;
-    if (pct >= 100 && diffDays > 0 && !localStorage.getItem(zenKey)) {
-      localStorage.setItem(zenKey, '1');
-      setTimeout(() => showZen(diffDays), 600);
-    }
+    // Badges paliers
+    renderBadges(diffDays, bestStreak);
+
+    // Déclenche l'animation zen si un palier est atteint pour la 1ère fois
+    checkAndFireBadges(diffDays, bestStreak);
   } else {
     streakEl.textContent = '—'; streakEl.className = 'streak-days ok';
     streakSub.textContent = 'aucun incident enregistré';
@@ -1200,20 +1298,111 @@ function toast(msg) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
+// --- MILESTONES & BADGES ---
+const MILESTONES = [
+  { id: 'badge-7',   days: 7,   key: 'zen_badge_7',   cls: 'zen-week',  color: '#47c47e', particleColor: '#47c47e',
+    icon: '🕊️', title: '✦ Une semaine de calme ✦',
+    msgs: ['Sept jours sans incident.<br>Le silence s\'installe doucement.', 'Une semaine paisible.<br>Chaque jour compte.'] },
+  { id: 'badge-30',  days: 30,  key: 'zen_badge_30',  cls: 'zen-month', color: '#e8c547', particleColor: '#e8c547',
+    icon: '🌙', title: '✦ Un mois sans incident ✦',
+    msgs: ['Trente jours de sérénité.<br>Le quartier respire enfin.', 'Un mois entier de paix.<br>La tranquillité s\'ancre.'] },
+  { id: 'badge-180', days: 180, key: 'zen_badge_180', cls: 'zen-sixmo', color: '#a78bfa', particleColor: '#a78bfa',
+    icon: '🔮', title: '✦ Six mois de sérénité ✦',
+    msgs: ['Un semestre sans incident.<br>Une accalmie remarquable.', 'Six mois de calme profond.<br>Rare et précieux.'] },
+  { id: 'badge-365', days: 365, key: 'zen_badge_365', cls: 'zen-year',  color: '#e87b47', particleColor: '#e87b47',
+    icon: '🌅', title: '✦ Une année sans incident ✦',
+    msgs: ['365 jours de paix.<br>Un an de sérénité absolue.', 'Une année entière.<br>Le quartier a changé.'] },
+];
+const ATH_MILESTONE = {
+  id: 'badge-ath', cls: 'zen-ath', color: '#e84747', particleColor: '#e84747',
+  icon: '⚡', title: '✦ Nouveau record absolu ✦',
+  msgs: ['Jamais aussi longtemps.<br>Le quartier n\'a jamais été aussi serein.', 'Record personnel battu.<br>Un silence inédit.'],
+};
+
+function renderBadges(diffDays, bestStreak) {
+  document.getElementById('badgesWrap').style.display = 'block';
+  MILESTONES.forEach(m => {
+    const el = document.getElementById(m.id);
+    el.classList.remove('unlocked', 'current');
+    if (diffDays >= m.days) {
+      el.classList.add('unlocked');
+      // "current" = highest milestone reached right now
+    }
+  });
+  // mark the highest unlocked milestone as current
+  let highest = null;
+  MILESTONES.forEach(m => { if (diffDays >= m.days) highest = m.id; });
+  if (highest) document.getElementById(highest).classList.add('current');
+
+  // ATH badge
+  const athEl = document.getElementById('badge-ath');
+  athEl.classList.remove('unlocked', 'current');
+  if (diffDays >= bestStreak && bestStreak > 0) {
+    athEl.classList.add('unlocked', 'current');
+  }
+}
+
+function checkAndFireBadges(diffDays, bestStreak) {
+  // Fixed milestones
+  for (const m of MILESTONES) {
+    if (diffDays >= m.days && !localStorage.getItem(m.key)) {
+      localStorage.setItem(m.key, '1');
+      setTimeout(() => showZenMilestone(m, diffDays), 600);
+      return; // one at a time
+    }
+  }
+  // ATH
+  const athKey = 'zen_shown_for_ath_' + bestStreak;
+  if (diffDays >= bestStreak && bestStreak > 0 && !localStorage.getItem(athKey)) {
+    localStorage.setItem(athKey, '1');
+    setTimeout(() => showZenMilestone({ ...ATH_MILESTONE, days: bestStreak }, diffDays), 600);
+  }
+}
+
 // --- ZEN RECORD ANIMATION ---
 let zenAnimFrame = null;
+let zenCurrentColor = '#47c47e';
 
-function showZen(days) {
-  document.getElementById('zenDaysNum').textContent = days;
-  const messages = [
-    'Calme absolu.<br>Le quartier n\'a jamais été aussi serein.',
-    'Un silence rare.<br>Chaque journée paisible compte.',
-    'La tranquillité s\'installe.<br>Record personnel battu.',
-  ];
-  document.getElementById('zenSubText').innerHTML = messages[Math.floor(Math.random() * messages.length)];
+function showZenMilestone(milestone, days) {
+  zenCurrentColor = milestone.particleColor;
   const overlay = document.getElementById('zenOverlay');
+  // reset classes
+  overlay.className = '';
+  overlay.classList.add(milestone.cls || '');
+  document.getElementById('zenDaysNum').textContent = days;
+  document.getElementById('zenDaysLbl').textContent = 'jours';
+  document.getElementById('zenBadgeIcon').textContent = milestone.icon;
+  document.getElementById('zenTitle').textContent = milestone.title;
+  const msgs = milestone.msgs;
+  document.getElementById('zenSubText').innerHTML = msgs[Math.floor(Math.random() * msgs.length)];
   overlay.classList.add('visible');
   startZenCanvas();
+}
+
+function testZenPicker() {
+  const list = document.getElementById('zenPickerList');
+  const all = [
+    ...MILESTONES,
+    { ...ATH_MILESTONE, days: 42, label: 'ATH Record (ex: 42j)' },
+  ];
+  list.innerHTML = all.map((m, i) => {
+    const days = m.days || 42;
+    const label = m.label || (days >= 365 ? '1 an — ' : days >= 180 ? '6 mois — ' : days >= 30 ? '1 mois — ' : '1 semaine — ') + m.icon;
+    return `<button onclick="closeZenPicker();showZenMilestone(${JSON.stringify(m).replace(/"/g,'&quot;')},${days})"
+      style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;width:100%">
+      <span style="font-size:22px">${m.icon}</span>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${m.title}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">${days}j</div>
+      </div>
+    </button>`;
+  }).join('');
+  const p = document.getElementById('zenPickerOverlay');
+  p.style.display = 'flex';
+}
+
+function closeZenPicker() {
+  document.getElementById('zenPickerOverlay').style.display = 'none';
 }
 
 function closeZen() {
@@ -1227,8 +1416,8 @@ function startZenCanvas() {
   const ctx = canvas.getContext('2d');
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
+  const color = zenCurrentColor;
 
-  // Particules zen : feuilles/lucioles douces
   const particles = Array.from({ length: 38 }, () => ({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
@@ -1240,25 +1429,22 @@ function startZenCanvas() {
     speed: Math.random() * 0.008 + 0.004,
   }));
 
-  // Anneau respiratoire
   let breathT = 0;
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     breathT += 0.012;
-
-    // Lueur centrale douce
     const cx = canvas.width / 2, cy = canvas.height / 2;
     const breathR = 180 + Math.sin(breathT) * 20;
+    const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
     const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, breathR);
-    grd.addColorStop(0, 'rgba(71,196,126,0.07)');
-    grd.addColorStop(1, 'rgba(71,196,126,0)');
+    grd.addColorStop(0, `rgba(${r},${g},${b},0.07)`);
+    grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
     ctx.fillStyle = grd;
     ctx.beginPath();
     ctx.arc(cx, cy, breathR, 0, Math.PI * 2);
     ctx.fill();
 
-    // Particules
     particles.forEach(p => {
       p.phase += p.speed;
       p.x += p.vx + Math.sin(p.phase) * 0.3;
@@ -1266,10 +1452,9 @@ function startZenCanvas() {
       if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
       if (p.x < -10) p.x = canvas.width + 10;
       if (p.x > canvas.width + 10) p.x = -10;
-
       const pulse = 0.5 + Math.sin(p.phase * 1.5) * 0.3;
       ctx.globalAlpha = p.alpha * pulse;
-      ctx.fillStyle = '#47c47e';
+      ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
