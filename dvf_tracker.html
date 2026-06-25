@@ -246,6 +246,95 @@
   .danger { color: var(--red); }
   .info { color: var(--blue); }
 
+  /* ── Boutons actions dans le tableau ── */
+  .btn-act {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 7px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    margin-right: 3px;
+  }
+  .btn-act:hover { border-color: var(--green-dim); color: var(--text-bright); }
+  .btn-act.del:hover { border-color: var(--red-dim); color: var(--red); }
+
+  /* ── Boutons export/import ── */
+  .io-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    margin-bottom: 20px;
+  }
+  .io-row span { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; margin-right: 4px; }
+
+  /* ── Modal édition ── */
+  #edit-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  #edit-overlay.show { display: flex; }
+  #edit-modal {
+    background: var(--bg2);
+    border: 1px solid var(--green-dim);
+    padding: 20px 22px;
+    width: min(480px, 95vw);
+    font-family: var(--mono);
+  }
+  #edit-modal h3 {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  #edit-modal .form-row { margin-bottom: 8px; }
+  #edit-modal label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+  }
+  #edit-modal input, #edit-modal select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 10px;
+    outline: none;
+    width: 100%;
+  }
+  #edit-modal input:focus, #edit-modal select:focus { border-color: var(--green-dim); }
+  #edit-modal .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  #edit-mine-wrap { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 12px; }
+  #edit-mine-wrap input[type=checkbox] { width: auto; accent-color: var(--blue); }
+
+  /* Flash confirmation */
+  .flash {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--bg3); border: 1px solid var(--green-dim);
+    color: var(--green); font-family: var(--mono); font-size: 12px;
+    padding: 8px 16px; z-index: 200;
+    opacity: 0; transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .flash.show { opacity: 1; }
+
   @media (max-width: 600px) {
     body { padding: 10px; }
     .header-title { font-size: 13px; }
@@ -324,6 +413,7 @@
         <th>€/m²</th>
         <th>Note</th>
         <th>Statut</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
@@ -331,7 +421,7 @@
 </div>
 
 <footer>
-  <div>DVF TRACKER v1.0 · DONNÉES DVF ETALAB · SECTION 000BB BOURG-LÈS-VALENCE</div>
+  <div>DVF TRACKER v1.1 · DONNÉES DVF ETALAB · SECTION 000BB BOURG-LÈS-VALENCE</div>
   <div>
     <a href="https://app.dvf.etalab.gouv.fr" target="_blank">app.dvf.etalab.gouv.fr</a>
     &nbsp;·&nbsp;
@@ -340,6 +430,52 @@
     <a href="https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/" target="_blank">data.gouv.fr (téléchargement DVF)</a>
   </div>
 </footer>
+
+<!-- Barre export/import -->
+<div class="io-row">
+  <span>DONNÉES :</span>
+  <button onclick="exportJSON()">[ ↓ EXPORT JSON ]</button>
+  <button onclick="document.getElementById('import-file').click()">[ ↑ IMPORT JSON ]</button>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+  <button class="del" style="border-color:var(--red-dim);color:var(--red)" onclick="resetData()">[ ⚠ RESET ]</button>
+</div>
+
+<!-- Modal édition -->
+<div id="edit-overlay" onclick="closeEdit(event)">
+  <div id="edit-modal">
+    <h3>✎ MODIFIER LA TRANSACTION</h3>
+    <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label>Date</label><input type="date" id="e-date"></div>
+      <div><label>Rue / voie</label><input type="text" id="e-rue" placeholder="Rue / voie"></div>
+    </div>
+    <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label>Surface m²</label><input type="number" id="e-surface" min="10" max="500"></div>
+      <div><label>Prix €</label><input type="number" id="e-prix" min="10000"></div>
+    </div>
+    <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div>
+        <label>Type</label>
+        <select id="e-type">
+          <option value="Maison">Maison</option>
+          <option value="Appartement">Appartement</option>
+          <option value="Terrain">Terrain</option>
+        </select>
+      </div>
+      <div><label>Note</label><input type="text" id="e-note" placeholder="(optionnel)"></div>
+    </div>
+    <div id="edit-mine-wrap">
+      <input type="checkbox" id="e-mine">
+      <label for="e-mine" style="text-transform:none;letter-spacing:0;font-size:12px;color:var(--blue)">Mon achat</label>
+    </div>
+    <div class="form-actions">
+      <button onclick="closeEdit()">ANNULER</button>
+      <button class="btn-primary" onclick="saveEdit()">[ ENREGISTRER ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- Flash -->
+<div class="flash" id="flash"></div>
 
 <script>
 const STORAGE_KEY = 'dvf_tracker_blv_v1';
@@ -560,7 +696,9 @@ function renderSignal() {
 
 function renderTable() {
   const sorted = [...data].sort((a,b) => b.date.localeCompare(a.date));
-  document.getElementById('tbody').innerHTML = sorted.map(d => {
+  document.getElementById('tbody').innerHTML = sorted.map((d, si) => {
+    // index dans data[] (pas dans sorted[])
+    const idx = data.indexOf(d);
     const pm2 = prixM2(d);
     let badge = '';
     if (d.mine) badge = '<span class="badge badge-mine">MON ACHAT</span>';
@@ -576,8 +714,121 @@ function renderTable() {
       <td style="font-weight:bold;color:${pm2 && pm2 < 1200 ? 'var(--amber)' : 'var(--text-bright)'}">${pm2 ? pm2.toLocaleString('fr-FR') + ' €' : '—'}</td>
       <td><span class="note-small">${d.note || ''}</span></td>
       <td>${badge}</td>
+      <td>
+        <button class="btn-act" onclick="openEdit(${idx})" title="Modifier">✎</button>
+        <button class="btn-act del" onclick="deleteEntry(${idx})" title="Supprimer">✕</button>
+      </td>
     </tr>`;
   }).join('');
+}
+
+// ── Édition ───────────────────────────────────────────────────────────────────
+let editIdx = null;
+
+function openEdit(idx) {
+  editIdx = idx;
+  const d = data[idx];
+  document.getElementById('e-date').value    = d.date;
+  document.getElementById('e-rue').value     = d.rue;
+  document.getElementById('e-surface').value = d.surface || '';
+  document.getElementById('e-prix').value    = d.prix;
+  document.getElementById('e-type').value    = d.type;
+  document.getElementById('e-note').value    = d.note || '';
+  document.getElementById('e-mine').checked  = !!d.mine;
+  document.getElementById('edit-overlay').classList.add('show');
+}
+
+function closeEdit(e) {
+  if (e && e.target !== document.getElementById('edit-overlay')) return;
+  document.getElementById('edit-overlay').classList.remove('show');
+  editIdx = null;
+}
+
+function saveEdit() {
+  if (editIdx === null) return;
+  const date    = document.getElementById('e-date').value;
+  const rue     = document.getElementById('e-rue').value.trim();
+  const prix    = parseFloat(document.getElementById('e-prix').value) || null;
+  if (!date || !rue || !prix) { alert('DATE + RUE + PRIX obligatoires'); return; }
+  data[editIdx] = {
+    date,
+    rue,
+    surface : parseFloat(document.getElementById('e-surface').value) || null,
+    prix,
+    type    : document.getElementById('e-type').value,
+    note    : document.getElementById('e-note').value.trim(),
+    mine    : document.getElementById('e-mine').checked,
+  };
+  save(data);
+  render();
+  document.getElementById('edit-overlay').classList.remove('show');
+  editIdx = null;
+  flash('✓ Transaction modifiée');
+}
+
+// ── Suppression ───────────────────────────────────────────────────────────────
+function deleteEntry(idx) {
+  const d = data[idx];
+  if (!confirm(`Supprimer ?\n${d.date.slice(0,7)} — ${d.rue} — ${d.prix.toLocaleString('fr-FR')} €`)) return;
+  data.splice(idx, 1);
+  save(data);
+  render();
+  flash('✓ Transaction supprimée');
+}
+
+// ── Export JSON ───────────────────────────────────────────────────────────────
+function exportJSON() {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = `dvf_blv_${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  flash('✓ Export JSON téléchargé');
+}
+
+// ── Import JSON ───────────────────────────────────────────────────────────────
+function importJSON(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!Array.isArray(parsed)) throw new Error('Format invalide');
+      if (!confirm(`Remplacer les ${data.length} entrées actuelles par ${parsed.length} entrées importées ?`)) return;
+      data = parsed;
+      save(data);
+      render();
+      flash(`✓ ${parsed.length} entrées importées`);
+    } catch(err) {
+      alert('Erreur import : ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function resetData() {
+  if (!confirm('Réinitialiser avec les données seed ?\nToutes vos modifications seront perdues.')) return;
+  data = [...seed];
+  save(data);
+  render();
+  flash('✓ Données réinitialisées');
+}
+
+// ── Flash ─────────────────────────────────────────────────────────────────────
+let flashTm = null;
+function flash(msg) {
+  const el = document.getElementById('flash');
+  el.textContent = msg;
+  el.classList.add('show');
+  if (flashTm) clearTimeout(flashTm);
+  flashTm = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 function toggleForm() {
