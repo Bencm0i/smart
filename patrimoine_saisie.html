@@ -2646,6 +2646,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const btcPR  = DATA.investissements.revolut.filter(isBTCrow).reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
     const orVal  = DATA.investissements.revolut.filter(isOrRow).reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
     const orPR   = DATA.investissements.revolut.filter(isOrRow).reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+
+    const ccBourso   = (DATA.boursorama||[]).find(r => (r.label||'').toLowerCase()==='compte courant')?.val || 0;
+    const ccFortuneo = (DATA.fortuneo||[]).find(r => (r.label||'').toLowerCase()==='compte courant')?.val || 0;
+    const ccRevolut  = (DATA.revolut||[]).find(r => (r.label||'').toLowerCase()==='compte courant')?.val || 0;
+    const ccEspeces  = DATA.especeCache || 0;
+    const ccTotal    = ccBourso + ccFortuneo + ccRevolut + ccEspeces;
     const eeVal  = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.valeurActuelle||0), 0);
     const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
     const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
@@ -2719,6 +2725,7 @@ window.addEventListener('DOMContentLoaded', () => {
       scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
       btcVal, btcPR, orVal, orPR,
+      ccBourso, ccFortuneo, ccRevolut, ccEspeces, ccTotal,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
       depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
@@ -2789,12 +2796,13 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:'SCPI', full:'Pierre-papier', val:k.scpiVal, pmv:k.pmvSCPI, color:'#a855f7', icon:'🏛️' },
       { label:'BTC',  full:'Bitcoin', val:k.btcVal, pmv:(k.btcVal-k.btcPR), color:'#f7931a', icon:'₿' },
       { label:'Or',   full:'Or (XAU/EUR)', val:k.orVal, pmv:(k.orVal-k.orPR), color:'#c8a96e', icon:'🥇' },
+      { label:'Cpte courant', full:'Bourso+Fortuneo+Revolut+Espèces', val:k.ccTotal, pmv:null, color:'#6b7585', icon:'💵' },
     ];
     const resumeTotal = resumeLines.reduce((s,r) => s+r.val, 0);
     const resumeHTML = resumeLines.map(r => {
       const pctPart = resumeTotal > 0 ? (r.val / resumeTotal * 100) : 0;
-      const pmvCls  = r.pmv >= 0 ? 'var(--green)' : 'var(--red)';
-      const pmvTxt  = r.val > 0 ? `${r.pmv>=0?'+':''}${fmt(r.pmv)}` : '—';
+      const pmvCls  = r.pmv === null ? 'var(--muted)' : (r.pmv >= 0 ? 'var(--green)' : 'var(--red)');
+      const pmvTxt  = r.pmv === null ? '—' : (r.val > 0 ? `${r.pmv>=0?'+':''}${fmt(r.pmv)}` : '—');
       return `
         <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
           <span style="font-size:12px;width:18px;flex-shrink:0;">${r.icon}</span>
@@ -2813,10 +2821,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const resumeCard = `
       <div class="kpi-card full" style="cursor:pointer;border-top:2px solid var(--accent);" onclick="this.querySelector('.resume-detail').style.display=this.querySelector('.resume-detail').style.display==='none'?'block':'none';">
         <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="kpi-card-label">Résumé Courant — ASV · CTO · PEA · PEE · SCPI · BTC · Or <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+          <div class="kpi-card-label">Résumé Courant — ASV · CTO · PEA · PEE · SCPI · BTC · Or · Cpte courant <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
         </div>
         <div class="kpi-card-value blue">${fmt(resumeTotal)}</div>
-        <div class="kpi-card-sub">Total des 7 poches suivies</div>
+        <div class="kpi-card-sub">Total des 8 poches suivies</div>
         <div class="resume-detail" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
           ${resumeHTML}
         </div>
