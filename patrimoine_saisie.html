@@ -2640,6 +2640,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const ctoPR  = DATA.investissements.cto.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
     const revInvVal = DATA.investissements.revolut.reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
     const revInvPR  = DATA.investissements.revolut.reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const isBTCrow = r => r.ticker==='BTC' || (r.nom||'').toLowerCase().includes('bitcoin');
+    const isOrRow  = r => r.ticker==='XAU' || (r.nom||'').toLowerCase().includes('or (') || (r.nom||'').toLowerCase()==='or';
+    const btcVal = DATA.investissements.revolut.filter(isBTCrow).reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const btcPR  = DATA.investissements.revolut.filter(isBTCrow).reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
+    const orVal  = DATA.investissements.revolut.filter(isOrRow).reduce((s,r) => s+(r.qte||0)*(r.coursActuel||0), 0)||0;
+    const orPR   = DATA.investissements.revolut.filter(isOrRow).reduce((s,r) => s+(r.qte||0)*(r.pr||0), 0)||0;
     const eeVal  = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.valeurActuelle||0), 0);
     const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
     const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
@@ -2712,6 +2718,7 @@ window.addEventListener('DOMContentLoaded', () => {
       grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
       scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
+      btcVal, btcPR, orVal, orPR,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
       depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
@@ -2772,6 +2779,48 @@ window.addEventListener('DOMContentLoaded', () => {
           <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${d.color};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
         </div>`;
     }).join('');
+
+    // ── CARD RÉSUMÉ COURANT (ASV · CTO · PEA · PEE · SCPI · BTC · Or) ──
+    const resumeLines = [
+      { label:'ASV',  full:'Assurance Vie', val:k.avVal,  pmv:k.pmvAV,  color:'#4df0c8', icon:'🛡️' },
+      { label:'CTO',  full:'Compte-titres', val:k.ctoVal, pmv:k.pmvCTO, color:'#7eb8d4', icon:'📊' },
+      { label:'PEA',  full:'Plan Épargne Actions', val:k.peaVal, pmv:k.pmvPEA, color:'#5aab7a', icon:'📈' },
+      { label:'PEE',  full:'Épargne Entreprise', val:k.eeVal, pmv:k.pmvEE, color:'#c05a5a', icon:'🏢' },
+      { label:'SCPI', full:'Pierre-papier', val:k.scpiVal, pmv:k.pmvSCPI, color:'#a855f7', icon:'🏛️' },
+      { label:'BTC',  full:'Bitcoin', val:k.btcVal, pmv:(k.btcVal-k.btcPR), color:'#f7931a', icon:'₿' },
+      { label:'Or',   full:'Or (XAU/EUR)', val:k.orVal, pmv:(k.orVal-k.orPR), color:'#c8a96e', icon:'🥇' },
+    ];
+    const resumeTotal = resumeLines.reduce((s,r) => s+r.val, 0);
+    const resumeHTML = resumeLines.map(r => {
+      const pctPart = resumeTotal > 0 ? (r.val / resumeTotal * 100) : 0;
+      const pmvCls  = r.pmv >= 0 ? 'var(--green)' : 'var(--red)';
+      const pmvTxt  = r.val > 0 ? `${r.pmv>=0?'+':''}${fmt(r.pmv)}` : '—';
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span style="font-size:12px;width:18px;flex-shrink:0;">${r.icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;color:var(--text);font-weight:500;">${r.label}</div>
+            <div style="font-size:9px;color:var(--muted);">${r.full}</div>
+          </div>
+          <div style="width:46px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0;">
+            <div style="width:${pctPart.toFixed(1)}%;height:100%;background:${r.color};border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted);width:28px;text-align:right;flex-shrink:0;">${pctPart.toFixed(0)}%</span>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${r.color};min-width:66px;text-align:right;flex-shrink:0;">${fmt(r.val)}</span>
+          <span style="font-size:9px;min-width:60px;text-align:right;flex-shrink:0;color:${pmvCls};">${pmvTxt}</span>
+        </div>`;
+    }).join('');
+    const resumeCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid var(--accent);" onclick="this.querySelector('.resume-detail').style.display=this.querySelector('.resume-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Résumé Courant — ASV · CTO · PEA · PEE · SCPI · BTC · Or <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value blue">${fmt(resumeTotal)}</div>
+        <div class="kpi-card-sub">Total des 7 poches suivies</div>
+        <div class="resume-detail" style="display:none;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+          ${resumeHTML}
+        </div>
+      </div>`;
 
     const patrimoineCard = `
       <div class="kpi-card full" style="cursor:pointer;" onclick="this.querySelector('.pat-detail').style.display=this.querySelector('.pat-detail').style.display==='none'?'block':'none';">
@@ -3017,7 +3066,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = patrimoineCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
+    el.innerHTML = resumeCard + patrimoineCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
