@@ -2651,7 +2651,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const ccFortuneo = (DATA.fortuneo||[]).find(r => (r.label||'').toLowerCase()==='compte courant')?.val || 0;
     const ccRevolut  = (DATA.revolut||[]).find(r => (r.label||'').toLowerCase()==='compte courant')?.val || 0;
     const ccEspeces  = DATA.especeCache || 0;
-    const ccTotal    = ccBourso + ccFortuneo + ccRevolut + ccEspeces;
+    const isLivretRow = r => /livret|ldds/i.test(r.label||'');
+    const ccLivrets  = ['boursorama','fortuneo','revolut'].reduce((s, bank) =>
+      s + (DATA[bank]||[]).filter(isLivretRow).reduce((ss,r) => ss+(r.val||0), 0), 0);
+    const ccTotal    = ccBourso + ccFortuneo + ccRevolut + ccEspeces + ccLivrets;
     const eeVal  = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.valeurActuelle||0), 0);
     const eePR   = DATA.investissements.epargne_entreprise.reduce((s,r) => s+(r.parts||0)*(r.pr||0), 0);
     const avVal  = DATA.investissements.assurance_vie.reduce((s,r) => s+(r.valeurActuelle||0), 0);
@@ -2725,7 +2728,7 @@ window.addEventListener('DOMContentLoaded', () => {
       scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
       btcVal, btcPR, orVal, orPR,
-      ccBourso, ccFortuneo, ccRevolut, ccEspeces, ccTotal,
+      ccBourso, ccFortuneo, ccRevolut, ccEspeces, ccLivrets, ccTotal,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
       depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
@@ -2796,7 +2799,7 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:'SCPI', full:'Pierre-papier', val:k.scpiVal, pmv:k.pmvSCPI, color:'#a855f7', icon:'🏛️' },
       { label:'BTC',  full:'Bitcoin', val:k.btcVal, pmv:(k.btcVal-k.btcPR), color:'#f7931a', icon:'₿' },
       { label:'Or',   full:'Or (XAU/EUR)', val:k.orVal, pmv:(k.orVal-k.orPR), color:'#c8a96e', icon:'🥇' },
-      { label:'Cpte courant', full:'Bourso+Fortuneo+Revolut+Espèces', val:k.ccTotal, pmv:null, color:'#6b7585', icon:'💵' },
+      { label:'Cpte courant', full:'Comptes + Livrets + Espèces', val:k.ccTotal, pmv:null, color:'#6b7585', icon:'💵' },
     ];
     const resumeTotal = resumeLines.reduce((s,r) => s+r.val, 0);
     const resumeHTML = resumeLines.map(r => {
