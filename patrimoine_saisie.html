@@ -1437,17 +1437,6 @@ button, input, select { touch-action: manipulation; }
     </div>
   </div>
 
-  <!-- DÉPENSES -->
-  <div class="section accent-red" style="margin-bottom:16px;">
-    <div class="section-head">
-      <div class="section-title">💸 Dépenses mensuelles par catégorie</div>
-      <span class="badge" id="kpi-depenses-badge">—</span>
-    </div>
-    <div class="section-body" style="padding:16px;">
-      <canvas id="chart-depenses" height="200"></canvas>
-    </div>
-  </div>
-
   <!-- TAUX D'ÉPARGNE -->
   <div class="section accent-green" style="margin-bottom:16px;">
     <div class="section-head">
@@ -3187,30 +3176,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function renderChartDepenses(k) {
-    const cats = DATA.depenses?.categories||[];
-    const active = cats.map(cat => ({
-      l: cat.icon+' '+cat.nom,
-      v: cat.items.reduce((s,it)=>s+(it.mensuel||(it.note==='annuel'?(it.annuel||0)/12:0)),0),
-      c: cat.color||'#6b7585'
-    })).filter(x=>x.v>0);
-
-    const badge = document.getElementById('kpi-depenses-badge');
-    if (badge) badge.textContent = fmt(k.depMens)+'/mois';
-
-    mkChart('chart-depenses', {
-      type:'bar',
-      data:{ labels:active.map(x=>x.l), datasets:[{ data:active.map(x=>x.v), backgroundColor:active.map(x=>x.c+'cc'), borderColor:active.map(x=>x.c), borderWidth:1, borderRadius:6, borderSkipped:false }] },
-      options:{
-        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)+'/mois'}} },
-        scales:{
-          x:{ ticks:{color:'#6b7585',font:{size:9},maxRotation:30}, grid:{display:false} },
-          y:{ ticks:{color:'#6b7585',callback:v=>fmtK(v)}, grid:{color:'rgba(255,255,255,0.04)'} }
-        }
-      }
-    });
-  }
-
   function renderChartPMV(k) {
     const items = [
       {l:'PEA',v:k.pmvPEA},{l:'CTO',v:k.pmvCTO},
@@ -3432,7 +3397,6 @@ window.addEventListener('DOMContentLoaded', () => {
       await loadChartJS();
       renderChartPatrimoine(k);
       renderChartRisque(k);
-      renderChartDepenses(k);
       renderChartPMV(k);
       renderChartATH(k.grandTotal);
     } catch(e) { console.warn('KPI charts:', e); }
