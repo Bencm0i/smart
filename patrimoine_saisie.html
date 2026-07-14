@@ -2849,6 +2849,44 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
+    // ── CARD DÉPENSES PAR CATÉGORIE ──────────────────────────────────
+    const depCatLines = (DATA.depenses?.categories||[]).map(cat => {
+      const mens = cat.items.reduce((s,it) => s + (it.mensuel || (it.note==='annuel' ? (it.annuel||0)/12 : 0)), 0);
+      return { label: cat.nom, icon: cat.icon||'💸', color: cat.color||'#c05a5a', val: mens, n: cat.items.length };
+    }).filter(x => x.val > 0).sort((a,b) => b.val - a.val);
+    const depTotal = depCatLines.reduce((s,d) => s+d.val, 0);
+    const depDetailHTML = depCatLines.map(d => {
+      const pctPart = depTotal > 0 ? (d.val / depTotal * 100) : 0;
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span style="font-size:12px;width:18px;flex-shrink:0;">${d.icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;color:var(--text);">${d.label}</div>
+            <div style="font-size:9px;color:var(--muted);">${d.n} poste${d.n>1?'s':''}</div>
+          </div>
+          <div style="width:60px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0;">
+            <div style="width:${pctPart.toFixed(1)}%;height:100%;background:${d.color};border-radius:2px;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;">${pctPart.toFixed(0)}%</span>
+          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${d.color};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
+        </div>`;
+    }).join('') || '<p style="font-size:11px;color:var(--muted);">Aucune dépense renseignée.</p>';
+    const depensesCard = `
+      <div class="kpi-card full" style="cursor:pointer;border-top:2px solid #c05a5a;" onclick="this.querySelector('.dep-detail').style.display=this.querySelector('.dep-detail').style.display==='none'?'block':'none';">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">Dépenses mensuelles <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
+        </div>
+        <div class="kpi-card-value" style="color:#c05a5a;">${fmt(k.depMens)}</div>
+        <div class="kpi-card-sub">${depCatLines.length} catégorie${depCatLines.length>1?'s':''} · ${fmt(k.depMens*12)} / an</div>
+        <div class="dep-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+          ${depDetailHTML}
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:2px;">
+            <span style="font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">TOTAL</span>
+            <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#c05a5a;">${fmt(k.depMens)}</span>
+          </div>
+        </div>
+      </div>`;
+
     // ── CARD IMPÔTS ──────────────────────────────────────────────────
     const impot = DATA.impotAnnee || 0;
     const patrimoineNetFiscal = k.grandTotal - impot;
@@ -3077,7 +3115,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = resumeCard + patrimoineCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
+    el.innerHTML = resumeCard + patrimoineCard + depensesCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
