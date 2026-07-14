@@ -1579,6 +1579,12 @@ let DATA = {
         {label:"Appartement 2", loyer:0},
         {label:"Local commercial", loyer:0},
       ]
+    },
+    p3:{
+      valeur:0,
+      items:[
+        {label:"Appartement 1", loyer:0},
+      ]
     }
   },
   depenses:{
@@ -2203,11 +2209,12 @@ function renderImmobilier() {
   if (!c) return;
   const p1HTML = renderImmoBien('p1', 'P1', 'accent-blue', 'blue');
   const p2HTML = renderImmoBien('p2', 'P2', 'accent-gold', 'gold');
-  const valeurTotal = (DATA.immobilier.p1.valeur||0) + (DATA.immobilier.p2.valeur||0);
-  const loyerTotal = immoLoyerTotal(DATA.immobilier.p1) + immoLoyerTotal(DATA.immobilier.p2);
-  c.innerHTML = p1HTML + p2HTML + `
+  const p3HTML = renderImmoBien('p3', 'P3', 'accent-green', 'green');
+  const valeurTotal = (DATA.immobilier.p1.valeur||0) + (DATA.immobilier.p2.valeur||0) + (DATA.immobilier.p3.valeur||0);
+  const loyerTotal = immoLoyerTotal(DATA.immobilier.p1) + immoLoyerTotal(DATA.immobilier.p2) + immoLoyerTotal(DATA.immobilier.p3);
+  c.innerHTML = p1HTML + p2HTML + p3HTML + `
   <div class="section">
-    <div class="section-head"><div class="section-title">📊 Total Immobilier — P1 + P2</div></div>
+    <div class="section-head"><div class="section-title">📊 Total Immobilier — P1 + P2 + P3</div></div>
     <div class="section-body">
       <div class="bank-total-row">
         <span class="bank-total-label">VALEUR DE VENTE TOTALE</span>
@@ -2222,7 +2229,7 @@ function renderImmobilier() {
 }
 
 function updateImmoTotals() {
-  ['p1','p2'].forEach(key => {
+  ['p1','p2','p3'].forEach(key => {
     const bien = DATA.immobilier[key];
     const t = immoLoyerTotal(bien);
     const badge = document.getElementById(`immo-${key}-loyer-badge`);
@@ -2230,8 +2237,8 @@ function updateImmoTotals() {
     const tot = document.getElementById(`immo-${key}-loyer-total`);
     if (tot) tot.textContent = fmtEurImmo(t);
   });
-  const valeurTotal = (DATA.immobilier.p1.valeur||0) + (DATA.immobilier.p2.valeur||0);
-  const loyerTotal = immoLoyerTotal(DATA.immobilier.p1) + immoLoyerTotal(DATA.immobilier.p2);
+  const valeurTotal = (DATA.immobilier.p1.valeur||0) + (DATA.immobilier.p2.valeur||0) + (DATA.immobilier.p3.valeur||0);
+  const loyerTotal = immoLoyerTotal(DATA.immobilier.p1) + immoLoyerTotal(DATA.immobilier.p2) + immoLoyerTotal(DATA.immobilier.p3);
   const vEl = document.getElementById('immo-valeur-total');
   if (vEl) vEl.textContent = fmtEurImmo(valeurTotal);
   const lEl = document.getElementById('immo-loyer-total');
@@ -2397,7 +2404,7 @@ function autoSave() {
       const avVal   = (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0);
       const avSyncVal = (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0);
       const ebVal   = (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0);
-      const immoVal = (DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0);
+      const immoVal = (DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0) + (DATA.immobilier?.p3?.valeur||0);
       const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal + immoVal;
       if (grandTotal > 100) {
         const maxATH = (DATA.ath||[]).reduce((mx,r)=>Math.max(mx,r.val||0),0);
@@ -2738,8 +2745,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const revenuSalaire = DATA.revenuMensuelNet || 0;
     const immoP1Val = DATA.immobilier?.p1?.valeur || 0;
     const immoP2Val = DATA.immobilier?.p2?.valeur || 0;
-    const immoTotal = immoP1Val + immoP2Val;
-    const immoLoyerMens = ['p1','p2'].reduce((s,key) =>
+    const immoP3Val = DATA.immobilier?.p3?.valeur || 0;
+    const immoTotal = immoP1Val + immoP2Val + immoP3Val;
+    const immoLoyerMens = ['p1','p2','p3'].reduce((s,key) =>
       s + (DATA.immobilier?.[key]?.items||[]).reduce((ss,it) => ss+(it.loyer||0), 0), 0);
     const scpiLoyerMens = (DATA.scpi||[]).reduce((s,r) => s+(r.loyerMensuel||0), 0);
     const revenuLocatif = immoLoyerMens + scpiLoyerMens;
@@ -3628,7 +3636,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const ebVal   = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0) : 0;
     const maison  = typeof DATA !== 'undefined' ? (DATA.maison||0) : 0;
     const liquide = typeof DATA !== 'undefined' ? (DATA.especeCache||0) : 0;
-    const immoVal = typeof DATA !== 'undefined' ? ((DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0)) : 0;
+    const immoVal = typeof DATA !== 'undefined' ? ((DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0) + (DATA.immobilier?.p3?.valeur||0)) : 0;
     const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal + immoVal;
 
     // PV hors SCPI
