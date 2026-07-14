@@ -1127,6 +1127,7 @@ button, input, select { touch-action: manipulation; }
   <button class="tab-btn" onclick="switchTab('investissements')">📈 Invest.</button>
   <button class="tab-btn" onclick="switchTab('scpi')">🏢 SCPI</button>
   <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
+  <button class="tab-btn" onclick="switchTab('immobilier')">🏘️ Immobilier</button>
   <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
   <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
 </div>
@@ -1274,13 +1275,11 @@ button, input, select { touch-action: manipulation; }
       <p style="font-size:11px;color:var(--muted);">Enregistre les pics patrimoniaux successifs.</p>
     </div>
   </div>
-  <div class="section accent-blue">
-    <div class="section-head">
-      <div class="section-title">📅 Suivi DCA</div>
-      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDCAEntry()">＋ Versement</button>
-    </div>
-    <div class="section-body" id="body-dca"></div>
-  </div>
+</div>
+
+<!-- ═══ PANEL : IMMOBILIER ═══ -->
+<div class="panel" id="panel-immobilier">
+  <div id="body-immobilier"></div>
 </div>
 
 <!-- ═══ PANEL : DÉPENSES ═══ -->
@@ -1565,7 +1564,23 @@ let DATA = {
   revenuMensuelNet:0,
   impotAnnee:0,
   ath:[],
-  dca:[],
+  immobilier:{
+    p1:{
+      valeur:0,
+      items:[
+        {label:"Appartement 1", loyer:0},
+        {label:"Appartement 2", loyer:0},
+      ]
+    },
+    p2:{
+      valeur:0,
+      items:[
+        {label:"Appartement 1", loyer:0},
+        {label:"Appartement 2", loyer:0},
+        {label:"Local commercial", loyer:0},
+      ]
+    }
+  },
   depenses:{
     categories:[
       {nom:"Impôts & Taxes",icon:"🏛️",color:"#ef4444",items:[
@@ -1638,7 +1653,7 @@ let DATA = {
 // ─── TAB SWITCHING ─────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const map = {kpi:0,banques:1,investissements:2,scpi:3,actifs:4,depenses:5,mobilite:6};
+  const map = {kpi:0,banques:1,investissements:2,scpi:3,actifs:4,immobilier:5,depenses:6,mobilite:7};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -2108,7 +2123,7 @@ function renderSCPI() {
 function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:''}); renderSCPI(); autoSave(); }
 function delSCPIRow(i) { DATA.scpi.splice(i,1); renderSCPI(); autoSave(); }
 
-// ─── ATH + DCA ─────────────────────────────────────────────────────────────
+// ─── ATH ───────────────────────────────────────────────────────────────────
 function renderATH() {
   const c = document.getElementById('body-ath');
   const rows = DATA.ath || [];
@@ -2136,34 +2151,86 @@ function addATHEntry() {
   renderATH(); autoSave();
 }
 
-function renderDCA() {
-  const c = document.getElementById('body-dca');
-  const rows = DATA.dca || [];
-  c.innerHTML = rows.length ? rows.map((r,i)=>`
-    <div class="log-card">
-      <div class="log-card-fields">
-        <div class="log-card-field" style="min-width:120px;">
-          <label>Date</label>
-          <input type="date" value="${r.date||''}" oninput="DATA.dca[${i}].date=this.value;autoSave()">
-        </div>
-        <div class="log-card-field" style="min-width:90px;">
-          <label>Montant (€)</label>
-          <input type="number" value="${r.montant||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off" placeholder="0.00" style="text-align:right" oninput="DATA.dca[${i}].montant=parseFloat(this.value)||0;autoSave()">
-        </div>
-        <div class="log-card-field" style="min-width:70px;max-width:90px;">
-          <label>Ticker</label>
-          <input type="text" value="${r.ticker||''}" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase" oninput="DATA.dca[${i}].ticker=this.value.toUpperCase();autoSave()">
-        </div>
-      </div>
-      <div class="log-card-del">
-        <button class="del-btn" onclick="DATA.dca.splice(${i},1);renderDCA();autoSave()">✕</button>
-      </div>
-    </div>`).join('') : '<p style="font-size:11px;color:var(--muted);">Aucun versement enregistré.</p>';
+// ─── IMMOBILIER (P1 / P2) ────────────────────────────────────────────────
+function immoLoyerTotal(bien) {
+  return (bien.items||[]).reduce((s,it) => s + (it.loyer||0), 0);
 }
-function addDCAEntry() {
-  if(!DATA.dca) DATA.dca=[];
-  DATA.dca.push({date:new Date().toISOString().slice(0,10),montant:0,ticker:'WPEA'});
-  renderDCA(); autoSave();
+const fmtEurImmo = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v||0);
+
+function renderImmoBien(key, title, accentClass, badgeClass) {
+  const bien = DATA.immobilier[key];
+  const loyerTotal = immoLoyerTotal(bien);
+  const itemsHTML = bien.items.map((it,i) => `
+    <div class="field-row">
+      <div class="field-label">${it.label}<small>Loyer brut mensuel</small></div>
+      <div class="euro-input">
+        <input type="number" min="0" step="0.01" value="${it.loyer || ''}" placeholder="0.00" inputmode="decimal" autocomplete="off"
+          oninput="DATA.immobilier.${key}.items[${i}].loyer=parseFloat(this.value)||0;updateImmoTotals();autoSave()">
+        <span class="unit">€</span>
+      </div>
+    </div>`).join('');
+  return `
+  <div class="section ${accentClass}">
+    <div class="section-head">
+      <div class="section-title">🏢 ${title}</div>
+      <span class="badge ${badgeClass}" id="immo-${key}-loyer-badge">${fmtEurImmo(loyerTotal)}/mois</span>
+    </div>
+    <div class="section-body">
+      ${itemsHTML}
+      <div class="field-row">
+        <div class="field-label">Valeur du bien — ${title}<small>Estimation de vente, tous lots confondus</small></div>
+        <div class="euro-input">
+          <input type="number" min="0" step="1000" value="${bien.valeur || ''}" placeholder="0" inputmode="decimal" autocomplete="off"
+            oninput="DATA.immobilier.${key}.valeur=parseFloat(this.value)||0;updateImmoTotals();autoSave()">
+          <span class="unit">€</span>
+        </div>
+      </div>
+      <div class="bank-total-row">
+        <span class="bank-total-label">TOTAL LOYERS ${title}</span>
+        <span class="bank-total-val" id="immo-${key}-loyer-total">${fmtEurImmo(loyerTotal)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderImmobilier() {
+  const c = document.getElementById('body-immobilier');
+  if (!c) return;
+  const p1HTML = renderImmoBien('p1', 'P1', 'accent-blue', 'blue');
+  const p2HTML = renderImmoBien('p2', 'P2', 'accent-gold', 'gold');
+  const valeurTotal = (DATA.immobilier.p1.valeur||0) + (DATA.immobilier.p2.valeur||0);
+  const loyerTotal = immoLoyerTotal(DATA.immobilier.p1) + immoLoyerTotal(DATA.immobilier.p2);
+  c.innerHTML = p1HTML + p2HTML + `
+  <div class="section">
+    <div class="section-head"><div class="section-title">📊 Total Immobilier — P1 + P2</div></div>
+    <div class="section-body">
+      <div class="bank-total-row">
+        <span class="bank-total-label">VALEUR DE VENTE TOTALE</span>
+        <span class="bank-total-val" id="immo-valeur-total">${fmtEurImmo(valeurTotal)}</span>
+      </div>
+      <div class="bank-total-row">
+        <span class="bank-total-label">TOTAL DES LOYERS</span>
+        <span class="bank-total-val" id="immo-loyer-total">${fmtEurImmo(loyerTotal)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function updateImmoTotals() {
+  ['p1','p2'].forEach(key => {
+    const bien = DATA.immobilier[key];
+    const t = immoLoyerTotal(bien);
+    const badge = document.getElementById(`immo-${key}-loyer-badge`);
+    if (badge) badge.textContent = fmtEurImmo(t)+'/mois';
+    const tot = document.getElementById(`immo-${key}-loyer-total`);
+    if (tot) tot.textContent = fmtEurImmo(t);
+  });
+  const valeurTotal = (DATA.immobilier.p1.valeur||0) + (DATA.immobilier.p2.valeur||0);
+  const loyerTotal = immoLoyerTotal(DATA.immobilier.p1) + immoLoyerTotal(DATA.immobilier.p2);
+  const vEl = document.getElementById('immo-valeur-total');
+  if (vEl) vEl.textContent = fmtEurImmo(valeurTotal);
+  const lEl = document.getElementById('immo-loyer-total');
+  if (lEl) lEl.textContent = fmtEurImmo(loyerTotal);
 }
 
 // ─── DÉPENSES ──────────────────────────────────────────────────────────────
@@ -2565,7 +2632,7 @@ function renderAll() {
   renderEB();
   renderSCPI();
   renderATH();
-  renderDCA();
+  renderImmobilier();
   renderDepenses();
   renderMobilite();
   document.getElementById('maison').value = DATA.maison || '';
