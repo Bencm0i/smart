@@ -2932,6 +2932,37 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
+    // ── CARD REVENU VS DÉPENSES — LE COMBAT ──────────────────────────
+    const battleTotal = k.revenu + k.depMens;
+    const revenuPct = battleTotal > 0 ? (k.revenu / battleTotal * 100) : 50;
+    const depPct = 100 - revenuPct;
+    const revenuWins = k.revenu >= k.depMens;
+    const ecart = Math.abs(k.revenu - k.depMens);
+    const battleCard = `
+      <div class="kpi-card full" style="border-top:2px solid var(--gold);">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">💰 Revenu vs Dépenses — Le Combat</div>
+          <span style="font-size:9px;color:var(--muted);">mensuel</span>
+        </div>
+        <div style="position:relative;height:42px;background:var(--surface2);border-radius:8px;overflow:hidden;margin-top:10px;border:1px solid var(--border);box-shadow:inset 0 0 10px rgba(0,0,0,0.25);">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${revenuPct.toFixed(1)}%;background:linear-gradient(90deg,#3d8a5c,var(--green));display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .4s ease;">
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">💪 ${fmt(k.revenu)}</span>
+          </div>
+          <div style="position:absolute;right:0;top:0;bottom:0;width:${depPct.toFixed(1)}%;background:linear-gradient(270deg,#8f3a3a,var(--red));display:flex;align-items:center;justify-content:flex-start;padding-left:8px;transition:width .4s ease;">
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">${fmt(k.depMens)} 💸</span>
+          </div>
+          <div style="position:absolute;left:${revenuPct.toFixed(1)}%;top:-3px;bottom:-3px;width:3px;background:var(--gold);transform:translateX(-50%);box-shadow:0 0 8px var(--gold);"></div>
+          <div style="position:absolute;left:${revenuPct.toFixed(1)}%;top:50%;transform:translate(-50%,-50%);font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));">⚔️</div>
+        </div>
+        <div class="kpi-card-sub" style="margin-top:8px;text-align:center;">
+          ${battleTotal > 0
+            ? (revenuWins
+                ? `🏆 Le revenu l'emporte de <b style="color:var(--green);">${fmt(ecart)}</b>/mois`
+                : `⚠️ Les dépenses l'emportent de <b style="color:var(--red);">${fmt(ecart)}</b>/mois`)
+            : 'Renseigner revenus et dépenses pour lancer le combat'}
+        </div>
+      </div>`;
+
     // ── CARD DÉPENSES PAR CATÉGORIE ──────────────────────────────────
     const depCatLines = (DATA.depenses?.categories||[]).map(cat => {
       const items = cat.items
@@ -3218,7 +3249,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = resumeCard + patrimoineCard + depensesCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
+    el.innerHTML = resumeCard + patrimoineCard + battleCard + depensesCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
