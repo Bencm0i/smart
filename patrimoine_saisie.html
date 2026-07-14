@@ -2116,11 +2116,16 @@ function renderSCPI() {
             <input type="number" value="${r.montantPlace||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
               oninput="DATA.scpi[${i}].montantPlace=parseFloat(this.value)||0;autoSave()">
           </div>
+          <div class="form-field">
+            <label class="lbl">Loyer mensuel (€)<small style="display:block;font-weight:400;">Revenu locatif brut perçu</small></label>
+            <input type="number" value="${r.loyerMensuel||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+              oninput="DATA.scpi[${i}].loyerMensuel=parseFloat(this.value)||0;autoSave()">
+          </div>
         </div>
       </div>
     </div>`).join('');
 }
-function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:''}); renderSCPI(); autoSave(); }
+function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,loyerMensuel:0,url:''}); renderSCPI(); autoSave(); }
 function delSCPIRow(i) { DATA.scpi.splice(i,1); renderSCPI(); autoSave(); }
 
 // ─── ATH ───────────────────────────────────────────────────────────────────
@@ -2730,12 +2735,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const maison  = DATA.maison || 0;
     const liquide = DATA.especeCache || 0;
-    const revenu  = DATA.revenuMensuelNet || 0;
+    const revenuSalaire = DATA.revenuMensuelNet || 0;
     const immoP1Val = DATA.immobilier?.p1?.valeur || 0;
     const immoP2Val = DATA.immobilier?.p2?.valeur || 0;
     const immoTotal = immoP1Val + immoP2Val;
     const immoLoyerMens = ['p1','p2'].reduce((s,key) =>
       s + (DATA.immobilier?.[key]?.items||[]).reduce((ss,it) => ss+(it.loyer||0), 0), 0);
+    const scpiLoyerMens = (DATA.scpi||[]).reduce((s,r) => s+(r.loyerMensuel||0), 0);
+    const revenuLocatif = immoLoyerMens + scpiLoyerMens;
+    const revenu = revenuSalaire + revenuLocatif;
 
     const depMens = (DATA.depenses?.categories||[]).reduce((s,cat) =>
       s + cat.items.reduce((ss, it) => {
@@ -2793,10 +2801,10 @@ window.addEventListener('DOMContentLoaded', () => {
       btcVal, btcPR, orVal, orPR,
       ccBourso, ccFortuneo, ccRevolut, ccEspeces, ccLivrets, ccTotal,
       pmvPEA, pmvCTO, pmvRev, pmvEE, pmvAV, pmvSCPI,
-      depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
+      depMens, revenu, revenuSalaire, revenuLocatif, immoLoyerMens, scpiLoyerMens, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
       nonInvestiTotal, nonInvestiLines,
-      immoTotal, immoP1Val, immoP2Val, immoLoyerMens,
+      immoTotal, immoP1Val, immoP2Val,
     };
   }
 
@@ -2815,8 +2823,9 @@ window.addEventListener('DOMContentLoaded', () => {
       // P/MV tout (2e card)
       { label:'P/MV (tout)', value: (pmvTot>=0?'+':'')+fmtK(pmvTot), cls:pmvTot>=0?'green':'red', sub:'Toutes poches incl. SCPI' },
       { label:'Dépenses / mois', value: fmtK(k.depMens), cls:'red', sub:'Toutes catégories' },
-      { label:'Épargne mensuelle', value: fmtK(epargne), cls:'green', sub:'Revenu − Dépenses' },
-      { label:'Taux d\'épargne', value: pct(k.txEpargne), cls: k.txEpargne>=20?'green':k.txEpargne>=10?'gold':'red', sub:'% du revenu net' },
+      { label:'Revenu mensuel total', value: fmtK(k.revenu), cls:'blue', sub: `Salaire ${fmtK(k.revenuSalaire)} + Loyers ${fmtK(k.revenuLocatif)}` },
+      { label:'Épargne mensuelle', value: fmtK(epargne), cls:'green', sub:'Revenu (salaire + loyers) − Dépenses' },
+      { label:'Taux d\'épargne', value: pct(k.txEpargne), cls: k.txEpargne>=20?'green':k.txEpargne>=10?'gold':'red', sub:'% du revenu total (salaire + loyers)' },
       // ── MODIFIÉ : Indépendance hors résidence principale
       { label:'Indépendance (hors immo)', value: k.moisLiberteSansMaison.toFixed(0)+' mois', cls:'gold', sub:'Patrimoine liquide ÷ dépenses' },
       // ── GAIN VÉLO vs VOITURE
