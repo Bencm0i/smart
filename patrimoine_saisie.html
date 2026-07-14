@@ -1122,17 +1122,17 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ TABS ═══ -->
 <div class="tabs-bar">
-  <button class="tab-btn active" onclick="switchTab('banques')">🏦 Banques</button>
+  <button class="tab-btn active" onclick="switchTab('kpi')">📊 KPI</button>
+  <button class="tab-btn" onclick="switchTab('banques')">🏦 Banques</button>
   <button class="tab-btn" onclick="switchTab('investissements')">📈 Invest.</button>
   <button class="tab-btn" onclick="switchTab('scpi')">🏢 SCPI</button>
   <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
   <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
   <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
-  <button class="tab-btn" onclick="switchTab('kpi')">📊 KPI</button>
 </div>
 
 <!-- ═══ PANEL : BANQUES ═══ -->
-<div class="panel active" id="panel-banques">
+<div class="panel" id="panel-banques">
   <div class="section accent-blue">
     <div class="section-head">
       <div class="section-title">🏦 Boursorama <span class="badge blue">Boursobank</span></div>
@@ -1395,7 +1395,7 @@ button, input, select { touch-action: manipulation; }
 </div>
 
 <!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
-<div class="panel" id="panel-kpi">
+<div class="panel active" id="panel-kpi">
 
   <!-- KPI CARDS ROW -->
   <div class="kpi-grid" id="kpi-cards"></div>
@@ -1638,7 +1638,7 @@ let DATA = {
 // ─── TAB SWITCHING ─────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const map = {banques:0,investissements:1,scpi:2,actifs:3,depenses:4,mobilite:5,kpi:6};
+  const map = {kpi:0,banques:1,investissements:2,scpi:3,actifs:4,depenses:5,mobilite:6};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -2579,6 +2579,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(saved) mergeDeep(DATA, JSON.parse(saved));
   } catch(e) {}
   renderAll();
+  if (typeof renderKPIPanel === 'function') renderKPIPanel();
   bindMobiliteEvents();
   document.getElementById('maison').addEventListener('input', function() {
     DATA.maison = parseFloat(this.value)||0; autoSave();
