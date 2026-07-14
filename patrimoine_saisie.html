@@ -2840,24 +2840,44 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // ── CARD DÉPENSES PAR CATÉGORIE ──────────────────────────────────
     const depCatLines = (DATA.depenses?.categories||[]).map(cat => {
-      const mens = cat.items.reduce((s,it) => s + (it.mensuel || (it.note==='annuel' ? (it.annuel||0)/12 : 0)), 0);
-      return { label: cat.nom, icon: cat.icon||'💸', color: cat.color||'#c05a5a', val: mens, n: cat.items.length };
+      const items = cat.items
+        .map(it => ({ label: it.label, val: it.mensuel || (it.note==='annuel' ? (it.annuel||0)/12 : 0) }))
+        .filter(it => it.val > 0)
+        .sort((a,b) => b.val - a.val);
+      const mens = items.reduce((s,it) => s + it.val, 0);
+      return { label: cat.nom, icon: cat.icon||'💸', color: cat.color||'#c05a5a', val: mens, items };
     }).filter(x => x.val > 0).sort((a,b) => b.val - a.val);
     const depTotal = depCatLines.reduce((s,d) => s+d.val, 0);
-    const depDetailHTML = depCatLines.map(d => {
+    const depDetailHTML = depCatLines.map((d,di) => {
       const pctPart = depTotal > 0 ? (d.val / depTotal * 100) : 0;
+      const itemsHTML = d.items.map(it => {
+        const pctItem = d.val > 0 ? (it.val / d.val * 100) : 0;
+        return `
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0 4px 26px;border-bottom:1px solid rgba(255,255,255,0.03);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${it.label}</div>
+            </div>
+            <span style="font-size:9px;color:var(--muted);width:28px;text-align:right;flex-shrink:0;">${pctItem.toFixed(0)}%</span>
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:${d.color};min-width:62px;text-align:right;flex-shrink:0;">${fmt(it.val)}</span>
+          </div>`;
+      }).join('');
       return `
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-          <span style="font-size:12px;width:18px;flex-shrink:0;">${d.icon}</span>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;color:var(--text);">${d.label}</div>
-            <div style="font-size:9px;color:var(--muted);">${d.n} poste${d.n>1?'s':''}</div>
+        <div style="margin-bottom:2px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;" onclick="event.stopPropagation();this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.dep-caret').textContent=this.nextElementSibling.style.display==='none'?'▸':'▾';">
+            <span style="font-size:12px;width:18px;flex-shrink:0;">${d.icon}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:11px;color:var(--text);">${d.label} <span class="dep-caret" style="font-size:8px;color:var(--muted);">▸</span></div>
+              <div style="font-size:9px;color:var(--muted);">${d.items.length} poste${d.items.length>1?'s':''}</div>
+            </div>
+            <div style="width:60px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0;">
+              <div style="width:${pctPart.toFixed(1)}%;height:100%;background:${d.color};border-radius:2px;"></div>
+            </div>
+            <span style="font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;">${pctPart.toFixed(0)}%</span>
+            <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${d.color};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
           </div>
-          <div style="width:60px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0;">
-            <div style="width:${pctPart.toFixed(1)}%;height:100%;background:${d.color};border-radius:2px;"></div>
+          <div style="display:none;border-left:2px solid ${d.color}44;margin-left:8px;">
+            ${itemsHTML}
           </div>
-          <span style="font-size:10px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;">${pctPart.toFixed(0)}%</span>
-          <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:${d.color};min-width:70px;text-align:right;flex-shrink:0;">${fmt(d.val)}</span>
         </div>`;
     }).join('') || '<p style="font-size:11px;color:var(--muted);">Aucune dépense renseignée.</p>';
     const depensesCard = `
@@ -2866,7 +2886,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="kpi-card-label">Dépenses mensuelles <span style="font-size:9px;color:var(--muted);margin-left:4px;">▾ détail</span></div>
         </div>
         <div class="kpi-card-value" style="color:#c05a5a;">${fmt(k.depMens)}</div>
-        <div class="kpi-card-sub">${depCatLines.length} catégorie${depCatLines.length>1?'s':''} · ${fmt(k.depMens*12)} / an</div>
+        <div class="kpi-card-sub">${depCatLines.length} catégorie${depCatLines.length>1?'s':''} · ${fmt(k.depMens*12)} / an · clic sur une catégorie pour le détail</div>
         <div class="dep-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
           ${depDetailHTML}
           <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;margin-top:2px;">
