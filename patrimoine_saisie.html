@@ -2392,7 +2392,8 @@ function autoSave() {
       const avVal   = (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.valeurActuelle||0),0);
       const avSyncVal = (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0);
       const ebVal   = (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0);
-      const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal;
+      const immoVal = (DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0);
+      const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal + immoVal;
       if (grandTotal > 100) {
         const maxATH = (DATA.ath||[]).reduce((mx,r)=>Math.max(mx,r.val||0),0);
         if (grandTotal > maxATH) {
@@ -2730,6 +2731,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const maison  = DATA.maison || 0;
     const liquide = DATA.especeCache || 0;
     const revenu  = DATA.revenuMensuelNet || 0;
+    const immoP1Val = DATA.immobilier?.p1?.valeur || 0;
+    const immoP2Val = DATA.immobilier?.p2?.valeur || 0;
+    const immoTotal = immoP1Val + immoP2Val;
+    const immoLoyerMens = ['p1','p2'].reduce((s,key) =>
+      s + (DATA.immobilier?.[key]?.items||[]).reduce((ss,it) => ss+(it.loyer||0), 0), 0);
 
     const depMens = (DATA.depenses?.categories||[]).reduce((s,cat) =>
       s + cat.items.reduce((ss, it) => {
@@ -2737,7 +2743,7 @@ window.addEventListener('DOMContentLoaded', () => {
         return ss + m;
       }, 0), 0);
 
-    const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal;
+    const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal + immoTotal;
 
     const pmvPEA  = peaVal - peaPR;
     const pmvCTO  = ctoVal - ctoPR;
@@ -2790,6 +2796,7 @@ window.addEventListener('DOMContentLoaded', () => {
       depMens, revenu, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
       nonInvestiTotal, nonInvestiLines,
+      immoTotal, immoP1Val, immoP2Val, immoLoyerMens,
     };
   }
 
@@ -2827,7 +2834,9 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:'Ép. Bloquée',     val: k.ebVal,         color:'#8b9fba', icon:'🔒' },
       { label:'Espèces',         val: k.liquide,       color:'#6b7585', icon:'💵' },
       { label:'SCPI',            val: k.scpiVal,       color:'#a855f7', icon:'🏢', sub:'Parts × prix actuel' },
-      { label:'Immobilier',      val: k.maison,        color:'#e8c96e', icon:'🏠' },
+      { label:'Résidence principale', val: k.maison,   color:'#e8c96e', icon:'🏠' },
+      { label:'Immobilier P1',  val: k.immoP1Val,      color:'#5a9bd4', icon:'🏘️', sub:'Locatif — valeur de vente' },
+      { label:'Immobilier P2',  val: k.immoP2Val,      color:'#d4a75a', icon:'🏘️', sub:'Locatif — valeur de vente' },
     ].filter(x => x.val > 0);
 
     const detailHTML = detailLines.map(d => {
@@ -3610,7 +3619,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const ebVal   = typeof DATA !== 'undefined' ? (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0) : 0;
     const maison  = typeof DATA !== 'undefined' ? (DATA.maison||0) : 0;
     const liquide = typeof DATA !== 'undefined' ? (DATA.especeCache||0) : 0;
-    const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal;
+    const immoVal = typeof DATA !== 'undefined' ? ((DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0)) : 0;
+    const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal + immoVal;
 
     // PV hors SCPI
     const peaVal = typeof DATA !== 'undefined' ? (DATA.investissements?.pea||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
