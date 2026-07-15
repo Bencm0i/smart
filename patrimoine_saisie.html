@@ -3157,6 +3157,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const totalCost   = totalValeur - totalGain;
       const totalPct    = totalCost > 0 ? totalGain / totalCost * 100 : 0;
       const totalCls    = totalGain >= 0 ? '#5aab7a' : '#c05a5a';
+      const pruBattleTotal = totalCost + totalValeur;
+      const investiPct  = pruBattleTotal > 0 ? (totalCost / pruBattleTotal * 100) : 50;
+      const valeurPct   = 100 - investiPct;
       pruCard = `
         <div class="kpi-card full" style="cursor:pointer;border-top:2px solid ${totalCls};" onclick="this.querySelector('.pru-detail').style.display=this.querySelector('.pru-detail').style.display==='none'?'block':'none';">
           <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -3165,6 +3168,23 @@ window.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="kpi-card-value" style="color:${totalCls};">${totalGain>=0?'+':''}${fmtK(totalGain)}</div>
           <div class="kpi-card-sub">Gain total · ${totalPct>=0?'+':''}${totalPct.toFixed(1)}% global</div>
+          <div style="position:relative;height:42px;background:var(--surface2);border-radius:8px;overflow:hidden;margin-top:10px;border:1px solid var(--border);box-shadow:inset 0 0 10px rgba(0,0,0,0.25);">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:${investiPct.toFixed(1)}%;background:linear-gradient(90deg,#4a5568,#6b7585);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .4s ease;">
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">🎯 ${fmtK(totalCost)}</span>
+            </div>
+            <div style="position:absolute;right:0;top:0;bottom:0;width:${valeurPct.toFixed(1)}%;background:linear-gradient(270deg,${totalGain>=0?'#3d8a5c,var(--green)':'#8f3a3a,var(--red)'});display:flex;align-items:center;justify-content:flex-start;padding-left:8px;transition:width .4s ease;">
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">${fmtK(totalValeur)} 📈</span>
+            </div>
+            <div style="position:absolute;left:${investiPct.toFixed(1)}%;top:-3px;bottom:-3px;width:3px;background:var(--gold);transform:translateX(-50%);box-shadow:0 0 8px var(--gold);"></div>
+            <div style="position:absolute;left:${investiPct.toFixed(1)}%;top:50%;transform:translate(-50%,-50%);font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));">⚔️</div>
+          </div>
+          <div class="kpi-card-sub" style="margin-top:8px;text-align:center;">
+            ${pruBattleTotal > 0
+              ? (totalGain >= 0
+                  ? `🏆 La valeur actuelle l'emporte de <b style="color:var(--green);">${fmtK(totalGain)}</b>`
+                  : `⚠️ Le capital investi l'emporte de <b style="color:var(--red);">${fmtK(Math.abs(totalGain))}</b>`)
+              : ''}
+          </div>
           <div class="pru-detail" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
             <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:4px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:4px;">
               <span>Actif</span><span style="text-align:right;">PRU→Cours</span><span style="text-align:right;">Gain €</span><span style="text-align:right;">Gain %</span>
