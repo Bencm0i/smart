@@ -2587,15 +2587,9 @@ function handleFileLoad(e) {
   reader.onload = ev => {
     try {
       const loaded = JSON.parse(ev.target.result);
+      const before = JSON.parse(JSON.stringify(DATA));
       mergeDeep(DATA, loaded);
-      renderAll();
-      try {
-        localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
-        flashSaveStatus('✓ Enregistré');
-      } catch(e) {
-        flashSaveStatus('❌ Erreur enregistrement');
-      }
-      showToast('✓ JSON chargé : ' + file.name);
+      replaceWithUndo(before, renderAll, '✓ JSON chargé : ' + file.name);
       setLastJsonUsed('load', file.name);
     } catch(err) {
       showToast('❌ Erreur lecture JSON');
@@ -2682,11 +2676,26 @@ function buildKPIPayload() {
   };
 }
 
-function xorEncrypt(text, key) {
-  let r = '';
-  for(let i = 0; i < text.length; i++)
-    r += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  return btoa(r);
+async function aesEncrypt(text, password) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(text));
+  const combined = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, salt.length);
+  combined.set(new Uint8Array(ciphertext), salt.length + iv.length);
+  let bin = '';
+  combined.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
 }
 
 async function exportKPI() {
@@ -2697,10 +2706,10 @@ async function exportKPI() {
   try {
     const payload = buildKPIPayload();
     const plaintext = JSON.stringify({ data: payload, date: new Date().toISOString() });
-    const enc = xorEncrypt(plaintext, pwd);
+    const enc = await aesEncrypt(plaintext, pwd);
     const d = new Date();
     const fname = `kpi_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
-    const blob = new Blob([JSON.stringify({ enc })], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ enc, v: 2, algo: 'AES-GCM-256/PBKDF2-150000' })], { type: 'application/json' });
     if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
       try {
         await navigator.share({ title: 'Patrimoine — Export KPI', files: [new File([blob], fname, {type:'application/json'})] });
@@ -2734,21 +2743,32 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ─── SUPPRESSION AVEC ANNULATION ─────────────────────────────────────────────
+// ─── SUPPRESSION / REMPLACEMENT AVEC ANNULATION ──────────────────────────────
 let undoState = null;
 const UNDO_DELAY = 5000;
 
+function showUndoToast(label) {
+  const el = document.getElementById('undo-toast');
+  document.getElementById('undo-toast-msg').textContent = label || 'Modification effectuée';
+  el.classList.add('show');
+}
+
 function deleteWithUndo(array, index, renderFn, label) {
-  if (undoState) commitUndoState(); // valide/enregistre la suppression précédente en attente
+  if (undoState) commitUndoState(); // valide/enregistre l'action précédente en attente
   const item = array[index];
   array.splice(index, 1);
   if (typeof renderFn === 'function') renderFn();
+  showUndoToast(label);
+  undoState = { type: 'delete', array, index, item, renderFn };
+  undoState.timer = setTimeout(commitUndoState, UNDO_DELAY);
+}
 
-  const el = document.getElementById('undo-toast');
-  document.getElementById('undo-toast-msg').textContent = label || 'Ligne supprimée';
-  el.classList.add('show');
-
-  undoState = { array, index, item, renderFn };
+// snapshotBefore: copie profonde de DATA prise AVANT la modification déjà appliquée
+function replaceWithUndo(snapshotBefore, renderFn, label) {
+  if (undoState) commitUndoState();
+  if (typeof renderFn === 'function') renderFn();
+  showUndoToast(label);
+  undoState = { type: 'replace', snapshotBefore, renderFn };
   undoState.timer = setTimeout(commitUndoState, UNDO_DELAY);
 }
 
@@ -2767,13 +2787,19 @@ function commitUndoState() {
 
 function undoDelete() {
   if (!undoState) return;
-  const { array, index, item, renderFn, timer } = undoState;
-  clearTimeout(timer);
-  array.splice(index, 0, item);
+  clearTimeout(undoState.timer);
+  if (undoState.type === 'delete') {
+    const { array, index, item, renderFn } = undoState;
+    array.splice(index, 0, item);
+    if (typeof renderFn === 'function') renderFn();
+  } else if (undoState.type === 'replace') {
+    Object.keys(DATA).forEach(k => delete DATA[k]);
+    Object.assign(DATA, undoState.snapshotBefore);
+    if (typeof undoState.renderFn === 'function') undoState.renderFn();
+  }
   document.getElementById('undo-toast').classList.remove('show');
   undoState = null;
-  if (typeof renderFn === 'function') renderFn();
-  showToast('↩ Suppression annulée');
+  showToast('↩ Annulé');
 }
 
 // ─── THEME TOGGLE ──────────────────────────────────────────────────────────
@@ -2819,6 +2845,11 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     const saved = localStorage.getItem('patrimoine_saisie');
     if(saved) mergeDeep(DATA, JSON.parse(saved));
+    // Migration ponctuelle : ancienne clé séparée pour la date d'achat cash
+    if (!DATA.achatCashDate) {
+      const legacyAchatDate = localStorage.getItem('achat_cash_date');
+      if (legacyAchatDate) { DATA.achatCashDate = legacyAchatDate; localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); }
+    }
   } catch(e) {}
   renderAll();
   if (typeof renderKPIPanel === 'function') renderKPIPanel();
@@ -3418,7 +3449,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const TRAVAUX_MOIS = 100;
     const PAR_JOUR = (LOYER_MOIS * 12 - TF_AN - TRAVAUX_MOIS * 12) / 365;
 
-    let achatDate = localStorage.getItem('achat_cash_date') || '';
+    let achatDate = DATA.achatCashDate || '';
     let joursSince = 0, econTotal = 0, econLoyer = 0, coutTF = 0, coutTravaux = 0;
     if (achatDate) {
       const d0 = new Date(achatDate); const d1 = new Date();
@@ -3460,7 +3491,7 @@ window.addEventListener('DOMContentLoaded', () => {
             <input type="date" id="achat-cash-date-input"
               value="${achatDate}"
               style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;"
-              onchange="localStorage.setItem('achat_cash_date',this.value);if(typeof renderKPIPanel==='function')renderKPIPanel();">
+              onchange="DATA.achatCashDate=this.value;autoSave();if(typeof renderKPIPanel==='function')renderKPIPanel();">
             <span style="font-size:10px;color:var(--muted);">Sauvegardé automatiquement</span>
           </div>
         </div>
