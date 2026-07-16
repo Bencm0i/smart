@@ -1700,11 +1700,12 @@ function renderBank(bankKey, containerId) {
   const fmtEur = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
   container.innerHTML = rows.map((r, i) => {
     const isManaged = managed.includes(i);
+    if (isManaged) return ''; // champ calculé depuis Investissements : masqué dans l'onglet Banques (mécanique de synchro/total inchangée)
     const liqLabel = r.liq === 0 ? '⚡ Immédiat' : r.liq === 1 ? '⏱ 1-3 mois' : '🔒 +6 mois';
     const badgeClass = r.liq === 0 ? 'green' : r.liq === 1 ? 'blue' : '';
     return `<div class="field-row">
       <div class="field-label">${r.label}
-        <small><span class="badge ${badgeClass}">${liqLabel}</span> ${isManaged ? '<span class="badge" title="Synchronisé depuis Investissements">⇄ Auto</span>' : ''}</small>
+        <small><span class="badge ${badgeClass}">${liqLabel}</span></small>
       </div>
       <div class="euro-input">
         <input type="number" 
@@ -1714,7 +1715,6 @@ function renderBank(bankKey, containerId) {
           placeholder="0.00"
           inputmode="decimal"
           autocomplete="off"
-          ${isManaged ? 'readonly style="color:var(--muted);cursor:not-allowed;"' : ''}
           oninput="DATA['${bankKey}'][${i}].val=parseFloat(this.value)||0;updateBankTotal('${bankKey}','${containerId}');autoSave()">
         <span class="unit">€</span>
       </div>
