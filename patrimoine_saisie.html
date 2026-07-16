@@ -655,6 +655,43 @@ select option { background: var(--surface2); }
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+#undo-toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 8px 8px 16px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#undo-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+#undo-toast-btn {
+  background: var(--accent);
+  color: #1a1e24;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#undo-toast-btn:hover { background: var(--accent2); }
+
 /* ═══ BOTTOM BAR ═══ */
 .bottom-bar {
   position: fixed;
@@ -1508,6 +1545,10 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ TOAST ═══ -->
 <div id="toast"></div>
+<div id="undo-toast">
+  <span id="undo-toast-msg"></span>
+  <button id="undo-toast-btn" onclick="undoDelete()">↩ Annuler</button>
+</div>
 
 <!-- ═══ FIREWORKS ═══ -->
 <canvas id="fireworks-canvas"></canvas>
@@ -1824,10 +1865,10 @@ function addInvRow(key) {
   autoSave();
 }
 function delInvRow(key, i) {
-  DATA.investissements[key].splice(i,1);
-  renderInvPortfolio(key, key==='revolut'?'body-inv-revolut':'body-'+key);
-  syncInvToBank();
-  autoSave();
+  deleteWithUndo(DATA.investissements[key], i, () => {
+    renderInvPortfolio(key, key==='revolut'?'body-inv-revolut':'body-'+key);
+    syncInvToBank();
+  }, 'Ligne supprimée');
 }
 
 // ─── ÉPARGNE ENTREPRISE ────────────────────────────────────────────────────
@@ -1877,7 +1918,7 @@ function renderEE() {
     </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
 }
 function addEERow() { DATA.investissements.epargne_entreprise.push({nom:'',fonds:'',parts:0,pr:0,valeurActuelle:0,tauxRendement:0,url:''}); renderEE(); autoSave(); }
-function delEERow(i) { DATA.investissements.epargne_entreprise.splice(i,1); renderEE(); autoSave(); }
+function delEERow(i) { deleteWithUndo(DATA.investissements.epargne_entreprise, i, renderEE, 'Ligne épargne entreprise supprimée'); }
 
 // ─── ASSURANCE VIE ─────────────────────────────────────────────────────────
 function renderAV() {
@@ -1926,7 +1967,7 @@ function renderAV() {
     </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
 }
 function addAVRow() { DATA.investissements.assurance_vie.push({nom:'',assureur:'',contrat:'',versements:0,valeurActuelle:0,tauxRendement:0,url:''}); renderAV(); autoSave(); }
-function delAVRow(i) { DATA.investissements.assurance_vie.splice(i,1); renderAV(); autoSave(); }
+function delAVRow(i) { deleteWithUndo(DATA.investissements.assurance_vie, i, renderAV, 'Ligne assurance-vie supprimée'); }
 
 // ─── ÉPARGNE BLOQUÉE ───────────────────────────────────────────────────────
 function renderEB() {
@@ -1976,7 +2017,7 @@ function renderEB() {
     </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
 }
 function addEBRow() { DATA.investissements.epargne_bloquee.push({nom:'',type:'Livret A',banque:'',montant:0,tauxAnnuel:0,dateOuverture:'',url:''}); renderEB(); autoSave(); }
-function delEBRow(i) { DATA.investissements.epargne_bloquee.splice(i,1); renderEB(); autoSave(); }
+function delEBRow(i) { deleteWithUndo(DATA.investissements.epargne_bloquee, i, renderEB, 'Ligne épargne bloquée supprimée'); }
 
 // ─── SYNC INV → BANK ───────────────────────────────────────────────────────
 function syncInvToBank() {
@@ -2150,7 +2191,7 @@ function renderSCPI() {
     </div>`).join('');
 }
 function addSCPIRow() { DATA.scpi.push({gestionnaire:'',produit:'',parts:0,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,loyerMensuel:0,url:''}); renderSCPI(); autoSave(); }
-function delSCPIRow(i) { DATA.scpi.splice(i,1); renderSCPI(); autoSave(); }
+function delSCPIRow(i) { deleteWithUndo(DATA.scpi, i, renderSCPI, 'Ligne SCPI supprimée'); }
 
 // ─── ATH ───────────────────────────────────────────────────────────────────
 function renderATH() {
@@ -2170,7 +2211,7 @@ function renderATH() {
         </div>
       </div>
       <div class="log-card-del">
-        <button class="del-btn" onclick="DATA.ath.splice(${i},1);renderATH();autoSave()">✕</button>
+        <button class="del-btn" onclick="deleteWithUndo(DATA.ath,${i},renderATH,'Ligne ATH supprimée')">✕</button>
       </div>
     </div>`).join('');
 }
@@ -2307,8 +2348,7 @@ function addDepenseItem(ci) {
   renderDepenses(); autoSave();
 }
 function delDepenseItem(ci, ii) {
-  DATA.depenses.categories[ci].items.splice(ii,1);
-  renderDepenses(); autoSave();
+  deleteWithUndo(DATA.depenses.categories[ci].items, ii, renderDepenses, 'Dépense supprimée');
 }
 
 // ─── MOBILITÉ ──────────────────────────────────────────────────────────────
@@ -2328,7 +2368,7 @@ function renderOdo(vehicle, containerId) {
         </div>
       </div>
       <div class="log-card-del">
-        <button class="del-btn" onclick="DATA.mobilite['${vehicle}'].odoLog.splice(${i},1);renderOdo('${vehicle}','${containerId}');autoSave()">✕</button>
+        <button class="del-btn" onclick="deleteWithUndo(DATA.mobilite['${vehicle}'].odoLog,${i},()=>renderOdo('${vehicle}','${containerId}'),'Relevé supprimé')">✕</button>
       </div>
     </div>`).join('') : '<p style="font-size:11px;color:var(--muted);">Aucun relevé.</p>';
 }
@@ -2692,6 +2732,48 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── SUPPRESSION AVEC ANNULATION ─────────────────────────────────────────────
+let undoState = null;
+const UNDO_DELAY = 5000;
+
+function deleteWithUndo(array, index, renderFn, label) {
+  if (undoState) commitUndoState(); // valide/enregistre la suppression précédente en attente
+  const item = array[index];
+  array.splice(index, 1);
+  if (typeof renderFn === 'function') renderFn();
+
+  const el = document.getElementById('undo-toast');
+  document.getElementById('undo-toast-msg').textContent = label || 'Ligne supprimée';
+  el.classList.add('show');
+
+  undoState = { array, index, item, renderFn };
+  undoState.timer = setTimeout(commitUndoState, UNDO_DELAY);
+}
+
+function commitUndoState() {
+  if (!undoState) return;
+  clearTimeout(undoState.timer);
+  undoState = null;
+  document.getElementById('undo-toast').classList.remove('show');
+  try {
+    localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+    flashSaveStatus('✓ Enregistré');
+  } catch(e) {
+    flashSaveStatus('❌ Erreur enregistrement');
+  }
+}
+
+function undoDelete() {
+  if (!undoState) return;
+  const { array, index, item, renderFn, timer } = undoState;
+  clearTimeout(timer);
+  array.splice(index, 0, item);
+  document.getElementById('undo-toast').classList.remove('show');
+  undoState = null;
+  if (typeof renderFn === 'function') renderFn();
+  showToast('↩ Suppression annulée');
 }
 
 // ─── THEME TOGGLE ──────────────────────────────────────────────────────────
