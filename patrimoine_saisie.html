@@ -2397,6 +2397,17 @@ function bindMobiliteEvents() {
 
 // ─── AUTO-SAVE ─────────────────────────────────────────────────────────────
 let saveTimer;
+let saveStatusTimer;
+function flashSaveStatus(msg) {
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  clearTimeout(saveStatusTimer);
+  el.textContent = msg;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  saveStatusTimer = setTimeout(() => el.classList.remove('show'), 1600);
+}
 let athTimer; // timer séparé pour ATH — délai plus long pour éviter enregistrement erroné
 function autoSave() {
   clearTimeout(saveTimer);
@@ -2408,7 +2419,12 @@ function autoSave() {
     setTimeout(()=>active.classList.remove('input-saved'), 900);
   }
   saveTimer = setTimeout(() => {
-    try { localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); } catch(e){}
+    try {
+      localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+      flashSaveStatus('✓ Enregistré');
+    } catch(e) {
+      flashSaveStatus('❌ Erreur enregistrement');
+    }
     if (typeof window.updateKPITickers === 'function') window.updateKPITickers();
   }, 600);
 
@@ -2433,6 +2449,7 @@ function autoSave() {
           if (todayEntry) { todayEntry.val = grandTotal; }
           else { DATA.ath.push({date: today, val: grandTotal, auto: true}); }
           localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+          flashSaveStatus('✓ Enregistré');
           if (typeof renderATH === 'function') renderATH();
           const athFmt = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(grandTotal);
           showToast('🏆 Nouveau ATH : ' + athFmt);
