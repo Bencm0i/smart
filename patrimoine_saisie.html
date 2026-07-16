@@ -2549,6 +2549,12 @@ function handleFileLoad(e) {
       const loaded = JSON.parse(ev.target.result);
       mergeDeep(DATA, loaded);
       renderAll();
+      try {
+        localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+        flashSaveStatus('✓ Enregistré');
+      } catch(e) {
+        flashSaveStatus('❌ Erreur enregistrement');
+      }
       showToast('✓ JSON chargé : ' + file.name);
       setLastJsonUsed('load', file.name);
     } catch(err) {
