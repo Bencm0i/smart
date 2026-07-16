@@ -2990,6 +2990,40 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
+    // ── CARD PATRIMOINE ACTUEL vs ATH ────────────────────────────────
+    const athRows  = (DATA.ath||[]).filter(r => (r.val||0) > 0).sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    const lastATH  = athRows.length ? athRows[athRows.length-1] : null;
+    const athVal   = lastATH ? lastATH.val : 0;
+    const athDate  = lastATH ? lastATH.date : null;
+    const athDiff  = athVal > 0 ? k.grandTotal - athVal : null;
+    const athPct   = athVal > 0 ? (k.grandTotal - athVal) / athVal * 100 : null;
+    const isNewATH = athVal > 0 && k.grandTotal >= athVal;
+    const athBattleTotal = k.grandTotal + athVal;
+    const actuelPct = athBattleTotal > 0 ? (k.grandTotal / athBattleTotal * 100) : 50;
+    const athBarPct = 100 - actuelPct;
+    const athValCls = athDiff === null ? '#7eb8d4' : (athDiff >= 0 ? '#5aab7a' : '#c05a5a');
+
+    const athCard = athVal > 0 ? `
+      <div class="kpi-card full" style="border-top:2px solid var(--gold);">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="kpi-card-label">📊 Patrimoine actuel vs ATH</div>
+          ${athDate ? `<span style="font-size:9px;color:var(--muted);">${new Date(athDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}</span>` : ''}
+        </div>
+        <div class="kpi-card-value" style="color:${athValCls};">${athDiff!==null ? (athDiff>=0?'+':'')+fmt(athDiff) : '—'}</div>
+        <div class="kpi-card-sub">${athPct!==null ? (athPct>=0?'+':'')+athPct.toFixed(1)+'% vs plus haut historique' : ''}</div>
+        <div style="position:relative;height:42px;background:var(--surface2);border-radius:8px;overflow:hidden;margin-top:10px;border:1px solid var(--border);box-shadow:inset 0 0 10px rgba(0,0,0,0.25);">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:${actuelPct.toFixed(1)}%;background:linear-gradient(90deg,#4a6b8a,#7eb8d4);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .4s ease;">
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">📊 ${fmtK(k.grandTotal)}</span>
+          </div>
+          <div style="position:absolute;right:0;top:0;bottom:0;width:${athBarPct.toFixed(1)}%;background:linear-gradient(270deg,#9a7a2a,var(--gold));display:flex;align-items:center;justify-content:flex-start;padding-left:8px;transition:width .4s ease;">
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">🏆 ${fmtK(athVal)}</span>
+          </div>
+        </div>
+        <div class="kpi-card-sub" style="margin-top:8px;text-align:center;">
+          ${isNewATH ? '🏆 Nouveau plus haut historique !' : (athDiff!==null ? `Il manque <b style="color:var(--gold);">${fmt(Math.abs(athDiff))}</b> pour égaler l'ATH` : '')}
+        </div>
+      </div>` : '';
+
     // ── CARD REVENU VS DÉPENSES — LE COMBAT ──────────────────────────
     const battleTotal = k.revenu + k.depMens;
     const revenuPct = battleTotal > 0 ? (k.revenu / battleTotal * 100) : 50;
@@ -3327,7 +3361,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
 
-    el.innerHTML = resumeCard + patrimoineCard + battleCard + depensesCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
+    el.innerHTML = resumeCard + patrimoineCard + athCard + battleCard + depensesCard + impotCard + banquesCard + niCard + pruCard + achatCard + cards.map(c => `
       <div class="kpi-card${c.full?' full':''}">
         <div class="kpi-card-label">${c.label}</div>
         <div class="kpi-card-value ${c.cls}">${c.value}</div>
