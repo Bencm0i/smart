@@ -120,7 +120,7 @@ body {
   font-family: 'DM Mono', 'Courier New', monospace;
   font-size: 13px;
   min-height: 100vh;
-  padding-bottom: 120px;
+  padding-bottom: 136px;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');
@@ -664,12 +664,27 @@ select option { background: var(--surface2); }
   background: rgba(26,30,36,0.97);
   backdrop-filter: blur(16px);
   border-top: 1px solid var(--border);
-  padding: 10px 16px;
+  padding: 8px 16px 10px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
   z-index: 200;
   max-width: 640px;
   margin: 0 auto;
+}
+.bottom-bar-row {
+  display: flex;
+  gap: 10px;
+}
+.last-json-info {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .bar-btn {
   flex: 1;
@@ -1518,9 +1533,12 @@ button, input, select { touch-action: manipulation; }
 
 <!-- ═══ BOTTOM BAR ═══ -->
 <div class="bottom-bar">
-  <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
-  <button class="bar-btn primary" onclick="exportJSON()">💾 Enregistrer JSON</button>
-  <button class="bar-btn" onclick="copyJSON()">📋 Copier</button>
+  <div id="lastJsonInfo" class="last-json-info">Dernier JSON : —</div>
+  <div class="bottom-bar-row">
+    <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
+    <button class="bar-btn primary" onclick="exportJSON()">💾 Enregistrer JSON</button>
+    <button class="bar-btn" onclick="copyJSON()">📋 Copier</button>
+  </div>
 </div>
 
 <input type="file" id="fileInput" accept=".json,.patrenenc" style="display:none" onchange="handleFileLoad(event)">
@@ -2433,6 +2451,41 @@ function autoSave() {
   }, 3000); // 3s de tempo — la frappe doit s'arrêter avant d'enregistrer l'ATH
 }
 
+// ─── DERNIER JSON UTILISÉ ───────────────────────────────────────────────────
+const LAST_JSON_KEY = 'patrimoine_last_json';
+const LAST_JSON_LABELS = { load: 'chargé', export: 'enregistré', copy: 'copié' };
+
+function fmtLastJsonDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} à ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function setLastJsonUsed(action, name) {
+  const info = { action, name: name || '', date: new Date().toISOString() };
+  try { localStorage.setItem(LAST_JSON_KEY, JSON.stringify(info)); } catch(e){}
+  renderLastJsonInfo(info);
+}
+
+function renderLastJsonInfo(info) {
+  const el = document.getElementById('lastJsonInfo');
+  if (!el) return;
+  if (!info) { el.textContent = 'Dernier JSON : —'; return; }
+  const label = LAST_JSON_LABELS[info.action] || info.action;
+  const dateTxt = fmtLastJsonDate(info.date);
+  el.textContent = `Dernier JSON ${label} : ${dateTxt}${info.name ? ' · ' + info.name : ''}`;
+}
+
+function initLastJsonInfo() {
+  let info = null;
+  try {
+    const raw = localStorage.getItem(LAST_JSON_KEY);
+    if (raw) info = JSON.parse(raw);
+  } catch(e){}
+  renderLastJsonInfo(info);
+}
+
 // ─── EXPORT JSON ───────────────────────────────────────────────────────────
 function getJSON() {
   const out = JSON.parse(JSON.stringify(DATA));
@@ -2449,6 +2502,7 @@ async function exportJSON() {
     try {
       await navigator.share({ title: 'Patrimoine — Export JSON', files: [new File([blob], fname, {type:'application/json'})] });
       showToast('✓ Partagé : ' + fname);
+      setLastJsonUsed('export', fname);
       return;
     } catch(e) { if (e.name === 'AbortError') return; }
   }
@@ -2457,11 +2511,13 @@ async function exportJSON() {
   a.href = url; a.download = fname; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
   showToast('✓ JSON exporté : ' + fname);
+  setLastJsonUsed('export', fname);
 }
 
 function copyJSON() {
   navigator.clipboard.writeText(getJSON()).then(() => {
     showToast('✓ JSON copié dans le presse-papiers');
+    setLastJsonUsed('copy', '');
   }).catch(() => showToast('❌ Erreur copie'));
 }
 
@@ -2477,6 +2533,7 @@ function handleFileLoad(e) {
       mergeDeep(DATA, loaded);
       renderAll();
       showToast('✓ JSON chargé : ' + file.name);
+      setLastJsonUsed('load', file.name);
     } catch(err) {
       showToast('❌ Erreur lecture JSON');
     }
@@ -2660,6 +2717,7 @@ window.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
   renderAll();
   if (typeof renderKPIPanel === 'function') renderKPIPanel();
+  initLastJsonInfo();
   bindMobiliteEvents();
   document.getElementById('maison').addEventListener('input', function() {
     DATA.maison = parseFloat(this.value)||0; autoSave();
@@ -3169,14 +3227,14 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="kpi-card-value" style="color:${totalCls};">${totalGain>=0?'+':''}${fmtK(totalGain)}</div>
           <div class="kpi-card-sub">Gain total · ${totalPct>=0?'+':''}${totalPct.toFixed(1)}% global</div>
           <div style="position:relative;height:42px;background:var(--surface2);border-radius:8px;overflow:hidden;margin-top:10px;border:1px solid var(--border);box-shadow:inset 0 0 10px rgba(0,0,0,0.25);">
-            <div style="position:absolute;left:0;top:0;bottom:0;width:${investiPct.toFixed(1)}%;background:linear-gradient(90deg,#4a5568,#6b7585);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .4s ease;">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:${valeurPct.toFixed(1)}%;background:linear-gradient(90deg,${totalGain>=0?'#3d8a5c,var(--green)':'#8f3a3a,var(--red)'});display:flex;align-items:center;justify-content:flex-end;padding-right:8px;transition:width .4s ease;">
+              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">📈 ${fmtK(totalValeur)}</span>
+            </div>
+            <div style="position:absolute;right:0;top:0;bottom:0;width:${investiPct.toFixed(1)}%;background:linear-gradient(270deg,#4a5568,#6b7585);display:flex;align-items:center;justify-content:flex-start;padding-left:8px;transition:width .4s ease;">
               <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">🎯 ${fmtK(totalCost)}</span>
             </div>
-            <div style="position:absolute;right:0;top:0;bottom:0;width:${valeurPct.toFixed(1)}%;background:linear-gradient(270deg,${totalGain>=0?'#3d8a5c,var(--green)':'#8f3a3a,var(--red)'});display:flex;align-items:center;justify-content:flex-start;padding-left:8px;transition:width .4s ease;">
-              <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3);">${fmtK(totalValeur)} 📈</span>
-            </div>
-            <div style="position:absolute;left:${investiPct.toFixed(1)}%;top:-3px;bottom:-3px;width:3px;background:var(--gold);transform:translateX(-50%);box-shadow:0 0 8px var(--gold);"></div>
-            <div style="position:absolute;left:${investiPct.toFixed(1)}%;top:50%;transform:translate(-50%,-50%);font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));">⚔️</div>
+            <div style="position:absolute;left:${valeurPct.toFixed(1)}%;top:-3px;bottom:-3px;width:3px;background:var(--gold);transform:translateX(-50%);box-shadow:0 0 8px var(--gold);"></div>
+            <div style="position:absolute;left:${valeurPct.toFixed(1)}%;top:50%;transform:translate(-50%,-50%);font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));">⚔️</div>
           </div>
           <div class="kpi-card-sub" style="margin-top:8px;text-align:center;">
             ${pruBattleTotal > 0
