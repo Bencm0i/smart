@@ -1850,152 +1850,120 @@ function delInvRow(key, i) {
 }
 
 // ─── ÉPARGNE ENTREPRISE ────────────────────────────────────────────────────
-function renderEE() {
-  const rows = DATA.investissements.epargne_entreprise || [];
-  const c = document.getElementById('body-ee');
-  c.innerHTML = rows.map((r,i) => `
-    <div class="card" style="margin-bottom:10px;">
+// ─── RENDU GÉNÉRIQUE DE LISTE-DE-CARDS (EE / AV / EB) ───────────────────────
+// Génère exactement le même HTML que les anciennes renderEE/renderAV/renderEB
+// (mêmes classes, placeholders, min/step, callbacks) à partir d'une config déclarative.
+function renderCardList(opts) {
+  const rows = opts.array || [];
+  const c = document.getElementById(opts.containerId);
+  if (!c) return;
+  c.innerHTML = rows.map((r, i) => {
+    const fieldsHtml = opts.fields.map(f => {
+      const target = `${opts.basePath}[${i}].${f.key}`;
+      const after = f.after ? `${f.after}();` : '';
+      const val = r[f.key];
+      let inputHtml;
+      if (f.type === 'select') {
+        inputHtml = `<select oninput="${target}=this.value;${after}autoSave()">
+              ${f.options.map(o => `<option${val === o ? ' selected' : ''}>${o}</option>`).join('')}
+            </select>`;
+      } else if (f.type === 'number') {
+        const minAttr = f.min !== undefined ? ` min="${f.min}"` : '';
+        inputHtml = `<input type="number" value="${val || ''}" step="${f.step ?? 1}"${minAttr} inputmode="decimal" autocomplete="off"
+              oninput="${target}=parseFloat(this.value)||0;${after}autoSave()">`;
+      } else if (f.type === 'date') {
+        inputHtml = `<input type="date" value="${val || ''}"
+              oninput="${target}=this.value;${after}autoSave()">`;
+      } else {
+        const placeholderAttr = f.placeholder ? ` placeholder="${f.placeholder}"` : '';
+        inputHtml = `<input type="text" value="${val || ''}"${placeholderAttr}
+              oninput="${target}=this.value;${after}autoSave()">`;
+      }
+      return `
+          <div class="form-field${f.full ? ' full' : ''}">
+            <label class="lbl">${f.label}</label>
+            ${inputHtml}
+          </div>`;
+    }).join('');
+    return `
+    <div class="${opts.cardClass}" style="margin-bottom:10px;">
       <div class="card-head">
-        <span class="card-title-sm">${r.nom||'PEE/PERCO'}</span>
-        <button class="del-btn" onclick="delEERow(${i})">✕</button>
+        <span class="card-title-sm">${opts.titleFn(r)}</span>
+        <button class="del-btn" onclick="${opts.delFn}(${i})">✕</button>
       </div>
       <div class="card-body">
-        <div class="grid2">
-          <div class="form-field full">
-            <label class="lbl">Nom du produit</label>
-            <input type="text" value="${r.nom||''}" placeholder="ex: PEE Natixis"
-              oninput="DATA.investissements.epargne_entreprise[${i}].nom=this.value;autoSave()">
-          </div>
-          <div class="form-field full">
-            <label class="lbl">Fonds / Détail</label>
-            <input type="text" value="${r.fonds||''}" placeholder="Fonds diversifié"
-              oninput="DATA.investissements.epargne_entreprise[${i}].fonds=this.value;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Nb parts</label>
-            <input type="number" value="${r.parts||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.epargne_entreprise[${i}].parts=parseFloat(this.value)||0;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">PRU (€)</label>
-            <input type="number" value="${r.pr||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.epargne_entreprise[${i}].pr=parseFloat(this.value)||0;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Valeur actuelle (€)</label>
-            <input type="number" value="${r.valeurActuelle||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.epargne_entreprise[${i}].valeurActuelle=parseFloat(this.value)||0;syncInvToBank();autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Taux rendement (%)</label>
-            <input type="number" value="${r.tauxRendement||''}" step="0.01" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.epargne_entreprise[${i}].tauxRendement=parseFloat(this.value)||0;autoSave()">
-          </div>
+        <div class="grid2">${fieldsHtml}
         </div>
       </div>
-    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+}
+
+function renderEE() {
+  renderCardList({
+    containerId: 'body-ee',
+    array: DATA.investissements.epargne_entreprise || [],
+    basePath: 'DATA.investissements.epargne_entreprise',
+    cardClass: 'card',
+    delFn: 'delEERow',
+    titleFn: r => r.nom || 'PEE/PERCO',
+    fields: [
+      { key: 'nom', label: 'Nom du produit', type: 'text', full: true, placeholder: 'ex: PEE Natixis' },
+      { key: 'fonds', label: 'Fonds / Détail', type: 'text', full: true, placeholder: 'Fonds diversifié' },
+      { key: 'parts', label: 'Nb parts', type: 'number', step: 0.01, min: 0 },
+      { key: 'pr', label: 'PRU (€)', type: 'number', step: 0.01, min: 0 },
+      { key: 'valeurActuelle', label: 'Valeur actuelle (€)', type: 'number', step: 0.01, min: 0, after: 'syncInvToBank' },
+      { key: 'tauxRendement', label: 'Taux rendement (%)', type: 'number', step: 0.01 },
+    ]
+  });
 }
 function addEERow() { DATA.investissements.epargne_entreprise.push({nom:'',fonds:'',parts:0,pr:0,valeurActuelle:0,tauxRendement:0,url:''}); renderEE(); autoSave(); }
 function delEERow(i) { deleteWithUndo(DATA.investissements.epargne_entreprise, i, renderEE, 'Ligne épargne entreprise supprimée'); }
 
 // ─── ASSURANCE VIE ─────────────────────────────────────────────────────────
 function renderAV() {
-  const rows = DATA.investissements.assurance_vie || [];
-  const c = document.getElementById('body-av');
-  c.innerHTML = rows.map((r,i) => `
-    <div class="card inv-av" style="margin-bottom:10px;">
-      <div class="card-head">
-        <span class="card-title-sm">${r.nom||'Assurance Vie'}</span>
-        <button class="del-btn" onclick="delAVRow(${i})">✕</button>
-      </div>
-      <div class="card-body">
-        <div class="grid2">
-          <div class="form-field full">
-            <label class="lbl">Nom du contrat</label>
-            <input type="text" value="${r.nom||''}"
-              oninput="DATA.investissements.assurance_vie[${i}].nom=this.value;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Assureur</label>
-            <input type="text" value="${r.assureur||''}"
-              oninput="DATA.investissements.assurance_vie[${i}].assureur=this.value;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">N° contrat</label>
-            <input type="text" value="${r.contrat||''}"
-              oninput="DATA.investissements.assurance_vie[${i}].contrat=this.value;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Versements (€)</label>
-            <input type="number" value="${r.versements||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.assurance_vie[${i}].versements=parseFloat(this.value)||0;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Valeur actuelle (€)</label>
-            <input type="number" value="${r.valeurActuelle||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.assurance_vie[${i}].valeurActuelle=parseFloat(this.value)||0;syncInvToBank();autoSave()">
-          </div>
-          <div class="form-field full">
-            <label class="lbl">Taux rendement (%)</label>
-            <input type="number" value="${r.tauxRendement||''}" step="0.01" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.assurance_vie[${i}].tauxRendement=parseFloat(this.value)||0;autoSave()">
-          </div>
-        </div>
-      </div>
-    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+  renderCardList({
+    containerId: 'body-av',
+    array: DATA.investissements.assurance_vie || [],
+    basePath: 'DATA.investissements.assurance_vie',
+    cardClass: 'card inv-av',
+    delFn: 'delAVRow',
+    titleFn: r => r.nom || 'Assurance Vie',
+    fields: [
+      { key: 'nom', label: 'Nom du contrat', type: 'text', full: true },
+      { key: 'assureur', label: 'Assureur', type: 'text' },
+      { key: 'contrat', label: 'N° contrat', type: 'text' },
+      { key: 'versements', label: 'Versements (€)', type: 'number', step: 0.01, min: 0 },
+      { key: 'valeurActuelle', label: 'Valeur actuelle (€)', type: 'number', step: 0.01, min: 0, after: 'syncInvToBank' },
+      { key: 'tauxRendement', label: 'Taux rendement (%)', type: 'number', step: 0.01, full: true },
+    ]
+  });
 }
 function addAVRow() { DATA.investissements.assurance_vie.push({nom:'',assureur:'',contrat:'',versements:0,valeurActuelle:0,tauxRendement:0,url:''}); renderAV(); autoSave(); }
 function delAVRow(i) { deleteWithUndo(DATA.investissements.assurance_vie, i, renderAV, 'Ligne assurance-vie supprimée'); }
 
 // ─── ÉPARGNE BLOQUÉE ───────────────────────────────────────────────────────
 function renderEB() {
-  const rows = DATA.investissements.epargne_bloquee || [];
-  const c = document.getElementById('body-eb');
-  c.innerHTML = rows.map((r,i) => `
-    <div class="card" style="margin-bottom:10px;">
-      <div class="card-head">
-        <span class="card-title-sm">${r.nom||'Livret'} <span class="badge">${r.type||''}</span></span>
-        <button class="del-btn" onclick="delEBRow(${i})">✕</button>
-      </div>
-      <div class="card-body">
-        <div class="grid2">
-          <div class="form-field full">
-            <label class="lbl">Nom</label>
-            <input type="text" value="${r.nom||''}"
-              oninput="DATA.investissements.epargne_bloquee[${i}].nom=this.value;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Type</label>
-            <select oninput="DATA.investissements.epargne_bloquee[${i}].type=this.value;autoSave()">
-              ${["Livret A","LDDS","Livret+","Livret B+","PEL","CEL","Autre"].map(t=>`<option${r.type===t?' selected':''}>${t}</option>`).join('')}
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="lbl">Banque</label>
-            <input type="text" value="${r.banque||''}"
-              oninput="DATA.investissements.epargne_bloquee[${i}].banque=this.value;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Montant (€)</label>
-            <input type="number" value="${r.montant||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.epargne_bloquee[${i}].montant=parseFloat(this.value)||0;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Taux annuel (%)</label>
-            <input type="number" value="${r.tauxAnnuel||''}" step="0.01" min="0" inputmode="decimal" autocomplete="off"
-              oninput="DATA.investissements.epargne_bloquee[${i}].tauxAnnuel=parseFloat(this.value)||0;autoSave()">
-          </div>
-          <div class="form-field">
-            <label class="lbl">Date ouverture</label>
-            <input type="date" value="${r.dateOuverture||''}"
-              oninput="DATA.investissements.epargne_bloquee[${i}].dateOuverture=this.value;autoSave()">
-          </div>
-        </div>
-      </div>
-    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne.</p>';
+  renderCardList({
+    containerId: 'body-eb',
+    array: DATA.investissements.epargne_bloquee || [],
+    basePath: 'DATA.investissements.epargne_bloquee',
+    cardClass: 'card',
+    delFn: 'delEBRow',
+    titleFn: r => `${r.nom || 'Livret'} <span class="badge">${r.type || ''}</span>`,
+    fields: [
+      { key: 'nom', label: 'Nom', type: 'text', full: true },
+      { key: 'type', label: 'Type', type: 'select', options: ["Livret A","LDDS","Livret+","Livret B+","PEL","CEL","Autre"] },
+      { key: 'banque', label: 'Banque', type: 'text' },
+      { key: 'montant', label: 'Montant (€)', type: 'number', step: 0.01, min: 0 },
+      { key: 'tauxAnnuel', label: 'Taux annuel (%)', type: 'number', step: 0.01, min: 0 },
+      { key: 'dateOuverture', label: 'Date ouverture', type: 'date' },
+    ]
+  });
 }
 function addEBRow() { DATA.investissements.epargne_bloquee.push({nom:'',type:'Livret A',banque:'',montant:0,tauxAnnuel:0,dateOuverture:'',url:''}); renderEB(); autoSave(); }
 function delEBRow(i) { deleteWithUndo(DATA.investissements.epargne_bloquee, i, renderEB, 'Ligne épargne bloquée supprimée'); }
+
 
 // ─── SYNC INV → BANK ───────────────────────────────────────────────────────
 function syncInvToBank() {
