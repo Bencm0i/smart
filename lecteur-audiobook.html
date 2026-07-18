@@ -30,6 +30,28 @@
       --accent-fill: #378add;
     }
   }
+  [data-mode="dark"] {
+    --bg: #1c1c1a;
+    --card: #2c2c2a;
+    --text: #f1efe8;
+    --text-secondary: #b4b2a9;
+    --text-muted: #888780;
+    --border: #444441;
+    --accent-bg: #0c447c;
+    --accent-text: #b5d4f4;
+    --accent-fill: #378add;
+  }
+  [data-mode="light"] {
+    --bg: #f4f2ec;
+    --card: #ffffff;
+    --text: #2c2c2a;
+    --text-secondary: #5f5e5a;
+    --text-muted: #888780;
+    --border: #d3d1c7;
+    --accent-bg: #e6f1fb;
+    --accent-text: #185fa5;
+    --accent-fill: #378add;
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -40,6 +62,150 @@
     display: flex;
     justify-content: center;
     padding: 24px 12px;
+  }
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .icon-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 16px;
+  }
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone.drag-over {
+    border-color: var(--accent-fill);
+    background: var(--accent-bg);
+    color: var(--accent-text);
+  }
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .volume-row input[type="range"] { flex: 1; }
+  .sleep-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .sleep-status {
+    font-size: 12px;
+    color: var(--accent-text);
+  }
+  .bookmarks-card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 0.5px solid var(--border);
+    padding: 12px;
+    margin-top: 16px;
+  }
+  .bookmarks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .add-bookmark-btn {
+    font-size: 13px;
+    border: 0.5px solid var(--border);
+    background: none;
+    color: var(--text);
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .bookmark-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .bookmark-item:hover { background: var(--bg); }
+  .bookmark-item .b-time {
+    color: var(--accent-text);
+    font-weight: 500;
+    flex-shrink: 0;
+    width: 46px;
+  }
+  .bookmark-item .b-label {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+  }
+  .bookmark-item .b-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .playlist-item .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+  .playlist-item .ch-progress {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  kbd {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 11px;
+  }
+  .shortcuts-hint {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 14px;
+    line-height: 1.8;
   }
   .app {
     width: 100%;
@@ -207,7 +373,10 @@
 </head>
 <body>
 <div class="app">
-  <h1>Lecteur d'audiobook</h1>
+  <div class="top-bar">
+    <h1 style="margin:0;">Lecteur d'audiobook</h1>
+    <button class="icon-btn" id="theme-toggle" aria-label="Changer de thème">🌓</button>
+  </div>
 
   <div class="player-card">
     <div class="now-playing">
@@ -218,6 +387,7 @@
       </div>
     </div>
 
+    <div class="drop-zone" id="drop-zone">Glissez-déposez des fichiers audio ici, ou</div>
     <label class="upload-label" for="file-input">
       <span>➕ Ajouter des chapitres</span>
     </label>
@@ -247,6 +417,38 @@
         <option value="2">2x</option>
       </select>
     </div>
+
+    <div class="volume-row">
+      <span>🔊</span>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="1" />
+    </div>
+
+    <div class="sleep-row">
+      <span>💤 Minuteur de sommeil</span>
+      <select id="sleep-timer">
+        <option value="0">Désactivé</option>
+        <option value="10">10 min</option>
+        <option value="20">20 min</option>
+        <option value="30">30 min</option>
+        <option value="45">45 min</option>
+        <option value="60">60 min</option>
+      </select>
+    </div>
+    <p class="sleep-status" id="sleep-status"></p>
+
+    <button class="add-bookmark-btn" id="add-bookmark" style="width:100%;margin-top:12px;">🔖 Ajouter un marque-page ici</button>
+
+    <p class="shortcuts-hint">
+      <kbd>Espace</kbd> lecture/pause &nbsp; <kbd>←</kbd> -15s &nbsp; <kbd>→</kbd> +30s
+    </p>
+  </div>
+
+  <div class="bookmarks-card">
+    <div class="bookmarks-header">
+      <span>Marque-pages</span>
+      <span id="bookmark-count" style="color: var(--text-muted); font-weight: 400;">0</span>
+    </div>
+    <div id="bookmarks"></div>
   </div>
 
   <div class="playlist-card">
@@ -293,10 +495,34 @@
     playlist.forEach((item, i) => {
       const div = document.createElement('div');
       div.className = 'playlist-item' + (i === currentIndex ? ' active' : '');
-      div.innerHTML = '<span class="num">' + (i + 1) + '</span><span class="name">' + item.name + '</span>';
-      div.addEventListener('click', () => loadChapter(i, true));
+      const progressLabel = item.lastTime ? fmt(item.lastTime) : '';
+      div.innerHTML =
+        '<span class="num">' + (i + 1) + '</span>' +
+        '<span class="name">' + item.name + '</span>' +
+        (progressLabel ? '<span class="ch-progress">' + progressLabel + '</span>' : '') +
+        '<button class="remove-btn" aria-label="Retirer ce chapitre">✕</button>';
+      div.querySelector('.name').addEventListener('click', () => loadChapter(i, true));
+      div.querySelector('.remove-btn').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        removeChapter(i);
+      });
       playlistEl.appendChild(div);
     });
+  }
+
+  function removeChapter(i) {
+    const wasCurrent = i === currentIndex;
+    playlist.splice(i, 1);
+    if (wasCurrent) {
+      audio.pause();
+      audio.src = '';
+      currentIndex = -1;
+      trackTitle.textContent = 'Aucun chapitre chargé';
+      trackSub.textContent = 'Ajoutez des fichiers audio ci-dessous';
+    } else if (i < currentIndex) {
+      currentIndex--;
+    }
+    renderPlaylist();
   }
 
   function loadChapter(index, autoplay) {
@@ -310,27 +536,214 @@
     if (autoplay) audio.play();
   }
 
-  fileInput.addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
+  const dropZone = document.getElementById('drop-zone');
+  const volumeSlider = document.getElementById('volume');
+  const sleepSelect = document.getElementById('sleep-timer');
+  const sleepStatus = document.getElementById('sleep-status');
+  const addBookmarkBtn = document.getElementById('add-bookmark');
+  const bookmarksEl = document.getElementById('bookmarks');
+  const bookmarkCount = document.getElementById('bookmark-count');
+  const themeToggle = document.getElementById('theme-toggle');
+
+  let bookmarks = [];
+  let sleepTimeoutId = null;
+  let sleepEndsAt = null;
+  let sleepIntervalId = null;
+
+  function saveProgress() {
+    try {
+      const data = playlist.map(p => ({ name: p.name, size: p.size, lastTime: p.lastTime || 0 }));
+      localStorage.setItem('audiobook-progress', JSON.stringify(data));
+      localStorage.setItem('audiobook-bookmarks', JSON.stringify(bookmarks));
+    } catch (e) {}
+  }
+
+  function loadSavedProgress() {
+    try {
+      const raw = localStorage.getItem('audiobook-progress');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function loadSavedBookmarks() {
+    try {
+      const raw = localStorage.getItem('audiobook-bookmarks');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function addFiles(files) {
+    const saved = loadSavedProgress();
     const wasEmpty = playlist.length === 0;
     files.forEach((file) => {
-      playlist.push({ name: file.name, url: URL.createObjectURL(file) });
+      const match = saved.find(s => s.name === file.name && s.size === file.size);
+      playlist.push({
+        name: file.name,
+        size: file.size,
+        url: URL.createObjectURL(file),
+        lastTime: match ? match.lastTime : 0
+      });
     });
     renderPlaylist();
-    if (wasEmpty) loadChapter(0, true);
+    if (wasEmpty && playlist.length > 0) loadChapter(0, true);
+  }
+
+  fileInput.addEventListener('change', (e) => {
+    addFiles(Array.from(e.target.files));
     fileInput.value = '';
+  });
+
+  ['dragover', 'dragenter'].forEach(evt => {
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+    });
+  });
+  dropZone.addEventListener('drop', (e) => {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('audio/'));
+    if (files.length) addFiles(files);
   });
 
   audio.addEventListener('loadedmetadata', () => {
     seek.max = audio.duration;
     timeTotal.textContent = fmt(audio.duration);
+    if (currentIndex >= 0 && playlist[currentIndex].lastTime) {
+      audio.currentTime = Math.min(playlist[currentIndex].lastTime, audio.duration - 1);
+    }
   });
 
   audio.addEventListener('timeupdate', () => {
     seek.value = audio.currentTime;
     timeCurrent.textContent = fmt(audio.currentTime);
+    if (currentIndex >= 0) {
+      playlist[currentIndex].lastTime = audio.currentTime;
+    }
   });
+
+  setInterval(saveProgress, 5000);
+  window.addEventListener('beforeunload', saveProgress);
+
+  volumeSlider.addEventListener('input', () => {
+    audio.volume = parseFloat(volumeSlider.value);
+  });
+
+  function updateSleepStatus() {
+    if (!sleepEndsAt) {
+      sleepStatus.textContent = '';
+      return;
+    }
+    const remaining = Math.max(0, Math.round((sleepEndsAt - Date.now()) / 60000));
+    sleepStatus.textContent = 'Lecture arrêtée dans ' + remaining + ' min';
+  }
+
+  sleepSelect.addEventListener('change', () => {
+    if (sleepTimeoutId) clearTimeout(sleepTimeoutId);
+    if (sleepIntervalId) clearInterval(sleepIntervalId);
+    const minutes = parseFloat(sleepSelect.value);
+    if (!minutes) {
+      sleepEndsAt = null;
+      sleepStatus.textContent = '';
+      return;
+    }
+    sleepEndsAt = Date.now() + minutes * 60000;
+    updateSleepStatus();
+    sleepIntervalId = setInterval(updateSleepStatus, 30000);
+    sleepTimeoutId = setTimeout(() => {
+      audio.pause();
+      sleepEndsAt = null;
+      sleepStatus.textContent = '';
+      sleepSelect.value = '0';
+      clearInterval(sleepIntervalId);
+    }, minutes * 60000);
+  });
+
+  function renderBookmarks() {
+    bookmarkCount.textContent = bookmarks.length;
+    if (bookmarks.length === 0) {
+      bookmarksEl.innerHTML = '<div class="empty-hint">Aucun marque-page pour le moment.</div>';
+      return;
+    }
+    bookmarksEl.innerHTML = '';
+    bookmarks.forEach((bm, i) => {
+      const div = document.createElement('div');
+      div.className = 'bookmark-item';
+      div.innerHTML =
+        '<span class="b-time">' + fmt(bm.time) + '</span>' +
+        '<span class="b-label">' + bm.chapterName + '</span>' +
+        '<button class="b-remove" aria-label="Supprimer le marque-page">✕</button>';
+      div.querySelector('.b-label').addEventListener('click', () => jumpToBookmark(bm));
+      div.querySelector('.b-time').addEventListener('click', () => jumpToBookmark(bm));
+      div.querySelector('.b-remove').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        bookmarks.splice(i, 1);
+        renderBookmarks();
+        saveProgress();
+      });
+      bookmarksEl.appendChild(div);
+    });
+  }
+
+  function jumpToBookmark(bm) {
+    const idx = playlist.findIndex(p => p.name === bm.chapterName);
+    if (idx === -1) return;
+    if (idx !== currentIndex) {
+      loadChapter(idx, false);
+      audio.addEventListener('loadedmetadata', function once() {
+        audio.currentTime = bm.time;
+        audio.play();
+        audio.removeEventListener('loadedmetadata', once);
+      });
+    } else {
+      audio.currentTime = bm.time;
+      audio.play();
+    }
+  }
+
+  addBookmarkBtn.addEventListener('click', () => {
+    if (currentIndex < 0) return;
+    bookmarks.push({ chapterName: playlist[currentIndex].name, time: audio.currentTime });
+    renderBookmarks();
+    saveProgress();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      playBtn.click();
+    } else if (e.code === 'ArrowLeft') {
+      backBtn.click();
+    } else if (e.code === 'ArrowRight') {
+      fwdBtn.click();
+    }
+  });
+
+  function applyTheme(mode) {
+    document.documentElement.setAttribute('data-mode', mode);
+    try { localStorage.setItem('audiobook-theme', mode); } catch (e) {}
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-mode');
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+  (function initTheme() {
+    try {
+      const saved = localStorage.getItem('audiobook-theme');
+      if (saved) applyTheme(saved);
+    } catch (e) {}
+  })();
+
+  bookmarks = loadSavedBookmarks();
+  renderBookmarks();
+  renderPlaylist();
+</script>
 
   audio.addEventListener('play', () => {
     playBtn.textContent = '⏸';
