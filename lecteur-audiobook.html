@@ -179,12 +179,14 @@
     align-items: center;
     gap: 8px;
   }
-  .playlist-item .remove-btn {
+  .playlist-item .remove-btn,
+  .playlist-item .reorder-btn,
+  .playlist-item .rename-btn {
     background: none;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     padding: 4px;
     flex-shrink: 0;
   }
@@ -454,8 +456,14 @@
   <div class="playlist-card">
     <div class="playlist-header">
       <span>Chapitres</span>
-      <span id="chapter-count" style="color: var(--text-muted); font-weight: 400;">0</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="chapter-count" style="color: var(--text-muted); font-weight: 400;">0</span>
+        <button class="icon-btn" id="export-btn" aria-label="Exporter la progression" style="width:30px;height:30px;font-size:14px;">⬇</button>
+        <button class="icon-btn" id="import-btn" aria-label="Importer la progression" style="width:30px;height:30px;font-size:14px;">⬆</button>
+        <input type="file" id="import-input" accept="application/json,.json" style="display:none;" />
+      </div>
     </div>
+    <p id="total-remaining" style="font-size:12px;color:var(--text-muted);margin:0 8px 10px;"></p>
     <div id="playlist"></div>
   </div>
 </div>
@@ -474,6 +482,10 @@
   const chapterCount = document.getElementById('chapter-count');
   const backBtn = document.getElementById('back15');
   const fwdBtn = document.getElementById('fwd30');
+  const totalRemainingEl = document.getElementById('total-remaining');
+  const exportBtn = document.getElementById('export-btn');
+  const importBtn = document.getElementById('import-btn');
+  const importInput = document.getElementById('import-input');
 
   let playlist = [];
   let currentIndex = -1;
@@ -487,6 +499,7 @@
 
   function renderPlaylist() {
     chapterCount.textContent = playlist.length;
+    updateTotalRemaining();
     if (playlist.length === 0) {
       playlistEl.innerHTML = '<div class="empty-hint">Aucun chapitre pour le moment.<br>Ajoutez un ou plusieurs fichiers audio.</div>';
       return;
@@ -496,18 +509,73 @@
       const div = document.createElement('div');
       div.className = 'playlist-item' + (i === currentIndex ? ' active' : '');
       const progressLabel = item.lastTime ? fmt(item.lastTime) : '';
+      const displayName = item.displayName || item.name;
       div.innerHTML =
         '<span class="num">' + (i + 1) + '</span>' +
-        '<span class="name">' + item.name + '</span>' +
+        '<span class="name">' + displayName + '</span>' +
         (progressLabel ? '<span class="ch-progress">' + progressLabel + '</span>' : '') +
+        '<button class="reorder-btn" aria-label="Monter" data-dir="-1">▲</button>' +
+        '<button class="reorder-btn" aria-label="Descendre" data-dir="1">▼</button>' +
+        '<button class="rename-btn" aria-label="Renommer">✎</button>' +
         '<button class="remove-btn" aria-label="Retirer ce chapitre">✕</button>';
       div.querySelector('.name').addEventListener('click', () => loadChapter(i, true));
       div.querySelector('.remove-btn').addEventListener('click', (ev) => {
         ev.stopPropagation();
         removeChapter(i);
       });
+      div.querySelector('.rename-btn').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        renameChapter(i);
+      });
+      div.querySelectorAll('.reorder-btn').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          moveChapter(i, parseInt(btn.dataset.dir, 10));
+        });
+      });
       playlistEl.appendChild(div);
     });
+  }
+
+  function renameChapter(i) {
+    const current = playlist[i].displayName || playlist[i].name;
+    const newName = prompt('Nouveau nom du chapitre :', current);
+    if (newName && newName.trim()) {
+      playlist[i].displayName = newName.trim();
+      if (i === currentIndex) trackTitle.textContent = newName.trim();
+      renderPlaylist();
+      saveProgress();
+    }
+  }
+
+  function moveChapter(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= playlist.length) return;
+    [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
+    if (currentIndex === i) currentIndex = j;
+    else if (currentIndex === j) currentIndex = i;
+    renderPlaylist();
+    saveProgress();
+  }
+
+  function updateTotalRemaining() {
+    let totalRemaining = 0;
+    let hasUnknown = false;
+    playlist.forEach(p => {
+      if (p.duration) {
+        totalRemaining += Math.max(0, p.duration - (p.lastTime || 0));
+      } else {
+        hasUnknown = true;
+      }
+    });
+    if (playlist.length === 0) {
+      totalRemainingEl.textContent = '';
+      return;
+    }
+    const h = Math.floor(totalRemaining / 3600);
+    const m = Math.floor((totalRemaining % 3600) / 60);
+    let label = h > 0 ? h + ' h ' + m + ' min' : m + ' min';
+    totalRemainingEl.textContent = 'Temps restant estimé : ' + label + (hasUnknown ? ' (approx.)' : '');
   }
 
   function removeChapter(i) {
@@ -530,7 +598,7 @@
     currentIndex = index;
     const item = playlist[index];
     audio.src = item.url;
-    trackTitle.textContent = item.name;
+    trackTitle.textContent = item.displayName || item.name;
     trackSub.textContent = 'Chapitre ' + (index + 1) + ' sur ' + playlist.length;
     renderPlaylist();
     if (autoplay) audio.play();
@@ -552,7 +620,7 @@
 
   function saveProgress() {
     try {
-      const data = playlist.map(p => ({ name: p.name, size: p.size, lastTime: p.lastTime || 0 }));
+      const data = playlist.map(p => ({ name: p.name, size: p.size, displayName: p.displayName || null, duration: p.duration || 0, lastTime: p.lastTime || 0 }));
       localStorage.setItem('audiobook-progress', JSON.stringify(data));
       localStorage.setItem('audiobook-bookmarks', JSON.stringify(bookmarks));
     } catch (e) {}
@@ -581,6 +649,8 @@
         name: file.name,
         size: file.size,
         url: URL.createObjectURL(file),
+        displayName: match ? match.displayName : null,
+        duration: match ? match.duration : 0,
         lastTime: match ? match.lastTime : 0
       });
     });
@@ -613,8 +683,12 @@
   audio.addEventListener('loadedmetadata', () => {
     seek.max = audio.duration;
     timeTotal.textContent = fmt(audio.duration);
-    if (currentIndex >= 0 && playlist[currentIndex].lastTime) {
-      audio.currentTime = Math.min(playlist[currentIndex].lastTime, audio.duration - 1);
+    if (currentIndex >= 0) {
+      playlist[currentIndex].duration = audio.duration;
+      updateTotalRemaining();
+      if (playlist[currentIndex].lastTime) {
+        audio.currentTime = Math.min(playlist[currentIndex].lastTime, audio.duration - 1);
+      }
     }
   });
 
@@ -623,6 +697,7 @@
     timeCurrent.textContent = fmt(audio.currentTime);
     if (currentIndex >= 0) {
       playlist[currentIndex].lastTime = audio.currentTime;
+      updateTotalRemaining();
     }
   });
 
@@ -739,6 +814,55 @@
       if (saved) applyTheme(saved);
     } catch (e) {}
   })();
+
+  exportBtn.addEventListener('click', () => {
+    const data = {
+      progress: playlist.map(p => ({ name: p.name, size: p.size, displayName: p.displayName || null, duration: p.duration || 0, lastTime: p.lastTime || 0 })),
+      bookmarks: bookmarks
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'progression-audiobook.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener('click', () => importInput.click());
+
+  importInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        if (data.progress) {
+          localStorage.setItem('audiobook-progress', JSON.stringify(data.progress));
+          playlist.forEach(p => {
+            const match = data.progress.find(s => s.name === p.name && s.size === p.size);
+            if (match) {
+              p.displayName = match.displayName;
+              p.duration = match.duration;
+              p.lastTime = match.lastTime;
+            }
+          });
+        }
+        if (data.bookmarks) {
+          bookmarks = data.bookmarks;
+          localStorage.setItem('audiobook-bookmarks', JSON.stringify(bookmarks));
+          renderBookmarks();
+        }
+        renderPlaylist();
+        alert('Progression importée. Rajoutez les mêmes fichiers audio si besoin pour que la reprise se synchronise.');
+      } catch (err) {
+        alert('Fichier de progression invalide.');
+      }
+    };
+    reader.readAsText(file);
+    importInput.value = '';
+  });
 
   bookmarks = loadSavedBookmarks();
   renderBookmarks();
