@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Lecteur d'audiobook</title>
+<style>
+  :root {
+    --bg: #f4f2ec;
+    --card: #ffffff;
+    --text: #2c2c2a;
+    --text-secondary: #5f5e5a;
+    --text-muted: #888780;
+    --border: #d3d1c7;
+    --accent-bg: #e6f1fb;
+    --accent-text: #185fa5;
+    --accent-fill: #378add;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --card: #2c2c2a;
+      --text: #f1efe8;
+      --text-secondary: #b4b2a9;
+      --text-muted: #888780;
+      --border: #444441;
+      --accent-bg: #0c447c;
+      --accent-text: #b5d4f4;
+      --accent-fill: #378add;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px;
+  }
+  .app {
+    width: 100%;
+    max-width: 440px;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+  .player-card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 0.5px solid var(--border);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .now-playing {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--accent-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 26px;
+  }
+  .now-playing-text { min-width: 0; }
+  #track-title {
+    font-weight: 500;
+    font-size: 15px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #track-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 2px 0 0;
+  }
+  .upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .upload-label:hover { border-color: var(--text-muted); }
+  input[type="file"] { display: none; }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-fill);
+  }
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 16px 0;
+  }
+  .ctrl-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+  }
+  .ctrl-btn:hover { background: var(--bg); }
+  .ctrl-small { width: 44px; height: 44px; font-size: 12px; font-weight: 500; }
+  .ctrl-play {
+    width: 56px;
+    height: 56px;
+    background: var(--accent-fill);
+    color: white;
+    border: none;
+    font-size: 22px;
+  }
+  .speed-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  select {
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+  }
+  .playlist-card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 0.5px solid var(--border);
+    padding: 12px;
+  }
+  .playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .playlist-item:hover { background: var(--bg); }
+  .playlist-item.active { background: var(--accent-bg); color: var(--accent-text); }
+  .playlist-item .num {
+    width: 22px;
+    color: var(--text-muted);
+    font-size: 13px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .playlist-item .name {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .empty-hint {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 20px 8px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Lecteur d'audiobook</h1>
+
+  <div class="player-card">
+    <div class="now-playing">
+      <div class="icon-box">🎧</div>
+      <div class="now-playing-text">
+        <p id="track-title">Aucun chapitre chargé</p>
+        <p id="track-sub">Ajoutez des fichiers audio ci-dessous</p>
+      </div>
+    </div>
+
+    <label class="upload-label" for="file-input">
+      <span>➕ Ajouter des chapitres</span>
+    </label>
+    <input type="file" id="file-input" accept="audio/*" multiple />
+
+    <audio id="audio"></audio>
+
+    <input type="range" id="seek" min="0" max="100" value="0" step="0.1" />
+    <div class="time-row">
+      <span id="time-current">0:00</span>
+      <span id="time-total">0:00</span>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn ctrl-small" id="back15" aria-label="Reculer de 15 secondes">-15</button>
+      <button class="ctrl-btn ctrl-play" id="play-pause" aria-label="Lecture">▶</button>
+      <button class="ctrl-btn ctrl-small" id="fwd30" aria-label="Avancer de 30 secondes">+30</button>
+    </div>
+
+    <div class="speed-row">
+      <span>Vitesse</span>
+      <select id="speed">
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="playlist-card">
+    <div class="playlist-header">
+      <span>Chapitres</span>
+      <span id="chapter-count" style="color: var(--text-muted); font-weight: 400;">0</span>
+    </div>
+    <div id="playlist"></div>
+  </div>
+</div>
+
+<script>
+  const audio = document.getElementById('audio');
+  const fileInput = document.getElementById('file-input');
+  const playBtn = document.getElementById('play-pause');
+  const seek = document.getElementById('seek');
+  const timeCurrent = document.getElementById('time-current');
+  const timeTotal = document.getElementById('time-total');
+  const trackTitle = document.getElementById('track-title');
+  const trackSub = document.getElementById('track-sub');
+  const speedSelect = document.getElementById('speed');
+  const playlistEl = document.getElementById('playlist');
+  const chapterCount = document.getElementById('chapter-count');
+  const backBtn = document.getElementById('back15');
+  const fwdBtn = document.getElementById('fwd30');
+
+  let playlist = [];
+  let currentIndex = -1;
+
+  function fmt(s) {
+    if (!isFinite(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  function renderPlaylist() {
+    chapterCount.textContent = playlist.length;
+    if (playlist.length === 0) {
+      playlistEl.innerHTML = '<div class="empty-hint">Aucun chapitre pour le moment.<br>Ajoutez un ou plusieurs fichiers audio.</div>';
+      return;
+    }
+    playlistEl.innerHTML = '';
+    playlist.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'playlist-item' + (i === currentIndex ? ' active' : '');
+      div.innerHTML = '<span class="num">' + (i + 1) + '</span><span class="name">' + item.name + '</span>';
+      div.addEventListener('click', () => loadChapter(i, true));
+      playlistEl.appendChild(div);
+    });
+  }
+
+  function loadChapter(index, autoplay) {
+    if (index < 0 || index >= playlist.length) return;
+    currentIndex = index;
+    const item = playlist[index];
+    audio.src = item.url;
+    trackTitle.textContent = item.name;
+    trackSub.textContent = 'Chapitre ' + (index + 1) + ' sur ' + playlist.length;
+    renderPlaylist();
+    if (autoplay) audio.play();
+  }
+
+  fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    const wasEmpty = playlist.length === 0;
+    files.forEach((file) => {
+      playlist.push({ name: file.name, url: URL.createObjectURL(file) });
+    });
+    renderPlaylist();
+    if (wasEmpty) loadChapter(0, true);
+    fileInput.value = '';
+  });
+
+  audio.addEventListener('loadedmetadata', () => {
+    seek.max = audio.duration;
+    timeTotal.textContent = fmt(audio.duration);
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    seek.value = audio.currentTime;
+    timeCurrent.textContent = fmt(audio.currentTime);
+  });
+
+  audio.addEventListener('play', () => {
+    playBtn.textContent = '⏸';
+    playBtn.setAttribute('aria-label', 'Pause');
+  });
+  audio.addEventListener('pause', () => {
+    playBtn.textContent = '▶';
+    playBtn.setAttribute('aria-label', 'Lecture');
+  });
+
+  audio.addEventListener('ended', () => {
+    if (currentIndex + 1 < playlist.length) {
+      loadChapter(currentIndex + 1, true);
+    }
+  });
+
+  playBtn.addEventListener('click', () => {
+    if (!audio.src) return;
+    if (audio.paused) audio.play();
+    else audio.pause();
+  });
+
+  seek.addEventListener('input', () => {
+    audio.currentTime = seek.value;
+  });
+
+  backBtn.addEventListener('click', () => {
+    audio.currentTime = Math.max(0, audio.currentTime - 15);
+  });
+  fwdBtn.addEventListener('click', () => {
+    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30);
+  });
+
+  speedSelect.addEventListener('change', () => {
+    audio.playbackRate = parseFloat(speedSelect.value);
+  });
+
+  renderPlaylist();
+</script>
+</body>
+</html>
