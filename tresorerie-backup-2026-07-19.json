@@ -1,0 +1,121 @@
+{
+  "recurring": [
+    {
+      "id": "mrr940m1zy76s",
+      "name": "elec",
+      "amount": 85,
+      "day": 15
+    },
+    {
+      "id": "mrr95twafzi5e",
+      "name": "eau",
+      "amount": 19,
+      "day": 15
+    },
+    {
+      "id": "mrr97keewex13",
+      "name": "essence",
+      "amount": 40,
+      "day": null
+    },
+    {
+      "id": "mrr97tz91qbfe",
+      "name": "assurance habitation-auto",
+      "amount": 75,
+      "day": null
+    },
+    {
+      "id": "mrr98q2dif1e7",
+      "name": "internet",
+      "amount": 10,
+      "day": null
+    },
+    {
+      "id": "mrr98ywmcqg1o",
+      "name": "telephone",
+      "amount": 5,
+      "day": null
+    },
+    {
+      "id": "mrr9ofg5rp9j1",
+      "name": "alimentation",
+      "amount": 240,
+      "day": null,
+      "envelope": true
+    }
+  ],
+  "months": {
+    "2026-07": {
+      "items": [
+        {
+          "id": "mrr940m1cfokq",
+          "name": "elec",
+          "amount": 85,
+          "type": "recurring",
+          "recurringId": "mrr940m1zy76s",
+          "checked": true
+        },
+        {
+          "id": "mrr95twae3enc",
+          "name": "eau",
+          "amount": 19,
+          "type": "recurring",
+          "recurringId": "mrr95twafzi5e",
+          "checked": true
+        },
+        {
+          "id": "mrr97kee7w7of",
+          "name": "essence",
+          "amount": 40,
+          "type": "recurring",
+          "recurringId": "mrr97keewex13",
+          "checked": true
+        },
+        {
+          "id": "mrr97tz9qyh6k",
+          "name": "assurance habitation-auto",
+          "amount": 75,
+          "type": "recurring",
+          "recurringId": "mrr97tz91qbfe",
+          "checked": true
+        },
+        {
+          "id": "mrr98g1grjbt0",
+          "name": "internet-telephone",
+          "amount": 19,
+          "type": "recurring",
+          "recurringId": "mrr98g1gkcang",
+          "checked": true
+        },
+        {
+          "id": "mrr98q2dzpaf7",
+          "name": "internet",
+          "amount": 10,
+          "type": "recurring",
+          "recurringId": "mrr98q2dif1e7",
+          "checked": true
+        },
+        {
+          "id": "mrr98ywm4cu24",
+          "name": "telephone",
+          "amount": 5,
+          "type": "recurring",
+          "recurringId": "mrr98ywmcqg1o",
+          "checked": true
+        },
+        {
+          "id": "mrr9ofg5e34dh",
+          "name": "alimentation",
+          "amount": 240,
+          "type": "recurring",
+          "recurringId": "mrr9ofg5rp9j1",
+          "checked": false,
+          "envelope": true,
+          "spent": 100
+        }
+      ]
+    }
+  },
+  "currentMonth": "2026-07",
+  "safetyMargin": 100
+}

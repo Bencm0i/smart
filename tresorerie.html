@@ -145,6 +145,22 @@
   .field input{width:100%; background:var(--surface-2); border:1px solid var(--border);
     color:var(--text); border-radius:10px; padding:11px 12px; font-size:16px;}
   .field input:focus{outline:1px solid var(--keep);}
+  .checkbox-field{display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-top:16px;}
+  .checkbox-field .checkbox{margin-top:1px;}
+  .cf-title{font-size:14px; font-weight:500;}
+  .cf-hint{font-size:12px; color:var(--muted); margin-top:2px; line-height:1.3;}
+
+  /* envelope items */
+  .item.envelope{align-items:stretch;}
+  .env-bar{background:var(--surface-2); border-radius:6px; height:6px; margin-top:7px; overflow:hidden;}
+  .env-bar-fill{height:100%; background:var(--keep); border-radius:6px;}
+  .env-bar-fill.over{background:var(--danger);}
+  .env-amounts{font-size:12px; color:var(--muted); margin-top:4px;}
+  .env-amounts b{color:var(--text);}
+  .env-amounts.over b{color:var(--danger);}
+  .env-add{width:34px; height:34px; border-radius:9px; background:var(--surface-2); border:1px solid var(--border);
+    color:var(--keep); font-size:18px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; cursor:pointer;}
 </style>
 </head>
 <body>
@@ -232,9 +248,31 @@
     <div class="field"><label>Nom</label><input id="rName" type="text" placeholder="Ex : Loyer"></div>
     <div class="field"><label>Montant (€)</label><input id="rAmount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"></div>
     <div class="field"><label>Jour de prélèvement (optionnel)</label><input id="rDay" type="number" min="1" max="31" placeholder="Ex : 5"></div>
+    <div class="field checkbox-field" onclick="toggleEnvelopeField()">
+      <div class="checkbox" id="rEnvelopeBox"></div>
+      <div>
+        <div class="cf-title">Suivi progressif</div>
+        <div class="cf-hint">Dépense étalée dans le mois (ex : courses), pas prélevée en une fois</div>
+      </div>
+    </div>
     <div class="fab-row">
       <button class="btn" onclick="closeModal('modalRecurring')">Annuler</button>
       <button class="btn primary" onclick="saveRecurring()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: envelope spend -->
+<div class="modal-bg" id="modalEnvelope">
+  <div class="modal">
+    <h3 id="envModalTitle">Ajouter une dépense</h3>
+    <div class="field"><label>Montant dépensé (€)</label><input id="envAmount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+    <div class="fab-row">
+      <button class="btn" onclick="closeModal('modalEnvelope')">Annuler</button>
+      <button class="btn primary" onclick="logEnvelopeSpend()">Ajouter</button>
+    </div>
+    <div class="fab-row">
+      <button class="btn danger" onclick="resetEnvelope()">Réinitialiser le suivi (0 €)</button>
     </div>
   </div>
 </div>
@@ -307,10 +345,12 @@ function ensureCurrentMonth(){
   data.recurring.forEach(rec=>{
     const already = month.items.some(it => it.recurringId === rec.id);
     if(!already){
-      month.items.push({
+      const newItem = {
         id: uid(), name: rec.name, amount: rec.amount,
-        type: 'recurring', recurringId: rec.id, checked: false
-      });
+        type: 'recurring', recurringId: rec.id, checked: false, envelope: !!rec.envelope
+      };
+      if(newItem.envelope) newItem.spent = 0;
+      month.items.push(newItem);
     }
   });
   data.currentMonth = key;
@@ -325,7 +365,7 @@ function renderHeader(){
   document.getElementById('monthLabel').textContent = monthLabelFor(activeMonthKey);
   const month = data.months[activeMonthKey] || { items: [] };
   const total = month.items.reduce((s,i)=> s + Number(i.amount), 0);
-  const checked = month.items.filter(i=>i.checked).reduce((s,i)=> s + Number(i.amount), 0);
+  const checked = month.items.reduce((s,i)=> s + itemConsumed(i), 0);
   const margin = Number(data.safetyMargin) || 0;
   const remaining = (total - checked) + margin;
   document.getElementById('heroAmount').textContent = fmt(remaining);
@@ -336,25 +376,50 @@ function renderHeader(){
 function fmt(n){
   return n.toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
 }
+function itemConsumed(it){
+  if(it.envelope) return Number(it.spent) || 0;
+  return it.checked ? Number(it.amount) : 0;
+}
+function itemDone(it){
+  return it.envelope ? (Number(it.spent)||0) >= Number(it.amount) : !!it.checked;
+}
 function renderItems(){
   const month = data.months[activeMonthKey] || { items: [] };
   const list = document.getElementById('itemsList');
   const empty = document.getElementById('itemsEmpty');
   list.innerHTML = '';
-  const items = [...month.items].sort((a,b)=> a.checked - b.checked);
+  const items = [...month.items].sort((a,b)=> itemDone(a) - itemDone(b));
   empty.style.display = items.length ? 'none' : 'block';
   items.forEach(it=>{
     const row = document.createElement('div');
-    row.className = 'item' + (it.checked ? ' checked' : '') + ' type-' + it.type;
-    row.innerHTML = `
-      <div class="checkbox ${it.checked?'on':''}" onclick="toggleItem('${it.id}')"></div>
-      <div class="item-body">
-        <div class="item-name">${escapeHtml(it.name)}</div>
-        <div class="item-tag">${it.type === 'recurring' ? 'Récurrente' : 'Ponctuelle'}</div>
-      </div>
-      <div class="item-amount num">${fmt(Number(it.amount))}</div>
-      <div class="item-del" onclick="deleteItem('${it.id}')">✕</div>
-    `;
+    if(it.envelope){
+      const spent = Number(it.spent)||0;
+      const amount = Number(it.amount);
+      const pct = amount > 0 ? Math.min(100, (spent/amount)*100) : 0;
+      const over = spent > amount;
+      row.className = 'item envelope type-' + it.type + (itemDone(it) ? ' checked' : '');
+      row.innerHTML = `
+        <div class="item-body">
+          <div class="item-name">${escapeHtml(it.name)}</div>
+          <div class="item-tag">Suivi progressif</div>
+          <div class="env-bar"><div class="env-bar-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+          <div class="env-amounts ${over?'over':''}"><b class="num">${fmt(spent)}</b> / ${fmt(amount)}${over?' · dépassement':''}</div>
+        </div>
+        <div class="env-add" onclick="openEnvelopeModal('${it.id}')">+</div>
+        <div class="item-del" onclick="deleteItem('${it.id}')">✕</div>
+      `;
+    } else {
+      row.className = 'item' + (it.checked ? ' checked' : '') + ' type-' + it.type;
+      row.innerHTML = `
+        <div class="checkbox ${it.checked?'on':''}" onclick="toggleItem('${it.id}')"></div>
+        <div class="item-body">
+          <div class="item-name">${escapeHtml(it.name)}</div>
+          <div class="item-tag">${it.type === 'recurring' ? 'Récurrente' : 'Ponctuelle'}</div>
+        </div>
+        <div class="item-amount num">${fmt(Number(it.amount))}</div>
+        <div class="item-del" onclick="deleteItem('${it.id}')">✕</div>
+      `;
+    }
     list.appendChild(row);
   });
 }
@@ -371,6 +436,11 @@ function deleteItem(id){
 
 /* ---------- Recurring management ---------- */
 let editingRecId = null;
+let envelopeChecked = false;
+function toggleEnvelopeField(){
+  envelopeChecked = !envelopeChecked;
+  document.getElementById('rEnvelopeBox').classList.toggle('on', envelopeChecked);
+}
 function renderRecurring(){
   const list = document.getElementById('recList');
   const empty = document.getElementById('recEmpty');
@@ -382,7 +452,7 @@ function renderRecurring(){
     row.innerHTML = `
       <div class="rec-body">
         <div class="rec-name">${escapeHtml(rec.name)}</div>
-        <div class="rec-day">${rec.day ? 'Prélèvement le ' + rec.day : 'Jour non précisé'}</div>
+        <div class="rec-day">${rec.envelope ? 'Suivi progressif' : (rec.day ? 'Prélèvement le ' + rec.day : 'Jour non précisé')}</div>
       </div>
       <span class="rec-amount num">${fmt(Number(rec.amount))}</span>
       <div class="item-del" onclick="deleteRecurring('${rec.id}')">✕</div>
@@ -398,6 +468,8 @@ function openRecurringModal(id){
   document.getElementById('rName').value = rec ? rec.name : '';
   document.getElementById('rAmount').value = rec ? rec.amount : '';
   document.getElementById('rDay').value = rec ? (rec.day || '') : '';
+  envelopeChecked = rec ? !!rec.envelope : false;
+  document.getElementById('rEnvelopeBox').classList.toggle('on', envelopeChecked);
   document.getElementById('modalRecurring').classList.add('open');
 }
 function saveRecurring(){
@@ -407,16 +479,18 @@ function saveRecurring(){
   if(!name || isNaN(amount)) return;
   if(editingRecId){
     const rec = data.recurring.find(r=>r.id===editingRecId);
-    rec.name = name; rec.amount = amount; rec.day = day;
+    rec.name = name; rec.amount = amount; rec.day = day; rec.envelope = envelopeChecked;
     // update amount/name in current month item if not yet checked-modified
     const month = data.months[activeMonthKey];
     const it = month.items.find(i=>i.recurringId===editingRecId);
-    if(it){ it.name = name; it.amount = amount; }
+    if(it){ it.name = name; it.amount = amount; it.envelope = envelopeChecked; if(!it.envelope) delete it.spent; else if(it.spent===undefined) it.spent = 0; }
   } else {
-    const rec = { id: uid(), name, amount, day };
+    const rec = { id: uid(), name, amount, day, envelope: envelopeChecked };
     data.recurring.push(rec);
     const month = data.months[activeMonthKey];
-    month.items.push({ id: uid(), name, amount, type:'recurring', recurringId: rec.id, checked:false });
+    const newItem = { id: uid(), name, amount, type:'recurring', recurringId: rec.id, checked:false, envelope: envelopeChecked };
+    if(envelopeChecked) newItem.spent = 0;
+    month.items.push(newItem);
   }
   saveData();
   closeModal('modalRecurring');
@@ -426,6 +500,31 @@ function deleteRecurring(id){
   data.recurring = data.recurring.filter(r=>r.id!==id);
   saveData();
   renderRecurring();
+}
+
+/* ---------- Envelope (suivi progressif) ---------- */
+let currentEnvelopeItemId = null;
+function openEnvelopeModal(id){
+  currentEnvelopeItemId = id;
+  const month = data.months[activeMonthKey];
+  const it = month.items.find(i=>i.id===id);
+  document.getElementById('envModalTitle').textContent = 'Ajouter une dépense — ' + it.name;
+  document.getElementById('envAmount').value = '';
+  document.getElementById('modalEnvelope').classList.add('open');
+}
+function logEnvelopeSpend(){
+  const val = parseFloat(document.getElementById('envAmount').value);
+  if(isNaN(val)) return;
+  const month = data.months[activeMonthKey];
+  const it = month.items.find(i=>i.id===currentEnvelopeItemId);
+  if(it){ it.spent = (Number(it.spent)||0) + val; saveData(); renderItems(); renderHeader(); }
+  closeModal('modalEnvelope');
+}
+function resetEnvelope(){
+  const month = data.months[activeMonthKey];
+  const it = month.items.find(i=>i.id===currentEnvelopeItemId);
+  if(it){ it.spent = 0; saveData(); renderItems(); renderHeader(); }
+  closeModal('modalEnvelope');
 }
 
 /* ---------- Ponctuelle ---------- */
@@ -516,8 +615,8 @@ function renderHistory(){
     wrap.className = 'hist-month';
     const itemsHtml = month.items.map(it=>`
       <div class="hist-line ${it.checked?'checked-line':''} ${it.type==='ponctuelle'?'type-ponctuelle':''}">
-        <span>${escapeHtml(it.name)}${it.checked?' ✓':''}</span>
-        <span class="num">${fmt(Number(it.amount))}</span>
+        <span>${escapeHtml(it.name)}${it.envelope ? '' : (it.checked?' ✓':'')}</span>
+        <span class="num">${it.envelope ? fmt(Number(it.spent)||0) + ' / ' + fmt(Number(it.amount)) : fmt(Number(it.amount))}</span>
       </div>`).join('') || '<div class="hist-line">Aucune dépense</div>';
     wrap.innerHTML = `
       <div class="hist-top">
