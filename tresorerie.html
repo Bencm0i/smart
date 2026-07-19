@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Trésorerie</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1115'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%234fd1c5' stroke-width='4'/%3E%3Ctext x='32' y='40' font-family='Arial,sans-serif' font-size='24' font-weight='700' fill='%234fd1c5' text-anchor='middle'%3E%E2%82%AC%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0f1115;
+    --surface:#171a21;
+    --surface-2:#1e222b;
+    --border:#262b35;
+    --text:#e8eaed;
+    --muted:#8b93a3;
+    --keep:#4fd1c5;
+    --pending:#f0b429;
+    --ponctuelle:#a78bfa;
+    --danger:#ef5b5b;
+    --danger-bg:#2a1a1c;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .num{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    font-variant-numeric:tabular-nums;}
+  #app{max-width:520px; margin:0 auto; padding-bottom:84px; min-height:100vh;}
+
+  /* Header / hero */
+  header{padding:22px 18px 18px; border-bottom:1px solid var(--border);
+    position:sticky; top:0; background:var(--bg); z-index:5;}
+  .month-label{color:var(--muted); font-size:13px; text-transform:uppercase;
+    letter-spacing:.08em; display:flex; justify-content:space-between; align-items:center;}
+  .backup-btn{color:var(--muted); cursor:pointer; padding:4px; line-height:0;}
+  .backup-btn svg{width:19px; height:19px;}
+  .backup-btn:active{color:var(--keep);}
+  .hero{margin-top:6px; display:flex; align-items:baseline; gap:8px;}
+  .hero .amount{font-size:44px; font-weight:700; line-height:1; color:var(--keep);}
+  .hero .unit{font-size:20px; color:var(--muted);}
+  .subrow{display:flex; gap:16px; margin-top:12px; font-size:13px; color:var(--muted);}
+  .subrow b{color:var(--text); font-weight:600;}
+  .subrow .dot{width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:5px;}
+  .dot.keep{background:var(--keep);}
+  .dot.pending{background:var(--pending);}
+  .margin-row{margin-top:8px; font-size:13px; color:var(--muted); cursor:pointer;}
+  .margin-row b{color:var(--text); font-weight:600;}
+  .margin-row .edit-hint{color:var(--keep); font-size:12px; margin-left:2px;}
+
+  main{padding:16px;}
+  .section-title{font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); margin:22px 0 8px; display:flex; justify-content:space-between; align-items:center;}
+  .section-title .add-link{color:var(--keep); font-weight:600; text-transform:none;
+    letter-spacing:0; cursor:pointer; font-size:14px;}
+
+  .item{display:flex; align-items:center; gap:12px; background:var(--surface);
+    border:1px solid var(--border); border-left:3px solid transparent; border-radius:12px;
+    padding:12px 14px 12px 12px; margin-bottom:8px;}
+  .item.type-ponctuelle{border-left-color:var(--ponctuelle);}
+  .item.checked{opacity:.5;}
+  .checkbox{width:22px; height:22px; border-radius:7px; border:2px solid var(--muted);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    background:transparent;}
+  .checkbox.on{background:var(--keep); border-color:var(--keep);}
+  .checkbox.on::after{content:"✓"; color:#0f1115; font-size:14px; font-weight:700;}
+  .item-body{flex:1; min-width:0;}
+  .item-name{font-size:15px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .item-tag{font-size:11px; color:var(--muted); margin-top:1px;}
+  .item.type-ponctuelle .item-tag{color:var(--ponctuelle);}
+  .item.checked .item-name{text-decoration:line-through;}
+  .item-amount{font-size:16px; font-weight:600; flex-shrink:0;}
+  .item-del{color:var(--muted); font-size:18px; padding:2px 4px; cursor:pointer; flex-shrink:0;}
+  .item-del:active{color:var(--danger);}
+
+  .empty{color:var(--muted); font-size:14px; text-align:center; padding:24px 0;}
+
+  .fab-row{display:flex; gap:10px; margin-top:10px;}
+  button.btn{background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:11px 14px; font-size:14px; font-weight:600; cursor:pointer; flex:1;}
+  button.btn.primary{background:var(--keep); color:#0f1115; border:none;}
+  button.btn.danger{background:var(--danger-bg); color:var(--danger); border:1px solid #3a2226;}
+
+  /* history */
+  .hist-month{background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:14px; margin-bottom:8px;}
+  .hist-top{display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
+  .hist-name{font-weight:600; font-size:15px; text-transform:capitalize;}
+  .hist-total{font-weight:700; color:var(--keep);}
+  .hist-items{margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:none;}
+  .hist-items.open{display:block;}
+  .hist-line{display:flex; justify-content:space-between; font-size:13px; padding:4px 0; color:var(--muted);}
+  .hist-line.checked-line{color:var(--text);}
+  .hist-line.type-ponctuelle span:first-child{color:var(--ponctuelle);}
+
+  /* recurring management */
+  .rec-item{display:flex; align-items:center; gap:10px; background:var(--surface);
+    border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px;}
+  .rec-body{flex:1;}
+  .rec-name{font-weight:500; font-size:15px;}
+  .rec-day{font-size:11px; color:var(--muted); margin-top:1px;}
+  .rec-amount{font-weight:600; margin-right:4px;}
+
+  /* tab bar */
+  nav.tabbar{position:fixed; bottom:0; left:0; right:0; background:var(--surface);
+    border-top:1px solid var(--border); display:flex; padding-bottom:env(safe-area-inset-bottom);
+    z-index:10;}
+  nav.tabbar button{flex:1; background:none; border:none; color:var(--muted); font-size:12px;
+    padding:11px 0 9px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;}
+  nav.tabbar button svg{width:21px; height:21px;}
+  nav.tabbar button.active{color:var(--keep);}
+  nav.tabbar button.active svg{stroke:var(--keep);}
+
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* modal */
+  .modal-bg{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none;
+    align-items:flex-end; z-index:20;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--surface); width:100%; border-radius:18px 18px 0 0; padding:20px;
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));}
+  .modal h3{margin:0 0 14px; font-size:17px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px;}
+  .field-hint{font-size:13px; color:var(--muted); margin:0 0 16px; line-height:1.4;}
+  .field input{width:100%; background:var(--surface-2); border:1px solid var(--border);
+    color:var(--text); border-radius:10px; padding:11px 12px; font-size:16px;}
+  .field input:focus{outline:1px solid var(--keep);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="month-label">
+      <span id="monthLabel">—</span>
+      <span class="backup-btn" onclick="openBackupModal()" title="Sauvegarde">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="M7 10l5 5 5-5"/><path d="M20 21H4"/></svg>
+      </span>
+    </div>
+    <div class="hero"><span class="amount num" id="heroAmount">0 €</span><span class="unit">à laisser</span></div>
+    <div class="subrow">
+      <span><i class="dot pending"></i>Prévu : <b class="num" id="subTotal">0 €</b></span>
+      <span><i class="dot keep"></i>Prélevé : <b class="num" id="subChecked">0 €</b></span>
+    </div>
+    <div class="margin-row" onclick="openMarginModal()">
+      Marge de sécurité : <b class="num" id="marginValue">0 €</b> <span class="edit-hint">modifier</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- MOIS -->
+    <section class="tab-panel active" id="panel-mois">
+      <div class="section-title">Dépenses du mois
+        <span class="add-link" onclick="openPonctuelleModal()">+ ponctuelle</span>
+      </div>
+      <div id="itemsList"></div>
+      <div class="empty" id="itemsEmpty" style="display:none;">Aucune dépense ce mois-ci.</div>
+    </section>
+
+    <!-- RECURRENTES -->
+    <section class="tab-panel" id="panel-recurrentes">
+      <div class="section-title">Dépenses récurrentes mensuelles
+        <span class="add-link" onclick="openRecurringModal()">+ ajouter</span>
+      </div>
+      <div id="recList"></div>
+      <div class="empty" id="recEmpty" style="display:none;">Aucune dépense récurrente définie.</div>
+    </section>
+
+    <!-- HISTORIQUE -->
+    <section class="tab-panel" id="panel-historique">
+      <div class="section-title">Historique des mois</div>
+      <div id="histList"></div>
+      <div class="empty" id="histEmpty" style="display:none;">Pas encore d'historique.</div>
+    </section>
+  </main>
+
+</div>
+
+<nav class="tabbar">
+  <button class="tab-btn active" data-tab="mois" onclick="switchTab('mois')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+    Ce mois
+  </button>
+  <button class="tab-btn" data-tab="recurrentes" onclick="switchTab('recurrentes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    Récurrentes
+  </button>
+  <button class="tab-btn" data-tab="historique" onclick="switchTab('historique')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    Historique
+  </button>
+</nav>
+
+<!-- Modal: ponctuelle -->
+<div class="modal-bg" id="modalPonctuelle">
+  <div class="modal">
+    <h3>Dépense ponctuelle</h3>
+    <div class="field"><label>Nom</label><input id="pName" type="text" placeholder="Ex : Réparation voiture"></div>
+    <div class="field"><label>Montant (€)</label><input id="pAmount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+    <div class="fab-row">
+      <button class="btn" onclick="closeModal('modalPonctuelle')">Annuler</button>
+      <button class="btn primary" onclick="savePonctuelle()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: recurring -->
+<div class="modal-bg" id="modalRecurring">
+  <div class="modal">
+    <h3 id="recModalTitle">Dépense récurrente</h3>
+    <div class="field"><label>Nom</label><input id="rName" type="text" placeholder="Ex : Loyer"></div>
+    <div class="field"><label>Montant (€)</label><input id="rAmount" type="number" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+    <div class="field"><label>Jour de prélèvement (optionnel)</label><input id="rDay" type="number" min="1" max="31" placeholder="Ex : 5"></div>
+    <div class="fab-row">
+      <button class="btn" onclick="closeModal('modalRecurring')">Annuler</button>
+      <button class="btn primary" onclick="saveRecurring()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: margin -->
+<div class="modal-bg" id="modalMargin">
+  <div class="modal">
+    <h3>Marge de sécurité</h3>
+    <p class="field-hint">Montant ajouté automatiquement au solde à laisser, en plus des dépenses en attente — pour garder une marge sur le compte.</p>
+    <div class="field"><label>Montant (€)</label><input id="marginInput" type="number" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+    <div class="fab-row">
+      <button class="btn" onclick="closeModal('modalMargin')">Annuler</button>
+      <button class="btn primary" onclick="saveMargin()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: backup -->
+<div class="modal-bg" id="modalBackup">
+  <div class="modal">
+    <h3>Sauvegarde des données</h3>
+    <p class="field-hint">Exporte toutes tes données (récurrentes, mois, historique) dans un fichier JSON, ou restaure une sauvegarde précédente.</p>
+    <div class="fab-row">
+      <button class="btn primary" onclick="exportBackup()">Exporter (.json)</button>
+    </div>
+    <div class="fab-row">
+      <button class="btn" onclick="document.getElementById('importFile').click()">Importer un fichier</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackup(event)">
+    <div class="fab-row">
+      <button class="btn" onclick="closeModal('modalBackup')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Storage ---------- */
+const STORAGE_KEY = 'tresorerie_data_v1';
+let data = loadData();
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { recurring: [], months: {}, currentMonth: null, safetyMargin: 0 };
+}
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch(e){ console.error('Sauvegarde impossible', e); }
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* ---------- Month handling ---------- */
+function monthKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function monthLabelFor(key){
+  const [y,m] = key.split('-').map(Number);
+  const d = new Date(y, m-1, 1);
+  return d.toLocaleDateString('fr-FR', { month:'long', year:'numeric' });
+}
+function ensureCurrentMonth(){
+  const key = monthKey(new Date());
+  if(!data.months[key]){
+    data.months[key] = { items: [] };
+  }
+  // if this is a brand new month transition, seed recurring items not yet added
+  const month = data.months[key];
+  data.recurring.forEach(rec=>{
+    const already = month.items.some(it => it.recurringId === rec.id);
+    if(!already){
+      month.items.push({
+        id: uid(), name: rec.name, amount: rec.amount,
+        type: 'recurring', recurringId: rec.id, checked: false
+      });
+    }
+  });
+  data.currentMonth = key;
+  saveData();
+  return key;
+}
+
+let activeMonthKey = ensureCurrentMonth();
+
+/* ---------- Rendering: current month ---------- */
+function renderHeader(){
+  document.getElementById('monthLabel').textContent = monthLabelFor(activeMonthKey);
+  const month = data.months[activeMonthKey] || { items: [] };
+  const total = month.items.reduce((s,i)=> s + Number(i.amount), 0);
+  const checked = month.items.filter(i=>i.checked).reduce((s,i)=> s + Number(i.amount), 0);
+  const margin = Number(data.safetyMargin) || 0;
+  const remaining = (total - checked) + margin;
+  document.getElementById('heroAmount').textContent = fmt(remaining);
+  document.getElementById('subTotal').textContent = fmt(total);
+  document.getElementById('subChecked').textContent = fmt(checked);
+  document.getElementById('marginValue').textContent = fmt(margin);
+}
+function fmt(n){
+  return n.toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
+}
+function renderItems(){
+  const month = data.months[activeMonthKey] || { items: [] };
+  const list = document.getElementById('itemsList');
+  const empty = document.getElementById('itemsEmpty');
+  list.innerHTML = '';
+  const items = [...month.items].sort((a,b)=> a.checked - b.checked);
+  empty.style.display = items.length ? 'none' : 'block';
+  items.forEach(it=>{
+    const row = document.createElement('div');
+    row.className = 'item' + (it.checked ? ' checked' : '') + ' type-' + it.type;
+    row.innerHTML = `
+      <div class="checkbox ${it.checked?'on':''}" onclick="toggleItem('${it.id}')"></div>
+      <div class="item-body">
+        <div class="item-name">${escapeHtml(it.name)}</div>
+        <div class="item-tag">${it.type === 'recurring' ? 'Récurrente' : 'Ponctuelle'}</div>
+      </div>
+      <div class="item-amount num">${fmt(Number(it.amount))}</div>
+      <div class="item-del" onclick="deleteItem('${it.id}')">✕</div>
+    `;
+    list.appendChild(row);
+  });
+}
+function toggleItem(id){
+  const month = data.months[activeMonthKey];
+  const it = month.items.find(i=>i.id===id);
+  if(it){ it.checked = !it.checked; saveData(); renderHeader(); renderItems(); }
+}
+function deleteItem(id){
+  const month = data.months[activeMonthKey];
+  month.items = month.items.filter(i=>i.id!==id);
+  saveData(); renderHeader(); renderItems();
+}
+
+/* ---------- Recurring management ---------- */
+let editingRecId = null;
+function renderRecurring(){
+  const list = document.getElementById('recList');
+  const empty = document.getElementById('recEmpty');
+  list.innerHTML = '';
+  empty.style.display = data.recurring.length ? 'none' : 'block';
+  data.recurring.forEach(rec=>{
+    const row = document.createElement('div');
+    row.className = 'rec-item';
+    row.innerHTML = `
+      <div class="rec-body">
+        <div class="rec-name">${escapeHtml(rec.name)}</div>
+        <div class="rec-day">${rec.day ? 'Prélèvement le ' + rec.day : 'Jour non précisé'}</div>
+      </div>
+      <span class="rec-amount num">${fmt(Number(rec.amount))}</span>
+      <div class="item-del" onclick="deleteRecurring('${rec.id}')">✕</div>
+    `;
+    row.querySelector('.rec-body').onclick = ()=> openRecurringModal(rec.id);
+    list.appendChild(row);
+  });
+}
+function openRecurringModal(id){
+  editingRecId = id || null;
+  const rec = id ? data.recurring.find(r=>r.id===id) : null;
+  document.getElementById('recModalTitle').textContent = rec ? 'Modifier la dépense' : 'Nouvelle dépense récurrente';
+  document.getElementById('rName').value = rec ? rec.name : '';
+  document.getElementById('rAmount').value = rec ? rec.amount : '';
+  document.getElementById('rDay').value = rec ? (rec.day || '') : '';
+  document.getElementById('modalRecurring').classList.add('open');
+}
+function saveRecurring(){
+  const name = document.getElementById('rName').value.trim();
+  const amount = parseFloat(document.getElementById('rAmount').value);
+  const day = parseInt(document.getElementById('rDay').value) || null;
+  if(!name || isNaN(amount)) return;
+  if(editingRecId){
+    const rec = data.recurring.find(r=>r.id===editingRecId);
+    rec.name = name; rec.amount = amount; rec.day = day;
+    // update amount/name in current month item if not yet checked-modified
+    const month = data.months[activeMonthKey];
+    const it = month.items.find(i=>i.recurringId===editingRecId);
+    if(it){ it.name = name; it.amount = amount; }
+  } else {
+    const rec = { id: uid(), name, amount, day };
+    data.recurring.push(rec);
+    const month = data.months[activeMonthKey];
+    month.items.push({ id: uid(), name, amount, type:'recurring', recurringId: rec.id, checked:false });
+  }
+  saveData();
+  closeModal('modalRecurring');
+  renderRecurring(); renderItems(); renderHeader();
+}
+function deleteRecurring(id){
+  data.recurring = data.recurring.filter(r=>r.id!==id);
+  saveData();
+  renderRecurring();
+}
+
+/* ---------- Ponctuelle ---------- */
+function openPonctuelleModal(){
+  document.getElementById('pName').value = '';
+  document.getElementById('pAmount').value = '';
+  document.getElementById('modalPonctuelle').classList.add('open');
+}
+function savePonctuelle(){
+  const name = document.getElementById('pName').value.trim();
+  const amount = parseFloat(document.getElementById('pAmount').value);
+  if(!name || isNaN(amount)) return;
+  const month = data.months[activeMonthKey];
+  month.items.push({ id: uid(), name, amount, type:'ponctuelle', checked:false });
+  saveData();
+  closeModal('modalPonctuelle');
+  renderItems(); renderHeader();
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ---------- Safety margin ---------- */
+function openMarginModal(){
+  document.getElementById('marginInput').value = data.safetyMargin || '';
+  document.getElementById('modalMargin').classList.add('open');
+}
+function saveMargin(){
+  const val = parseFloat(document.getElementById('marginInput').value);
+  data.safetyMargin = isNaN(val) ? 0 : val;
+  saveData();
+  closeModal('modalMargin');
+  renderHeader();
+}
+
+/* ---------- Backup: export / import ---------- */
+function openBackupModal(){
+  document.getElementById('modalBackup').classList.add('open');
+}
+function exportBackup(){
+  const payload = JSON.stringify(data, null, 2);
+  const blob = new Blob([payload], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `tresorerie-backup-${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function importBackup(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed || typeof parsed !== 'object' || !parsed.months || !parsed.recurring){
+        alert('Fichier invalide : structure inattendue.');
+        return;
+      }
+      if(!confirm('Remplacer toutes les données actuelles par cette sauvegarde ?')) return;
+      data = { recurring: parsed.recurring || [], months: parsed.months || {}, currentMonth: parsed.currentMonth || null, safetyMargin: Number(parsed.safetyMargin) || 0 };
+      saveData();
+      activeMonthKey = ensureCurrentMonth();
+      renderHeader(); renderItems(); renderRecurring(); renderHistory();
+      closeModal('modalBackup');
+    }catch(e){
+      alert('Impossible de lire ce fichier JSON.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ---------- Historique ---------- */
+function renderHistory(){
+  const list = document.getElementById('histList');
+  const empty = document.getElementById('histEmpty');
+  list.innerHTML = '';
+  const keys = Object.keys(data.months).filter(k=>k!==activeMonthKey).sort().reverse();
+  empty.style.display = keys.length ? 'none' : 'block';
+  keys.forEach(key=>{
+    const month = data.months[key];
+    const total = month.items.reduce((s,i)=>s+Number(i.amount),0);
+    const wrap = document.createElement('div');
+    wrap.className = 'hist-month';
+    const itemsHtml = month.items.map(it=>`
+      <div class="hist-line ${it.checked?'checked-line':''} ${it.type==='ponctuelle'?'type-ponctuelle':''}">
+        <span>${escapeHtml(it.name)}${it.checked?' ✓':''}</span>
+        <span class="num">${fmt(Number(it.amount))}</span>
+      </div>`).join('') || '<div class="hist-line">Aucune dépense</div>';
+    wrap.innerHTML = `
+      <div class="hist-top">
+        <span class="hist-name">${monthLabelFor(key)}</span>
+        <span class="hist-total num">${fmt(total)}</span>
+      </div>
+      <div class="hist-items">${itemsHtml}</div>
+    `;
+    wrap.querySelector('.hist-top').onclick = ()=>{
+      wrap.querySelector('.hist-items').classList.toggle('open');
+    };
+    list.appendChild(wrap);
+  });
+}
+
+/* ---------- Tabs ---------- */
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
+  if(name==='historique') renderHistory();
+  if(name==='recurrentes') renderRecurring();
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- Init ---------- */
+renderHeader();
+renderItems();
+renderRecurring();
+</script>
+</body>
+</html>
