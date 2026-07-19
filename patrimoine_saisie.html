@@ -1457,9 +1457,10 @@ button, input, select { touch-action: manipulation; }
   </div>
 
   <!-- RÉPARTITION RISQUE -->
-  <div class="section accent-gold" style="margin-bottom:16px;">
+  <div class="section accent-gold" style="margin-bottom:16px;cursor:pointer;" onclick="openRiskDetail()" title="Cliquer pour voir le détail">
     <div class="section-head">
       <div class="section-title">⚖️ Répartition par niveau de risque</div>
+      <span style="font-size:10px;color:var(--muted);">👆 détail</span>
     </div>
     <div class="section-body" style="padding:16px;">
       <canvas id="chart-risque" height="160"></canvas>
@@ -1518,6 +1519,17 @@ button, input, select { touch-action: manipulation; }
       <div id="kpi-err" style="font-size:11px;color:var(--red);min-height:14px;"></div>
       <button onclick="exportKPI()" style="background:var(--accent);border:none;color:#1a1e24;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:1px;padding:13px;border-radius:10px;cursor:pointer;width:100%;">💾 Enregistrer le fichier KPI</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL DÉTAIL RISQUE ═══ -->
+<div id="risk-detail-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:900;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeRiskDetail()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid #c8a96e;border-radius:14px;width:100%;max-width:480px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="background:var(--surface2);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c8a96e;">⚖️ Détail par niveau de risque</span>
+      <button onclick="closeRiskDetail()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 6px;">✕</button>
+    </div>
+    <div id="risk-detail-content" style="padding:16px;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -3513,6 +3525,88 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
+
+  // ─── DÉTAIL RÉPARTITION RISQUE ─────────────────────────────────────────
+  window.openRiskDetail = function() {
+    const k = computeKPIs();
+    const overlay = document.getElementById('risk-detail-overlay');
+    document.getElementById('risk-detail-content').innerHTML = buildRiskDetailHTML(k);
+    overlay.style.display = 'flex';
+  };
+  window.closeRiskDetail = function() {
+    document.getElementById('risk-detail-overlay').style.display = 'none';
+  };
+
+  function buildRiskDetailHTML(k) {
+    const levels = [
+      { n:1, label:'R1 · Sécurisé',    color:'#5aab7a', desc:'Capital garanti ou quasi, liquidité immédiate' },
+      { n:2, label:'R2 · Prudent',     color:'#4df0c8', desc:'Faible volatilité, horizon court/moyen terme' },
+      { n:3, label:'R3 · Équilibré',   color:'#7eb8d4', desc:'Diversifié, risque modéré' },
+      { n:4, label:'R4 · Dynamique',   color:'#c8a96e', desc:'Marchés actions, volatilité significative' },
+      { n:5, label:'R5 · Offensif',    color:'#e8c96e', desc:'Fort potentiel, forte volatilité' },
+      { n:6, label:'R6 · Spéculatif',  color:'#d4875a', desc:'Très volatil, horizon long' },
+      { n:7, label:'R7 · Très risqué', color:'#c05a5a', desc:'Risque de perte en capital élevé' },
+    ];
+
+    const items = {1:[],2:[],3:[],4:[],5:[],6:[],7:[]};
+    const bankNames = { boursorama:'Boursorama', fortuneo:'Fortuneo', revolut:'Revolut', natixis:'Natixis' };
+
+    ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+      (DATA[bank]||[]).forEach(r => {
+        if ((r.val||0) > 0) {
+          const lvl = Math.min(7, r.risk||1);
+          items[lvl].push({ label: `${bankNames[bank]} · ${r.label}`, val: r.val });
+        }
+      });
+    });
+    if (k.scpiVal > 0)  items[3].push({ label:'SCPI',                              val:k.scpiVal });
+    if (k.eeVal   > 0)  items[3].push({ label:'Épargne entreprise',                val:k.eeVal });
+    if (k.avVal   > 0)  items[2].push({ label:'Assurance Vie',                     val:k.avVal });
+    if (k.maison  > 0)  items[2].push({ label:'Immobilier (résidence + locatif)',  val:k.maison });
+    if (k.ebVal   > 0)  items[1].push({ label:'Épargne bloquée',                   val:k.ebVal });
+    if (k.liquide > 0)  items[1].push({ label:'Espèces / Liquidités',              val:k.liquide });
+
+    const total = levels.reduce((s,lv) => s + items[lv.n].reduce((ss,i)=>ss+i.val,0), 0);
+    if (total <= 0) {
+      return `<p style="font-size:12px;color:var(--muted);text-align:center;">Aucune donnée à afficher.</p>`;
+    }
+
+    const blocks = levels.map(lv => {
+      const list = items[lv.n].sort((a,b) => b.val - a.val);
+      const lvlTotal = list.reduce((s,i)=>s+i.val,0);
+      if (lvlTotal <= 0) return '';
+      const lvlPct = lvlTotal / total * 100;
+      const rows = list.map(i => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 4px 14px;font-size:11px;color:var(--text);border-left:2px solid ${lv.color}44;">
+          <span>${i.label}</span>
+          <span style="display:flex;align-items:center;gap:8px;">
+            <span style="color:var(--muted);">${(i.val/total*100).toFixed(1)}%</span>
+            <span style="font-family:'DM Mono',monospace;">${fmt(i.val)}</span>
+          </span>
+        </div>`).join('');
+      return `
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <div>
+              <span style="font-weight:600;font-size:12px;color:${lv.color};">${lv.label}</span>
+              <span style="font-size:10px;color:var(--muted);margin-left:6px;">${lv.desc}</span>
+            </div>
+            <span style="font-family:'DM Mono',monospace;font-size:12px;color:${lv.color};">${fmt(lvlTotal)} <span style="color:var(--muted);">(${lvlPct.toFixed(1)}%)</span></span>
+          </div>
+          <div style="height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;margin-bottom:6px;">
+            <div style="height:100%;width:${lvlPct.toFixed(1)}%;background:${lv.color};"></div>
+          </div>
+          ${rows}
+        </div>`;
+    }).join('');
+
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+        <span style="font-size:11px;color:var(--muted);">Total réparti</span>
+        <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--text);font-weight:600;">${fmt(total)}</span>
+      </div>
+      ${blocks}`;
   }
 
   function renderChartPMV(k) {
