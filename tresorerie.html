@@ -92,6 +92,25 @@
   .hist-line.checked-line{color:var(--text);}
   .hist-line.type-ponctuelle span:first-child{color:var(--ponctuelle);}
 
+  /* prediction */
+  .pred-card{background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:16px; margin-bottom:8px;}
+  .pred-title{font-size:13px; font-weight:600; margin-bottom:12px; text-transform:uppercase;
+    letter-spacing:.06em; color:var(--muted);}
+  .pred-chart{display:flex; align-items:flex-end; gap:6px; height:56px;}
+  .pred-bar-wrap{flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;}
+  .pred-bar{width:100%; background:var(--keep); border-radius:4px 4px 0 0; opacity:.8; min-height:3px;}
+  .pred-bar.current{background:var(--pending);}
+  .pred-labels{display:flex; gap:6px; margin-top:6px; margin-bottom:14px;}
+  .pred-label{flex:1; text-align:center; font-size:10px; color:var(--muted); text-transform:capitalize;}
+  .pred-row{display:flex; justify-content:space-between; align-items:center; font-size:13px;
+    padding:8px 0; border-top:1px solid var(--border);}
+  .pred-row:first-of-type{border-top:none;}
+  .pred-row .plabel{color:var(--muted);}
+  .pred-row .pvalue{font-weight:600;}
+  .pred-note{font-size:12px; color:var(--muted); line-height:1.4; margin-top:2px;}
+  .pred-apply{margin-top:10px;}
+
   /* recurring management */
   .rec-item{display:flex; align-items:center; gap:10px; background:var(--surface);
     border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px;}
@@ -169,6 +188,7 @@
 
     <!-- HISTORIQUE -->
     <section class="tab-panel" id="panel-historique">
+      <div id="predCard"></div>
       <div class="section-title">Historique des mois</div>
       <div id="histList"></div>
       <div class="empty" id="histEmpty" style="display:none;">Pas encore d'historique.</div>
@@ -513,13 +533,78 @@ function renderHistory(){
   });
 }
 
+/* ---------- Prediction ---------- */
+function renderPrediction(){
+  const el = document.getElementById('predCard');
+  const allKeys = Object.keys(data.months).sort();
+  const closedKeys = allKeys.filter(k=>k!==activeMonthKey);
+
+  if(closedKeys.length === 0){
+    el.innerHTML = `<div class="pred-card">
+      <div class="pred-title">Prévision</div>
+      <div class="pred-note">Pas encore assez d'historique : clôture au moins un mois pour obtenir une estimation du mois suivant.</div>
+    </div>`;
+    return;
+  }
+
+  const monthStats = k=>{
+    const items = data.months[k].items;
+    const total = items.reduce((s,i)=>s+Number(i.amount),0);
+    const ponctuelle = items.filter(i=>i.type==='ponctuelle').reduce((s,i)=>s+Number(i.amount),0);
+    return { key:k, total, ponctuelle };
+  };
+
+  const closedStats = closedKeys.map(monthStats);
+  const recentClosed = closedStats.slice(-6);
+  const avgTotal = recentClosed.reduce((s,m)=>s+m.total,0) / recentClosed.length;
+  const avgPonctuelle = recentClosed.reduce((s,m)=>s+m.ponctuelle,0) / recentClosed.length;
+  const maxPonctuelle = Math.max(...recentClosed.map(m=>m.ponctuelle));
+  const currentRecurringTotal = data.recurring.reduce((s,r)=>s+Number(r.amount),0);
+  const predictedNext = currentRecurringTotal + avgPonctuelle;
+  const suggestedMargin = Math.round(maxPonctuelle * 100) / 100;
+
+  // chart: last up to 6 months including current in-progress
+  const chartKeys = [...allKeys].slice(-6);
+  const chartStats = chartKeys.map(k=>({ ...monthStats(k), isCurrent: k===activeMonthKey }));
+  const maxVal = Math.max(...chartStats.map(m=>m.total), 1);
+  const bars = chartStats.map(m=>{
+    const h = Math.max(4, Math.round((m.total / maxVal) * 56));
+    return `<div class="pred-bar-wrap"><div class="pred-bar ${m.isCurrent?'current':''}" style="height:${h}px"></div></div>`;
+  }).join('');
+  const labels = chartStats.map(m=>{
+    const short = monthLabelFor(m.key).split(' ')[0].slice(0,3);
+    return `<div class="pred-label">${short}</div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="pred-card">
+      <div class="pred-title">Prévision</div>
+      <div class="pred-chart">${bars}</div>
+      <div class="pred-labels">${labels}</div>
+      <div class="pred-row"><span class="plabel">Mois prochain (estimé)</span><span class="pvalue num">${fmt(predictedNext)}</span></div>
+      <div class="pred-row"><span class="plabel">— dont récurrentes actuelles</span><span class="pvalue num">${fmt(currentRecurringTotal)}</span></div>
+      <div class="pred-row"><span class="plabel">— dont ponctuelles (moyenne)</span><span class="pvalue num">${fmt(avgPonctuelle)}</span></div>
+      <div class="pred-row"><span class="plabel">Moyenne mensuelle totale</span><span class="pvalue num">${fmt(avgTotal)}</span></div>
+      <div class="pred-row"><span class="plabel">Marge suggérée (pic ponctuelles)</span><span class="pvalue num">${fmt(suggestedMargin)}</span></div>
+      <button class="btn primary pred-apply" onclick="applySuggestedMargin(${suggestedMargin})">Appliquer cette marge</button>
+      <div class="pred-note">Basé sur les ${recentClosed.length} dernier${recentClosed.length>1?'s':''} mois clôturé${recentClosed.length>1?'s':''}.</div>
+    </div>
+  `;
+}
+function applySuggestedMargin(val){
+  data.safetyMargin = val;
+  saveData();
+  renderHeader();
+  renderPrediction();
+}
+
 /* ---------- Tabs ---------- */
 function switchTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
-  if(name==='historique') renderHistory();
+  if(name==='historique'){ renderHistory(); renderPrediction(); }
   if(name==='recurrentes') renderRecurring();
 }
 
