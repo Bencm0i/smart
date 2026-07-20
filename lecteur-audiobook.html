@@ -704,6 +704,13 @@
 
   setInterval(saveProgress, 5000);
   window.addEventListener('beforeunload', saveProgress);
+  // Sur mobile (notamment iOS Safari), 'beforeunload' ne se déclenche pas
+  // toujours quand on quitte l'onglet ou l'app. On sauvegarde donc aussi
+  // dès que la page passe en arrière-plan, et via 'pagehide' en secours.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveProgress();
+  });
+  window.addEventListener('pagehide', saveProgress);
 
   volumeSlider.addEventListener('input', () => {
     audio.volume = parseFloat(volumeSlider.value);
@@ -751,7 +758,7 @@
       div.className = 'bookmark-item';
       div.innerHTML =
         '<span class="b-time">' + fmt(bm.time) + '</span>' +
-        '<span class="b-label">' + bm.chapterName + '</span>' +
+        '<span class="b-label">' + (bm.auto ? '🔄 ' : '') + bm.chapterName + '</span>' +
         '<button class="b-remove" aria-label="Supprimer le marque-page">✕</button>';
       div.querySelector('.b-label').addEventListener('click', () => jumpToBookmark(bm));
       div.querySelector('.b-time').addEventListener('click', () => jumpToBookmark(bm));
@@ -787,6 +794,29 @@
     renderBookmarks();
     saveProgress();
   });
+
+  // Marque-pages automatiques : toutes les 3 minutes de lecture, on pose
+  // un marque-page "🔄" et on ne garde que les 5 derniers (les
+  // marque-pages posés manuellement ne sont ni comptés ni supprimés).
+  const AUTO_BOOKMARK_INTERVAL_MS = 3 * 60 * 1000;
+  const AUTO_BOOKMARK_LIMIT = 5;
+
+  function addAutoBookmark() {
+    if (currentIndex < 0 || audio.paused) return;
+    bookmarks.push({ chapterName: playlist[currentIndex].name, time: audio.currentTime, auto: true });
+    const autoCount = bookmarks.filter(b => b.auto).length;
+    if (autoCount > AUTO_BOOKMARK_LIMIT) {
+      let toRemove = autoCount - AUTO_BOOKMARK_LIMIT;
+      bookmarks = bookmarks.filter(b => {
+        if (b.auto && toRemove > 0) { toRemove--; return false; }
+        return true;
+      });
+    }
+    renderBookmarks();
+    saveProgress();
+  }
+
+  setInterval(addAutoBookmark, AUTO_BOOKMARK_INTERVAL_MS);
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
@@ -876,9 +906,11 @@
   audio.addEventListener('pause', () => {
     playBtn.textContent = '▶';
     playBtn.setAttribute('aria-label', 'Lecture');
+    saveProgress();
   });
 
   audio.addEventListener('ended', () => {
+    saveProgress();
     if (currentIndex + 1 < playlist.length) {
       loadChapter(currentIndex + 1, true);
     }
@@ -892,6 +924,9 @@
 
   seek.addEventListener('input', () => {
     audio.currentTime = seek.value;
+  });
+  seek.addEventListener('change', () => {
+    saveProgress();
   });
 
   backBtn.addEventListener('click', () => {
