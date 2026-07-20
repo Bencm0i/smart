@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>BLASTEROIDE - AMSTRAD CPC</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body {
+    height:100%;
+    min-height:100vh;
+    min-height:100dvh;
+    background:#000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: 'Courier New', monospace;
+    overscroll-behavior:none;
+    touch-action:pan-y;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  #cpc-frame {
+    background: linear-gradient(180deg,#3a3a5a,#1a1a2e);
+    padding: 22px 22px 34px 22px;
+    border-radius: 10px;
+    box-shadow: 0 0 0 3px #000, 0 20px 60px rgba(0,0,0,.7);
+    width: 100%;
+    max-width: 460px;
+    box-sizing: border-box;
+  }
+  #screen-wrap {
+    width: 100%;
+  }
+  #screen-inner {
+    width: 100%;
+  }
+  #screen-inner canvas {
+    width: 100%;
+    height: auto;
+    display:block;
+  }
+  /* ---------- CONTROLES TACTILES ---------- */
+  #touch-controls {
+    display:none;
+    margin-top: 14px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    user-select:none;
+  }
+  #touch-controls .pad {
+    display:grid;
+    grid-template-columns: 54px 54px;
+    grid-template-rows: 54px 54px;
+    gap: 8px;
+  }
+  #touch-controls .pad button {
+    grid-row: 2;
+  }
+  #touch-controls .pad button#btn-thrust {
+    grid-column: 1 / span 2;
+    grid-row: 1;
+  }
+  #touch-controls .pad button#btn-left { grid-column: 1; }
+  #touch-controls .pad button#btn-right { grid-column: 2; }
+
+  .tbtn {
+    background: linear-gradient(180deg,#2a2a4a,#1c1c34);
+    color:#8888cc;
+    border:1px solid #4444aa;
+    border-radius:8px;
+    font-family:'Courier New',monospace;
+    font-size:20px;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 3px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+    touch-action:manipulation;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .tbtn:active, .tbtn.pressed {
+    background: linear-gradient(180deg,#4444aa,#2a2a6a);
+    color:#fff;
+    border-color:#8888ff;
+    box-shadow: 0 1px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.15);
+    transform: translateY(2px);
+  }
+  #btn-fire {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    font-size: 13px;
+    letter-spacing: 1px;
+    background: radial-gradient(circle at 35% 30%, #4a1a1a, #1c0a0a);
+    border-color:#aa4444;
+    color:#ff8888;
+  }
+  #btn-fire:active, #btn-fire.pressed {
+    background: radial-gradient(circle at 35% 30%, #aa3030, #601010);
+    color:#fff;
+    border-color:#ff4040;
+  }
+  #tap-start-hint {
+    display:none;
+    text-align:center;
+    color:#8888cc;
+    font-size:10px;
+    letter-spacing:1px;
+    margin-top:10px;
+    text-transform:uppercase;
+  }
+  @media (max-width: 900px), (pointer: coarse) {
+    #touch-controls { display:flex; }
+    #tap-start-hint { display:block; }
+    #cpc-frame { padding: 14px 12px calc(18px + env(safe-area-inset-bottom)) 12px; max-width: 560px; }
+    #cpc-topbar { font-size:9px; padding: 0 2px 6px 2px; }
+    #cpc-bottombar { font-size:9px; margin-top:8px; }
+  }
+  @media (max-height: 700px) and (pointer: coarse) {
+    #touch-controls .pad { grid-template-columns: 46px 46px; grid-template-rows: 46px 46px; gap:6px; }
+    #btn-fire { width:78px; height:78px; font-size:11px; }
+    #cpc-topbar, #cpc-bottombar { display:none; }
+  }
+  #cpc-topbar {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#8888cc;
+    font-size:11px;
+    letter-spacing:2px;
+    padding: 0 4px 8px 4px;
+    text-transform:uppercase;
+  }
+  #screen-wrap {
+    background:#000;
+    border: 10px solid #1c1c3c;
+    box-shadow: inset 0 0 0 2px #4444aa, inset 0 0 40px rgba(0,0,0,.9);
+    position: relative;
+    transition: box-shadow 0.05s linear;
+  }
+  #screen-inner {
+    position: relative;
+    line-height: 0;
+  }
+  canvas {
+    display:block;
+    background:#000;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  #scanlines {
+    position:absolute;
+    top:0; left:0; right:0; bottom:0;
+    pointer-events:none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 1px,
+      rgba(0,0,0,.35) 2px,
+      rgba(0,0,0,.35) 3px
+    );
+    mix-blend-mode: multiply;
+    animation: crt-flicker 0.16s infinite;
+  }
+  #scanlines::after {
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0; height:18px;
+    background: linear-gradient(to bottom, rgba(255,255,255,.06), rgba(255,255,255,0));
+    animation: crt-roll 6s linear infinite;
+  }
+  @keyframes crt-flicker {
+    0%,100% { opacity:.94; }
+    50% { opacity:1; }
+  }
+  @keyframes crt-roll {
+    0% { transform: translateY(-20px); }
+    100% { transform: translateY(272px); }
+  }
+  #cpc-bottombar {
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#6666aa;
+    font-size:10px;
+    letter-spacing:1px;
+  }
+  #cpc-bottombar span.led {
+    display:inline-block;
+    width:7px;height:7px;
+    border-radius:50%;
+    background:#e02020;
+    box-shadow:0 0 6px #ff4040;
+    margin-right:5px;
+    vertical-align:middle;
+  }
+  #mute-btn {
+    background:#2a2a4a;
+    color:#8888cc;
+    border:1px solid #4444aa;
+    font-family:'Courier New',monospace;
+    font-size:10px;
+    padding:3px 8px;
+    cursor:pointer;
+    letter-spacing:1px;
+  }
+  #mute-btn:hover { color:#fff; border-color:#8888ff; }
+</style>
+</head>
+<body>
+
+<div id="cpc-frame">
+  <div id="cpc-topbar">
+    <span>AMSTRAD CPC 6128</span>
+    <span>BLASTEROIDE v2.0</span>
+  </div>
+  <div id="screen-wrap">
+    <div id="screen-inner">
+      <canvas id="game" width="384" height="272"></canvas>
+      <div id="scanlines"></div>
+    </div>
+  </div>
+  <div id="cpc-bottombar">
+    <span><span class="led"></span>READY</span>
+    <button id="mute-btn">SON: ON</button>
+  </div>
+
+  <div id="touch-controls">
+    <div class="pad">
+      <button id="btn-thrust" class="tbtn">▲</button>
+      <button id="btn-left" class="tbtn">◄</button>
+      <button id="btn-right" class="tbtn">►</button>
+    </div>
+    <button id="btn-fire" class="tbtn">TIR</button>
+  </div>
+  <div id="tap-start-hint">TOUCHEZ L'ECRAN POUR DEMARRER / CONFIRMER</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+const PAL = {
+  bg:      '#000000',
+  white:   '#ffffff',
+  cyan:    '#4fffff',
+  yellow:  '#ffff4f',
+  magenta: '#ff4fff',
+  green:   '#4fff4f',
+  orange:  '#ff9f4f',
+  red:     '#ff4f4f',
+  blue:    '#4f9fff',
+  gray:    '#8080a0',
+  pink:    '#ff80c0'
+};
+
+const W = canvas.width, H = canvas.height;
+
+/* =========================================================
+   AUDIO ENGINE - chiptune procedural style AY-3-8912 (CPC)
+   ========================================================= */
+const Audio8bit = (function(){
+  let ctxA = null;
+  let muted = false;
+  let musicTimer = null;
+  let step = 0;
+
+  // petite mélodie arcade en boucle (notes en Hz), style basse + lead carré
+  const bass = [98,98,110,98, 98,98,130.8,110, 98,98,110,98, 87.3,87.3,98,110];
+  const lead = [392,0,440,0, 392,349,0,392, 440,0,494,440, 392,0,349,0];
+
+  function ensure(){
+    if(!ctxA){
+      ctxA = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(ctxA.state === 'suspended') ctxA.resume();
+  }
+
+  function beep(freq, dur, type, vol, when){
+    if(muted || !ctxA) return;
+    const t = ctxA.currentTime + (when||0);
+    const osc = ctxA.createOscillator();
+    const gain = ctxA.createGain();
+    osc.type = type || 'square';
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol||0.06, t+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+    osc.connect(gain).connect(ctxA.destination);
+    osc.start(t);
+    osc.stop(t+dur+0.02);
+  }
+
+  function noiseBurst(dur, vol){
+    if(muted || !ctxA) return;
+    const bufferSize = ctxA.sampleRate * dur;
+    const buffer = ctxA.createBuffer(1, bufferSize, ctxA.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1) * (1 - i/bufferSize); }
+    const src = ctxA.createBufferSource();
+    src.buffer = buffer;
+    const gain = ctxA.createGain();
+    gain.gain.value = vol||0.08;
+    src.connect(gain).connect(ctxA.destination);
+    src.start();
+  }
+
+  function tick(){
+    if(muted || !ctxA) return;
+    const b = bass[step % bass.length];
+    const l = lead[step % lead.length];
+    if(b) beep(b, 0.16, 'square', 0.045);
+    if(l) beep(l, 0.14, 'square', 0.05);
+    step++;
+  }
+
+  function startMusic(){
+    ensure();
+    if(musicTimer) return;
+    musicTimer = setInterval(tick, 150);
+  }
+  function stopMusic(){
+    if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
+  }
+
+  function sfxShoot(){ ensure(); beep(880,0.07,'square',0.04); }
+  function sfxExplode(big){ ensure(); noiseBurst(big?0.35:0.18, big?0.14:0.08); beep(80,0.25,'sawtooth',0.05); }
+  function sfxHit(){ ensure(); beep(140,0.15,'sawtooth',0.07); }
+  function sfxPowerup(){ ensure(); beep(523,0.08,'square',0.05); beep(784,0.1,'square',0.05,0.08); beep(1046,0.12,'square',0.05,0.16); }
+  function sfxBossAlert(){ ensure(); beep(110,0.4,'sawtooth',0.08); beep(220,0.4,'sawtooth',0.06,0.15); }
+  function sfxGameOver(){ ensure(); [440,392,349,261].forEach((f,i)=>beep(f,0.3,'triangle',0.06,i*0.18)); }
+
+  function sfxTapeNoise(){ ensure(); beep(200+Math.random()*1600, 0.045, 'sawtooth', 0.018); }
+  function sfxReadError(){
+    ensure();
+    noiseBurst(0.35, 0.1);
+    [220,170,220,140,220,100].forEach((f,i)=>beep(f,0.11,'square',0.07,i*0.09));
+  }
+  function sfxLoadOk(){ ensure(); [523,659,784,1046].forEach((f,i)=>beep(f,0.11,'square',0.055,i*0.07)); }
+
+  function setMuted(v){
+    muted = v;
+    if(muted) stopMusic();
+  }
+
+  return { startMusic, stopMusic, sfxShoot, sfxExplode, sfxHit, sfxPowerup, sfxBossAlert, sfxGameOver, sfxTapeNoise, sfxReadError, sfxLoadOk, setMuted, ensure };
+})();
+
+const muteBtn = document.getElementById('mute-btn');
+let isMuted = false;
+muteBtn.addEventListener('click', ()=>{
+  isMuted = !isMuted;
+  Audio8bit.setMuted(isMuted);
+  muteBtn.textContent = 'SON: ' + (isMuted?'OFF':'ON');
+  if(!isMuted && started && !gameOver) Audio8bit.startMusic();
+});
+
+/* ---------- TEXTE ---------- */
+function drawText(str, x, y, size, color, align) {
+  ctx.font = `${size}px 'Courier New', monospace`;
+  ctx.fillStyle = color;
+  ctx.textBaseline = 'top';
+  ctx.textAlign = align || 'left';
+  ctx.fillText(str, x, y);
+}
+
+function rand(a,b){ return a + Math.random()*(b-a); }
+function wrap(o){
+  if(o.x < -o.r) o.x = W + o.r;
+  if(o.x > W + o.r) o.x = -o.r;
+  if(o.y < -o.r) o.y = H + o.r;
+  if(o.y > H + o.r) o.y = -o.r;
+}
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+/* ---------- DIFFICULTE ---------- */
+const DIFFICULTIES = [
+  { name:'FACILE',     speedMult:0.7,  countBase:2, specialChance:0.30, startLives:4, bossHpMult:0.7,  bossFireMult:1.5,  bossBulletSpeed:2.2 },
+  { name:'NORMAL',     speedMult:1.0,  countBase:3, specialChance:0.22, startLives:3, bossHpMult:1.0,  bossFireMult:1.0,  bossBulletSpeed:3.0 },
+  { name:'DIFFICILE',  speedMult:1.3,  countBase:4, specialChance:0.16, startLives:2, bossHpMult:1.35, bossFireMult:0.7,  bossBulletSpeed:3.7 },
+  { name:'CAUCHEMAR',  speedMult:1.65, countBase:5, specialChance:0.12, startLives:1, bossHpMult:1.7,  bossFireMult:0.5,  bossBulletSpeed:4.4 }
+];
+let diffIndex = 1;
+let diff = DIFFICULTIES[diffIndex];
+
+/* ---------- STATE ---------- */
+let ship, bullets, asteroids, particles, keys, powerups, enemyBullets, boss;
+let score, lives, level, gameOver, started;
+let highscore = parseInt(localStorage.getItem('blasteroide_hs') || '0', 10);
+let flashTimer = 0;
+let respawnTimer = 0;
+let invuln = 0;
+let rapidTimer = 0;
+let tripleTimer = 0;
+let shieldTimer = 0;
+let bossWarnTimer = 0;
+let bossActive = false;
+
+/* ---------- SEQUENCE CASSETTE (boot) ---------- */
+let phase = 'cassette'; // 'cassette' | 'loading' | 'error' | 'ready'
+let loadProgress = 0;
+let errorAttempt = 0;
+let errorMsg = '';
+let errorTimer = 0;
+let bootBlink = 0;
+const screenWrapEl = document.getElementById('screen-wrap');
+
+const BOSS_EVERY = 5; // boss tous les 5 niveaux
+
+function resetShip(){
+  ship = { x: W/2, y: H/2, r: 9, ang: -Math.PI/2, vx:0, vy:0, thrusting:false };
+  invuln = 120;
+}
+
+function newGame(){
+  diff = DIFFICULTIES[diffIndex];
+  score=0; lives=diff.startLives; level=1; gameOver=false; started=true;
+  bullets=[]; particles=[]; powerups=[]; enemyBullets=[]; boss=null;
+  bossActive=false; rapidTimer=0; tripleTimer=0; shieldTimer=0;
+  resetShip();
+  spawnAsteroidWave();
+  Audio8bit.ensure();
+  if(!isMuted) Audio8bit.startMusic();
+}
+
+function isBossLevel(lv){ return lv % BOSS_EVERY === 0; }
+
+function spawnAsteroidWave(){
+  asteroids = [];
+  if(isBossLevel(level)){
+    startBoss();
+    // quelques astéroïdes d'escorte
+    for(let i=0;i<2;i++){
+      let x,y;
+      do { x=rand(0,W); y=rand(0,H); } while(dist({x,y},ship)<70);
+      asteroids.push(makeAsteroid(x,y,2));
+    }
+    return;
+  }
+  const count = diff.countBase + level;
+  for(let i=0;i<count;i++){
+    let x,y;
+    do { x=rand(0,W); y=rand(0,H); } while(dist({x,y},ship)<70);
+    const special = Math.random() < diff.specialChance; // astéroïde spécial = drop power-up
+    asteroids.push(makeAsteroid(x,y,3,special));
+  }
+}
+
+function makeAsteroid(x,y,size,special){
+  const r = size===3?26:size===2?15:8;
+  const verts = [];
+  const n = 9 + Math.floor(rand(0,4));
+  for(let i=0;i<n;i++){
+    const a=(i/n)*Math.PI*2;
+    verts.push({a, rad: r*rand(0.7,1.15)});
+  }
+  const colors = [PAL.yellow, PAL.orange, PAL.gray, PAL.cyan];
+  return {
+    x,y,r,size,
+    vx: rand(-1,1)*(1.6/size+0.4)*diff.speedMult,
+    vy: rand(-1,1)*(1.6/size+0.4)*diff.speedMult,
+    rot: rand(-0.02,0.02),
+    ang: rand(0,Math.PI*2),
+    verts,
+    color: special ? PAL.magenta : colors[Math.floor(rand(0,colors.length))],
+    special: !!special
+  };
+}
+
+function splitAsteroid(ast){
+  if(ast.size>1){
+    for(let i=0;i<2;i++) asteroids.push(makeAsteroid(ast.x,ast.y,ast.size-1,false));
+  }
+  spawnExplosion(ast.x,ast.y,ast.color,ast.size*4);
+  if(ast.special){
+    dropPowerup(ast.x,ast.y);
+  }
+}
+
+const POWER_TYPES = ['shield','rapid','triple','life'];
+function dropPowerup(x,y){
+  const type = POWER_TYPES[Math.floor(rand(0,POWER_TYPES.length))];
+  powerups.push({x,y,vx:rand(-0.6,0.6),vy:rand(-0.6,0.6),r:7,type,life:600,pulse:0});
+}
+
+const POWER_COLOR = { shield: PAL.cyan, rapid: PAL.yellow, triple: PAL.green, life: PAL.red };
+const POWER_LABEL = { shield: 'S', rapid: 'R', triple: 'T', life: '+' };
+
+function applyPowerup(type){
+  Audio8bit.sfxPowerup();
+  if(type==='shield'){ shieldTimer = 400; }
+  else if(type==='rapid'){ rapidTimer = 500; }
+  else if(type==='triple'){ tripleTimer = 500; }
+  else if(type==='life'){ lives = Math.min(lives+1,9); }
+}
+
+function spawnExplosion(x,y,color,n){
+  for(let i=0;i<n;i++){
+    particles.push({x,y,vx:rand(-3,3),vy:rand(-3,3),life:rand(15,35),color});
+  }
+}
+
+/* ---------- BOSS ---------- */
+function startBoss(){
+  bossActive = true;
+  bossWarnTimer = 120;
+  boss = {
+    x: W/2, y: -60, targetY: 55,
+    r: 30, vx: 1.4,
+    hp: Math.round((18 + level*2) * diff.bossHpMult), maxHp: Math.round((18 + level*2) * diff.bossHpMult),
+    fireTimer: Math.round(90 * diff.bossFireMult),
+    entering: true,
+    phase: 0,
+    hitFlash: 0
+  };
+  Audio8bit.sfxBossAlert();
+}
+
+function updateBoss(){
+  if(!boss) return;
+  if(boss.entering){
+    boss.y += 1;
+    if(boss.y >= boss.targetY){ boss.y = boss.targetY; boss.entering = false; }
+    return;
+  }
+  boss.x += boss.vx;
+  if(boss.x < 50 || boss.x > W-50) boss.vx *= -1;
+  boss.phase += 0.05;
+  boss.y = boss.targetY + Math.sin(boss.phase)*10;
+
+  boss.fireTimer--;
+  if(boss.fireTimer<=0){
+    for(let i=-1;i<=1;i++){
+      const a = Math.atan2(ship.y-boss.y, ship.x-boss.x) + i*0.18;
+      enemyBullets.push({x:boss.x,y:boss.y+20,vx:Math.cos(a)*diff.bossBulletSpeed,vy:Math.sin(a)*diff.bossBulletSpeed,life:120,r:3});
+    }
+    Audio8bit.sfxShoot();
+    boss.fireTimer = Math.round(Math.max(35, 90 - level*3) * diff.bossFireMult);
+  }
+  if(boss.hitFlash>0) boss.hitFlash--;
+}
+
+function drawBoss(){
+  if(!boss) return;
+  ctx.save();
+  ctx.translate(boss.x, boss.y);
+  ctx.strokeStyle = boss.hitFlash>0 ? PAL.white : PAL.red;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-40,-10); ctx.lineTo(-15,-22); ctx.lineTo(15,-22); ctx.lineTo(40,-10);
+  ctx.lineTo(40,10); ctx.lineTo(15,22); ctx.lineTo(-15,22); ctx.lineTo(-40,10);
+  ctx.closePath(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.strokeStyle=PAL.magenta; ctx.stroke();
+  ctx.restore();
+
+  // barre de vie
+  const bw = 140;
+  ctx.strokeStyle = PAL.white;
+  ctx.strokeRect(W/2-bw/2, 12, bw, 6);
+  ctx.fillStyle = PAL.red;
+  ctx.fillRect(W/2-bw/2+1, 13, (bw-2)*(boss.hp/boss.maxHp), 4);
+}
+
+/* ---------- SEQUENCE CASSETTE ---------- */
+function startLoading(){
+  phase = 'loading';
+  loadProgress = 0;
+}
+
+function triggerReadError(){
+  phase = 'error';
+  const letter = String.fromCharCode(97 + Math.floor(rand(0,4))); // a-d, clin d'oeil aux "Read error a" d'epoque
+  errorMsg = 'R Read error ' + letter;
+  errorTimer = 130;
+  errorAttempt++;
+  Audio8bit.sfxReadError();
+  if(screenWrapEl){
+    screenWrapEl.style.boxShadow = 'inset 0 0 0 3px #ff4040, inset 0 0 40px rgba(0,0,0,.9)';
+  }
+}
+
+function finishLoading(){
+  phase = 'ready';
+  started = false;
+  gameOver = false;
+  Audio8bit.sfxLoadOk();
+  if(screenWrapEl){
+    screenWrapEl.style.boxShadow = 'inset 0 0 0 2px #4444aa, inset 0 0 40px rgba(0,0,0,.9)';
+  }
+}
+
+function updateBoot(){
+  bootBlink++;
+  if(phase === 'loading'){
+    loadProgress += rand(0.55, 1.35);
+    if(!isMuted && bootBlink % 5 === 0) Audio8bit.sfxTapeNoise();
+    if(screenWrapEl){
+      const cols = ['#4444aa','#ff4f4f','#4fffff','#ffff4f','#ff4fff','#4fff4f'];
+      screenWrapEl.style.boxShadow = 'inset 0 0 0 3px ' + cols[Math.floor(bootBlink/2) % cols.length] + ', inset 0 0 40px rgba(0,0,0,.9)';
+    }
+    if(loadProgress >= 100){
+      loadProgress = 100;
+      // plus on a deja rate, moins ca a de chances de merder a nouveau
+      const errorChance = [0.62, 0.42, 0.2, 0][Math.min(errorAttempt, 3)];
+      if(Math.random() < errorChance) triggerReadError();
+      else finishLoading();
+    }
+  } else if(phase === 'error'){
+    errorTimer--;
+    if(errorTimer <= 0){
+      phase = 'cassette';
+      loadProgress = 0;
+      if(screenWrapEl){
+        screenWrapEl.style.boxShadow = 'inset 0 0 0 2px #4444aa, inset 0 0 40px rgba(0,0,0,.9)';
+      }
+    }
+  }
+}
+
+function drawBoot(){
+  ctx.fillStyle = PAL.bg;
+  ctx.fillRect(0,0,W,H);
+
+  if(phase === 'cassette'){
+    drawText('AMSTRAD CPC 6128 - 64K', W/2, 34, 9, PAL.gray, 'center');
+    drawText('C A S S E T T E   1', W/2, 62, 14, PAL.yellow, 'center');
+    drawText('B L A S T E R O I D E', W/2, 86, 12, PAL.cyan, 'center');
+    drawText('----------------------------', W/2, 104, 10, PAL.gray, 'center');
+    if(errorAttempt > 0){
+      drawText('TENTATIVE No ' + (errorAttempt+1), W/2, 122, 9, PAL.orange, 'center');
+    }
+    if(Math.floor(bootBlink/22) % 2 === 0){
+      drawText('CASSETTE...', W/2, 156, 11, PAL.white, 'center');
+      drawText('PRESS PLAY THEN ANY KEY', W/2, 172, 11, PAL.white, 'center');
+    }
+    drawText('COPYRIGHT 1986 AVENTECH SOFT', W/2, 240, 8, PAL.gray, 'center');
+  } else if(phase === 'loading'){
+    drawText('LOADING', W/2, 50, 12, PAL.white, 'center');
+    drawText('"BLASTEROIDE"', W/2, 70, 10, PAL.cyan, 'center');
+
+    const bw=220, bh=14, bx=W/2-bw/2, by=120;
+    ctx.strokeStyle = PAL.white; ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, bw, bh);
+    ctx.fillStyle = PAL.green;
+    ctx.fillRect(bx+2, by+2, (bw-4)*(loadProgress/100), bh-4);
+    drawText(Math.floor(loadProgress) + '%', W/2, by+bh+10, 9, PAL.yellow, 'center');
+
+    drawText('NE COUPEZ PAS L\'ALIMENTATION', W/2, by+40, 8, PAL.gray, 'center');
+
+    // bandes de bruit de bande magnetique, cote a cote
+    for(let i=0;i<8;i++){
+      ctx.fillStyle = [PAL.red,PAL.cyan,PAL.yellow,PAL.magenta,PAL.green,PAL.orange][(bootBlink+i)%6];
+      ctx.fillRect(8+i*10, H-18, 7, 7);
+      ctx.fillRect(W-15-i*10, H-18, 7, 7);
+    }
+  } else if(phase === 'error'){
+    drawText(errorMsg, W/2, 100, 15, PAL.red, 'center');
+    drawText('----------------------------', W/2, 122, 10, PAL.red, 'center');
+    drawText('REMBOBINEZ LA CASSETTE', W/2, 148, 9, PAL.white, 'center');
+    drawText('VERIFIEZ LE VOLUME', W/2, 162, 9, PAL.white, 'center');
+    drawText('ET REESSAYEZ...', W/2, 176, 9, PAL.white, 'center');
+  }
+}
+
+/* ---------- INPUT ---------- */
+keys = {};
+
+// Logique "appui" partagée entre clavier et boutons tactiles
+function handleDiscreteInput(code){
+  Audio8bit.ensure();
+
+  if(phase === 'cassette'){
+    startLoading();
+    return;
+  }
+  if(phase === 'loading' || phase === 'error'){
+    return; // la bande tourne, on subit
+  }
+
+  if(!started && !gameOver){
+    if(code==='ArrowLeft'){ diffIndex = (diffIndex-1+DIFFICULTIES.length)%DIFFICULTIES.length; Audio8bit.sfxShoot(); }
+    if(code==='ArrowRight'){ diffIndex = (diffIndex+1)%DIFFICULTIES.length; Audio8bit.sfxShoot(); }
+    if(code==='Space'||code==='Enter') newGame();
+    return;
+  }
+  if(gameOver && (code==='Space'||code==='Enter')) newGame();
+}
+
+window.addEventListener('keydown', e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+  const isRepeat = !!keys[e.code];
+  keys[e.code]=true;
+  if(!isRepeat) handleDiscreteInput(e.code);
+});
+window.addEventListener('keyup', e=>{ keys[e.code]=false; });
+
+/* ---------- CONTROLES TACTILES (smartphone/tablette) ---------- */
+function bindTouchButton(el, code){
+  if(!el) return;
+  const press = (ev)=>{
+    if(ev) ev.preventDefault();
+    el.classList.add('pressed');
+    if(!keys[code]){ keys[code]=true; handleDiscreteInput(code); }
+  };
+  const release = (ev)=>{
+    if(ev) ev.preventDefault();
+    keys[code]=false;
+    el.classList.remove('pressed');
+  };
+  el.addEventListener('touchstart', press, {passive:false});
+  el.addEventListener('touchend', release, {passive:false});
+  el.addEventListener('touchcancel', release, {passive:false});
+  // fallback souris (tests desktop / tablette avec trackpad)
+  el.addEventListener('mousedown', press);
+  el.addEventListener('mouseup', release);
+  el.addEventListener('mouseleave', release);
+}
+bindTouchButton(document.getElementById('btn-left'), 'ArrowLeft');
+bindTouchButton(document.getElementById('btn-right'), 'ArrowRight');
+bindTouchButton(document.getElementById('btn-thrust'), 'ArrowUp');
+bindTouchButton(document.getElementById('btn-fire'), 'Space');
+
+// Toucher l'écran (hors boutons) démarre / valide les écrans cassette, menu et game over
+if(screenWrapEl){
+  screenWrapEl.addEventListener('touchstart', (ev)=>{
+    ev.preventDefault();
+    handleDiscreteInput('Space');
+  }, {passive:false});
+}
+
+let shootCooldown = 0;
+
+/* ---------- UPDATE ---------- */
+function update(){
+  if(!started || gameOver) return;
+
+  if(rapidTimer>0) rapidTimer--;
+  if(tripleTimer>0) tripleTimer--;
+  if(shieldTimer>0) shieldTimer--;
+  if(bossWarnTimer>0) bossWarnTimer--;
+
+  if(!(respawnTimer>0)){
+    if(keys['ArrowLeft']) ship.ang -= 0.075;
+    if(keys['ArrowRight']) ship.ang += 0.075;
+    ship.thrusting = !!keys['ArrowUp'];
+    if(ship.thrusting){
+      ship.vx += Math.cos(ship.ang)*0.13;
+      ship.vy += Math.sin(ship.ang)*0.13;
+    }
+    const cooldownBase = rapidTimer>0 ? 4 : 10;
+    if(keys['Space'] && shootCooldown<=0){
+      const angles = tripleTimer>0 ? [-0.18,0,0.18] : [0];
+      for(const off of angles){
+        const a = ship.ang+off;
+        bullets.push({
+          x: ship.x+Math.cos(a)*ship.r,
+          y: ship.y+Math.sin(a)*ship.r,
+          vx: Math.cos(a)*5+ship.vx*0.5,
+          vy: Math.sin(a)*5+ship.vy*0.5,
+          life:55, r:2
+        });
+      }
+      Audio8bit.sfxShoot();
+      shootCooldown = cooldownBase;
+    }
+  }
+  if(shootCooldown>0) shootCooldown--;
+
+  ship.vx*=0.992; ship.vy*=0.992;
+  ship.x+=ship.vx; ship.y+=ship.vy;
+  wrap(ship);
+  if(invuln>0) invuln--;
+  if(respawnTimer>0) respawnTimer--;
+
+  for(let i=bullets.length-1;i>=0;i--){
+    const b=bullets[i];
+    b.x+=b.vx; b.y+=b.vy; b.life--;
+    if(b.x<0)b.x=W; if(b.x>W)b.x=0;
+    if(b.y<0)b.y=H; if(b.y>H)b.y=0;
+    if(b.life<=0) bullets.splice(i,1);
+  }
+
+  for(const a of asteroids){ a.x+=a.vx; a.y+=a.vy; a.ang+=a.rot; wrap(a); }
+
+  for(const p of powerups){ p.x+=p.vx; p.y+=p.vy; p.life--; p.pulse+=0.15; wrap(p); }
+  powerups = powerups.filter(p=>p.life>0);
+
+  // bullet vs asteroid
+  outer:
+  for(let i=asteroids.length-1;i>=0;i--){
+    const a=asteroids[i];
+    for(let j=bullets.length-1;j>=0;j--){
+      const b=bullets[j];
+      if(dist(a,b)<a.r){
+        bullets.splice(j,1);
+        asteroids.splice(i,1);
+        score += a.size===3?20:a.size===2?50:100;
+        Audio8bit.sfxExplode(a.size===3);
+        splitAsteroid(a);
+        continue outer;
+      }
+    }
+  }
+
+  // bullet vs boss
+  if(boss && !boss.entering){
+    for(let j=bullets.length-1;j>=0;j--){
+      const b=bullets[j];
+      if(dist(boss,b) < boss.r){
+        bullets.splice(j,1);
+        boss.hp--; boss.hitFlash = 6;
+        Audio8bit.sfxHit();
+        if(boss.hp<=0){
+          spawnExplosion(boss.x,boss.y,PAL.red,40);
+          spawnExplosion(boss.x,boss.y,PAL.white,20);
+          Audio8bit.sfxExplode(true);
+          score += 1000;
+          boss=null; bossActive=false;
+          level++;
+          spawnAsteroidWave();
+        }
+        break;
+      }
+    }
+  }
+
+  // enemy bullets update + collision with ship
+  for(let i=enemyBullets.length-1;i>=0;i--){
+    const eb=enemyBullets[i];
+    eb.x+=eb.vx; eb.y+=eb.vy; eb.life--;
+    if(eb.life<=0){ enemyBullets.splice(i,1); continue; }
+    if(invuln<=0 && respawnTimer<=0 && shieldTimer<=0 && dist(eb,ship)<ship.r+2){
+      enemyBullets.splice(i,1);
+      hitShip();
+    }
+  }
+
+  // powerup pickup
+  for(let i=powerups.length-1;i>=0;i--){
+    if(dist(powerups[i],ship) < ship.r+8){
+      applyPowerup(powerups[i].type);
+      powerups.splice(i,1);
+    }
+  }
+
+  // ship vs asteroid
+  if(invuln<=0 && respawnTimer<=0 && shieldTimer<=0){
+    for(let i=asteroids.length-1;i>=0;i--){
+      const a=asteroids[i];
+      if(dist(a,ship) < a.r+ship.r*0.6){ hitShip(); break; }
+    }
+    if(boss && !boss.entering && dist(boss,ship) < boss.r+ship.r*0.6){
+      hitShip();
+    }
+  }
+
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.life--; p.vx*=0.96; p.vy*=0.96;
+    if(p.life<=0) particles.splice(i,1);
+  }
+
+  if(boss) updateBoss();
+
+  if(!bossActive && asteroids.length===0){
+    level++;
+    spawnAsteroidWave();
+  }
+
+  if(flashTimer>0) flashTimer--;
+}
+
+function hitShip(){
+  spawnExplosion(ship.x,ship.y,PAL.white,25);
+  Audio8bit.sfxExplode(false);
+  lives--;
+  flashTimer=20;
+  if(lives<=0){
+    gameOver=true;
+    Audio8bit.stopMusic();
+    Audio8bit.sfxGameOver();
+    if(score>highscore){ highscore=score; localStorage.setItem('blasteroide_hs',String(highscore)); }
+  } else {
+    respawnTimer=90;
+    ship.x=W/2; ship.y=H/2; ship.vx=0; ship.vy=0;
+    invuln=130;
+  }
+}
+
+/* ---------- DRAW ---------- */
+function drawShip(){
+  if(respawnTimer>0) return;
+  if(invuln>0 && Math.floor(invuln/4)%2===0) return;
+  ctx.save();
+  ctx.translate(ship.x,ship.y);
+  ctx.rotate(ship.ang);
+  if(shieldTimer>0){
+    ctx.strokeStyle = PAL.cyan;
+    ctx.globalAlpha = 0.6 + Math.sin(shieldTimer*0.3)*0.2;
+    ctx.beginPath(); ctx.arc(0,0,14,0,Math.PI*2); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  ctx.strokeStyle = PAL.white;
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(11,0); ctx.lineTo(-8,-7); ctx.lineTo(-4,0); ctx.lineTo(-8,7);
+  ctx.closePath(); ctx.stroke();
+  if(ship.thrusting && Math.random()>0.3){
+    ctx.strokeStyle=PAL.orange;
+    ctx.beginPath(); ctx.moveTo(-4,0); ctx.lineTo(-8-rand(4,12),0); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawAsteroid(a){
+  ctx.save();
+  ctx.translate(a.x,a.y);
+  ctx.rotate(a.ang);
+  ctx.strokeStyle = a.special ? (Math.floor(Date.now()/150)%2===0?PAL.white:PAL.magenta) : a.color;
+  ctx.lineWidth = a.special ? 2 : 1.5;
+  ctx.beginPath();
+  a.verts.forEach((v,i)=>{
+    const x=Math.cos(v.a)*v.rad, y=Math.sin(v.a)*v.rad;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.closePath(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawBullets(){
+  ctx.fillStyle = PAL.cyan;
+  for(const b of bullets) ctx.fillRect(b.x-1,b.y-1,2,2);
+  ctx.fillStyle = PAL.red;
+  for(const eb of enemyBullets) ctx.fillRect(eb.x-1.5,eb.y-1.5,3,3);
+}
+
+function drawPowerups(){
+  for(const p of powerups){
+    const pulse = 1+Math.sin(p.pulse)*0.15;
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.strokeStyle = POWER_COLOR[p.type];
+    ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(0,0,7*pulse,0,Math.PI*2); ctx.stroke();
+    drawText(POWER_LABEL[p.type], 0, -4, 8, POWER_COLOR[p.type], 'center');
+    ctx.restore();
+  }
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.fillStyle=p.color;
+    ctx.globalAlpha=Math.max(0,p.life/30);
+    ctx.fillRect(p.x,p.y,2,2);
+  }
+  ctx.globalAlpha=1;
+}
+
+function drawHUD(){
+  drawText('SCORE',6,6,10,PAL.green);
+  drawText(String(score).padStart(6,'0'),6,18,10,PAL.white);
+  drawText('MEILLEUR',W-6,6,10,PAL.green,'right');
+  drawText(String(highscore).padStart(6,'0'),W-6,18,10,PAL.white,'right');
+  drawText('NIV '+level,W/2,6,10,PAL.yellow,'center');
+
+  for(let i=0;i<lives;i++){
+    ctx.save();
+    ctx.translate(10+i*16,H-16);
+    ctx.rotate(-Math.PI/2);
+    ctx.strokeStyle=PAL.white; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(7,0); ctx.lineTo(-5,-4); ctx.lineTo(-5,4); ctx.closePath(); ctx.stroke();
+    ctx.restore();
+  }
+
+  let iconX = W-10;
+  const drawIcon = (txt,color,timer)=>{
+    if(timer>0){
+      drawText(txt,iconX,H-16,9,color,'right');
+      iconX -= 22;
+    }
+  };
+  drawIcon('SHD',PAL.cyan,shieldTimer);
+  drawIcon('RPD',PAL.yellow,rapidTimer);
+  drawIcon('3X',PAL.green,tripleTimer);
+}
+
+function drawStars(){
+  ctx.fillStyle = PAL.blue;
+  for(let i=0;i<40;i++){
+    const sx=(i*53)%W, sy=(i*97)%H;
+    ctx.fillRect(sx,sy,1,1);
+  }
+}
+
+function draw(){
+  ctx.fillStyle = flashTimer>0 ? PAL.red : PAL.bg;
+  ctx.fillRect(0,0,W,H);
+  if(flashTimer>0){
+    ctx.globalAlpha=0.15; ctx.fillStyle=PAL.bg; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+  }
+
+  drawStars();
+  drawParticles();
+  asteroids.forEach(drawAsteroid);
+  drawPowerups();
+  drawBullets();
+  drawShip();
+  if(boss) drawBoss();
+  drawHUD();
+
+  if(bossActive && bossWarnTimer>0 && Math.floor(bossWarnTimer/8)%2===0){
+    drawText('!!! ALERTE VAISSEAU ENNEMI !!!', W/2, H/2-20, 12, PAL.red, 'center');
+  }
+
+  if(!started && !gameOver){
+    drawText('B L A S T E R O I D E', W/2,50,15,PAL.yellow,'center');
+    drawText('----------------------------',W/2,68,10,PAL.gray,'center');
+    drawText('FLECHES: PILOTER   ESPACE: TIRER',W/2,90,9,PAL.cyan,'center');
+    drawText('DETRUISEZ LES ASTEROIDES ROSES',W/2,103,9,PAL.magenta,'center');
+    drawText('POUR DES BONUS SPECIAUX  -  BOSS TOUS LES '+BOSS_EVERY+' NIVEAUX',W/2,115,8,PAL.red,'center');
+
+    // Sélecteur de difficulté
+    drawText('DIFFICULTE',W/2,142,10,PAL.white,'center');
+    const dcolors = [PAL.green, PAL.cyan, PAL.orange, PAL.red];
+    const boxW = 76, gap=6, totalW = DIFFICULTIES.length*boxW + (DIFFICULTIES.length-1)*gap;
+    let bx = W/2 - totalW/2;
+    for(let i=0;i<DIFFICULTIES.length;i++){
+      const on = i===diffIndex;
+      ctx.strokeStyle = on ? dcolors[i] : PAL.gray;
+      ctx.lineWidth = on ? 2 : 1;
+      ctx.strokeRect(bx, 156, boxW, 20);
+      drawText(DIFFICULTIES[i].name, bx+boxW/2, 162, 9, on?dcolors[i]:PAL.gray, 'center');
+      bx += boxW+gap;
+    }
+    drawText('< FLECHES POUR CHANGER >', W/2, 182, 8, PAL.gray, 'center');
+
+    drawText('APPUYEZ SUR ESPACE POUR JOUER',W/2,205,10,PAL.green,'center');
+    drawText('READY'+(Math.floor(Date.now()/500)%2===0?' _':''),W/2,225,10,PAL.white,'center');
+  }
+
+  if(gameOver){
+    drawText('GAME OVER',W/2,100,16,PAL.red,'center');
+    drawText('SCORE: '+score,W/2,130,11,PAL.white,'center');
+    drawText('MEILLEUR SCORE: '+highscore,W/2,145,10,PAL.yellow,'center');
+    drawText('ESPACE POUR REJOUER',W/2,175,10,PAL.cyan,'center');
+  }
+}
+
+function loop(){
+  if(phase !== 'ready'){
+    updateBoot();
+    drawBoot();
+  } else {
+    update();
+    draw();
+  }
+  requestAnimationFrame(loop);
+}
+
+started=false; gameOver=false;
+score=0; lives=3; level=1;
+resetShip();
+asteroids=[makeAsteroid(60,60,3,false), makeAsteroid(300,200,2,true), makeAsteroid(200,50,3,false)];
+bullets=[]; particles=[]; powerups=[]; enemyBullets=[]; boss=null;
+
+loop();
+
+})();
+</script>
+
+</body>
+</html>
