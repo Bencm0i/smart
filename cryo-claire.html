@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CRYO // CLAIRE — Prototype</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,wght@0,400;1,400;1,500&display=swap');
+
+:root{
+  --bg:#080b0a;
+  --panel:#0f1512;
+  --panel-2:#131b17;
+  --line:#1e2a24;
+  --text:#d8e6df;
+  --text-dim:#7c8f86;
+  --o2:#4fd3e8;
+  --en:#f5b942;
+  --st:#e8637a;
+  --re:#9fe85d;
+  --danger:#ff4d4d;
+  --mono:'JetBrains Mono', monospace;
+  --serif:'Newsreader', serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--mono);}
+body{
+  min-height:100vh;
+  display:flex; justify-content:center;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+}
+#frame{
+  width:100%; max-width:430px; min-height:100vh;
+  background:var(--bg);
+  display:flex; flex-direction:column;
+  border-left:1px solid var(--line); border-right:1px solid var(--line);
+  position:relative;
+}
+header{
+  padding:16px 18px 12px; border-bottom:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:baseline;
+}
+header h1{
+  font-size:14px; letter-spacing:3px; margin:0; font-weight:700; color:var(--text);
+}
+header .clock{ font-size:11px; color:var(--text-dim); letter-spacing:1px;}
+
+#gauges{ padding:14px 18px 10px; border-bottom:1px solid var(--line); background:var(--panel);}
+.gauge{ margin-bottom:10px; }
+.gauge:last-child{margin-bottom:0;}
+.gauge-head{ display:flex; justify-content:space-between; font-size:10.5px; letter-spacing:1.5px; color:var(--text-dim); margin-bottom:4px;}
+.gauge-head b{ color:var(--gcolor); font-weight:500; letter-spacing:1.5px;}
+.gauge-head .val{ font-family:var(--mono); color:var(--text); font-size:11px;}
+.gauge-track{ height:7px; background:#0a0f0d; border:1px solid var(--line); border-radius:2px; overflow:hidden; position:relative;}
+.gauge-fill{ height:100%; background:var(--gcolor); transition:width .6s cubic-bezier(.4,0,.2,1); box-shadow:0 0 8px var(--gcolor);}
+.gauge.critical .gauge-fill{ animation:pulse 1s infinite; }
+.gauge.critical .gauge-head b{ color:var(--danger); }
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+#stress-line{ padding:6px 18px; font-size:9.5px; letter-spacing:1px; color:var(--text-dim); border-bottom:1px solid var(--line); background:var(--panel-2);}
+#stress-line span{ color:var(--text); }
+
+main{ flex:1; padding:20px 18px 100px; display:flex; flex-direction:column; gap:16px; overflow-y:auto;}
+
+.narrative{ font-family:var(--serif); font-style:italic; font-size:15.5px; line-height:1.65; color:#e9f1ec; opacity:0; animation:fadein .7s forwards;}
+.narrative b{font-style:normal; color:var(--o2);}
+@keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.tag{ font-size:10px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+
+.instrument{
+  background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:12px 14px;
+}
+.instrument .tag{ margin-bottom:6px; }
+.instrument-name{ font-size:12.5px; color:var(--text); margin-bottom:8px;}
+.estimate-row{ display:flex; align-items:baseline; gap:10px; margin-bottom:4px;}
+.estimate-num{ font-size:26px; font-weight:700; color:var(--rescolor); }
+.estimate-unit{ font-size:10.5px; color:var(--text-dim); letter-spacing:1px;}
+.reliability{ font-size:10.5px; letter-spacing:.5px; }
+.reliability.stable{ color:var(--re); }
+.reliability.incertaine{ color:var(--en); }
+.reliability.compromise{ color:var(--danger); }
+
+.choices{ display:flex; flex-direction:column; gap:10px; }
+.choice-btn{
+  background:var(--panel); border:1px solid var(--line); color:var(--text);
+  font-family:var(--mono); font-size:12.5px; text-align:left; padding:13px 14px;
+  border-radius:6px; cursor:pointer; letter-spacing:.3px; line-height:1.5;
+}
+.choice-btn:active{ background:var(--panel-2); border-color:var(--text-dim); }
+.choice-btn .lbl{ display:block; font-size:10px; letter-spacing:2px; color:var(--text-dim); margin-bottom:4px;}
+
+.allocator{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px; margin-top:2px;}
+.alloc-readout{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+.alloc-readout .n{ font-size:30px; font-weight:700; color:var(--rescolor); font-variant-numeric:tabular-nums;}
+.alloc-readout .max{ font-size:10.5px; color:var(--text-dim);}
+.stepper{ display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.step-btn{
+  width:44px; height:44px; border-radius:6px; border:1px solid var(--line); background:var(--panel-2);
+  color:var(--text); font-size:18px; font-family:var(--mono); cursor:pointer;
+}
+.step-btn:active{ background:var(--rescolor); color:#0a0f0d; }
+input[type=range]{
+  flex:1; -webkit-appearance:none; height:4px; background:var(--line); border-radius:2px; outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--rescolor);
+  border:2px solid #0a0f0d; box-shadow:0 0 0 1px var(--rescolor);
+}
+.confirm-btn{
+  width:100%; padding:14px; border-radius:6px; border:none; background:var(--rescolor); color:#08110d;
+  font-family:var(--mono); font-weight:700; font-size:12.5px; letter-spacing:2px; cursor:pointer;
+}
+.confirm-btn:active{ filter:brightness(.85); }
+
+.resolution{ background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:16px; }
+.res-title{ font-size:11px; letter-spacing:2px; margin-bottom:10px; }
+.res-title.optimal{ color:var(--re); }
+.res-title.degrade{ color:var(--danger); }
+.res-title.surplus{ color:var(--en); }
+.res-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px; color:var(--text-dim); margin-bottom:10px;}
+.res-grid b{ color:var(--text); display:block; font-size:15px; font-family:var(--mono);}
+.res-text{ font-family:var(--serif); font-style:italic; font-size:14px; line-height:1.6; color:#e9f1ec; margin-bottom:14px;}
+.continue-btn{
+  width:100%; padding:13px; border-radius:6px; border:1px solid var(--text); background:transparent; color:var(--text);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:2px; cursor:pointer;
+}
+
+.ending{ text-align:center; padding:30px 6px; }
+.ending h2{ font-size:16px; letter-spacing:3px; margin-bottom:14px;}
+.ending .score{ font-size:44px; font-weight:700; margin:10px 0; font-family:var(--mono);}
+.ending p{ font-family:var(--serif); font-style:italic; font-size:15px; line-height:1.7; color:#e9f1ec; margin-bottom:20px;}
+.restart-btn{
+  padding:13px 26px; border-radius:6px; border:1px solid var(--re); background:transparent; color:var(--re);
+  font-family:var(--mono); font-size:11.5px; letter-spacing:2px; cursor:pointer;
+}
+
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div id="frame">
+  <header>
+    <h1>CRYO // CLAIRE</h1>
+    <div class="clock" id="clock">T+00:00</div>
+  </header>
+
+  <div id="gauges">
+    <div class="gauge" id="g-oxygene" style="--gcolor:var(--o2)">
+      <div class="gauge-head"><b>OXYGÈNE</b><span class="val" id="v-oxygene">100</span></div>
+      <div class="gauge-track"><div class="gauge-fill" id="f-oxygene" style="width:100%"></div></div>
+    </div>
+    <div class="gauge" id="g-energie" style="--gcolor:var(--en)">
+      <div class="gauge-head"><b>ÉNERGIE</b><span class="val" id="v-energie">80</span></div>
+      <div class="gauge-track"><div class="gauge-fill" id="f-energie" style="width:80%"></div></div>
+    </div>
+    <div class="gauge" id="g-sante" style="--gcolor:var(--st)">
+      <div class="gauge-head"><b>SANTÉ</b><span class="val" id="v-sante">100</span></div>
+      <div class="gauge-track"><div class="gauge-fill" id="f-sante" style="width:100%"></div></div>
+    </div>
+    <div class="gauge" id="g-ressources" style="--gcolor:var(--re)">
+      <div class="gauge-head"><b>RESSOURCES</b><span class="val" id="v-ressources">20</span></div>
+      <div class="gauge-track"><div class="gauge-fill" id="f-ressources" style="width:20%"></div></div>
+    </div>
+  </div>
+
+  <div id="stress-line">ÉTAT PHYSIOLOGIQUE : <span id="stress-label">stable</span></div>
+
+  <main id="main"></main>
+</div>
+
+<script>
+/* ============== ÉTAT ============== */
+const state = { oxygene:100, energie:80, sante:100, ressources:20, tick:0 };
+let path = null; // 'surface' | 'reparation' | 'appel'
+let step = 0;
+
+/* ============== UTILITAIRES ============== */
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function rnd(min,max){ return min + Math.random()*(max-min); }
+function ri(min,max){ return Math.round(rnd(min,max)); }
+
+// Stress = fonction composite des 3 jauges vitales (couplage systémique).
+// Plus l'oxygène et la santé sont bas, plus le stress grimpe vite (pondération volontairement asymétrique).
+function computeStress(){
+  const deficitO = 100 - state.oxygene;
+  const deficitS = 100 - state.sante;
+  const deficitE = 100 - state.energie;
+  const stress = deficitO*0.42 + deficitS*0.38 + deficitE*0.20;
+  return clamp(Math.round(stress), 0, 100);
+}
+
+function renderGauges(){
+  ['oxygene','energie','sante','ressources'].forEach(k=>{
+    const v = clamp(Math.round(state[k]),0,150);
+    document.getElementById('v-'+k).textContent = v;
+    document.getElementById('f-'+k).style.width = clamp(v,0,100)+'%';
+    document.getElementById('g-'+k).classList.toggle('critical', v<=20 && k!=='ressources');
+  });
+  const s = computeStress();
+  const label = document.getElementById('stress-label');
+  if(s<25){ label.textContent='stable'; label.style.color='var(--re)'; }
+  else if(s<55){ label.textContent='sous tension'; label.style.color='var(--en)'; }
+  else { label.textContent='critique — jugement altéré'; label.style.color='var(--danger)'; }
+  document.getElementById('clock').textContent = 'T+'+String(state.tick).padStart(2,'0')+':00';
+}
+
+/* ============== MOTEUR DE RÉSOLUTION ==============
+   Allocation < coût réel * 0.9   -> DÉGRADÉ  (dépense = allocation entière, effet secondaire négatif)
+   Allocation dans [0.9,1.15]     -> OPTIMAL  (dépense = coût réel exact, rien de perdu)
+   Allocation > coût réel * 1.15  -> SURPLUS  (dépense = coût réel + 50% du surplus, 50% remboursé)
+*/
+function resolveAllocation(allocated, trueCost){
+  const ratio = allocated / trueCost;
+  if(ratio < 0.9){
+    return { outcome:'degrade', spent: allocated, refunded:0, ratio };
+  } else if(ratio <= 1.15){
+    return { outcome:'optimal', spent: trueCost, refunded: allocated-trueCost>0?allocated-trueCost:0, ratio };
+  } else {
+    const surplus = allocated - trueCost;
+    const refunded = surplus*0.5;
+    return { outcome:'surplus', spent: allocated-refunded, refunded, ratio };
+  }
+}
+
+// Estimation affichée au joueur : biaisée par un bruit qui dépend de la fiabilité PROPRE
+// à l'instrument utilisé ET du stress courant de Claire. Le biais est retiré à chaque
+// action (pas de facteur correctif fixe à apprendre) — seule la BANDE de fiabilité qualitative
+// est communiquée, jamais le biais exact.
+function computeEstimate(trueCost, instrumentNoisePct){
+  const stress = computeStress();
+  const totalNoisePct = instrumentNoisePct + stress*0.45;
+  const bias = rnd(-totalNoisePct, totalNoisePct)/100;
+  const estimate = Math.max(5, Math.round(trueCost*(1+bias)));
+  let reliability, reliabilityClass;
+  if(totalNoisePct < 18){ reliability='Lecture stable.'; reliabilityClass='stable'; }
+  else if(totalNoisePct < 38){ reliability='Lecture incertaine — l\'instrument hésite.'; reliabilityClass='incertaine'; }
+  else { reliability='Lecture compromise — ne t\'y fie qu\'à moitié.'; reliabilityClass='compromise'; }
+  return { estimate, reliability, reliabilityClass };
+}
+
+// Couplage inter-jauges : une énergie basse au moment d'une action physique
+// augmente le risque de blessure indirecte (fatigue -> erreur -> santé).
+function applyCoupling(physical){
+  let note = '';
+  if(physical && state.energie < 32){
+    const dmg = ri(3,9);
+    state.sante = clamp(state.sante-dmg,0,100);
+    note = ' L\'épuisement te fait commettre un faux geste. (-'+dmg+' santé)';
+  }
+  return note;
+}
+
+// Dérive passive : le temps qui passe consomme de l'oxygène et fatigue,
+// indépendamment de l'action choisie — évite que les 4 jauges soient des timers isolés.
+function applyPassiveDrain(){
+  state.oxygene = clamp(state.oxygene-1,0,100);
+  state.energie = clamp(state.energie-1,0,100);
+  state.tick++;
+}
+
+/* ============== CONTENU NARRATIF ============== */
+const main = document.getElementById('main');
+
+function screen(html){
+  main.innerHTML = html;
+}
+
+function narrativeScreen(text, btnLabel, onNext){
+  screen(`
+    <div class="narrative">${text}</div>
+    <button class="confirm-btn" id="next-btn" style="background:var(--o2)">${btnLabel}</button>
+  `);
+  document.getElementById('next-btn').onclick = onNext;
+}
+
+function checkFailure(){
+  for(const k of ['oxygene','energie','sante']){
+    if(state[k]<=0) return k;
+  }
+  return null;
+}
+
+function failureScreen(resource){
+  const texts = {
+    oxygene:"L'air se raréfie. Le dernier souffle de Claire se perd dans le silence métallique du vaisseau.",
+    energie:"Son corps cède avant son esprit. Claire s'effondre, à quelques mètres de la sortie.",
+    sante:"La blessure était plus grave qu'elle ne le croyait. Claire ferme les yeux, une dernière fois."
+  };
+  screen(`
+    <div class="ending">
+      <div class="tag" style="color:var(--danger)">FIN D'ÉCHEC</div>
+      <h2 style="color:var(--danger)">SIGNAL PERDU</h2>
+      <div class="score" style="color:var(--danger)">${resource.toUpperCase()} — 0</div>
+      <p>${texts[resource]}</p>
+      <button class="restart-btn" id="restart">RECOMMENCER</button>
+    </div>
+  `);
+  document.getElementById('restart').onclick = restart;
+}
+
+/* ---- Définition d'une action générique ---- */
+function actionScreen(cfg, onResolved){
+  applyPassiveDrain();
+  const fail = checkFailure();
+  if(fail){ renderGauges(); failureScreen(fail); return; }
+  renderGauges();
+
+  const trueCostBase = ri(cfg.costMin, cfg.costMax);
+  const stress = computeStress();
+  const trueCost = Math.round(trueCostBase * (1 + stress*0.006)); // le stress alourdit aussi le coût réel
+  const { estimate, reliability, reliabilityClass } = computeEstimate(trueCost, cfg.instrumentNoise);
+  const available = Math.round(state[cfg.resource]);
+  const maxAlloc = Math.min(available, Math.round(trueCostBase*2.2));
+  let alloc = clamp(estimate, 0, maxAlloc);
+
+  screen(`
+    <div class="narrative">${cfg.intro}</div>
+    <div class="instrument">
+      <div class="tag">INSTRUMENT — ${cfg.instrumentLabel}</div>
+      <div class="instrument-name">${cfg.instrumentName}</div>
+      <div class="estimate-row">
+        <span class="estimate-num" style="--rescolor:var(${cfg.colorVar})">${estimate}</span>
+        <span class="estimate-unit">pts ${cfg.resourceLabel} estimés</span>
+      </div>
+      <div class="reliability ${reliabilityClass}">${reliability}</div>
+    </div>
+    <div class="allocator" style="--rescolor:var(${cfg.colorVar})">
+      <div class="alloc-readout">
+        <span class="n" id="alloc-n">${alloc}</span>
+        <span class="max">disponible : ${available} pts ${cfg.resourceLabel}</span>
+      </div>
+      <div class="stepper">
+        <button class="step-btn" id="minus">−5</button>
+        <input type="range" id="alloc-slider" min="0" max="${maxAlloc}" step="5" value="${alloc}">
+        <button class="step-btn" id="plus">+5</button>
+      </div>
+      <button class="confirm-btn" id="confirm" style="--rescolor:var(${cfg.colorVar}); background:var(${cfg.colorVar})">ALLOUER ET AGIR</button>
+    </div>
+  `);
+
+  const slider = document.getElementById('alloc-slider');
+  const numEl = document.getElementById('alloc-n');
+  function setAlloc(v){ alloc = clamp(v,0,maxAlloc); slider.value=alloc; numEl.textContent=alloc; }
+  slider.oninput = ()=> setAlloc(parseInt(slider.value));
+  document.getElementById('minus').onclick = ()=> setAlloc(alloc-5);
+  document.getElementById('plus').onclick = ()=> setAlloc(alloc+5);
+
+  document.getElementById('confirm').onclick = ()=>{
+    const res = resolveAllocation(alloc, trueCost);
+    state[cfg.resource] = clamp(state[cfg.resource]-res.spent, 0, 100);
+    let gainNote = '';
+    if(cfg.gain){
+      const mult = res.outcome==='optimal' ? 1 : res.outcome==='surplus' ? 0.85 : 0.45;
+      const gained = Math.round(cfg.gain*mult);
+      state[cfg.gainResource] = clamp(state[cfg.gainResource]+gained, 0, 100);
+      gainNote = ' (+'+gained+' '+cfg.gainLabel+')';
+    }
+    const couplingNote = applyCoupling(cfg.physical);
+    renderGauges();
+
+    const fail2 = checkFailure();
+
+    const titles = { optimal:'ALLOCATION OPTIMALE', degrade:'ACTION DÉGRADÉE', surplus:'SURPLUS GASPILLÉ' };
+    const classes = { optimal:'optimal', degrade:'degrade', surplus:'surplus' };
+    let outcomeText = cfg.outcomeText[res.outcome] + gainNote + couplingNote;
+
+    screen(`
+      <div class="resolution">
+        <div class="res-title ${classes[res.outcome]}">${titles[res.outcome]}</div>
+        <div class="res-grid">
+          <div>COÛT RÉEL<b>${trueCost}</b></div>
+          <div>ALLOUÉ<b>${alloc}</b></div>
+          <div>DÉPENSÉ<b>${Math.round(res.spent)}</b></div>
+          <div>REMBOURSÉ<b>${Math.round(res.refunded)}</b></div>
+        </div>
+        <div class="res-text">${outcomeText}</div>
+        <button class="continue-btn" id="continue">CONTINUER</button>
+      </div>
+    `);
+    document.getElementById('continue').onclick = ()=>{
+      if(fail2){ failureScreen(fail2); return; }
+      onResolved(res.outcome);
+    };
+  };
+}
+
+/* ============== SÉQUENCE ============== */
+
+function restart(){
+  state.oxygene=100; state.energie=80; state.sante=100; state.ressources=20; state.tick=0;
+  path=null; step=0; renderGauges();
+  runIntro();
+}
+
+function runIntro(){
+  narrativeScreen(
+    `Un bourdonnement. Puis le froid qui se retire, lentement, de tes membres.<br><br>
+     <b>Claire</b> ouvre les yeux sur le plafond fissuré d'un caisson de cryonisation.
+     Une alarme clignote, muette derrière la vitre givrée. Elle ne sait ni depuis
+     combien de temps elle dort, ni où le vaisseau s'est écrasé.<br><br>
+     Ses jauges vitales sont encore lisibles. C'est déjà ça.`,
+    'REPRENDRE CONSCIENCE',
+    ()=> runSas()
+  );
+}
+
+function runSas(){
+  actionScreen({
+    intro:`Le caisson s'ouvre en grinçant. Le sas d'évacuation, juste devant, refuse de
+           répondre — le panneau de contrôle est mort. Il va falloir le forcer manuellement.`,
+    instrumentLabel:'MÉCANIQUE',
+    instrumentName:'Capteur de pression du sas',
+    resource:'energie', resourceLabel:'énergie', colorVar:'--en',
+    costMin:22, costMax:34, instrumentNoise:14,
+    physical:true,
+    outcomeText:{
+      optimal:"Le sas cède d'un coup sec, exactement quand tu t'y attendais.",
+      degrade:"Le sas s'entrouvre à peine — juste assez pour se glisser à travers, essoufflée.",
+      surplus:"Le sas s'ouvre en grand, mais tu as forcé bien plus que nécessaire."
+    }
+  }, ()=> runFouille());
+}
+
+function runFouille(){
+  actionScreen({
+    intro:`Le couloir est jonché de débris. Quelque chose brille sous une plaque de
+           blindage arrachée — peut-être un kit de survie. Fouiller prendra du temps,
+           donc de l'air.`,
+    instrumentLabel:'ESTIMATION',
+    instrumentName:'Jugement à l\'œil, sans instrument fiable',
+    resource:'oxygene', resourceLabel:'oxygène', colorVar:'--o2',
+    costMin:14, costMax:24, instrumentNoise:20,
+    physical:false,
+    gain:22, gainResource:'ressources', gainLabel:'ressources',
+    outcomeText:{
+      optimal:"Tu récupères le kit intact, sans perdre une minute de trop.",
+      degrade:"Tu abandonnes la fouille à mi-chemin, à court de souffle. Tu repars les mains presque vides.",
+      surplus:"Tu trouves le kit, mais tu as fouillé bien plus longtemps qu'il n'aurait fallu."
+    }
+  }, ()=> runBifurcation());
+}
+
+function runBifurcation(){
+  screen(`
+    <div class="narrative">
+      Un signal faible clignote sur ton scanner de poignet. Trois options s'offrent à toi,
+      et le temps presse.
+    </div>
+    <div class="choices">
+      <button class="choice-btn" data-p="surface"><span class="lbl">OPTION A</span>Sortir en surface et suivre le signal — risqué, mais direct.</button>
+      <button class="choice-btn" data-p="reparation"><span class="lbl">OPTION B</span>Tenter de réparer le vaisseau — lent, mais tu restes en sécurité.</button>
+      <button class="choice-btn" data-p="appel"><span class="lbl">OPTION C</span>Lancer un appel de détresse renforcé — incertain, économe en effort.</button>
+    </div>
+  `);
+  document.querySelectorAll('.choice-btn').forEach(b=>{
+    b.onclick = ()=>{ path=b.dataset.p; runPathAction(); };
+  });
+}
+
+function runPathAction(){
+  const cfgs = {
+    surface: {
+      intro:`Tu scelles ta combinaison et pousses le sas extérieur. Le paysage est minéral,
+             hostile, silencieux. Le signal vient de quelque part au-delà de la crête.`,
+      instrumentLabel:'ENVIRONNEMENT', instrumentName:'Sasomètre externe — calibré avant le crash',
+      resource:'oxygene', resourceLabel:'oxygène', colorVar:'--o2',
+      costMin:32, costMax:46, instrumentNoise:26, physical:true,
+      outcomeText:{
+        optimal:"Tu atteins la crête au moment exact où ta réserve le permet.",
+        degrade:"Tu dois rebrousser chemin avant la crête, l'air se faisant trop rare.",
+        surplus:"Tu atteins la crête, mais avec une marge que tu aurais pu économiser."
+      }
+    },
+    reparation: {
+      intro:`Tu ouvres le panneau technique du vaisseau. Le circuit de communication
+             principal est grillé — récupérable, si tu as assez de pièces.`,
+      instrumentLabel:'DIAGNOSTIC', instrumentName:'Diagnostic embarqué du vaisseau',
+      resource:'ressources', resourceLabel:'ressources', colorVar:'--re',
+      costMin:24, costMax:34, instrumentNoise:9, physical:true,
+      outcomeText:{
+        optimal:"Le circuit reprend vie sous tes doigts, précis, sans une pièce de trop.",
+        degrade:"La réparation reste partielle — un signal faible, instable, mais un signal.",
+        surplus:"Le circuit fonctionne, mais tu as sacrifié plus de pièces qu'il n'en fallait."
+      }
+    },
+    appel: {
+      intro:`Tu branches la balise de détresse sur les batteries restantes du caisson.
+             Il faut assez de puissance pour percer l'atmosphère dense de la planète.`,
+      instrumentLabel:'ÉNERGIE', instrumentName:'Balise de détresse longue portée',
+      resource:'energie', resourceLabel:'énergie', colorVar:'--en',
+      costMin:20, costMax:30, instrumentNoise:18, physical:false,
+      outcomeText:{
+        optimal:"La balise émet un signal clair, net, à pleine puissance.",
+        degrade:"Le signal part, faible et hachuré — incertain d'être jamais reçu.",
+        surplus:"Le signal part fort, mais tu as vidé plus de batteries que nécessaire."
+      }
+    }
+  };
+  actionScreen(cfgs[path], ()=> runFinal());
+}
+
+function runFinal(){
+  actionScreen({
+    intro:`Il ne reste qu'un dernier effort avant que la situation ne se stabilise — ou
+           ne t'échappe. C'est à ton propre jugement, maintenant, qu'il faut te fier.`,
+    instrumentLabel:'INTUITION', instrumentName:'Ton propre jugement, éprouvé par les heures passées',
+    resource:'energie', resourceLabel:'énergie', colorVar:'--en',
+    costMin:18, costMax:28, instrumentNoise:8, physical:true,
+    outcomeText:{
+      optimal:"Tu tiens bon, exactement jusqu'au bout, sans un geste de trop.",
+      degrade:"Tu t'effondres presque, mais tu tiens — de justesse.",
+      surplus:"Tu passes le cap, épuisée d'avoir donné plus que nécessaire."
+    }
+  }, ()=> runEnding());
+}
+
+/* ============== FINS ==============
+   Score composite pondéré (formule explicite, pas de jugement caché) :
+   0.30*O + 0.25*E + 0.25*S + 0.20*min(R,100)
+   Seuils : >=75 optimale | 50-74 fragile | 25-49 in extremis | <25 échec
+*/
+function runEnding(){
+  const R = Math.min(state.ressources,100);
+  const score = Math.round(state.oxygene*0.30 + state.energie*0.25 + state.sante*0.25 + R*0.20);
+  let title, text, color;
+  if(score>=75){
+    title='SIGNAL REÇU'; color='var(--re)';
+    text = path==='reparation'
+      ? "Le circuit tient. Une voix, enfin, répond à travers les parasites. Claire s'assoit contre la coque, et pour la première fois depuis son réveil, elle respire sans compter."
+      : "Au loin, une lumière balaye le ciel. Claire lève le bras, presque étonnée que quelqu'un ait pu l'entendre.";
+  } else if(score>=50){
+    title='SURVIE FRAGILE'; color='var(--en)';
+    text = "Elle a tenu. Rien de plus n'est acquis, mais elle a tenu — et sur cette planète, c'est déjà une victoire qu'on ne lui refusera pas.";
+  } else if(score>=25){
+    title='SAUVETAGE IN EXTREMIS'; color='var(--st)';
+    text = "Le secours arrive alors qu'elle ne comptait plus les minutes. Elle ne se souviendra que de ça : avoir tenu jusqu'à la toute dernière.";
+  } else {
+    title='À LA DÉRIVE'; color='var(--danger)';
+    text = "Elle est en vie. C'est à peu près tout ce que l'on peut dire. Le reste, elle devra le reconstruire, une jauge à la fois.";
+  }
+  screen(`
+    <div class="ending">
+      <div class="tag">FIN DE PARCOURS</div>
+      <h2 style="color:${color}">${title}</h2>
+      <div class="score" style="color:${color}">${score}</div>
+      <div class="tag">SCORE COMPOSITE — O 30% · É 25% · S 25% · R 20%</div>
+      <p style="margin-top:18px">${text}</p>
+      <button class="restart-btn" id="restart">REJOUER</button>
+    </div>
+  `);
+  document.getElementById('restart').onclick = restart;
+}
+
+/* ============== BOOT ============== */
+renderGauges();
+runIntro();
+</script>
+</body>
+</html>
