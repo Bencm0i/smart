@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>FIRE // Simulateur de rente</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e0a; --panel:#0f1810; --panel2:#131f15; --border:#1f3320;
+  --green:#00ff66; --green-dim:#0a9c3f; --amber:#ffb000; --red:#ff3b3b;
+  --text:#c8f0d0; --text-dim:#5f8f6a; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+  margin:0; background:var(--bg); color:var(--text); font-family:var(--mono);
+  padding:12px; padding-bottom:60px; max-width:520px; margin:0 auto;
+}
+h1{font-size:15px; letter-spacing:2px; color:var(--green); text-align:center; margin:8px 0 4px;}
+.sub{text-align:center; color:var(--text-dim); font-size:10px; margin-bottom:16px; letter-spacing:1px;}
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:6px;
+  padding:14px; margin-bottom:12px;
+}
+.card h2{
+  font-size:11px; color:var(--amber); letter-spacing:2px; margin:0 0 12px;
+  border-bottom:1px solid var(--border); padding-bottom:8px;
+}
+.row{margin-bottom:14px;}
+.row:last-child{margin-bottom:0;}
+label{display:block; font-size:11px; color:var(--text-dim); margin-bottom:6px; letter-spacing:0.5px;}
+.val{color:var(--green); font-weight:700;}
+input[type=number], select{
+  width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
+  font-family:var(--mono); font-size:16px; padding:10px; border-radius:4px;
+}
+select{appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--green) 50%),linear-gradient(135deg,var(--green) 50%,transparent 50%); background-position:calc(100% - 18px) center, calc(100% - 13px) center; background-size:5px 5px; background-repeat:no-repeat;}
+input[type=range]{
+  width:100%; -webkit-appearance:none; height:4px; background:var(--border); border-radius:2px; margin-top:6px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:20px; border-radius:50%;
+  background:var(--green); border:2px solid var(--bg); box-shadow:0 0 8px var(--green);
+}
+.inline-toggle{display:flex; gap:6px; flex-wrap:wrap;}
+.chip{
+  flex:1; min-width:70px; text-align:center; padding:8px 4px; border:1px solid var(--border);
+  border-radius:4px; font-size:11px; color:var(--text-dim); cursor:pointer; background:var(--panel2);
+}
+.chip.active{border-color:var(--green); color:var(--green); background:rgba(0,255,102,0.08);}
+.checkline{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-dim); margin-top:8px;}
+.checkline input{width:16px; height:16px;}
+
+/* Résultats */
+.result-panel{background:linear-gradient(180deg,var(--panel2),var(--panel)); border:1px solid var(--green-dim);}
+.gauge-wrap{margin:10px 0 16px;}
+.gauge-bar{width:100%; height:22px; background:var(--panel2); border:1px solid var(--border); border-radius:11px; overflow:hidden; position:relative;}
+.gauge-fill{height:100%; background:linear-gradient(90deg,var(--red),var(--amber),var(--green)); transition:width .3s;}
+.gauge-label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; text-shadow:0 0 3px #000;}
+.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;}
+.stat{background:var(--panel2); border:1px solid var(--border); border-radius:4px; padding:10px;}
+.stat .label{font-size:9px; color:var(--text-dim); letter-spacing:1px; margin-bottom:4px;}
+.stat .num{font-size:17px; font-weight:700; color:var(--green);}
+.stat .num.warn{color:var(--amber);}
+.stat .num.bad{color:var(--red);}
+.stat .num.ok{color:var(--green);}
+.detail-line{display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); padding:4px 0; border-bottom:1px dashed var(--border);}
+.detail-line span:last-child{color:var(--text);}
+
+.footer-btns{display:flex; gap:8px; margin-top:16px;}
+.btn{
+  flex:1; padding:10px; text-align:center; border:1px solid var(--border); border-radius:4px;
+  color:var(--text-dim); font-size:11px; letter-spacing:1px; background:var(--panel2); cursor:pointer;
+}
+.btn.primary{border-color:var(--green); color:var(--green);}
+#fileImport{display:none;}
+</style>
+</head>
+<body>
+
+<h1>◆ FIRE // SIMULATEUR DE RENTE</h1>
+<div class="sub">PLACEMENTS + LOYERS SCPI → OBJECTIF MENSUEL</div>
+
+<!-- OBJECTIF -->
+<div class="card">
+  <h2>▸ OBJECTIF</h2>
+  <div class="row">
+    <label>Revenu mensuel net cible (€)</label>
+    <input type="number" id="objectif" value="2000" min="0" step="50">
+  </div>
+</div>
+
+<!-- PLACEMENTS -->
+<div class="card">
+  <h2>▸ REVENUS DE PLACEMENT</h2>
+  <div class="row">
+    <label>Capital investi (€)</label>
+    <input type="number" id="capital" value="200000" min="0" step="1000">
+  </div>
+  <div class="row">
+    <label>Taux de rendement annuel : <span class="val" id="tauxLabel">3.0%</span></label>
+    <input type="range" id="taux" min="0" max="10" step="0.1" value="3">
+  </div>
+  <div class="row">
+    <label>Régime fiscal</label>
+    <div class="inline-toggle" id="regimePlacement">
+      <div class="chip active" data-val="pfu">Flat tax 30%</div>
+      <div class="chip" data-val="exo">Exonéré (0%)</div>
+      <div class="chip" data-val="custom">Autre</div>
+    </div>
+    <input type="number" id="tauxCustomPlacement" placeholder="Taux d'imposition perso (%)" style="margin-top:8px; display:none;" min="0" max="100" step="0.1">
+  </div>
+</div>
+
+<!-- LOYERS SCPI -->
+<div class="card">
+  <h2>▸ REVENUS LOCATIFS (SCPI)</h2>
+  <div class="row">
+    <label>Loyers bruts mensuels (€)</label>
+    <input type="number" id="loyers" value="800" min="0" step="10">
+  </div>
+  <div class="row">
+    <label>Régime fiscal</label>
+    <div class="inline-toggle" id="regimeLocatif">
+      <div class="chip active" data-val="pfu30">Flat tax 30%</div>
+      <div class="chip" data-val="micro">Micro-foncier</div>
+      <div class="chip" data-val="reel">Réel + barème</div>
+    </div>
+  </div>
+  <div class="row" id="tmiRow" style="display:none;">
+    <label>Tranche marginale d'imposition (TMI)</label>
+    <select id="tmi">
+      <option value="0">0%</option>
+      <option value="11">11%</option>
+      <option value="30" selected>30%</option>
+      <option value="41">41%</option>
+      <option value="45">45%</option>
+    </select>
+    <div class="checkline">
+      <input type="checkbox" id="prelSociaux" checked>
+      <label style="margin:0;">+ Prélèvements sociaux (17.2%)</label>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTATS -->
+<div class="card result-panel">
+  <h2>▸ RÉSULTAT</h2>
+
+  <div class="gauge-wrap">
+    <div class="gauge-bar">
+      <div class="gauge-fill" id="gaugeFill" style="width:0%"></div>
+      <div class="gauge-label" id="gaugeLabel">0%</div>
+    </div>
+  </div>
+
+  <div class="detail-line"><span>Revenu net placements /mois</span><span id="netPlacementMois">0 €</span></div>
+  <div class="detail-line"><span>Revenu net loyers /mois</span><span id="netLoyersMois">0 €</span></div>
+  <div class="detail-line"><span>Total net /mois</span><span id="netTotalMois">0 €</span></div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="label">ÉCART / OBJECTIF</div>
+      <div class="num" id="ecartNum">0 €</div>
+    </div>
+    <div class="stat">
+      <div class="label">CAPITAL MANQUANT</div>
+      <div class="num" id="capitalManquant">0 €</div>
+    </div>
+    <div class="stat">
+      <div class="label">CAPITAL TOTAL REQUIS</div>
+      <div class="num" id="capitalRequis">0 €</div>
+    </div>
+    <div class="stat">
+      <div class="label">STATUT</div>
+      <div class="num" id="statutFire">-</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-btns">
+  <div class="btn" onclick="exportJSON()">↓ Export JSON</div>
+  <div class="btn" onclick="document.getElementById('fileImport').click()">↑ Import</div>
+  <div class="btn primary" onclick="resetData()">Reset</div>
+</div>
+<input type="file" id="fileImport" accept=".json">
+
+<script>
+const ids = ['objectif','capital','taux','loyers','tauxCustomPlacement','tmi','prelSociaux'];
+let regimePlacement = 'pfu';
+let regimeLocatif = 'pfu30';
+
+function fmt(n){
+  return Math.round(n).toLocaleString('fr-FR') + ' €';
+}
+
+function setupChips(containerId, onSelect){
+  const container = document.getElementById(containerId);
+  container.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      container.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      onSelect(chip.dataset.val);
+      compute();
+      save();
+    });
+  });
+}
+
+setupChips('regimePlacement', val=>{
+  regimePlacement = val;
+  document.getElementById('tauxCustomPlacement').style.display = (val==='custom') ? 'block' : 'none';
+});
+setupChips('regimeLocatif', val=>{
+  regimeLocatif = val;
+  document.getElementById('tmiRow').style.display = (val==='reel'||val==='micro') ? 'block' : 'none';
+});
+
+document.getElementById('taux').addEventListener('input', e=>{
+  document.getElementById('tauxLabel').textContent = parseFloat(e.target.value).toFixed(1) + '%';
+});
+
+function tauxImpositionPlacement(){
+  if(regimePlacement==='pfu') return 0.30;
+  if(regimePlacement==='exo') return 0;
+  return (parseFloat(document.getElementById('tauxCustomPlacement').value)||0)/100;
+}
+
+function tauxImpositionLocatif(loyerBrutAnnuel){
+  const tmi = parseFloat(document.getElementById('tmi').value)/100;
+  const ps = document.getElementById('prelSociaux').checked ? 0.172 : 0;
+  if(regimeLocatif==='pfu30'){
+    return {base: loyerBrutAnnuel, taux: 0.30};
+  }
+  if(regimeLocatif==='micro'){
+    const base = loyerBrutAnnuel * 0.70; // abattement 30%
+    return {base, taux: tmi+ps, brut: loyerBrutAnnuel};
+  }
+  // réel : on impose 100% du brut (simplifié, hors charges déductibles)
+  return {base: loyerBrutAnnuel, taux: tmi+ps};
+}
+
+function compute(){
+  const objectif = parseFloat(document.getElementById('objectif').value)||0;
+  const capital = parseFloat(document.getElementById('capital').value)||0;
+  const taux = parseFloat(document.getElementById('taux').value)/100;
+  const loyersBrutMois = parseFloat(document.getElementById('loyers').value)||0;
+
+  // Placements
+  const brutPlacementAnnuel = capital * taux;
+  const impotPlacementTaux = tauxImpositionPlacement();
+  const netPlacementAnnuel = brutPlacementAnnuel * (1-impotPlacementTaux);
+  const netPlacementMois = netPlacementAnnuel/12;
+
+  // Loyers
+  const loyerBrutAnnuel = loyersBrutMois*12;
+  const fiscalLoc = tauxImpositionLocatif(loyerBrutAnnuel);
+  const impotLoyerAnnuel = fiscalLoc.base * fiscalLoc.taux;
+  const netLoyerAnnuel = loyerBrutAnnuel - impotLoyerAnnuel;
+  const netLoyersMois = netLoyerAnnuel/12;
+
+  const netTotalMois = netPlacementMois + netLoyersMois;
+  const ecart = netTotalMois - objectif;
+
+  // Capital manquant : combien de capital de placement supplémentaire (même taux/fiscalité) pour combler l'écart
+  let capitalManquant = 0;
+  if(ecart < 0 && taux>0 && (1-impotPlacementTaux)>0){
+    const manqueMensuel = -ecart;
+    const manqueAnnuelBrut = (manqueMensuel*12) / (1-impotPlacementTaux);
+    capitalManquant = manqueAnnuelBrut / taux;
+  }
+
+  // Capital total requis pour atteindre l'objectif via placements seuls (référence)
+  let capitalRequisTotal = 0;
+  if(taux>0 && (1-impotPlacementTaux)>0){
+    capitalRequisTotal = (objectif*12)/(1-impotPlacementTaux)/taux;
+  }
+
+  document.getElementById('netPlacementMois').textContent = fmt(netPlacementMois);
+  document.getElementById('netLoyersMois').textContent = fmt(netLoyersMois);
+  document.getElementById('netTotalMois').textContent = fmt(netTotalMois);
+
+  const ecartEl = document.getElementById('ecartNum');
+  ecartEl.textContent = (ecart>=0?'+':'') + fmt(ecart);
+  ecartEl.className = 'num ' + (ecart>=0 ? 'ok' : (ecart > -objectif*0.3 ? 'warn' : 'bad'));
+
+  document.getElementById('capitalManquant').textContent = capitalManquant>0 ? fmt(capitalManquant) : '—';
+  document.getElementById('capitalRequis').textContent = fmt(capitalRequisTotal);
+
+  const pct = objectif>0 ? Math.min(150,(netTotalMois/objectif)*100) : 0;
+  const pctDisplay = objectif>0 ? Math.round((netTotalMois/objectif)*100) : 0;
+  document.getElementById('gaugeFill').style.width = Math.min(100,pct)+'%';
+  document.getElementById('gaugeLabel').textContent = pctDisplay + '%';
+
+  const statutEl = document.getElementById('statutFire');
+  if(pctDisplay>=100){ statutEl.textContent='FIRE ✓'; statutEl.className='num ok'; }
+  else if(pctDisplay>=70){ statutEl.textContent='PROCHE'; statutEl.className='num warn'; }
+  else { statutEl.textContent='EN COURS'; statutEl.className='num bad'; }
+}
+
+function save(){
+  const data = {
+    objectif: document.getElementById('objectif').value,
+    capital: document.getElementById('capital').value,
+    taux: document.getElementById('taux').value,
+    loyers: document.getElementById('loyers').value,
+    tauxCustomPlacement: document.getElementById('tauxCustomPlacement').value,
+    tmi: document.getElementById('tmi').value,
+    prelSociaux: document.getElementById('prelSociaux').checked,
+    regimePlacement, regimeLocatif
+  };
+  localStorage.setItem('fire_suivi_data', JSON.stringify(data));
+}
+
+function load(){
+  const raw = localStorage.getItem('fire_suivi_data');
+  if(!raw) { compute(); return; }
+  const data = JSON.parse(raw);
+  document.getElementById('objectif').value = data.objectif ?? 2000;
+  document.getElementById('capital').value = data.capital ?? 200000;
+  document.getElementById('taux').value = data.taux ?? 3;
+  document.getElementById('tauxLabel').textContent = parseFloat(document.getElementById('taux').value).toFixed(1)+'%';
+  document.getElementById('loyers').value = data.loyers ?? 800;
+  document.getElementById('tauxCustomPlacement').value = data.tauxCustomPlacement ?? '';
+  document.getElementById('tmi').value = data.tmi ?? 30;
+  document.getElementById('prelSociaux').checked = data.prelSociaux !== undefined ? data.prelSociaux : true;
+
+  regimePlacement = data.regimePlacement ?? 'pfu';
+  regimeLocatif = data.regimeLocatif ?? 'pfu30';
+  document.querySelectorAll('#regimePlacement .chip').forEach(c=>c.classList.toggle('active', c.dataset.val===regimePlacement));
+  document.querySelectorAll('#regimeLocatif .chip').forEach(c=>c.classList.toggle('active', c.dataset.val===regimeLocatif));
+  document.getElementById('tauxCustomPlacement').style.display = regimePlacement==='custom' ? 'block' : 'none';
+  document.getElementById('tmiRow').style.display = (regimeLocatif==='reel'||regimeLocatif==='micro') ? 'block' : 'none';
+
+  compute();
+}
+
+function exportJSON(){
+  const raw = localStorage.getItem('fire_suivi_data') || '{}';
+  const blob = new Blob([raw], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'fire_suivi_backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('fileImport').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      localStorage.setItem('fire_suivi_data', ev.target.result);
+      load();
+    }catch(err){ alert('Fichier invalide'); }
+  };
+  reader.readAsText(file);
+});
+
+function resetData(){
+  if(confirm('Réinitialiser toutes les valeurs ?')){
+    localStorage.removeItem('fire_suivi_data');
+    location.reload();
+  }
+}
+
+['objectif','capital','taux','loyers','tauxCustomPlacement','tmi'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{compute(); save();});
+});
+document.getElementById('prelSociaux').addEventListener('change', ()=>{compute(); save();});
+
+load();
+</script>
+</body>
+</html>
