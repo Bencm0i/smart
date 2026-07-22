@@ -352,39 +352,6 @@ body {
 .recap-text { flex: 1; }
 .recap-text.done { text-decoration: line-through; color: var(--text-dim); }
 
-/* RECAP - mini résumé */
-.recap-summary {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.recap-summary-item {
-  flex: 1;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 6px;
-  text-align: center;
-}
-.recap-summary-val {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--beige-hi);
-  line-height: 1;
-  margin-bottom: 3px;
-}
-.recap-summary-val.green  { color: #6abf46; }
-.recap-summary-val.orange { color: var(--orange-hi); }
-.recap-summary-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-
 /* ALARM POPUP */
 .alarm-overlay {
   display: none;
@@ -1316,34 +1283,6 @@ function renderRecap() {
     container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">// TOUTES LES LISTES SONT VIDES</div></div>';
     return;
   }
-
-  // mini résumé global
-  const total = all.length;
-  const done = all.filter(i => i.done).length;
-  const pending = total - done;
-  const urgent = LISTS[2].items.filter(i => !i.done && i.prio === 'high').length;
-
-  const summary = document.createElement('div');
-  summary.className = 'recap-summary';
-  summary.innerHTML = `
-    <div class="recap-summary-item">
-      <div class="recap-summary-val">${total}</div>
-      <div class="recap-summary-label">TOTAL</div>
-    </div>
-    <div class="recap-summary-item">
-      <div class="recap-summary-val">${pending}</div>
-      <div class="recap-summary-label">RESTANT</div>
-    </div>
-    <div class="recap-summary-item">
-      <div class="recap-summary-val green">${done}</div>
-      <div class="recap-summary-label">FAIT</div>
-    </div>
-    <div class="recap-summary-item">
-      <div class="recap-summary-val orange">${urgent}</div>
-      <div class="recap-summary-label">URGENT</div>
-    </div>
-  `;
-  container.appendChild(summary);
 
   allLists.forEach(({ id, name }) => {
     const items = LISTS[id].items;
