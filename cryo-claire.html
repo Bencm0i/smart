@@ -81,6 +81,7 @@ main{ flex:1; padding:20px 18px 100px; display:flex; flex-direction:column; gap:
 .reliability.stable{ color:var(--re); }
 .reliability.incertaine{ color:var(--en); }
 .reliability.compromise{ color:var(--danger); }
+.margin-line{ font-size:10px; color:var(--text-dim); letter-spacing:.3px; margin-top:2px; font-variant-numeric:tabular-nums;}
 
 .choices{ display:flex; flex-direction:column; gap:10px; }
 .choice-btn{
@@ -136,6 +137,59 @@ input[type=range]::-webkit-slider-thumb{
   font-family:var(--mono); font-size:11.5px; letter-spacing:2px; cursor:pointer;
 }
 
+.observe-row{ display:flex; justify-content:flex-end; margin-top:8px;}
+.observe-btn{
+  background:transparent; border:1px solid var(--text-dim); color:var(--text-dim);
+  font-family:var(--mono); font-size:10px; letter-spacing:1px; padding:7px 10px;
+  border-radius:5px; cursor:pointer; text-align:right;
+}
+.observe-btn:active{ border-color:var(--text); color:var(--text); }
+.observe-btn:disabled{ opacity:.35; }
+
+.interrupt-box{
+  background:var(--panel); border:1px solid var(--danger); border-radius:6px; padding:12px 14px;
+}
+.interrupt-box .tag{ color:var(--danger); margin-bottom:6px;}
+.interrupt-box .msg{ font-size:12px; color:var(--text-dim); line-height:1.5;}
+
+#sequelles-line{ padding:6px 18px; font-size:9.5px; letter-spacing:.5px; color:var(--danger);
+  border-bottom:1px solid var(--line); background:var(--panel-2); display:none; }
+#sequelles-line.show{ display:block; }
+
+.emergency-fab{
+  position:fixed; bottom:18px; right:calc(50% - 215px + 14px);
+  width:auto; padding:11px 16px; border-radius:24px; border:1px solid var(--danger);
+  background:#170b0b; color:var(--danger); font-family:var(--mono); font-size:10.5px;
+  letter-spacing:1.5px; cursor:pointer; z-index:20; box-shadow:0 2px 12px rgba(0,0,0,.5);
+}
+@media (max-width:460px){ .emergency-fab{ right:16px; } }
+.emergency-panel{
+  position:fixed; inset:0; background:rgba(4,6,5,.82); z-index:30;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.emergency-panel.hidden{ display:none !important; }
+.emergency-sheet{
+  width:100%; max-width:430px; background:var(--panel); border-top:1px solid var(--line);
+  border-radius:14px 14px 0 0; padding:18px; max-height:80vh; overflow-y:auto;
+}
+.emergency-sheet h3{ font-size:12px; letter-spacing:2px; margin:0 0 4px; color:var(--text);}
+.emergency-sheet .sub{ font-size:10.5px; color:var(--text-dim); margin-bottom:14px; line-height:1.5;}
+.emergency-item{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px 13px;
+  margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.emergency-item .ei-info .ei-name{ font-size:11.5px; color:var(--text); margin-bottom:3px;}
+.emergency-item .ei-info .ei-rate{ font-size:10px; color:var(--text-dim);}
+.emergency-item button{
+  flex-shrink:0; padding:9px 12px; border-radius:6px; border:1px solid var(--re); background:transparent;
+  color:var(--re); font-family:var(--mono); font-size:10.5px; letter-spacing:1px; cursor:pointer;
+}
+.emergency-item button:disabled{ opacity:.3; border-color:var(--text-dim); color:var(--text-dim); }
+.emergency-close{
+  width:100%; margin-top:4px; padding:12px; border-radius:6px; border:1px solid var(--text-dim);
+  background:transparent; color:var(--text-dim); font-family:var(--mono); font-size:11px; letter-spacing:1.5px; cursor:pointer;
+}
+
 .hidden{display:none !important;}
 </style>
 </head>
@@ -166,15 +220,94 @@ input[type=range]::-webkit-slider-thumb{
   </div>
 
   <div id="stress-line">ÉTAT PHYSIOLOGIQUE : <span id="stress-label">stable</span></div>
+  <div id="sequelles-line">SÉQUELLES : <span id="sequelles-list"></span></div>
 
   <main id="main"></main>
+
+  <button class="emergency-fab" id="emergency-btn">⚠ URGENCE</button>
+  <div class="emergency-panel hidden" id="emergency-panel">
+    <div class="emergency-sheet">
+      <h3>PROTOCOLE D'URGENCE</h3>
+      <div class="sub">Convertir des ressources en soin immédiat, à taux dégradé. Irréversible.</div>
+      <div id="emergency-items"></div>
+      <button class="emergency-close" id="emergency-close">FERMER</button>
+    </div>
+  </div>
 </div>
 
 <script>
 /* ============== ÉTAT ============== */
-const state = { oxygene:100, energie:80, sante:100, ressources:20, tick:0 };
+const state = { oxygene:100, energie:80, sante:100, ressources:20, tick:0, sequelles:[] };
 let path = null; // 'surface' | 'reparation' | 'appel'
 let step = 0;
+
+/* ---- Séquelles persistantes ----
+   Marques durables laissées par une action physique dégradée : augmentent
+   durablement le bruit des instruments pour les actions physiques suivantes. */
+const SEQUELLES_POOL = [
+  { id:'bras',   label:'Bras blessé',          noiseBonus:12 },
+  { id:'genou',  label:'Genou fragilisé',      noiseBonus:10 },
+  { id:'cotes',  label:'Côtes contusionnées',  noiseBonus:9  },
+];
+
+function activeSequelleNoise(){
+  return state.sequelles.reduce((sum,s)=> sum + s.noiseBonus, 0);
+}
+
+function maybeAddSequelle(){
+  const available = SEQUELLES_POOL.filter(p => !state.sequelles.some(s=>s.id===p.id));
+  if(available.length===0 || Math.random()>0.5) return null;
+  const pick = available[Math.floor(Math.random()*available.length)];
+  state.sequelles.push(pick);
+  return pick;
+}
+
+function renderSequelles(){
+  const line = document.getElementById('sequelles-line');
+  const list = document.getElementById('sequelles-list');
+  if(state.sequelles.length===0){ line.classList.remove('show'); return; }
+  line.classList.add('show');
+  list.textContent = state.sequelles.map(s=>s.label).join(' · ');
+}
+
+/* ---- Protocole d'urgence : conversion Ressources -> jauge vitale, taux dégradé ---- */
+const EMERGENCY_ITEMS = [
+  { id:'kit', name:'Kit médical', cost:20, gainResource:'sante', gain:15, colorVar:'--st', unit:'santé' },
+  { id:'cell', name:"Cellule d'énergie", cost:18, gainResource:'energie', gain:14, colorVar:'--en', unit:'énergie' },
+  { id:'o2', name:"Cartouche O2", cost:18, gainResource:'oxygene', gain:14, colorVar:'--o2', unit:'oxygène' },
+];
+
+function renderEmergencyPanel(){
+  const container = document.getElementById('emergency-items');
+  container.innerHTML = EMERGENCY_ITEMS.map(it => `
+    <div class="emergency-item">
+      <div class="ei-info">
+        <div class="ei-name">${it.name}</div>
+        <div class="ei-rate">-${it.cost} pts ressources → +${it.gain} pts ${it.unit}</div>
+      </div>
+      <button data-id="${it.id}" ${state.ressources<it.cost?'disabled':''}>UTILISER</button>
+    </div>
+  `).join('');
+  container.querySelectorAll('button').forEach(btn=>{
+    btn.onclick = ()=>{
+      const it = EMERGENCY_ITEMS.find(x=>x.id===btn.dataset.id);
+      if(state.ressources < it.cost) return;
+      state.ressources = clamp(state.ressources - it.cost, 0, 100);
+      state[it.gainResource] = clamp(state[it.gainResource] + it.gain, 0, 100);
+      renderGauges();
+      renderEmergencyPanel();
+    };
+  });
+}
+
+function setupEmergencyUI(){
+  const panel = document.getElementById('emergency-panel');
+  document.getElementById('emergency-btn').onclick = ()=>{
+    renderEmergencyPanel();
+    panel.classList.remove('hidden');
+  };
+  document.getElementById('emergency-close').onclick = ()=> panel.classList.add('hidden');
+}
 
 /* ============== UTILITAIRES ============== */
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
@@ -204,6 +337,7 @@ function renderGauges(){
   else if(s<55){ label.textContent='sous tension'; label.style.color='var(--en)'; }
   else { label.textContent='critique — jugement altéré'; label.style.color='var(--danger)'; }
   document.getElementById('clock').textContent = 'T+'+String(state.tick).padStart(2,'0')+':00';
+  renderSequelles();
 }
 
 /* ============== MOTEUR DE RÉSOLUTION ==============
@@ -233,11 +367,14 @@ function computeEstimate(trueCost, instrumentNoisePct){
   const totalNoisePct = instrumentNoisePct + stress*0.45;
   const bias = rnd(-totalNoisePct, totalNoisePct)/100;
   const estimate = Math.max(5, Math.round(trueCost*(1+bias)));
+  // La marge d'erreur affichée est la probabilité réelle communiquée au joueur :
+  // observer réduit directement ce nombre (voir OBSERVE_COST), pas de facteur caché.
+  const marginPct = Math.round(totalNoisePct);
   let reliability, reliabilityClass;
   if(totalNoisePct < 18){ reliability='Lecture stable.'; reliabilityClass='stable'; }
   else if(totalNoisePct < 38){ reliability='Lecture incertaine — l\'instrument hésite.'; reliabilityClass='incertaine'; }
   else { reliability='Lecture compromise — ne t\'y fie qu\'à moitié.'; reliabilityClass='compromise'; }
-  return { estimate, reliability, reliabilityClass };
+  return { estimate, reliability, reliabilityClass, totalNoisePct, marginPct };
 }
 
 // Couplage inter-jauges : une énergie basse au moment d'une action physique
@@ -300,7 +437,13 @@ function failureScreen(resource){
   document.getElementById('restart').onclick = restart;
 }
 
-/* ---- Définition d'une action générique ---- */
+/* ---- Définition d'une action générique ----
+   Séquence : instrument (ou panne aléatoire) -> allocation -> résolution.
+   Observer réduit directement la marge d'erreur (probabilité affichée), au prix de
+   quelques points de la ressource même que l'on cherche à préserver. */
+const OBSERVE_COST = 4;       // pts de la ressource de l'action, pour observer plus longuement
+const INTERRUPT_CHANCE = 0.15; // proba qu'aucune estimation ne soit disponible (panne / panique)
+
 function actionScreen(cfg, onResolved){
   applyPassiveDrain();
   const fail = checkFailure();
@@ -310,79 +453,140 @@ function actionScreen(cfg, onResolved){
   const trueCostBase = ri(cfg.costMin, cfg.costMax);
   const stress = computeStress();
   const trueCost = Math.round(trueCostBase * (1 + stress*0.006)); // le stress alourdit aussi le coût réel
-  const { estimate, reliability, reliabilityClass } = computeEstimate(trueCost, cfg.instrumentNoise);
-  const available = Math.round(state[cfg.resource]);
-  const maxAlloc = Math.min(available, Math.round(trueCostBase*2.2));
-  let alloc = clamp(estimate, 0, maxAlloc);
+  const sequelleBonus = cfg.physical ? activeSequelleNoise() : 0;
+  const baseNoise = cfg.instrumentNoise + sequelleBonus;
+  const interrupted = Math.random() < INTERRUPT_CHANCE;
 
-  screen(`
-    <div class="narrative">${cfg.intro}</div>
-    <div class="instrument">
-      <div class="tag">INSTRUMENT — ${cfg.instrumentLabel}</div>
-      <div class="instrument-name">${cfg.instrumentName}</div>
-      <div class="estimate-row">
-        <span class="estimate-num" style="--rescolor:var(${cfg.colorVar})">${estimate}</span>
-        <span class="estimate-unit">pts ${cfg.resourceLabel} estimés</span>
-      </div>
-      <div class="reliability ${reliabilityClass}">${reliability}</div>
-    </div>
-    <div class="allocator" style="--rescolor:var(${cfg.colorVar})">
-      <div class="alloc-readout">
-        <span class="n" id="alloc-n">${alloc}</span>
-        <span class="max">disponible : ${available} pts ${cfg.resourceLabel}</span>
-      </div>
-      <div class="stepper">
-        <button class="step-btn" id="minus">−5</button>
-        <input type="range" id="alloc-slider" min="0" max="${maxAlloc}" step="5" value="${alloc}">
-        <button class="step-btn" id="plus">+5</button>
-      </div>
-      <button class="confirm-btn" id="confirm" style="--rescolor:var(${cfg.colorVar}); background:var(${cfg.colorVar})">ALLOUER ET AGIR</button>
-    </div>
-  `);
+  renderAllocatorStep(cfg, trueCostBase, trueCost, baseNoise, interrupted, onResolved);
+}
 
-  const slider = document.getElementById('alloc-slider');
-  const numEl = document.getElementById('alloc-n');
-  function setAlloc(v){ alloc = clamp(v,0,maxAlloc); slider.value=alloc; numEl.textContent=alloc; }
-  slider.oninput = ()=> setAlloc(parseInt(slider.value));
-  document.getElementById('minus').onclick = ()=> setAlloc(alloc-5);
-  document.getElementById('plus').onclick = ()=> setAlloc(alloc+5);
+function renderAllocatorStep(cfg, trueCostBase, trueCost, baseNoise, interrupted, onResolved){
+  let noise = baseNoise;
+  let est = interrupted ? null : computeEstimate(trueCost, noise);
+  let observed = false;
 
-  document.getElementById('confirm').onclick = ()=>{
-    const res = resolveAllocation(alloc, trueCost);
-    state[cfg.resource] = clamp(state[cfg.resource]-res.spent, 0, 100);
-    let gainNote = '';
-    if(cfg.gain){
-      const mult = res.outcome==='optimal' ? 1 : res.outcome==='surplus' ? 0.85 : 0.45;
-      const gained = Math.round(cfg.gain*mult);
-      state[cfg.gainResource] = clamp(state[cfg.gainResource]+gained, 0, 100);
-      gainNote = ' (+'+gained+' '+cfg.gainLabel+')';
+  const available0 = Math.round(state[cfg.resource]);
+  const maxAlloc0 = Math.min(available0, Math.round(trueCostBase*2.2));
+  let alloc = clamp(interrupted ? Math.round(available0/2) : est.estimate, 0, maxAlloc0);
+
+  function instrumentHTML(){
+    if(interrupted){
+      return `
+        <div class="interrupt-box">
+          <div class="tag">INSTRUMENT — ${cfg.instrumentLabel}</div>
+          <div class="msg">Panne / lecture impossible. Il faut allouer à l'aveugle, sans estimation.</div>
+        </div>`;
     }
-    const couplingNote = applyCoupling(cfg.physical);
-    renderGauges();
-
-    const fail2 = checkFailure();
-
-    const titles = { optimal:'ALLOCATION OPTIMALE', degrade:'ACTION DÉGRADÉE', surplus:'SURPLUS GASPILLÉ' };
-    const classes = { optimal:'optimal', degrade:'degrade', surplus:'surplus' };
-    let outcomeText = cfg.outcomeText[res.outcome] + gainNote + couplingNote;
-
-    screen(`
-      <div class="resolution">
-        <div class="res-title ${classes[res.outcome]}">${titles[res.outcome]}</div>
-        <div class="res-grid">
-          <div>COÛT RÉEL<b>${trueCost}</b></div>
-          <div>ALLOUÉ<b>${alloc}</b></div>
-          <div>DÉPENSÉ<b>${Math.round(res.spent)}</b></div>
-          <div>REMBOURSÉ<b>${Math.round(res.refunded)}</b></div>
+    const canObserve = !observed && state[cfg.resource] >= (OBSERVE_COST + 1);
+    return `
+      <div class="instrument">
+        <div class="tag">INSTRUMENT — ${cfg.instrumentLabel}</div>
+        <div class="instrument-name">${cfg.instrumentName}</div>
+        <div class="estimate-row">
+          <span class="estimate-num" style="--rescolor:var(${cfg.colorVar})" id="est-num">${est.estimate}</span>
+          <span class="estimate-unit">pts ${cfg.resourceLabel} estimés</span>
         </div>
-        <div class="res-text">${outcomeText}</div>
-        <button class="continue-btn" id="continue">CONTINUER</button>
+        <div class="reliability ${est.reliabilityClass}" id="est-rel">${est.reliability}</div>
+        <div class="margin-line" id="est-margin">Marge d'erreur ≈ ±${est.marginPct}%</div>
+        <div class="observe-row">
+          <button class="observe-btn" id="observe-btn" ${canObserve?'':'disabled'}>
+            ${observed ? 'DÉJÀ OBSERVÉ' : `OBSERVER PLUS LONGUEMENT — réduit la marge d'erreur de moitié (−${OBSERVE_COST} ${cfg.resourceLabel})`}
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function draw(){
+    const available = Math.round(state[cfg.resource]);
+    const maxAlloc = Math.min(available, Math.round(trueCostBase*2.2));
+    alloc = clamp(alloc, 0, maxAlloc);
+    screen(`
+      <div class="narrative">${cfg.intro}</div>
+      ${instrumentHTML()}
+      <div class="allocator" style="--rescolor:var(${cfg.colorVar})">
+        <div class="alloc-readout">
+          <span class="n" id="alloc-n">${alloc}</span>
+          <span class="max">disponible : ${available} pts ${cfg.resourceLabel}</span>
+        </div>
+        <div class="stepper">
+          <button class="step-btn" id="minus">−1</button>
+          <input type="range" id="alloc-slider" min="0" max="${maxAlloc}" step="1" value="${alloc}">
+          <button class="step-btn" id="plus">+1</button>
+        </div>
+        <button class="confirm-btn" id="confirm" style="--rescolor:var(${cfg.colorVar}); background:var(${cfg.colorVar})">ALLOUER ET AGIR</button>
       </div>
     `);
-    document.getElementById('continue').onclick = ()=>{
-      if(fail2){ failureScreen(fail2); return; }
-      onResolved(res.outcome);
-    };
+
+    const slider = document.getElementById('alloc-slider');
+    const numEl = document.getElementById('alloc-n');
+    function setAlloc(v){ alloc = clamp(v,0,maxAlloc); slider.value=alloc; numEl.textContent=alloc; }
+    slider.oninput = ()=> setAlloc(parseInt(slider.value));
+    document.getElementById('minus').onclick = ()=> setAlloc(alloc-1);
+    document.getElementById('plus').onclick = ()=> setAlloc(alloc+1);
+
+    if(!interrupted){
+      const obsBtn = document.getElementById('observe-btn');
+      if(obsBtn) obsBtn.onclick = ()=>{
+        if(observed || state[cfg.resource] < OBSERVE_COST + 1) return;
+        state[cfg.resource] = clamp(state[cfg.resource]-OBSERVE_COST, 0, 100);
+        noise = noise/2; // observer réduit directement la probabilité d'erreur de moitié
+        est = computeEstimate(trueCost, noise);
+        observed = true;
+        renderGauges();
+        draw(); // redessine avec la nouvelle estimation, la nouvelle marge, et le disponible mis à jour
+      };
+    }
+
+    document.getElementById('confirm').onclick = ()=> resolveAndShow(cfg, trueCost, alloc, interrupted, onResolved);
+  }
+
+  draw();
+}
+
+function resolveAndShow(cfg, trueCost, alloc, interrupted, onResolved){
+  const res = resolveAllocation(alloc, trueCost);
+  state[cfg.resource] = clamp(state[cfg.resource]-res.spent, 0, 100);
+  let gainNote = '';
+  if(cfg.gain){
+    const mult = res.outcome==='optimal' ? 1 : res.outcome==='surplus' ? 0.85 : 0.45;
+    const gained = Math.round(cfg.gain*mult);
+    state[cfg.gainResource] = clamp(state[cfg.gainResource]+gained, 0, 100);
+    gainNote = ' (+'+gained+' '+cfg.gainLabel+')';
+  }
+  const couplingNote = applyCoupling(cfg.physical);
+
+  // Séquelle persistante : une action physique dégradée peut laisser une marque durable.
+  let sequelleNote = '';
+  if(res.outcome==='degrade' && cfg.physical){
+    const seq = maybeAddSequelle();
+    if(seq) sequelleNote = ` ${seq.label} — les actions physiques suivantes en porteront la trace.`;
+  }
+
+  renderGauges();
+
+  const fail2 = checkFailure();
+
+  const titles = { optimal:'ALLOCATION OPTIMALE', degrade:'ACTION DÉGRADÉE', surplus:'SURPLUS GASPILLÉ' };
+  const classes = { optimal:'optimal', degrade:'degrade', surplus:'surplus' };
+  let outcomeText = cfg.outcomeText[res.outcome] + gainNote + couplingNote + sequelleNote;
+  if(interrupted) outcomeText = 'Tu as agi à l\'aveugle, sans lecture fiable. ' + outcomeText;
+
+  screen(`
+    <div class="resolution">
+      <div class="res-title ${classes[res.outcome]}">${titles[res.outcome]}</div>
+      <div class="res-grid">
+        <div>COÛT RÉEL<b>${trueCost}</b></div>
+        <div>ALLOUÉ<b>${alloc}</b></div>
+        <div>DÉPENSÉ<b>${Math.round(res.spent)}</b></div>
+        <div>REMBOURSÉ<b>${Math.round(res.refunded)}</b></div>
+      </div>
+      <div class="res-text">${outcomeText}</div>
+      <button class="continue-btn" id="continue">CONTINUER</button>
+    </div>
+  `);
+  document.getElementById('continue').onclick = ()=>{
+    if(fail2){ failureScreen(fail2); return; }
+    onResolved(res.outcome);
   };
 }
 
@@ -390,6 +594,7 @@ function actionScreen(cfg, onResolved){
 
 function restart(){
   state.oxygene=100; state.energie=80; state.sante=100; state.ressources=20; state.tick=0;
+  state.sequelles=[];
   path=null; step=0; renderGauges();
   runIntro();
 }
@@ -554,6 +759,7 @@ function runEnding(){
 }
 
 /* ============== BOOT ============== */
+setupEmergencyUI();
 renderGauges();
 runIntro();
 </script>
