@@ -325,6 +325,15 @@ body {
   border-radius: 10px;
   padding: 14px;
   margin-bottom: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.recap-section:hover {
+  border-color: var(--border-hi);
+  background: var(--bg-input);
+}
+.recap-section:active {
+  transform: scale(0.99);
 }
 .recap-title {
   font-family: 'Barlow Condensed', sans-serif;
@@ -1290,6 +1299,7 @@ function renderRecap() {
 
     const section = document.createElement('div');
     section.className = 'recap-section';
+    section.addEventListener('click', () => switchTab(id + 1));
     let pending = items.filter(i => !i.done);
     const done = items.filter(i => i.done);
 
