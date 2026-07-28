@@ -1580,7 +1580,7 @@ button, input, select { touch-action: manipulation; }
   <div class="bottom-bar-row">
     <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
     <button class="bar-btn primary" onclick="exportJSON()">💾 Enregistrer JSON</button>
-    <button class="bar-btn" onclick="copyJSON()">📋 Copier</button>
+    <button class="bar-btn" onclick="resetDashboardVersion()" title="Remet le compteur de version à 0">↺ Réinit. version</button>
   </div>
 </div>
 
@@ -2423,9 +2423,19 @@ function updateVersionBadge() {
   if (el) el.textContent = 'v' + (DATA._version || 0);
 }
 function persistData() {
-  DATA._version = (DATA._version || 0) + 1;
   localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
   updateVersionBadge();
+}
+// N'incrémente la version que lors d'un export réel (bouton "Enregistrer JSON"), pas à chaque autosave.
+function bumpVersion() {
+  DATA._version = (DATA._version || 0) + 1;
+  persistData();
+}
+function resetDashboardVersion() {
+  if (!confirm('Remettre le compteur de version à 0 ? (actuellement v' + (DATA._version||0) + ')')) return;
+  DATA._version = 0;
+  persistData();
+  showToast('✓ Compteur de version réinitialisé');
 }
 let athTimer; // timer séparé pour ATH — délai plus long pour éviter enregistrement erroné
 function autoSave() {
@@ -2530,6 +2540,7 @@ function getJSON() {
 }
 
 async function exportJSON() {
+  bumpVersion(); // la version n'avance qu'au moment d'un export réel
   const json = getJSON();
   const d = new Date();
   const fname = `patrimoine_v${DATA._version||0}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
