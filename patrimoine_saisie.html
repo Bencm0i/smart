@@ -126,6 +126,17 @@ body {
   flex-shrink: 0;
 }
 .logo span { color: var(--muted); font-weight: 700; }
+.version-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1e24 !important;
+  background: var(--gold);
+  padding: 3px 9px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
 .header-btns { display: flex; gap: 8px; align-items: center; }
 .hbtn {
   background: var(--surface);
@@ -1136,6 +1147,7 @@ button, input, select { touch-action: manipulation; }
 <div class="header">
   <div class="logo">PAT<span>.</span>SAISIE</div>
   <div class="header-btns">
+    <span class="version-badge" id="versionBadge" title="numéro de version des données — sert à comparer rapidement PC et smartphone">v0</span>
     <span class="save-status" id="saveStatus">✓ Copié</span>
     <button class="hbtn danger" onclick="openResetModal()" title="Effacer toutes les données locales">🗑 RESET</button>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Basculer thème">
@@ -2406,6 +2418,15 @@ function flashSaveStatus(msg) {
   el.classList.add('show');
   saveStatusTimer = setTimeout(() => el.classList.remove('show'), 1600);
 }
+function updateVersionBadge() {
+  const el = document.getElementById('versionBadge');
+  if (el) el.textContent = 'v' + (DATA._version || 0);
+}
+function persistData() {
+  DATA._version = (DATA._version || 0) + 1;
+  localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+  updateVersionBadge();
+}
 let athTimer; // timer séparé pour ATH — délai plus long pour éviter enregistrement erroné
 function autoSave() {
   clearTimeout(saveTimer);
@@ -2418,7 +2439,7 @@ function autoSave() {
   }
   saveTimer = setTimeout(() => {
     try {
-      localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+      persistData();
       flashSaveStatus('✓ Enregistré');
     } catch(e) {
       flashSaveStatus('❌ Erreur enregistrement');
@@ -2446,7 +2467,7 @@ function autoSave() {
           const todayEntry = DATA.ath.find(r=>r.date===today);
           if (todayEntry) { todayEntry.val = grandTotal; }
           else { DATA.ath.push({date: today, val: grandTotal, auto: true}); }
-          localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+          persistData();
           flashSaveStatus('✓ Enregistré');
           if (typeof renderATH === 'function') renderATH();
           const athFmt = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(grandTotal);
@@ -2511,7 +2532,7 @@ function getJSON() {
 async function exportJSON() {
   const json = getJSON();
   const d = new Date();
-  const fname = `patrimoine_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  const fname = `patrimoine_v${DATA._version||0}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
   const blob = new Blob([json], {type:'application/json'});
   if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'application/json'})] })) {
     try {
@@ -2547,6 +2568,7 @@ function handleFileLoad(e) {
       const loaded = JSON.parse(ev.target.result);
       const before = JSON.parse(JSON.stringify(DATA));
       mergeDeep(DATA, loaded);
+      updateVersionBadge();
       replaceWithUndo(before, renderAll, '✓ JSON chargé : ' + file.name);
       setLastJsonUsed('load', file.name);
     } catch(err) {
@@ -2736,7 +2758,7 @@ function commitUndoState() {
   undoState = null;
   document.getElementById('undo-toast').classList.remove('show');
   try {
-    localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA));
+    persistData();
     flashSaveStatus('✓ Enregistré');
   } catch(e) {
     flashSaveStatus('❌ Erreur enregistrement');
@@ -2753,6 +2775,7 @@ function undoDelete() {
   } else if (undoState.type === 'replace') {
     Object.keys(DATA).forEach(k => delete DATA[k]);
     Object.assign(DATA, undoState.snapshotBefore);
+    updateVersionBadge();
     if (typeof undoState.renderFn === 'function') undoState.renderFn();
   }
   document.getElementById('undo-toast').classList.remove('show');
@@ -2806,11 +2829,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // Migration ponctuelle : ancienne clé séparée pour la date d'achat cash
     if (!DATA.achatCashDate) {
       const legacyAchatDate = localStorage.getItem('achat_cash_date');
-      if (legacyAchatDate) { DATA.achatCashDate = legacyAchatDate; localStorage.setItem('patrimoine_saisie', JSON.stringify(DATA)); }
+      if (legacyAchatDate) { DATA.achatCashDate = legacyAchatDate; persistData(); }
     }
   } catch(e) {}
   renderAll();
   if (typeof renderKPIPanel === 'function') renderKPIPanel();
+  updateVersionBadge();
   initLastJsonInfo();
   bindMobiliteEvents();
   document.getElementById('maison').addEventListener('input', function() {
