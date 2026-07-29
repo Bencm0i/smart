@@ -1580,6 +1580,7 @@ button, input, select { touch-action: manipulation; }
   <div class="bottom-bar-row">
     <button class="bar-btn" onclick="loadJSON()">📂 Charger JSON</button>
     <button class="bar-btn primary" onclick="exportJSON()">💾 Enregistrer JSON</button>
+    <button class="bar-btn" onclick="exportRapportIA()" title="Génère un rapport texte complet (patrimoine, dépenses, investissements…) copié dans le presse-papiers, prêt à coller dans une IA">🤖 Rapport IA</button>
     <button class="bar-btn" onclick="resetDashboardVersion()" title="Remet le compteur de version à 0">↺ Réinit. version</button>
   </div>
 </div>
@@ -2566,6 +2567,32 @@ function copyJSON() {
     showToast('✓ JSON copié dans le presse-papiers');
     setLastJsonUsed('copy', '');
   }).catch(() => showToast('❌ Erreur copie'));
+}
+
+async function exportRapportIA() {
+  if (typeof window.generateAIReportText !== 'function') { showToast('❌ Rapport indisponible'); return; }
+  const text = window.generateAIReportText();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('✓ Rapport IA copié — collez-le dans votre IA');
+    return;
+  } catch(e) {}
+  // Fallback si le presse-papiers est inaccessible : partage / téléchargement du .txt
+  const d = new Date();
+  const fname = `patrimoine_rapport-ia_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.txt`;
+  const blob = new Blob([text], {type:'text/plain'});
+  if (navigator.canShare && navigator.canShare({ files: [new File([blob], fname, {type:'text/plain'})] })) {
+    try {
+      await navigator.share({ title: 'Patrimoine — Rapport IA', files: [new File([blob], fname, {type:'text/plain'})] });
+      showToast('✓ Partagé : ' + fname);
+      return;
+    } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast('✓ Rapport IA téléchargé : ' + fname);
 }
 
 function loadJSON() { document.getElementById('fileInput').click(); }
@@ -3854,6 +3881,123 @@ window.addEventListener('DOMContentLoaded', () => {
       legend.innerHTML = parts.join('');
     }
   }
+
+  // ─── RAPPORT TEXTE POUR ANALYSE IA ────────────────────────────────────
+  function generateAIReportText() {
+    const k = computeKPIs();
+    const now = new Date();
+    const fmtE = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v||0);
+    const fmtP = v => (v||0).toFixed(1)+'%';
+    const L = [];
+    const push = (s='') => L.push(s);
+    const sep  = () => push('─'.repeat(60));
+
+    push('RAPPORT PATRIMOINE — EXPORT POUR ANALYSE IA');
+    push('Généré le ' + now.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}) + ' à ' + now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
+    push('Version des données : v' + (DATA._version||0));
+    sep();
+
+    push('\n1. SYNTHÈSE GLOBALE');
+    push('Patrimoine total net : ' + fmtE(k.grandTotal));
+    push('  dont liquidités (comptes courants + livrets + espèces) : ' + fmtE(k.ccTotal));
+    push('  dont banques (hors poches PEA/CTO/AV gérées séparément) : ' + fmtE(k.banquesTotal));
+    push('  dont immobilier locatif (P1+P2+P3) : ' + fmtE(k.immoTotal));
+    push('  dont résidence principale : ' + fmtE(k.maison));
+    push('  dont SCPI : ' + fmtE(k.scpiVal));
+    push('  dont assurance-vie (hors contrats synchronisés banque) : ' + fmtE(k.avValNonSync));
+    push('  dont épargne bloquée (Livrets saisis en Investissements) : ' + fmtE(k.ebVal));
+    push('Plus/moins-value totale (hors immobilier) : ' + fmtE(k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV + k.pmvSCPI));
+    push('Revenu mensuel net : ' + fmtE(k.revenu) + '  (salaire ' + fmtE(k.revenuSalaire) + ' + locatif ' + fmtE(k.revenuLocatif) + ')');
+    push('Dépenses mensuelles : ' + fmtE(k.depMens));
+    push("Taux d'épargne : " + fmtP(k.txEpargne));
+    push('Indépendance financière : ' + k.moisLiberte.toFixed(1) + ' mois de dépenses couverts par le patrimoine total');
+    push('Indépendance financière (hors résidence principale) : ' + k.moisLiberteSansMaison.toFixed(1) + ' mois');
+
+    push('\n2. COMPTES BANCAIRES');
+    ['boursorama','fortuneo','revolut','natixis'].forEach(bank => {
+      const rows = DATA[bank] || [];
+      const managed = MANAGED[bank] || [];
+      const lignes = rows.map((r,i) => (managed.includes(i) || !r.val) ? null : '    ' + r.label + ' : ' + fmtE(r.val)).filter(Boolean);
+      if (!lignes.length) return;
+      push('- ' + bank.toUpperCase() + ' :');
+      lignes.forEach(push);
+    });
+    if (k.nonInvestiLines && k.nonInvestiLines.length) {
+      push('  Total liquidités hors poches investies : ' + fmtE(k.nonInvestiTotal));
+    }
+
+    push('\n3. INVESTISSEMENTS');
+    const invBlock = (title, rows, valFn, prFn) => {
+      if (!rows || !rows.length) return;
+      const lignes = [];
+      rows.forEach(r => {
+        const val = valFn(r), pr = prFn ? prFn(r) : null;
+        if (!val && !pr) return;
+        let line = '    ' + (r.nom || r.label || r.produit || '?') + (r.ticker ? (' ['+r.ticker+']') : '') + ' : ' + fmtE(val);
+        if (pr !== null) line += ' (prix de revient ' + fmtE(pr) + ', P/MV ' + fmtE(val-pr) + ')';
+        lignes.push(line);
+      });
+      if (!lignes.length) return;
+      push('- ' + title + ' :');
+      lignes.forEach(push);
+    };
+    invBlock('PEA', DATA.investissements.pea, r=>(r.qte||0)*(r.coursActuel||0), r=>(r.qte||0)*(r.pr||0));
+    invBlock('CTO', DATA.investissements.cto, r=>(r.qte||0)*(r.coursActuel||0), r=>(r.qte||0)*(r.pr||0));
+    invBlock('Revolut (actifs)', DATA.investissements.revolut, r=>(r.qte||0)*(r.coursActuel||0), r=>(r.qte||0)*(r.pr||0));
+    invBlock('Épargne entreprise', DATA.investissements.epargne_entreprise, r=>r.valeurActuelle||0, r=>(r.parts||0)*(r.pr||0));
+    invBlock('Assurance-vie', DATA.investissements.assurance_vie, r=>r.valeurActuelle||0, r=>r.versements||0);
+    invBlock('Épargne bloquée (Livrets)', DATA.investissements.epargne_bloquee, r=>r.montant||0, null);
+
+    push('\n4. SCPI');
+    (DATA.scpi||[]).forEach(s => {
+      const val = s.totalActuel || (s.parts||0)*(s.pxActuel||0) || 0;
+      const cr  = s.montantPlace || (s.parts||0)*(s.pxAchat||0) || 0;
+      if (!val && !cr) return;
+      push('- ' + s.gestionnaire + ' — ' + s.produit + ' : ' + (s.parts||0) + ' parts, valeur ' + fmtE(val) + ', prix de revient ' + fmtE(cr) + ', P/MV ' + fmtE(val-cr));
+    });
+
+    push('\n5. IMMOBILIER LOCATIF');
+    ['p1','p2','p3'].forEach(key => {
+      const imm = DATA.immobilier?.[key];
+      if (!imm || (!imm.valeur && !(imm.items||[]).some(i=>i.loyer))) return;
+      push('- ' + key.toUpperCase() + ' : valeur ' + fmtE(imm.valeur));
+      (imm.items||[]).forEach(it => {
+        if (!it.loyer) return;
+        push('    ' + it.label + ' : loyer ' + fmtE(it.loyer) + '/mois');
+      });
+    });
+    push('Loyer mensuel total (immobilier + SCPI) : ' + fmtE(k.immoLoyerMens + k.scpiLoyerMens));
+
+    push('\n6. DÉPENSES MENSUELLES');
+    (DATA.depenses?.categories||[]).forEach(cat => {
+      const items = (cat.items||[]).filter(it => (it.mensuel||0)>0 || (it.annuel||0)>0);
+      if (!items.length) return;
+      push('- ' + cat.nom + ' :');
+      items.forEach(it => {
+        const m = it.mensuel || (it.note==='annuel' ? (it.annuel||0)/12 : 0);
+        push('    ' + it.label + ' : ' + fmtE(m) + '/mois');
+      });
+    });
+    push('Total dépenses mensuelles : ' + fmtE(k.depMens) + ' (soit ' + fmtE(k.depMens*12) + '/an)');
+
+    push('\n7. MOBILITÉ');
+    if (DATA.mobilite) {
+      if (k.kmVeloCumul)     push('Kilométrage vélo cumulé : ' + k.kmVeloCumul.toFixed(0) + ' km');
+      if (k.coutKmVoiture)   push('Coût au km voiture (carburant) : ' + fmtE(k.coutKmVoiture) + '/km');
+      if (k.gainVeloVoiture) push('Gain estimé vélo vs voiture : ' + fmtE(k.gainVeloVoiture));
+    }
+
+    push('\n8. HISTORIQUE ATH (plus haut historique du patrimoine)');
+    (DATA.ath||[]).filter(r=>r.val>0).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(r => {
+      push('- ' + r.date + ' : ' + fmtE(r.val) + (r.auto?' (auto)':''));
+    });
+
+    sep();
+    push('\nFIN DU RAPPORT — Ce document peut être fourni tel quel à une IA pour analyse, conseils ou simulation.');
+
+    return L.join('\n');
+  }
+  window.generateAIReportText = generateAIReportText;
 
   window.renderKPIPanel = async function() {
     const k = computeKPIs();
