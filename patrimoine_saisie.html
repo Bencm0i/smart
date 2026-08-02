@@ -1172,6 +1172,7 @@ button, input, select { touch-action: manipulation; }
   <button class="tab-btn" onclick="switchTab('immobilier')">🏘️ Immobilier</button>
   <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
   <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
+  <button class="tab-btn" onclick="switchTab('heritage')">🎁 Héritage</button>
 </div>
 
 <!-- ═══ PANEL : BANQUES ═══ -->
@@ -1435,6 +1436,19 @@ button, input, select { touch-action: manipulation; }
   </div>
 </div>
 
+<!-- ═══ PANEL : HÉRITAGE ═══ -->
+<div class="panel" id="panel-heritage">
+  <div class="section accent-gold">
+    <div class="section-head">
+      <div class="section-title">🎁 Héritage</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addHeritageRow()">＋ Ligne</button>
+    </div>
+    <div class="section-body" id="body-heritage">
+      <p style="font-size:11px;color:var(--muted);">Lignes d'héritage estimé ou à venir. Cochez « Inclure » pour les compter dans le patrimoine total.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
 <div class="panel active" id="panel-kpi">
 
@@ -1626,6 +1640,7 @@ let DATA = {
   revenuMensuelNet:0,
   impotAnnee:0,
   ath:[],
+  heritage:[],
   immobilier:{
     p1:{
       valeur:0,
@@ -1721,7 +1736,7 @@ let DATA = {
 // ─── TAB SWITCHING ─────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const map = {kpi:0,banques:1,investissements:2,scpi:3,actifs:4,immobilier:5,depenses:6,mobilite:7};
+  const map = {kpi:0,banques:1,investissements:2,scpi:3,actifs:4,immobilier:5,depenses:6,mobilite:7,heritage:8};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -2192,6 +2207,48 @@ function addATHEntry() {
   renderATH(); autoSave();
 }
 
+// ─── HÉRITAGE ──────────────────────────────────────────────────────────────
+function heritageTotal() {
+  return (DATA.heritage||[]).filter(r => r.inclus).reduce((s,r) => s+(r.montant||0), 0);
+}
+function renderHeritage() {
+  const c = document.getElementById('body-heritage');
+  const rows = DATA.heritage || [];
+  c.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Lignes d'héritage estimé ou à venir. Cochez « Inclure » pour les compter dans le patrimoine total.</p>` +
+    (rows.map((r,i)=>`
+    <div class="log-card">
+      <div class="log-card-fields">
+        <div class="log-card-field">
+          <label>Libellé</label>
+          <input type="text" value="${r.nom||''}" placeholder="Ex: Héritage tante X" oninput="DATA.heritage[${i}].nom=this.value;autoSave()">
+        </div>
+        <div class="log-card-field">
+          <label>Montant (€)</label>
+          <input type="number" value="${r.montant||''}" step="100" min="0" inputmode="decimal" autocomplete="off" placeholder="0" style="text-align:right" oninput="DATA.heritage[${i}].montant=parseFloat(this.value)||0;autoSave();renderHeritage()">
+        </div>
+        <div class="log-card-field">
+          <label>Date</label>
+          <input type="date" value="${r.date||''}" oninput="DATA.heritage[${i}].date=this.value;autoSave()">
+        </div>
+        <div class="log-card-field">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" ${r.inclus?'checked':''} onchange="DATA.heritage[${i}].inclus=this.checked;autoSave();renderHeritage()">
+            Inclure au total
+          </label>
+        </div>
+      </div>
+      <div class="log-card-del">
+        <button class="del-btn" onclick="deleteWithUndo(DATA.heritage,${i},renderHeritage,'Ligne héritage supprimée')">✕</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ Ligne pour ajouter.</p>') +
+    `<p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:right;">Total inclus : <strong style="color:var(--accent);">${new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(heritageTotal())}</strong></p>`;
+}
+function addHeritageRow() {
+  if(!DATA.heritage) DATA.heritage=[];
+  DATA.heritage.push({nom:'',montant:0,date:'',inclus:false});
+  renderHeritage(); autoSave();
+}
+
 // ─── IMMOBILIER (P1 / P2) ────────────────────────────────────────────────
 function immoLoyerTotal(bien) {
   return (bien.items||[]).reduce((s,it) => s + (it.loyer||0), 0);
@@ -2469,7 +2526,7 @@ function autoSave() {
       const avSyncVal = (DATA.investissements?.assurance_vie||[]).filter(r=>r.assureur==='Boursorama'||r.nom?.toLowerCase().includes('bourso')||r.assureur==='Fortuneo'||r.nom?.toLowerCase().includes('fortuneo')).reduce((s,r)=>s+(r.valeurActuelle||0),0);
       const ebVal   = (DATA.investissements?.epargne_bloquee||[]).reduce((s,r)=>s+(r.montant||0),0);
       const immoVal = (DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0) + (DATA.immobilier?.p3?.valeur||0);
-      const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal + immoVal;
+      const grandTotal = bTotal + scpiVal + (DATA.maison||0) + (DATA.especeCache||0) + (avVal - avSyncVal) + ebVal + immoVal + heritageTotal();
       if (grandTotal > 100) {
         const maxATH = (DATA.ath||[]).reduce((mx,r)=>Math.max(mx,r.val||0),0);
         if (grandTotal > maxATH) {
@@ -2852,6 +2909,7 @@ function renderAll() {
   renderEB();
   renderSCPI();
   renderATH();
+  renderHeritage();
   renderImmobilier();
   renderDepenses();
   renderMobilite();
@@ -2973,7 +3031,8 @@ window.addEventListener('DOMContentLoaded', () => {
         return ss + m;
       }, 0), 0);
 
-    const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal + immoTotal;
+    const heritageVal = heritageTotal();
+    const grandTotal = banquesTotal + scpiVal + maison + liquide + avValNonSync + ebVal + immoTotal + heritageVal;
 
     const pmvPEA  = peaVal - peaPR;
     const pmvCTO  = ctoVal - ctoPR;
@@ -3017,7 +3076,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const gainVeloVoiture = kmVeloCumul > 0 && coutKmVoiture > 0 ? kmVeloCumul * coutKmVoiture : 0;
 
     return {
-      grandTotal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
+      grandTotal, heritageVal, banquesTotal, boursoTotal, fortuneoTotal, revolutTotal, natixisTotal,
       scpiVal, scpiPrix, scpiCR, maison, liquide, eeVal, avVal, avValNonSync, avSyncVal, ebVal, avVers,
       peaVal, peaPR, ctoVal, ctoPR, revInvVal, revInvPR, eePR,
       btcVal, btcPR, orVal, orPR,
@@ -4135,7 +4194,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const maison  = typeof DATA !== 'undefined' ? (DATA.maison||0) : 0;
     const liquide = typeof DATA !== 'undefined' ? (DATA.especeCache||0) : 0;
     const immoVal = typeof DATA !== 'undefined' ? ((DATA.immobilier?.p1?.valeur||0) + (DATA.immobilier?.p2?.valeur||0) + (DATA.immobilier?.p3?.valeur||0)) : 0;
-    const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal + immoVal;
+    const heritageVal = typeof heritageTotal === 'function' ? heritageTotal() : 0;
+    const grandTotal = bTotal + scpiVal + maison + liquide + (avVal - avSyncVal) + ebVal + immoVal + heritageVal;
 
     // PV hors SCPI
     const peaVal = typeof DATA !== 'undefined' ? (DATA.investissements?.pea||[]).reduce((s,r)=>s+(r.qte||0)*(r.coursActuel||0),0) : 0;
