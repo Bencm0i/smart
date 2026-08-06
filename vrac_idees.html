@@ -2,653 +2,435 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Vrac — fil d'idées</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231c2420'/%3E%3Cpath d='M32 14 L46 44 L18 44 Z' fill='none' stroke='%23e8935a' stroke-width='4' stroke-linejoin='round'/%3E%3Cline x1='32' y1='24' x2='32' y2='34' stroke='%23e8935a' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='39' r='2.4' fill='%23e8935a'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vrac</title>
 <style>
   :root{
-    --bg:#171d1a;
-    --surface:#1e2521;
-    --surface-2:#252d28;
-    --line:#333d37;
-    --ink:#e6e8e4;
-    --muted:#8a9590;
-    --coral:#e8935a;
-    --coral-dim:#5c4530;
-    --teal:#5fa89e;
-    --red:#c1594e;
-    --blue:#6a93c9;
-    --violet:#9a8ce0;
-    --sans: -apple-system,"Segoe UI",sans-serif;
-    --mono:"IBM Plex Mono",Menlo,Consolas,monospace;
+    --bg: #141414;
+    --panel: #1c1c1c;
+    --panel-2: #232323;
+    --ink: #eae6dd;
+    --ink-dim: #8a8a85;
+    --rule: #333330;
+    --amber: #e8a33d;
+    --green: #7fae6a;
+    --red: #c1614f;
   }
-  *{box-sizing:border-box;}
-  button, .up-btn, .status-badge, .post-tag, .filter-chip, .sort-tab, .composer-tag{touch-action:manipulation;}
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
   body{
-    margin:0;background:var(--bg);color:var(--ink);
-    font-family:var(--sans);font-size:14px;line-height:1.55;
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding: 32px 16px 80px;
   }
+  .mono{ font-family: "SF Mono", "JetBrains Mono", Consolas, monospace; }
+
+  .app{ width:100%; max-width:640px; }
+
   header{
-    padding:22px 20px 14px;border-bottom:1px solid var(--line);
-    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:20px;
   }
-  .title{font-family:var(--mono);font-size:19px;letter-spacing:0.3px;display:flex;align-items:center;gap:10px;}
-  .title span{color:var(--coral);}
-  .version-badge, .title .version-badge{
-    font-family:var(--mono);font-size:13px;font-weight:700;color:#241408 !important;
-    background:var(--coral);padding:3px 9px;border-radius:5px;letter-spacing:0.3px;
-    box-shadow:0 0 0 1px var(--coral-dim);
+  header h1{
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    margin:0;
   }
-  .subtitle{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;}
-  .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .io-actions{display:flex;gap:8px;}
-  .io-actions button, .filters-toggle-btn{
-    background:transparent;border:1px solid var(--line);color:var(--muted);
-    font-family:var(--mono);font-size:11px;padding:6px 10px;border-radius:3px;cursor:pointer;
-  }
-  .io-actions button:hover, .filters-toggle-btn:hover{border-color:var(--coral-dim);color:var(--ink);}
-  .filters-toggle-btn{display:none;} /* affiché uniquement en media query mobile */
-  .filters-toggle-btn.open{color:var(--coral);border-color:var(--coral-dim);}
-
-  main{max-width:720px;margin:0 auto;padding:22px 18px 60px;}
-
-  /* --- Composer --- */
-  .composer{
-    background:var(--surface);border:1px solid var(--line);border-radius:6px;
-    padding:16px 18px;margin-bottom:22px;
-  }
-  .reply-banner, .edit-banner{
-    font-family:var(--mono);font-size:11px;color:var(--muted);
-    background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
-    padding:7px 10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;
-  }
-  .reply-banner span:first-child, .edit-banner span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .reply-banner button, .edit-banner button{
-    background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;flex-shrink:0;
-  }
-  .reply-banner button:hover, .edit-banner button:hover{color:var(--red);}
-  .edit-banner{color:var(--coral);border-color:var(--coral-dim);}
-
-  .composer-extra{display:block;margin-bottom:10px;}
-  .composer input[type=text]{
-    width:100%;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
-    padding:9px 10px;border-radius:4px;font-family:var(--sans);font-size:13.5px;margin-bottom:10px;
-  }
-  .composer-input-row{display:flex;align-items:flex-end;gap:10px;}
-  .composer textarea{
-    flex:1;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
-    padding:10px 12px;border-radius:18px;font-family:var(--sans);font-size:13.5px;
-    min-height:42px;max-height:160px;overflow-y:auto;resize:none;
-  }
-  .extra-toggle-btn{
-    display:none;flex-shrink:0;width:36px;height:36px;border-radius:50%;
-    background:var(--surface-2);border:1px solid var(--line);color:var(--muted);
-    font-family:var(--mono);font-size:16px;cursor:pointer;align-items:center;justify-content:center;
-  }
-  .extra-toggle-btn:hover{border-color:var(--coral-dim);color:var(--ink);}
-  .tag-input-wrap{position:relative;}
-  #tagInput{margin-bottom:0;}
-  .tag-suggest{
-    position:absolute;top:100%;left:0;right:0;background:var(--surface-2);
-    border:1px solid var(--line);border-top:none;border-radius:0 0 4px 4px;
-    max-height:140px;overflow-y:auto;z-index:25;
-  }
-  .tag-suggest div{padding:6px 10px;font-family:var(--mono);font-size:12px;cursor:pointer;color:var(--muted);}
-  .tag-suggest div:hover{background:var(--surface);color:var(--ink);}
-  .composer-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-  .composer-tag{
-    font-family:var(--mono);font-size:11px;color:var(--coral);border:1px solid var(--coral-dim);
-    padding:2px 8px;border-radius:10px;cursor:pointer;
-  }
-  .composer-tag::after{content:" ×";opacity:0.6;}
-  .composer-hint{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:8px;}
-  button.post-btn{
-    flex-shrink:0;background:var(--coral);color:#241408;border:none;font-family:var(--mono);font-weight:600;
-    font-size:12px;padding:0 18px;height:42px;border-radius:21px;cursor:pointer;
-  }
-  button.post-btn:hover{background:#f1a877;}
-
-  /* --- Controls --- */
-  .controls-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
-  .sort-tabs{display:flex;gap:2px;flex-wrap:wrap;}
-  .sort-tab{font-family:var(--mono);font-size:11.5px;padding:6px 12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
-  .sort-tab.active{color:var(--ink);border-bottom-color:var(--coral);}
-  #searchInput{
-    background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
-    padding:7px 10px;border-radius:4px;font-family:var(--sans);font-size:12.5px;width:200px;
+  header .count{
+    font-size:12px;
+    color:var(--ink-dim);
   }
 
-  .tag-filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
-  .filter-chip{
-    font-family:var(--mono);font-size:10.5px;padding:3px 9px;border-radius:10px;
-    border:1px solid var(--line);color:var(--muted);cursor:pointer;
+  /* Reminder gauge */
+  .gauge{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:24px;
   }
-  .filter-chip.active{background:var(--coral);color:#241408;border-color:var(--coral);}
-  .filter-chip .n{opacity:0.6;}
-
-  /* --- Feed --- */
-  .post{
-    background:var(--surface);border:1px solid var(--line);border-radius:6px;
-    padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;
+  .dot{
+    width:10px; height:10px; border-radius:50%;
+    flex-shrink:0;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(127,174,106,0.15);
   }
-  .up-col{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;width:38px;}
-  .up-btn{
-    background:var(--surface-2);border:1px solid var(--line);color:var(--muted);
-    width:34px;height:34px;border-radius:6px;cursor:pointer;font-size:15px;
-    display:flex;align-items:center;justify-content:center;
+  .dot.warn{ background:var(--amber); box-shadow:0 0 0 4px rgba(232,163,61,0.15); }
+  .dot.late{ background:var(--red); box-shadow:0 0 0 4px rgba(193,97,79,0.15); }
+  .gauge-text{ flex:1; font-size:13px; line-height:1.4; }
+  .gauge-text b{ color:var(--ink); }
+  .gauge-text span{ color:var(--ink-dim); }
+  .gauge button{
+    background:none;
+    border:1px solid var(--rule);
+    color:var(--ink-dim);
+    font-size:11px;
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    white-space:nowrap;
   }
-  .up-btn:hover{border-color:var(--coral);color:var(--coral);}
-  .up-btn.upped{background:var(--coral-dim);border-color:var(--coral);color:var(--coral);}
-  .up-count{font-family:var(--mono);font-size:12px;color:var(--coral);}
+  .gauge button:hover{ border-color:var(--amber); color:var(--amber); }
 
-  .post-body{flex:1;min-width:0;}
-  .reply-ref{
-    font-family:var(--mono);font-size:10.5px;color:var(--blue);margin-bottom:6px;cursor:pointer;
-    display:flex;align-items:center;gap:5px;
+  /* Capture box */
+  .capture{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:28px;
   }
-  .reply-ref:hover{text-decoration:underline;}
-  .post-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
-  .post-title-row{display:flex;align-items:center;gap:8px;min-width:0;}
-  .post-title{font-size:14.5px;font-weight:600;color:var(--ink);}
-  .post-meta{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap;}
-  .post-content{color:var(--ink);font-size:13.5px;margin-top:5px;white-space:pre-wrap;}
-  .post-tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;}
-  .post-tag{font-family:var(--mono);font-size:10px;color:var(--teal);border:1px solid #2e4c48;padding:2px 7px;border-radius:10px;cursor:pointer;}
-  .post-tag:hover{background:#2e4c48;}
-  .post-actions{margin-top:8px;display:flex;gap:12px;align-items:center;}
-  .post-actions button{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:10.5px;cursor:pointer;padding:0;}
-  .post-actions button:hover{color:var(--ink);}
-  .del-btn:hover{color:var(--red) !important;}
-
-  .status-badge{
-    font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:10px;cursor:pointer;flex-shrink:0;
-    border:1px solid var(--line);color:var(--muted);
+  textarea{
+    width:100%;
+    min-height:64px;
+    resize:vertical;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.5;
+    font-family:inherit;
   }
-  .status-badge.explorer{color:var(--blue);border-color:#2d456b;}
-  .status-badge.encours{color:var(--coral);border-color:var(--coral-dim);}
-  .status-badge.classe{color:var(--muted);border-color:var(--line);text-decoration:line-through;}
-
-  .empty{color:var(--muted);font-family:var(--mono);font-size:12px;text-align:center;padding:40px 0;}
-
-  /* --- Mobile : interface façon messagerie --- */
-  @media (max-width: 640px){
-    body{font-size:15px;}
-    header{padding:14px 14px 10px;gap:8px;}
-    .title{font-size:17px;}
-    .version-badge{font-size:12px;padding:3px 8px;}
-    .header-actions{width:100%;}
-    .io-actions button{padding:8px 11px;font-size:11px;}
-    .filters-toggle-btn{display:inline-flex;align-items:center;padding:8px 11px;font-size:11px;}
-
-    main{padding:14px 12px 190px;} /* espace pour ne pas passer sous le composer fixe */
-
-    .filters-panel{display:none;}
-    .filters-panel.open{display:block;margin-bottom:4px;}
-    .controls-bar{flex-direction:column;align-items:stretch;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px;}
-    .sort-tabs{width:100%;justify-content:space-between;}
-    .sort-tab{flex:1;text-align:center;padding:8px 4px;font-size:11px;}
-    #searchInput{width:100%;padding:10px;font-size:16px;}
-    .tag-filter-bar{margin-top:10px;}
-    .filter-chip{padding:6px 11px;font-size:11px;}
-
-    .post{padding:10px 12px;gap:8px;border-radius:14px 14px 14px 4px;border:none;background:var(--surface-2);}
-    .up-col{width:30px;}
-    .up-btn{width:34px;height:34px;font-size:16px;}
-    .post-title{font-size:14px;}
-    .status-badge{padding:5px 10px;}
-    .post-tag{padding:5px 9px;}
-    .post-actions{gap:16px;}
-    .post-actions button{padding:6px 0;font-size:11px;}
-    .del-btn{margin-left:auto;}
-
-    /* composer fixe en bas, façon barre de saisie WhatsApp */
-    .composer{
-      position:fixed;left:0;right:0;bottom:0;z-index:30;
-      border-radius:0;border-left:none;border-right:none;border-bottom:none;
-      margin-bottom:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));
-      max-height:70vh;overflow-y:auto;
-      box-shadow:0 -4px 16px rgba(0,0,0,0.35);
-    }
-    .composer input[type=text], .composer textarea, #searchInput{font-size:16px;} /* évite le zoom auto iOS */
-    .extra-toggle-btn{display:flex;}
-    .composer-extra{display:none;}
-    .composer-extra.open{display:block;}
-    .composer-hint{display:none;} /* Ctrl+Entrée n'a pas de sens sur clavier tactile */
-    button.post-btn{width:42px;padding:0;font-size:0;}
-    button.post-btn::after{content:"➤";font-size:16px;}
+  textarea::placeholder{ color:var(--ink-dim); }
+  .capture-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+    border-top:1px solid var(--rule);
+    padding-top:10px;
   }
+  .hint{ font-size:11px; color:var(--ink-dim); }
+  .add-btn{
+    background:var(--amber);
+    color:#1a1200;
+    border:none;
+    font-weight:700;
+    font-size:13px;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .add-btn:hover{ filter:brightness(1.08); }
+
+  /* Entries */
+  .entries{ display:flex; flex-direction:column; gap:1px; }
+  .entry{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-top:none;
+    padding:12px 14px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .entries .entry:first-child{ border-top:1px solid var(--rule); border-radius:8px 8px 0 0; }
+  .entries .entry:last-child{ border-radius:0 0 8px 8px; }
+  .entries .entry:only-child{ border-radius:8px; }
+  .entry .ts{
+    font-size:11px;
+    color:var(--amber);
+    white-space:nowrap;
+    padding-top:2px;
+    flex-shrink:0;
+  }
+  .entry .txt{
+    flex:1;
+    font-size:14px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .entry .del{
+    background:none;
+    border:none;
+    color:var(--ink-dim);
+    cursor:pointer;
+    font-size:16px;
+    line-height:1;
+    padding:0 2px;
+    flex-shrink:0;
+  }
+  .entry .del:hover{ color:var(--red); }
+
+  .empty{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:13px;
+    padding:40px 0;
+    border:1px dashed var(--rule);
+    border-radius:10px;
+  }
+
+  /* Bottom actions */
+  .actions{
+    display:flex;
+    gap:8px;
+    margin-top:24px;
+    flex-wrap:wrap;
+  }
+  .actions button{
+    flex:1;
+    min-width:120px;
+    background:var(--panel-2);
+    border:1px solid var(--rule);
+    color:var(--ink);
+    font-size:12px;
+    padding:10px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .actions button:hover{ border-color:var(--ink-dim); }
+  input[type=file]{ display:none; }
+
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2);
+    border:1px solid var(--rule);
+    color:var(--ink);
+    font-size:12px;
+    padding:10px 16px;
+    border-radius:8px;
+    opacity:0;
+    transition:opacity 0.2s, transform 0.2s;
+    pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
+<div class="app">
+  <header>
+    <h1>Vrac</h1>
+    <div class="count mono" id="count">0 note</div>
+  </header>
 
-<header>
-  <div>
-    <div class="title">vrac<span>_idées</span> <span class="version-badge" id="versionBadge" title="numéro de version des données — sert à comparer rapidement PC et smartphone">v0</span></div>
-    <div class="subtitle">fil chronologique, tags, up pour faire remonter — local, sans compte</div>
+  <div class="gauge">
+    <div class="dot" id="gaugeDot"></div>
+    <div class="gauge-text">
+      <b id="gaugeMain">Aucun tri enregistré</b><br>
+      <span id="gaugeSub">Importe un fichier existant ou commence à noter.</span>
+    </div>
+    <button id="markSorted">Marquer trié</button>
   </div>
-  <div class="header-actions">
-    <button class="filters-toggle-btn" id="filtersToggleBtn" onclick="toggleFiltersPanel()">tri / recherche</button>
-    <div class="io-actions">
-      <button onclick="exportData()">exporter .json</button>
-      <button onclick="document.getElementById('importFile').click()">importer</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      <button onclick="resetDashboardVersion()" title="Remet le compteur de version à 0">↺ version</button>
+
+  <div class="capture">
+    <textarea id="input" placeholder="Note ce qui te passe par la tête… idée, todo, hypothèse, peu importe."></textarea>
+    <div class="capture-footer">
+      <span class="hint">Ctrl/Cmd + Entrée pour ajouter</span>
+      <button class="add-btn" id="addBtn">Ajouter</button>
     </div>
   </div>
-</header>
 
-<main>
-  <div class="filters-panel" id="filtersPanel">
-    <div class="controls-bar">
-      <div class="sort-tabs">
-        <div class="sort-tab active" data-sort="recent" onclick="setSort('recent')">Récent</div>
-        <div class="sort-tab" data-sort="top" onclick="setSort('top')">Plus upé</div>
-        <div class="sort-tab" data-sort="random" onclick="setSort('random')">Aléatoire</div>
-        <div class="sort-tab" data-sort="forgotten" onclick="setSort('forgotten')">Oubliés</div>
-      </div>
-      <input type="text" id="searchInput" placeholder="rechercher…" oninput="render()">
-    </div>
-    <div class="tag-filter-bar" id="tagFilterBar"></div>
-  </div>
+  <div class="entries" id="entries"></div>
+  <div class="empty" id="emptyState">Rien pour l'instant. Ta première note atterrit ici.</div>
 
-  <div id="feed"></div>
-</main>
-
-<div class="composer" id="composer">
-  <div class="reply-banner" id="replyBanner" style="display:none">
-    <span id="replyBannerText"></span>
-    <button onclick="cancelReply()">annuler</button>
+  <div class="actions">
+    <button id="copyAll">Copier tout (pour l'IA)</button>
+    <button id="exportBtn">Exporter (.json)</button>
+    <button id="importBtn">Importer (.json)</button>
+    <input type="file" id="fileInput" accept="application/json">
   </div>
-  <div class="edit-banner" id="editBanner" style="display:none">
-    <span>modification d'un post existant</span>
-    <button onclick="cancelEdit()">annuler</button>
-  </div>
-
-  <div class="composer-extra" id="composerExtra">
-    <input type="text" id="cTitle" placeholder="titre (facultatif)">
-    <div class="tag-input-wrap">
-      <input type="text" id="tagInput" placeholder="tags (entrée ou virgule pour valider)" oninput="showTagSuggest()" onkeydown="tagKeydown(event)">
-      <div class="tag-suggest" id="tagSuggest" style="display:none"></div>
-    </div>
-    <div class="composer-tags" id="composerTags"></div>
-  </div>
-
-  <div class="composer-input-row">
-    <button class="extra-toggle-btn" type="button" id="extraToggleBtn" onclick="toggleComposerExtra()" title="titre et tags">＋</button>
-    <textarea id="cContent" placeholder="l'idée, la note, le truc à ne pas perdre…" onkeydown="composerKeydown(event)" oninput="autoGrow(this)" rows="1"></textarea>
-    <button class="post-btn" id="postBtn" onclick="submitComposer()">poster</button>
-  </div>
-  <div class="composer-hint">Ctrl+Entrée pour poster directement</div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-const STORAGE_KEY = "vrac_idees_v1";
-let posts = [];
-let dataVersion = 0;
-{
-  const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-  if(Array.isArray(raw)){
-    // ancien format (juste un tableau) : migration
-    posts = raw;
-    dataVersion = 0;
-  } else if(raw && typeof raw === 'object'){
-    posts = raw.posts || [];
-    dataVersion = raw.version || 0;
-  }
-}
-let pendingTags = [];
-let activeFilterTag = null;
-let sortMode = 'recent';
-let randomSeed = Math.random();
-let replyToId = null;
-let editingId = null;
+(function(){
+  const STORAGE_KEY = 'vrac_data_v1';
 
-const STATUS_CYCLE = [null, 'explorer', 'encours', 'classe'];
-const STATUS_LABEL = { explorer:'à explorer', encours:'en cours', classe:'classé sans suite' };
-const FORGOTTEN_DAYS = 60;
-
-function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({version: dataVersion, posts}));
-  updateVersionBadge();
-}
-
-function updateVersionBadge(){
-  const el = document.getElementById('versionBadge');
-  if(el) el.textContent = 'v' + dataVersion;
-}
-
-// N'incrémente la version que lors d'un export réel (bouton "exporter .json"), pas à chaque save.
-function bumpVersion(){
-  dataVersion++;
-  save();
-}
-
-function resetDashboardVersion(){
-  if(!confirm('Remettre le compteur de version à 0 ? (actuellement v' + dataVersion + ')')) return;
-  dataVersion = 0;
-  save();
-}
-
-function allTags(){
-  const counts = {};
-  posts.forEach(p=> (p.tags||[]).forEach(t=> counts[t] = (counts[t]||0)+1 ));
-  return Object.entries(counts).sort((a,b)=> a[0].localeCompare(b[0]));
-}
-
-// --- Panneaux mobiles ---
-function toggleFiltersPanel(){
-  const panel = document.getElementById('filtersPanel');
-  const btn = document.getElementById('filtersToggleBtn');
-  panel.classList.toggle('open');
-  btn.classList.toggle('open', panel.classList.contains('open'));
-}
-function toggleComposerExtra(){
-  const el = document.getElementById('composerExtra');
-  el.classList.toggle('open');
-  document.getElementById('extraToggleBtn').textContent = el.classList.contains('open') ? '−' : '＋';
-}
-
-// --- Champ idée auto-extensible ---
-function autoGrow(el){
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-}
-
-// --- Composer tag input ---
-function showTagSuggest(){
-  const val = document.getElementById('tagInput').value.trim().toLowerCase();
-  const box = document.getElementById('tagSuggest');
-  if(!val){ box.style.display='none'; return; }
-  const matches = allTags().map(t=>t[0]).filter(t=>t.toLowerCase().includes(val) && !pendingTags.includes(t));
-  if(!matches.length){ box.style.display='none'; return; }
-  box.innerHTML = matches.map(t=>`<div onclick="pickTag('${t.replace(/'/g,"\\'")}')">${t}</div>`).join('');
-  box.style.display = 'block';
-}
-function pickTag(t){
-  if(!pendingTags.includes(t)) pendingTags.push(t);
-  document.getElementById('tagInput').value = '';
-  document.getElementById('tagSuggest').style.display = 'none';
-  renderComposerTags();
-}
-function tagKeydown(e){
-  if(e.key==='Enter' || e.key===','){
-    e.preventDefault();
-    const val = document.getElementById('tagInput').value.trim().replace(/,$/,'');
-    if(val) pickTag(val.toLowerCase());
-  }
-}
-function composerKeydown(e){
-  if((e.ctrlKey || e.metaKey) && e.key==='Enter'){
-    e.preventDefault();
-    submitComposer();
-  }
-}
-function renderComposerTags(){
-  document.getElementById('composerTags').innerHTML = pendingTags.map(t=>
-    `<span class="composer-tag" onclick="removeTag('${t.replace(/'/g,"\\'")}')">${t}</span>`
-  ).join('');
-}
-function removeTag(t){
-  pendingTags = pendingTags.filter(x=>x!==t);
-  renderComposerTags();
-}
-
-// --- Reply ---
-function startReply(id){
-  cancelEdit();
-  replyToId = id;
-  const p = posts.find(x=>x.id===id);
-  document.getElementById('replyBannerText').textContent = 'en réponse à : ' + (p.title || p.content.slice(0,60));
-  document.getElementById('replyBanner').style.display = 'flex';
-  document.getElementById('cContent').focus();
-}
-function cancelReply(){
-  replyToId = null;
-  document.getElementById('replyBanner').style.display = 'none';
-}
-
-// --- Edit ---
-function startEdit(id){
-  cancelReply();
-  const p = posts.find(x=>x.id===id);
-  if(!p) return;
-  editingId = id;
-  document.getElementById('cTitle').value = p.title || '';
-  document.getElementById('cContent').value = p.content;
-  autoGrow(document.getElementById('cContent'));
-  pendingTags = [...(p.tags||[])];
-  renderComposerTags();
-  document.getElementById('editBanner').style.display = 'flex';
-  document.getElementById('postBtn').textContent = 'enregistrer';
-  document.getElementById('composerExtra').classList.add('open');
-  document.getElementById('extraToggleBtn').textContent = '−';
-  document.getElementById('composer').scrollIntoView({behavior:'smooth', block:'end'});
-  document.getElementById('cContent').focus();
-}
-function cancelEdit(){
-  editingId = null;
-  document.getElementById('editBanner').style.display = 'none';
-  document.getElementById('postBtn').textContent = 'poster';
-}
-
-function resetComposer(){
-  document.getElementById('cTitle').value='';
-  document.getElementById('cContent').value='';
-  autoGrow(document.getElementById('cContent'));
-  pendingTags = [];
-  renderComposerTags();
-  cancelReply();
-  cancelEdit();
-  document.getElementById('composerExtra').classList.remove('open');
-  document.getElementById('extraToggleBtn').textContent = '＋';
-}
-
-function submitComposer(){
-  const title = document.getElementById('cTitle').value.trim();
-  const content = document.getElementById('cContent').value.trim();
-  if(!content){ alert('Écris au moins une idée avant de poster.'); return; }
-
-  if(editingId){
-    const p = posts.find(x=>x.id===editingId);
-    if(p){
-      p.title = title; p.content = content; p.tags = [...pendingTags];
-    }
-  } else {
-    const now = Date.now();
-    posts.unshift({
-      id: 'p'+now,
-      title, content,
-      tags: [...pendingTags],
-      created: now,
-      lastActivity: now,
-      ups: 0,
-      upped: false,
-      status: null,
-      replyTo: replyToId
-    });
-  }
-  resetComposer();
-  save();
-  render();
-}
-
-function upPost(id){
-  const p = posts.find(x=>x.id===id);
-  if(!p) return;
-  if(p.upped){
-    p.ups = Math.max(0,p.ups-1);
-    p.upped = false;
-  } else {
-    p.ups++;
-    p.upped = true;
-    p.lastActivity = Date.now();
-  }
-  save();
-  render();
-}
-
-function cycleStatus(id){
-  const p = posts.find(x=>x.id===id);
-  if(!p) return;
-  const cur = STATUS_CYCLE.indexOf(p.status||null);
-  p.status = STATUS_CYCLE[(cur+1) % STATUS_CYCLE.length];
-  save();
-  render();
-}
-
-function deletePost(id){
-  if(!confirm('Supprimer ce post ?')) return;
-  posts = posts.filter(p=>p.id!==id);
-  save();
-  render();
-}
-
-function setSort(mode){
-  sortMode = mode;
-  if(mode==='random') randomSeed = Math.random();
-  document.querySelectorAll('.sort-tab').forEach(t=>t.classList.toggle('active', t.dataset.sort===mode));
-  render();
-}
-
-function filterByTag(t){
-  activeFilterTag = (activeFilterTag===t) ? null : t;
-  render();
-}
-
-function fmtDate(ts){
-  const d = new Date(ts);
-  return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}) + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-}
-
-function escapeHtml(s){
-  const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML;
-}
-
-function pseudoRand(str){
-  let h = 0;
-  for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
-  return ((h ^ (randomSeed*1e9|0)) >>> 0) / 4294967295;
-}
-
-function scrollToPost(id){
-  const el = document.getElementById('post-'+id);
-  if(el){
-    el.scrollIntoView({behavior:'smooth', block:'center'});
-    el.style.outline = '2px solid var(--coral)';
-    setTimeout(()=>{ el.style.outline = 'none'; }, 1200);
-  }
-}
-
-function render(){
-  const tagBar = document.getElementById('tagFilterBar');
-  const tags = allTags();
-  tagBar.innerHTML = tags.map(([t,n])=>
-    `<span class="filter-chip ${activeFilterTag===t?'active':''}" onclick="filterByTag('${t.replace(/'/g,"\\'")}')">${t} <span class="n">${n}</span></span>`
-  ).join('');
-
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  let list = posts.filter(p=>{
-    const matchesTag = !activeFilterTag || (p.tags||[]).includes(activeFilterTag);
-    const matchesSearch = !q || p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q) || (p.tags||[]).some(t=>t.toLowerCase().includes(q));
-    return matchesTag && matchesSearch;
-  });
-
-  if(sortMode==='recent') list = list.slice().sort((a,b)=>b.lastActivity - a.lastActivity);
-  else if(sortMode==='top') list = list.slice().sort((a,b)=> b.ups - a.ups || b.lastActivity - a.lastActivity);
-  else if(sortMode==='random') list = list.slice().sort((a,b)=> pseudoRand(a.id) - pseudoRand(b.id));
-  else if(sortMode==='forgotten'){
-    const cutoff = Date.now() - FORGOTTEN_DAYS*24*3600*1000;
-    list = list.filter(p=> p.ups===0 && p.created < cutoff).sort((a,b)=> a.created - b.created);
-  }
-
-  const feed = document.getElementById('feed');
-  let emptyMsg = 'rien ne correspond à ce filtre';
-  if(sortMode==='forgotten' && !list.length) emptyMsg = `aucun post oublié pour l'instant (0 up et plus de ${FORGOTTEN_DAYS} jours)`;
-  feed.innerHTML = list.length ? '' : `<div class="empty">${posts.length ? emptyMsg : 'le fil est vide — poste ta première idée'}</div>`;
-
-  list.forEach(p=>{
-    const div = document.createElement('div');
-    div.className = 'post';
-    div.id = 'post-'+p.id;
-    const parent = p.replyTo ? posts.find(x=>x.id===p.replyTo) : null;
-    const statusClass = p.status ? p.status : '';
-    const statusLabel = p.status ? STATUS_LABEL[p.status] : 'statut';
-    div.innerHTML = `
-      <div class="up-col">
-        <button class="up-btn ${p.upped?'upped':''}" onclick="upPost('${p.id}')">▲</button>
-        <div class="up-count">${p.ups}</div>
-      </div>
-      <div class="post-body">
-        ${parent ? `<div class="reply-ref" onclick="scrollToPost('${parent.id}')">↳ en réponse à : ${escapeHtml(parent.title || parent.content.slice(0,50))}</div>` : ''}
-        <div class="post-top">
-          <div class="post-title-row">
-            <div class="post-title">${p.title ? escapeHtml(p.title) : '<span style="color:var(--muted);font-weight:400">sans titre</span>'}</div>
-            <span class="status-badge ${statusClass}" onclick="cycleStatus('${p.id}')">${statusLabel}</span>
-          </div>
-          <div class="post-meta">${fmtDate(p.created)}</div>
-        </div>
-        <div class="post-content">${escapeHtml(p.content)}</div>
-        <div class="post-tags">
-          ${(p.tags||[]).map(t=>`<span class="post-tag" onclick="filterByTag('${t.replace(/'/g,"\\'")}')">${t}</span>`).join('')}
-        </div>
-        <div class="post-actions">
-          <button onclick="startReply('${p.id}')">répondre</button>
-          <button onclick="startEdit('${p.id}')">modifier</button>
-          <button class="del-btn" onclick="deletePost('${p.id}')">supprimer</button>
-        </div>
-      </div>
-    `;
-    feed.appendChild(div);
-  });
-}
-
-function exportData(){
-  bumpVersion(); // la version n'avance qu'au moment d'un export réel
-  const payload = {
-    version: dataVersion,
-    exportedAt: new Date().toISOString(),
-    posts
-  };
-  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'vrac_idees_v' + dataVersion + '_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-}
-function importData(evt){
-  const file = evt.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
+  function loadState(){
     try{
-      const data = JSON.parse(e.target.result);
-      if(Array.isArray(data)){
-        // ancien format : juste un tableau de posts, pas de version connue
-        posts = data;
-        dataVersion = 0;
-      } else if(data && typeof data === 'object' && Array.isArray(data.posts)){
-        posts = data.posts;
-        dataVersion = data.version || 0;
-      } else {
-        alert('Fichier invalide.');
-        return;
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({version: dataVersion, posts}));
-      updateVersionBadge();
-      render();
-    }catch(err){ alert('Fichier invalide.'); }
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return { entries: [], lastSorted: null };
+      const data = JSON.parse(raw);
+      return {
+        entries: Array.isArray(data.entries) ? data.entries : [],
+        lastSorted: data.lastSorted || null
+      };
+    } catch(e){
+      return { entries: [], lastSorted: null };
+    }
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e){
+      showToast('Stockage local indisponible');
+    }
+  }
+
+  let state = loadState();
+
+  const els = {
+    input: document.getElementById('input'),
+    addBtn: document.getElementById('addBtn'),
+    entries: document.getElementById('entries'),
+    empty: document.getElementById('emptyState'),
+    count: document.getElementById('count'),
+    gaugeDot: document.getElementById('gaugeDot'),
+    gaugeMain: document.getElementById('gaugeMain'),
+    gaugeSub: document.getElementById('gaugeSub'),
+    markSorted: document.getElementById('markSorted'),
+    copyAll: document.getElementById('copyAll'),
+    exportBtn: document.getElementById('exportBtn'),
+    importBtn: document.getElementById('importBtn'),
+    fileInput: document.getElementById('fileInput'),
+    toast: document.getElementById('toast'),
   };
-  reader.readAsText(file);
-}
 
-document.addEventListener('click', e=>{
-  if(!e.target.closest('.tag-input-wrap')) document.getElementById('tagSuggest').style.display='none';
-});
+  function fmtTs(iso){
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2,'0');
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 
-autoGrow(document.getElementById('cContent'));
-updateVersionBadge();
-render();
+  function daysBetween(a,b){
+    return Math.floor((b - a) / (1000*60*60*24));
+  }
+
+  function render(){
+    // entries list, newest first
+    els.entries.innerHTML = '';
+    const sorted = [...state.entries].sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+    if(sorted.length === 0){
+      els.empty.style.display = 'block';
+    } else {
+      els.empty.style.display = 'none';
+      sorted.forEach(e=>{
+        const row = document.createElement('div');
+        row.className = 'entry';
+        row.innerHTML = `
+          <div class="ts mono">${fmtTs(e.ts)}</div>
+          <div class="txt"></div>
+          <button class="del" title="Supprimer">×</button>
+        `;
+        row.querySelector('.txt').textContent = e.text;
+        row.querySelector('.del').addEventListener('click', ()=>{
+          state.entries = state.entries.filter(x => x !== e);
+          saveState();
+          render();
+        });
+        els.entries.appendChild(row);
+      });
+    }
+    els.count.textContent = state.entries.length + (state.entries.length > 1 ? ' notes' : ' note');
+    renderGauge();
+  }
+
+  function renderGauge(){
+    const now = new Date();
+    if(!state.lastSorted){
+      els.gaugeDot.className = 'dot';
+      els.gaugeMain.textContent = state.entries.length > 0
+        ? `${state.entries.length} note(s) jamais triée(s)`
+        : 'Aucun tri enregistré';
+      els.gaugeSub.textContent = 'Colle "Copier tout" dans une conversation IA pour trier, puis marque comme trié.';
+      return;
+    }
+    const days = daysBetween(new Date(state.lastSorted), now);
+    let level = 'dot';
+    if(days >= 14) level = 'dot late';
+    else if(days >= 7) level = 'dot warn';
+    els.gaugeDot.className = level;
+    els.gaugeMain.textContent = days === 0 ? 'Trié aujourd\'hui' : `${days} jour${days>1?'s':''} depuis le dernier tri`;
+    els.gaugeSub.textContent = days >= 14
+      ? 'Ça commence à s\'accumuler — un passage IA serait utile.'
+      : days >= 7
+      ? 'Un tri cette semaine ne ferait pas de mal.'
+      : 'Tranquille.';
+  }
+
+  function addEntry(){
+    const text = els.input.value.trim();
+    if(!text) return;
+    state.entries.push({ ts: new Date().toISOString(), text });
+    els.input.value = '';
+    saveState();
+    render();
+  }
+
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    setTimeout(()=> els.toast.classList.remove('show'), 1800);
+  }
+
+  els.addBtn.addEventListener('click', addEntry);
+  els.input.addEventListener('keydown', (e)=>{
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+      addEntry();
+    }
+  });
+
+  els.markSorted.addEventListener('click', ()=>{
+    state.lastSorted = new Date().toISOString();
+    saveState();
+    renderGauge();
+    showToast('Marqué comme trié');
+  });
+
+  els.copyAll.addEventListener('click', ()=>{
+    if(state.entries.length === 0){ showToast('Rien à copier'); return; }
+    const sorted = [...state.entries].sort((a,b)=> new Date(a.ts) - new Date(b.ts));
+    const text = sorted.map(e => `${fmtTs(e.ts)} — ${e.text}`).join('\n');
+    navigator.clipboard.writeText(text).then(()=>{
+      showToast('Copié — colle-le dans une conversation IA');
+    }).catch(()=>{
+      showToast('Copie impossible ici, sélectionne manuellement');
+    });
+  });
+
+  els.exportBtn.addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `vrac-${stamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Fichier exporté');
+  });
+
+  els.importBtn.addEventListener('click', ()=> els.fileInput.click());
+  els.fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try{
+        const data = JSON.parse(evt.target.result);
+        if(!Array.isArray(data.entries)) throw new Error('format invalide');
+        state = { entries: data.entries, lastSorted: data.lastSorted || null };
+        saveState();
+        render();
+        showToast('Fichier importé');
+      } catch(err){
+        showToast('Fichier invalide');
+      }
+    };
+    reader.readAsText(file);
+    els.fileInput.value = '';
+  });
+
+  render();
+})();
 </script>
-
 </body>
 </html>
