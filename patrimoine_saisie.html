@@ -3084,7 +3084,7 @@ window.addEventListener('DOMContentLoaded', () => {
       depMens, revenu, revenuSalaire, revenuLocatif, immoLoyerMens, scpiLoyerMens, txEpargne, moisLiberte, moisLiberteSansMaison,
       gainVeloVoiture, kmVeloCumul, coutKmVoiture,
       nonInvestiTotal, nonInvestiLines,
-      immoTotal, immoP1Val, immoP2Val,
+      immoTotal, immoP1Val, immoP2Val, immoP3Val, immoAll: maison + immoTotal,
     };
   }
 
@@ -3126,6 +3126,7 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:'Résidence principale', val: k.maison,   color:'#e8c96e', icon:'🏠' },
       { label:'Immobilier P1',  val: k.immoP1Val,      color:'#5a9bd4', icon:'🏘️', sub:'Locatif — valeur de vente' },
       { label:'Immobilier P2',  val: k.immoP2Val,      color:'#d4a75a', icon:'🏘️', sub:'Locatif — valeur de vente' },
+      { label:'Immobilier P3',  val: k.immoP3Val,      color:'#8a6ad4', icon:'🏘️', sub:'Locatif — valeur de vente' },
     ].filter(x => x.val > 0);
 
     const detailHTML = detailLines.map(d => {
@@ -3590,7 +3591,7 @@ window.addEventListener('DOMContentLoaded', () => {
       { l:'Revolut',    v:k.revolutTotal,  c:'#c8a96e' },
       { l:'Natixis',    v:k.natixisTotal,  c:'#c05a5a' },
       { l:'SCPI',        v:k.scpiVal,        c:'#a855f7' },
-      { l:'Immobilier', v:k.maison,        c:'#e8c96e' },
+      { l:'Immobilier', v:k.immoAll,       c:'#e8c96e' },
       { l:'Assur. Vie', v:k.avValNonSync,  c:'#4df0c8' },
       { l:'Ép. Bloquée',v:k.ebVal,         c:'#8b9fba' },
       { l:'Espèces',    v:k.liquide,       c:'#6b7585' },
@@ -3626,7 +3627,7 @@ window.addEventListener('DOMContentLoaded', () => {
       (DATA[bank]||[]).forEach(r => { byRisk[Math.min(7,r.risk||1)] += (r.val||0); });
     });
     byRisk[3] += k.scpiVal + k.eeVal;
-    byRisk[2] += k.avVal + k.maison;
+    byRisk[2] += k.avVal + k.immoAll;
     byRisk[1] += k.ebVal + k.liquide;
 
     const labels = ['R1 Sécurisé','R2 Prudent','R3 Équilibré','R4 Dynamique','R5 Offensif','R6 Spéculatif','R7 Très risqué'];
@@ -3683,7 +3684,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (k.scpiVal > 0)  items[3].push({ label:'SCPI',                              val:k.scpiVal });
     if (k.eeVal   > 0)  items[3].push({ label:'Épargne entreprise',                val:k.eeVal });
     if (k.avVal   > 0)  items[2].push({ label:'Assurance Vie',                     val:k.avVal });
-    if (k.maison  > 0)  items[2].push({ label:'Immobilier (résidence + locatif)',  val:k.maison });
+    if (k.immoAll > 0)  items[2].push({ label:'Immobilier (résidence + locatif)',  val:k.immoAll });
     if (k.ebVal   > 0)  items[1].push({ label:'Épargne bloquée',                   val:k.ebVal });
     if (k.liquide > 0)  items[1].push({ label:'Espèces / Liquidités',              val:k.liquide });
 
@@ -3760,7 +3761,7 @@ window.addEventListener('DOMContentLoaded', () => {
       { label:"Charge des dépenses", sub:"Dépenses / Revenu mensuel", val:pct(k.revenu>0?k.depMens/k.revenu*100:0), num:k.revenu>0?k.depMens/k.revenu*100:0, max:100, color:k.revenu>0&&k.depMens/k.revenu<0.7?'#5aab7a':'#c05a5a' },
       { label:"Indépendance (hors immo)", sub:"Patrimoine liquide ÷ dépenses mensuelles", val:k.moisLiberteSansMaison.toFixed(0)+' mois', num:Math.min(k.moisLiberteSansMaison,120), max:120, color:k.moisLiberteSansMaison>=24?'#5aab7a':k.moisLiberteSansMaison>=6?'#c8a96e':'#c05a5a' },
       { label:"Exposition actions", sub:"PEA + CTO + Revolut / Patrimoine", val:pct(k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.peaVal+k.ctoVal+k.revInvVal)/k.grandTotal*100:0, max:100, color:'#7eb8d4' },
-      { label:"Exposition immobilier", sub:"Maison + SCPI (CR) / Patrimoine", val:pct(k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.maison+k.scpiVal)/k.grandTotal*100:0, max:100, color:'#c8a96e' },
+      { label:"Exposition immobilier", sub:"Immo (résidence+locatif) + SCPI / Patrimoine", val:pct(k.grandTotal>0?(k.immoAll+k.scpiVal)/k.grandTotal*100:0), num:k.grandTotal>0?(k.immoAll+k.scpiVal)/k.grandTotal*100:0, max:100, color:'#c8a96e' },
     ];
     el.innerHTML = rows.map(r=>`
       <div class="kpi-ratio-row">
