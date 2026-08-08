@@ -281,6 +281,27 @@ body {
   border-right: none;
 }
 .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn { position: relative; }
+.tab-alert-dot {
+  display: none;
+  position: absolute;
+  top: 9px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 rgba(192,90,90,0.6);
+  animation: dcaPulse 1.6s infinite;
+}
+.tab-alert-dot.show { display: block; }
+@keyframes dcaPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(192,90,90,0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(192,90,90,0); }
+  100% { box-shadow: 0 0 0 0 rgba(192,90,90,0); }
+}
+.log-card.dca-due { border-color: var(--red); background: rgba(192,90,90,0.08); }
+.badge.red { background: rgba(192,90,90,0.15); border-color: rgba(192,90,90,0.3); color: var(--red); }
 
 /* ═══ PANELS ═══ */
 .panel { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
@@ -1166,6 +1187,7 @@ button, input, select { touch-action: manipulation; }
   <button class="tab-btn active" onclick="switchTab('kpi')">📊 KPI</button>
   <button class="tab-btn" onclick="switchTab('banques')">🏦 Banques</button>
   <button class="tab-btn" onclick="switchTab('investissements')">📈 Invest.</button>
+  <button class="tab-btn" onclick="switchTab('dca')">🔁 DCA<span class="tab-alert-dot" id="dcaAlertDot"></span></button>
   <button class="tab-btn" onclick="switchTab('scpi')">🏢 SCPI</button>
   <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
   <button class="tab-btn" onclick="switchTab('immobilier')">🏘️ Immobilier</button>
@@ -1448,6 +1470,30 @@ button, input, select { touch-action: manipulation; }
   </div>
 </div>
 
+<!-- ═══ PANEL : DCA ═══ -->
+<div class="panel" id="panel-dca">
+  <div class="section accent-blue">
+    <div class="section-head">
+      <div class="section-title">🔁 DCA planifiés</div>
+      <button class="mini-btn" style="width:auto;margin:0;padding:5px 12px;" onclick="addDcaRow()">＋ DCA</button>
+    </div>
+    <div class="section-body" id="body-dca">
+      <p style="font-size:11px;color:var(--muted);">Planifiez vos versements programmés (date, montant, support). Une alerte s'affiche quand la date est atteinte.</p>
+    </div>
+  </div>
+  <datalist id="dcaSupportsList">
+    <option value="PEA"></option>
+    <option value="CTO"></option>
+    <option value="Revolut — Crypto"></option>
+    <option value="Revolut — Or"></option>
+    <option value="Assurance Vie Boursorama"></option>
+    <option value="Assurance Vie Fortuneo"></option>
+    <option value="PEE — Natixis"></option>
+    <option value="Livret A"></option>
+    <option value="LDDS"></option>
+  </datalist>
+</div>
+
 <!-- ═══ PANEL : KPI & GRAPHIQUES ═══ -->
 <div class="panel active" id="panel-kpi">
 
@@ -1640,6 +1686,7 @@ let DATA = {
   impotAnnee:0,
   ath:[],
   heritage:[],
+  dca:[],
   immobilier:{
     p1:{
       valeur:0,
@@ -1735,11 +1782,12 @@ let DATA = {
 // ─── TAB SWITCHING ─────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const map = {kpi:0,banques:1,investissements:2,scpi:3,actifs:4,immobilier:5,depenses:6,mobilite:7,heritage:8};
+  const map = {kpi:0,banques:1,investissements:2,dca:3,scpi:4,actifs:5,immobilier:6,depenses:7,mobilite:8,heritage:9};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   if (name === 'kpi') { if (typeof renderKPIPanel === 'function') renderKPIPanel(); }
+  if (name === 'dca') { if (typeof renderDCA === 'function') renderDCA(); }
 }
 
 // ─── RENDER BANK ROWS ──────────────────────────────────────────────────────
@@ -2246,6 +2294,84 @@ function addHeritageRow() {
   if(!DATA.heritage) DATA.heritage=[];
   DATA.heritage.push({nom:'',montant:0,date:'',inclus:false});
   renderHeritage(); autoSave();
+}
+
+// ─── DCA (VERSEMENTS PROGRAMMÉS) ──────────────────────────────────────────
+function todayISO() { return new Date().toISOString().slice(0,10); }
+
+function dcaStatus(r) {
+  if (r.fait) return { label:'✓ Effectué', cls:'green' };
+  if (!r.date) return { label:'—', cls:'' };
+  const t = todayISO();
+  if (r.date < t) return { label:'🔔 En retard', cls:'red' };
+  if (r.date === t) return { label:'🔔 Aujourd\'hui', cls:'red' };
+  const diff = Math.ceil((new Date(r.date+'T00:00:00') - new Date(t+'T00:00:00')) / 86400000);
+  return { label:'Dans ' + diff + ' j', cls: diff<=3 ? 'gold' : '' };
+}
+
+function renderDCA() {
+  const c = document.getElementById('body-dca');
+  const rows = DATA.dca || [];
+  c.innerHTML = `<p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Planifiez vos versements programmés (date, montant, support). Une alerte s'affiche quand la date est atteinte.</p>` +
+    (rows.map((r,i) => {
+      const st = dcaStatus(r);
+      const dueCls = (!r.fait && r.date && r.date <= todayISO()) ? 'dca-due' : '';
+      return `
+    <div class="log-card ${dueCls}">
+      <div class="log-card-fields">
+        <div class="log-card-field">
+          <label>Support</label>
+          <input type="text" list="dcaSupportsList" value="${(r.support||'').replace(/"/g,'&quot;')}" placeholder="Ex: PEA" oninput="DATA.dca[${i}].support=this.value;autoSave()">
+        </div>
+        <div class="log-card-field">
+          <label>Montant (€)</label>
+          <input type="number" value="${r.montant||''}" step="10" min="0" inputmode="decimal" autocomplete="off" placeholder="0" style="text-align:right" oninput="DATA.dca[${i}].montant=parseFloat(this.value)||0;autoSave()">
+        </div>
+        <div class="log-card-field">
+          <label>Date</label>
+          <input type="date" value="${r.date||''}" oninput="DATA.dca[${i}].date=this.value;autoSave();renderDCA()">
+        </div>
+        <div class="log-card-field">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;" ${r.fait?'checked':''} onchange="DATA.dca[${i}].fait=this.checked;autoSave();renderDCA()">
+            Effectué
+          </label>
+        </div>
+        <div class="log-card-field" style="min-width:88px;flex:0 0 auto;">
+          <label>Statut</label>
+          <span class="badge ${st.cls}">${st.label}</span>
+        </div>
+      </div>
+      <div class="log-card-del">
+        <button class="del-btn" onclick="deleteWithUndo(DATA.dca,${i},()=>{renderDCA();},'DCA supprimé')">✕</button>
+      </div>
+    </div>`;
+    }).join('') || '<p style="color:var(--muted);font-size:11px;">Aucun DCA planifié. Cliquez ＋ DCA pour ajouter.</p>');
+  updateDcaAlerts();
+}
+
+function addDcaRow() {
+  if(!DATA.dca) DATA.dca=[];
+  DATA.dca.push({support:'',montant:0,date:todayISO(),fait:false});
+  renderDCA(); autoSave();
+}
+
+function updateDcaAlerts() {
+  const dot = document.getElementById('dcaAlertDot');
+  if (!dot) return;
+  const due = (DATA.dca||[]).filter(r => !r.fait && r.date && r.date <= todayISO());
+  dot.classList.toggle('show', due.length > 0);
+}
+
+function checkDcaAlertsOnLoad() {
+  const t = todayISO();
+  const due = (DATA.dca||[]).filter(r => !r.fait && r.date && r.date <= t);
+  updateDcaAlerts();
+  if (due.length) {
+    const total = due.reduce((s,r) => s + (r.montant||0), 0);
+    const fmt = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(total);
+    showToast(`🔔 ${due.length} DCA à exécuter (${fmt})`);
+  }
 }
 
 // ─── IMMOBILIER (P1 / P2) ────────────────────────────────────────────────
@@ -2909,6 +3035,7 @@ function renderAll() {
   renderSCPI();
   renderATH();
   renderHeritage();
+  renderDCA();
   renderImmobilier();
   renderDepenses();
   renderMobilite();
@@ -2929,12 +3056,14 @@ window.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
   renderAll();
   if (typeof renderKPIPanel === 'function') renderKPIPanel();
+  checkDcaAlertsOnLoad();
   updateVersionBadge();
   initLastJsonInfo();
   bindMobiliteEvents();
   document.getElementById('maison').addEventListener('input', function() {
     DATA.maison = parseFloat(this.value)||0; autoSave();
   });
+  setInterval(updateDcaAlerts, 60 * 60 * 1000);
 });
 
 // ═══════════════════════════════════════════════════════════════════
