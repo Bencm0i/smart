@@ -1185,12 +1185,13 @@ button, input, select { touch-action: manipulation; }
 <!-- ═══ TABS ═══ -->
 <div class="tabs-bar">
   <button class="tab-btn active" onclick="switchTab('kpi')">📊 KPI</button>
+  <button class="tab-btn" onclick="switchTab('dca')">🔁 DCA<span class="tab-alert-dot" id="dcaAlertDot"></span></button>
   <button class="tab-btn" onclick="switchTab('banques')">🏦 Banques</button>
   <button class="tab-btn" onclick="switchTab('investissements')">📈 Invest.</button>
-  <button class="tab-btn" onclick="switchTab('dca')">🔁 DCA<span class="tab-alert-dot" id="dcaAlertDot"></span></button>
   <button class="tab-btn" onclick="switchTab('scpi')">🏢 SCPI</button>
   <button class="tab-btn" onclick="switchTab('actifs')">🏠 Actifs</button>
   <button class="tab-btn" onclick="switchTab('immobilier')">🏘️ Immobilier</button>
+  <button class="tab-btn" onclick="switchTab('poches')">🗂️ Poches</button>
   <button class="tab-btn" onclick="switchTab('depenses')">💸 Dépenses</button>
   <button class="tab-btn" onclick="switchTab('mobilite')">🚗 Mobilité</button>
   <button class="tab-btn" onclick="switchTab('heritage')">🎁 Héritage</button>
@@ -1344,6 +1345,30 @@ button, input, select { touch-action: manipulation; }
 <!-- ═══ PANEL : IMMOBILIER ═══ -->
 <div class="panel" id="panel-immobilier">
   <div id="body-immobilier"></div>
+</div>
+
+<!-- ═══ PANEL : POCHES (PROVISIONS) ═══ -->
+<div class="panel" id="panel-poches">
+  <div class="section accent-gold" style="margin-bottom:16px;">
+    <div class="section-head"><div class="section-title">💧 Liquidité disponible après provisions</div></div>
+    <div class="section-body" id="body-poches-summary"></div>
+  </div>
+  <div id="body-poches"></div>
+  <button class="mini-btn" onclick="addPoche()">＋ Poche</button>
+  <datalist id="pocheItemsList">
+    <option value="Taxe foncière"></option>
+    <option value="Taxe d'habitation (résidence secondaire)"></option>
+    <option value="Charges de copropriété"></option>
+    <option value="Assurance PNO"></option>
+    <option value="Assurance habitation"></option>
+    <option value="Travaux prévus"></option>
+    <option value="Entretien / Réparations"></option>
+    <option value="Impôt sur le revenu"></option>
+    <option value="CFE"></option>
+    <option value="Frais de notaire"></option>
+    <option value="Assurance véhicule"></option>
+    <option value="Contrôle technique"></option>
+  </datalist>
 </div>
 
 <!-- ═══ PANEL : DÉPENSES ═══ -->
@@ -1782,12 +1807,13 @@ let DATA = {
 // ─── TAB SWITCHING ─────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const map = {kpi:0,banques:1,investissements:2,dca:3,scpi:4,actifs:5,immobilier:6,depenses:7,mobilite:8,heritage:9};
+  const map = {kpi:0,dca:1,banques:2,investissements:3,scpi:4,actifs:5,immobilier:6,poches:7,depenses:8,mobilite:9,heritage:10};
   document.querySelectorAll('.tab-btn')[map[name]].classList.add('active');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   if (name === 'kpi') { if (typeof renderKPIPanel === 'function') renderKPIPanel(); }
   if (name === 'dca') { if (typeof renderDCA === 'function') renderDCA(); }
+  if (name === 'poches') { if (typeof renderPoches === 'function') renderPoches(); }
 }
 
 // ─── RENDER BANK ROWS ──────────────────────────────────────────────────────
@@ -2504,6 +2530,103 @@ function delDepenseItem(ci, ii) {
   deleteWithUndo(DATA.depenses.categories[ci].items, ii, renderDepenses, 'Dépense supprimée');
 }
 
+// ─── POCHES DE PROVISION ────────────────────────────────────────────────────
+// Une "poche" regroupe des dépenses prévues (ex : taxe foncière, travaux…).
+// Le total de toutes les poches vient en déduction des liquidités disponibles
+// (comptes + livrets + espèces, hors poches investies) pour savoir combien il
+// reste réellement mobilisable.
+function pocheTotal(p) {
+  return (p.items||[]).reduce((s,it) => s+(it.montant||0), 0);
+}
+function pochesGrandTotal() {
+  return (DATA.poches||[]).reduce((s,p) => s+pocheTotal(p), 0);
+}
+function renderPochesSummary() {
+  const c = document.getElementById('body-poches-summary');
+  if (!c) return;
+  const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+  const k = (typeof window.computeKPIs === 'function') ? window.computeKPIs() : null;
+  const liquideDispo = k ? k.nonInvestiTotal : 0;
+  const totalPoches = pochesGrandTotal();
+  const net = liquideDispo - totalPoches;
+  c.innerHTML = `
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">Les poches regroupent des dépenses prévues (ex : taxe foncière, charges, travaux…). Leur montant est déduit des liquidités disponibles (comptes + livrets + espèces, hors poches investies) pour savoir combien il reste réellement à disposition.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:11px;color:var(--muted);">Liquidités disponibles (hors poches investies)</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;">${fmt(liquideDispo)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:11px;color:var(--muted);">Total provisionné (toutes poches)</span>
+      <span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--red);">− ${fmt(totalPoches)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Liquidité réellement disponible</span>
+      <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:${net<0?'var(--red)':'var(--green)'};">${fmt(net)}</span>
+    </div>`;
+}
+function renderPoches() {
+  const c = document.getElementById('body-poches');
+  if (!c) return;
+  const groups = DATA.poches || [];
+  const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+  c.innerHTML = groups.length ? groups.map((p, pi) => `
+    <div class="section" style="margin-bottom:16px;">
+      <div class="section-head">
+        <div class="section-title" style="flex:1;min-width:0;">
+          <input type="text" value="${(p.nom||'').replace(/"/g,'&quot;')}" placeholder="Nom de la poche (ex : Immobilier)"
+            style="background:transparent;border:none;color:var(--text);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;width:100%;outline:none;"
+            oninput="DATA.poches[${pi}].nom=this.value;autoSave()">
+        </div>
+        <button class="mini-btn" style="width:auto;margin:0 6px 0 0;padding:5px 10px;flex-shrink:0;" onclick="addPocheItem(${pi})">＋ Ligne</button>
+        <button class="del-btn" onclick="delPoche(${pi})">✕</button>
+      </div>
+      <div class="section-body">
+        ${(p.items||[]).length ? p.items.map((it,ii) => `
+          <div class="log-card">
+            <div class="log-card-fields">
+              <div class="log-card-field" style="flex:2;">
+                <label>Libellé</label>
+                <input type="text" list="pocheItemsList" value="${(it.label||'').replace(/"/g,'&quot;')}" placeholder="Ex : Taxe foncière"
+                  oninput="DATA.poches[${pi}].items[${ii}].label=this.value;autoSave()">
+              </div>
+              <div class="log-card-field">
+                <label>Montant (€)</label>
+                <input type="number" value="${it.montant||''}" step="10" min="0" inputmode="decimal" autocomplete="off" placeholder="0" style="text-align:right"
+                  oninput="DATA.poches[${pi}].items[${ii}].montant=parseFloat(this.value)||0;autoSave();updatePocheTotals(${pi})">
+              </div>
+            </div>
+            <div class="log-card-del">
+              <button class="del-btn" onclick="delPocheItem(${pi},${ii})">✕</button>
+            </div>
+          </div>`).join('') : '<p style="color:var(--muted);font-size:11px;">Aucune ligne. Cliquez ＋ Ligne pour ajouter une dépense prévue.</p>'}
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;text-align:right;">Sous-total poche : <strong style="color:var(--accent);" id="poche-subtotal-val-${pi}">${fmt(pocheTotal(p))}</strong></p>
+      </div>
+    </div>`).join('') : '<p style="color:var(--muted);font-size:11px;">Aucune poche. Cliquez ＋ Poche pour créer une réserve de provisions (ex : Immobilier, Travaux, Impôts…).</p>';
+  renderPochesSummary();
+}
+function updatePocheTotals(pi) {
+  const fmt = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+  const el = document.getElementById('poche-subtotal-val-'+pi);
+  if (el && DATA.poches[pi]) el.textContent = fmt(pocheTotal(DATA.poches[pi]));
+  renderPochesSummary();
+}
+function addPoche() {
+  if (!DATA.poches) DATA.poches = [];
+  DATA.poches.push({nom:'Nouvelle poche', items:[]});
+  renderPoches(); autoSave();
+}
+function delPoche(pi) {
+  deleteWithUndo(DATA.poches, pi, renderPoches, 'Poche supprimée');
+}
+function addPocheItem(pi) {
+  if (!DATA.poches[pi].items) DATA.poches[pi].items = [];
+  DATA.poches[pi].items.push({label:'', montant:0});
+  renderPoches(); autoSave();
+}
+function delPocheItem(pi, ii) {
+  deleteWithUndo(DATA.poches[pi].items, ii, renderPoches, 'Ligne supprimée');
+}
+
 // ─── MOBILITÉ ──────────────────────────────────────────────────────────────
 function renderOdo(vehicle, containerId) {
   const log = DATA.mobilite[vehicle].odoLog || [];
@@ -3037,6 +3160,7 @@ function renderAll() {
   renderHeritage();
   renderDCA();
   renderImmobilier();
+  renderPoches();
   renderDepenses();
   renderMobilite();
   document.getElementById('maison').value = DATA.maison || '';
@@ -3216,6 +3340,7 @@ window.addEventListener('DOMContentLoaded', () => {
       immoTotal, immoP1Val, immoP2Val, immoP3Val, immoAll: maison + immoTotal,
     };
   }
+  window.computeKPIs = computeKPIs;
 
   function renderKPICards(k) {
     const pmvTot  = k.pmvPEA + k.pmvCTO + k.pmvRev + k.pmvEE + k.pmvAV + k.pmvSCPI;
