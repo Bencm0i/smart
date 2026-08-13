@@ -4407,10 +4407,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const TICKERS_DEF = [
     { id:'btc',  sym:'BTC/EUR',   gfSym:'CURRENCY:BTCEUR',   yf:'BTC-EUR',   fmt:'eur',  dot:'#f7931a', yfOnly:false },
     { id:'wpea', sym:'WPEA',      gfSym:'EPA:WPEA',           yf:'WPEA.PA',   fmt:'eur',  dot:'#a855f7', yfOnly:false },
-    { id:'nas',  sym:'NASDAQ',    gfSym:'INDEXNASDAQ:.IXIC',  yf:'%5EIXIC',   fmt:'idx',  dot:'#e8c96e', yfOnly:false },
     { id:'eur',  sym:'EUR/USD',   gfSym:'CURRENCY:EURUSD',    yf:'EURUSD=X',  fmt:'fx',   dot:'#4df0c8', yfOnly:true  },
     // { id:'gold' } — supprimé (OR retiré du ticker)
-    { id:'cac',  sym:'CAC 40',    gfSym:'INDEXEURO:PX1',      yf:'%5EFCHI',   fmt:'idx',  dot:'#5aab7a', yfOnly:false },
+    // { id:'nas' } — supprimé (NASDAQ retiré du ticker)
+    // { id:'cac' } — supprimé (CAC 40 retiré du ticker)
   ];
 
   const CORS_PROXIES = [
@@ -4463,6 +4463,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const avVers = typeof DATA !== 'undefined' ? (DATA.investissements?.assurance_vie||[]).reduce((s,r)=>s+(r.versements||0),0) : 0;
     const pmvHorsSCPI = (peaVal-peaPR) + (ctoVal-ctoPR) + (revVal-revPR) + (eeVal-eePR) + (avVal-avVers);
 
+    // Gain vs PRU (global, hors SCPI)
+    const totalPR  = peaPR + ctoPR + revPR + eePR + avVers;
+    const totalVal = peaVal + ctoVal + revVal + eeVal + avVal;
+    const gainPruPct = totalPR > 0 ? (totalVal - totalPR) / totalPR * 100 : null;
+
     // ATH
     const athRows = typeof DATA !== 'undefined' ? (DATA.ath||[]).filter(r=>r.val>0).sort((a,b)=>a.date?.localeCompare(b.date||'')||0) : [];
     const lastATH = athRows.length ? athRows[athRows.length-1] : null;
@@ -4474,6 +4479,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const pvSign = pmvHorsSCPI >= 0 ? '+' : '';
     const athCls = athDiff === null ? 'neu' : athDiff >= 0 ? 'up' : 'dn';
     const athSign= athDiff !== null && athDiff >= 0 ? '▲' : '▼';
+    const gainPruCls  = gainPruPct === null ? 'neu' : gainPruPct >= 0 ? 'up' : 'dn';
+    const gainPruSign = gainPruPct === null ? '' : gainPruPct >= 0 ? '▲' : '▼';
 
     return [
       `<div class="ticker-item" id="kpi-patrimoine${suffix}" style="border-left:1px solid rgba(255,255,255,0.10);border-right:1px solid rgba(255,255,255,0.06);">
@@ -4491,6 +4498,11 @@ window.addEventListener('DOMContentLoaded', () => {
         <span class="t-sym">ATH</span>
         <span class="t-price">${athVal > 0 ? fmtEur(athVal) : '—'}</span>
         ${athDiff !== null ? `<span class="t-chg ${athCls}">${athSign} ${Math.abs(athPct).toFixed(1)}%</span>` : ''}
+      </div>`,
+      `<div class="ticker-item" id="kpi-gainpru${suffix}">
+        <span class="t-dot" style="background:#e8c96e"></span>
+        <span class="t-sym">GAIN vs PRU</span>
+        <span class="t-price ${gainPruCls}">${gainPruPct !== null ? gainPruSign+' '+Math.abs(gainPruPct).toFixed(2)+'%' : '—'}</span>
       </div>`,
     ].join('');
   }
@@ -4525,7 +4537,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function updateKPITickers() {
     ['', '-b'].forEach(suffix => {
-      const ids = ['kpi-patrimoine','kpi-pvhs','kpi-ath'];
+      const ids = ['kpi-patrimoine','kpi-pvhs','kpi-ath','kpi-gainpru'];
       const tmp = document.createElement('div');
       tmp.innerHTML = getKPITickerItems(suffix);
       const newNodes = Array.from(tmp.children);
