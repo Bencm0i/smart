@@ -729,6 +729,38 @@ body {
 }
 .item-edit-btn:hover { border-color: var(--orange); color: var(--orange-hi); background: var(--orange-lo); }
 
+/* SURBRILLANCE */
+.item-star-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  filter: grayscale(1);
+  opacity: 0.55;
+  transition: all 0.15s;
+}
+.item-star-btn.on { filter: none; opacity: 1; border-color: #e8c040; background: #4a3d10; }
+.item.hl {
+  background: linear-gradient(90deg, rgba(232,192,64,0.22), var(--bg-card) 70%);
+  border-color: #e8c040;
+  border-left-width: 4px;
+  box-shadow: 0 0 10px rgba(232,192,64,0.25);
+}
+.item.hl .item-text { color: var(--text-hi); font-weight: 600; }
+.recap-item.hl {
+  background: rgba(232,192,64,0.14);
+  border-left: 3px solid #e8c040;
+  border-radius: 4px;
+  padding-left: 6px;
+}
+.recap-item.hl .recap-text { color: var(--text-hi); font-weight: 600; }
+.recap-item.hl .recap-text::before { content: '⭐ '; font-size: 11px; }
+.hl-toggle { width: 100%; margin-bottom: 14px; }
+.hl-toggle.on { background: #4a3d10; border-color: #e8c040; color: #ffe27a; }
+
 /* Qty qty badge in add row */
 .qty-input {
   width: 52px;
@@ -998,6 +1030,8 @@ body {
         <button class="prio-btn" id="elist-2" onclick="setEditList(2)">✅ TODO</button>
       </div>
 
+      <button class="prio-btn hl-toggle" id="edit-hl" onclick="toggleEditHl()">⭐ SURBRILLANCE</button>
+
       <div class="modal-row">
         <div style="flex:1">
           <div class="modal-label">QUANTITÉ (optionnel)</div>
@@ -1125,6 +1159,11 @@ function toggleItem(listId, itemId) {
   if (item) { item.done = !item.done; save(listId); renderList(listId); }
 }
 
+function toggleHighlight(listId, itemId) {
+  const item = LISTS[listId].items.find(i => i.id === itemId);
+  if (item) { item.hl = !item.hl; save(listId); renderList(listId); }
+}
+
 function deleteItem(listId, itemId) {
   const idx = LISTS[listId].items.findIndex(i => i.id === itemId);
   if (idx === -1) return;
@@ -1210,16 +1249,19 @@ function renderList(listId) {
     wrapper.className = 'item-wrapper';
     wrapper.innerHTML = `
       <div class="item-delete-bg">🗑</div>
-      <div class="item ${item.done ? 'done' : ''}" data-id="${item.id}">
+      <div class="item ${item.done ? 'done' : ''}${item.hl ? ' hl' : ''}" data-id="${item.id}">
         <div class="item-check">${item.done ? '✓' : ''}</div>
         ${listId === 2 && item.prio ? `<div class="item-priority p-${item.prio}"></div>` : ''}
         <div class="item-text">${escHtml(item.text)}</div>
         ${item.qty ? `<div class="item-qty">×${item.qty}</div>` : ''}
         ${listId === 2 ? dueBadgeHtml(item) : ''}
+        <div class="item-star-btn${item.hl ? ' on' : ''}" title="Surbrillance">⭐</div>
         <div class="item-edit-btn" title="Modifier">✏️</div>
       </div>
     `;
     const itemEl = wrapper.querySelector('.item');
+    const starBtn = wrapper.querySelector('.item-star-btn');
+    starBtn.addEventListener('click', e => { e.stopPropagation(); toggleHighlight(listId, item.id); });
     const editBtn = wrapper.querySelector('.item-edit-btn');
     editBtn.addEventListener('click', e => { e.stopPropagation(); openEditModal(listId, item.id); });
     itemEl.addEventListener('click', () => toggleItem(listId, item.id));
@@ -1370,7 +1412,7 @@ function renderRecap() {
 
     if (pending.length > 0) {
       html += pending.map(item => `
-        <div class="recap-item">
+        <div class="recap-item${item.hl ? ' hl' : ''}">
           <div class="recap-dot${id === 2 && item.prio ? ' p-' + item.prio : ''}"></div>
           <div class="recap-text">${escHtml(item.text)}${item.qty ? ' <span style="color:var(--orange);font-size:12px">×'+item.qty+'</span>' : ''}</div>
           ${id === 2 ? dueBadgeHtml(item) : ''}
@@ -1380,7 +1422,7 @@ function renderRecap() {
 
     if (done.length > 0) {
       html += done.map(item => `
-        <div class="recap-item">
+        <div class="recap-item${item.hl ? ' hl' : ''}">
           <div class="recap-dot recap-done-dot"></div>
           <div class="recap-text done">${escHtml(item.text)}</div>
         </div>
@@ -1399,6 +1441,7 @@ function renderRecap() {
 let editContext = null; // { listId, itemId }
 let editPrio = 'med';
 let editTargetList = 0;
+let editHl = false;
 
 function openEditModal(listId, itemId) {
   const item = LISTS[listId].items.find(i => i.id === itemId);
@@ -1406,6 +1449,8 @@ function openEditModal(listId, itemId) {
   editContext = { listId, itemId };
   editPrio = item.prio || 'med';
   editTargetList = listId;
+  editHl = !!item.hl;
+  document.getElementById('edit-hl').classList.toggle('on', editHl);
 
   document.getElementById('edit-text').value = item.text;
   document.getElementById('edit-qty').value = item.qty || '';
@@ -1434,6 +1479,11 @@ function updateEditDependentBlocks() {
   const isTodo = editTargetList === 2;
   document.getElementById('edit-prio-block').style.display = isTodo ? 'block' : 'none';
   document.getElementById('edit-due-block').style.display = isTodo ? 'block' : 'none';
+}
+
+function toggleEditHl() {
+  editHl = !editHl;
+  document.getElementById('edit-hl').classList.toggle('on', editHl);
 }
 
 function setEditList(newListId) {
@@ -1468,6 +1518,7 @@ function saveEdit() {
 
   item.text = newText;
   item.qty = newQty || null;
+  item.hl = editHl;
 
   if (editTargetList === 2) {
     item.prio = editPrio;
