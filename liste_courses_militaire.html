@@ -378,6 +378,27 @@ body {
 .recap-section:active {
   transform: scale(0.99);
 }
+.recap-sub {
+  margin: 12px 0 0 14px;
+  padding: 10px 12px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-hi);
+  border-left: 3px solid #46a0bf;
+  border-radius: 8px;
+}
+.recap-sub:hover { border-color: #46a0bf; }
+.recap-sub-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #46a0bf;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .recap-title {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px;
@@ -1379,8 +1400,6 @@ function renderRecap() {
   document.getElementById('recap-toolbar').classList.toggle('on', hideDoneInRecap);
 
   const allLists = [
-    { id: 0, name: '🛒 Courses alimentaires', tag: 'tag-alim' },
-    { id: 1, name: '🔧 Courses spécialisées', tag: 'tag-spec' },
     { id: 2, name: '✅ To-Do', tag: 'tag-todo' }
   ];
 
@@ -1389,6 +1408,38 @@ function renderRecap() {
     container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">// TOUTES LES LISTES SONT VIDES</div></div>';
     return;
   }
+
+  // ── Encadré COURSES : alimentaires + sous-groupe spécialisées ──
+  (function renderCoursesBox() {
+    const rowHtml = item => item.done
+      ? `<div class="recap-item${item.hl ? ' hl' : ''}"><div class="recap-dot recap-done-dot"></div><div class="recap-text done">${escHtml(item.text)}</div></div>`
+      : `<div class="recap-item${item.hl ? ' hl' : ''}"><div class="recap-dot"></div><div class="recap-text">${escHtml(item.text)}${item.qty ? ' <span style="color:var(--orange);font-size:12px">×' + item.qty + '</span>' : ''}</div></div>`;
+    const visible = arr => {
+      const p = arr.filter(i => !i.done);
+      const d = hideDoneInRecap ? [] : arr.filter(i => i.done);
+      return [...p, ...d];
+    };
+    const alimV = visible(LISTS[0].items);
+    const specV = visible(LISTS[1].items);
+    if (alimV.length === 0 && specV.length === 0) return;
+
+    const section = document.createElement('div');
+    section.className = 'recap-section';
+    section.addEventListener('click', () => switchTab(1));
+
+    let html = `<div class="recap-title">🛒 Courses <span class="section-count">${alimV.length + specV.length}</span></div>`;
+    html += alimV.map(rowHtml).join('');
+    if (specV.length > 0) {
+      html += `<div class="recap-sub" id="recap-sub-spec">
+        <div class="recap-sub-title">🔧 Spécialisées <span class="section-count">${specV.length}</span></div>
+        ${specV.map(rowHtml).join('')}
+      </div>`;
+    }
+    section.innerHTML = html;
+    const sub = section.querySelector('#recap-sub-spec');
+    if (sub) sub.addEventListener('click', e => { e.stopPropagation(); switchTab(2); });
+    container.appendChild(section);
+  })();
 
   allLists.forEach(({ id, name }) => {
     const items = LISTS[id].items;
