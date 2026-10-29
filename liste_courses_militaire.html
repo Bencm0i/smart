@@ -378,6 +378,14 @@ body {
 .recap-section:active {
   transform: scale(0.99);
 }
+.recap-section.recap-todo {
+  background: #2a2638;
+  border-color: #5a4d80;
+  border-left: 4px solid #a08ad0;
+}
+.recap-section.recap-todo:hover { border-color: #a08ad0; background: #322d44; }
+.recap-section.recap-todo .recap-title { color: #b9a6e8; }
+.recap-section.recap-todo .recap-item { border-bottom-color: #4a4066; }
 .recap-sub {
   margin: 12px 0 0 14px;
   padding: 10px 12px;
@@ -1448,7 +1456,7 @@ function renderRecap() {
     if (hideDoneInRecap && items.every(i => i.done)) return;
 
     const section = document.createElement('div');
-    section.className = 'recap-section';
+    section.className = 'recap-section' + (id === 2 ? ' recap-todo' : '');
     section.addEventListener('click', () => switchTab(id + 1));
     let pending = items.filter(i => !i.done);
     const done = hideDoneInRecap ? [] : items.filter(i => i.done);
